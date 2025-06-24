@@ -62,18 +62,18 @@ spec:
           persistentVolumeClaim:
             claimName: osmosmjerka-pvc
       containers:
-      - name: osmosmjerka
-        image: osmosmjerka
-        imagePullPolicy: Never
-        ports:
-        - containerPort: 8085
-        resources:
-          requests:
-            memory: "1Gi"
-            cpu: "2"
-          limits:
-            memory: "2Gi"
-            cpu: "4"
-        volumeMounts:
-        - mountPath: /app/db
-          name: osmosmjerka-volume
+        - name: osmosmjerka
+          image: osmosmjerka
+          imagePullPolicy: Never
+          ports:
+            - containerPort: 8085
+          resources:
+            requests:
+              memory: "1Gi"
+              cpu: "2"
+            limits:
+              memory: "2Gi"
+              cpu: "4"
+          volumeMounts:
+            - mountPath: /app/db
+              name: osmosmjerka-volume

@@ -18,5 +18,7 @@ WORKDIR /app
 COPY --from=backend /app/backend /app/backend
 COPY --from=frontend /app/backend/static /app/backend/static
 WORKDIR /app/backend
+
 RUN pip install -r requirements.txt
+
 CMD ["python", "app.py"]

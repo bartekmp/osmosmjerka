@@ -1,11 +1,11 @@
 import io
 import random
 
-from db import get_categories, get_words_by_category, init_db, insert_words
 from flask import Flask, jsonify, request, send_file, send_from_directory
 from flask_cors import CORS
 from utils import export_to_docx
 
+from db import get_categories, get_words_by_category, init_db, insert_words
 from wordsearch import generate_grid
 
 app = Flask(__name__, static_folder="static", static_url_path="")
@@ -42,7 +42,9 @@ def export():
     data = request.get_json()
     docx_bytes = export_to_docx(data["category"], data["grid"], data["words"])
     return send_file(
-        io.BytesIO(docx_bytes), as_attachment=True, download_name=f"wordsearch-{data["category"]}.docx"
+        io.BytesIO(docx_bytes),
+        as_attachment=True,
+        download_name=f"wordsearch-{data["category"]}.docx",
     )
 
 

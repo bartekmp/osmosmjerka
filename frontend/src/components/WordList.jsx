@@ -1,13 +1,13 @@
 import React from 'react';
 
 export default function WordList({ words, found }) {
-  return (
-    <ul>
-      {words.map(({ word, translation }) => (
-        <li key={word} style={{ textDecoration: found.includes(word) ? 'line-through' : 'none' }}>
-          {word} {found.includes(word) && `- ${translation}`}
-        </li>
-      ))}
-    </ul>
-  );
+    return (
+        <ul>
+            {words.map(({ word, translation }) => (
+                <li key={word}>
+                    <span style={{ fontWeight: 'bold', textDecoration: found.includes(word) ? 'underline red' : 'none' }}>{word}</span> {found.includes(word) && `- ${translation}`}
+                </li>
+            ))}
+        </ul>
+    );
 }
