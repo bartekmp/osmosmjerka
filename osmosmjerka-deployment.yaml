@@ -1,0 +1,79 @@
+---
+apiVersion: v1
+kind: PersistentVolume
+metadata:
+  name: osmosmjerka-pv
+  labels:
+    app: osmosmjerka
+spec:
+  storageClassName: manual
+  accessModes:
+    - ReadWriteOnce
+  hostPath:
+    path: /home/bartek/workspace/wordsearch/db
+  capacity:
+    storage: 1Gi
+---
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: osmosmjerka-pvc
+  labels:
+    app: osmosmjerka
+spec:
+  storageClassName: manual
+  accessModes:
+    - ReadWriteOnce
+  resources:
+    requests:
+      storage: 512Mi
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: osmosmjerka-service
+  labels:
+    app: osmosmjerka
+spec:
+  type: LoadBalancer
+  selector:
+    app: osmosmjerka
+  ports:
+    - protocol: TCP
+      port: 80
+      targetPort: 8085
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: osmosmjerka-app
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: osmosmjerka
+  template:
+    metadata:
+      labels:
+        app: osmosmjerka
+    spec:
+      volumes:
+        - name: osmosmjerka-volume
+          persistentVolumeClaim:
+            claimName: osmosmjerka-pvc
+      containers:
+      - name: osmosmjerka
+        image: osmosmjerka
+        imagePullPolicy: Never
+        ports:
+        - containerPort: 8085
+        resources:
+          requests:
+            memory: "1Gi"
+            cpu: "2"
+          limits:
+            memory: "2Gi"
+            cpu: "4"
+        volumeMounts:
+        - mountPath: /app/db
+          name: osmosmjerka-volume

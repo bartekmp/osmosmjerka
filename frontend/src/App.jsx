@@ -35,7 +35,7 @@ export default function App() {
 
   return (
     <div style={{ padding: '1rem', fontFamily: 'sans-serif' }}>
-      <h1>Word Search Game</h1>
+      <h1>Osmosmjerka Word Search Game</h1>
       <CategorySelector categories={categories} onSelect={loadPuzzle} />
       <Grid grid={grid} words={words} onFound={markFound} />
       <WordList words={words} found={found} />

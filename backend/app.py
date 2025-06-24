@@ -23,8 +23,6 @@ def get_words():
         category = random.choice(get_categories())
     else:
         category = request.args.get("category")
-    import pdb
-    pdb.set_trace()
     words = get_words_by_category(category)
     selected = random.sample(words, min(10, max(15, len(words))))
     grid, placed_words = generate_grid(selected)
@@ -44,7 +42,7 @@ def export():
     data = request.get_json()
     docx_bytes = export_to_docx(data["category"], data["grid"], data["words"])
     return send_file(
-        io.BytesIO(docx_bytes), as_attachment=True, download_name="wordsearch.docx"
+        io.BytesIO(docx_bytes), as_attachment=True, download_name=f"wordsearch-{data["category"]}.docx"
     )
 
 
