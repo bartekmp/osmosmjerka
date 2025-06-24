@@ -35,8 +35,6 @@ def get_categories():
 
 
 def insert_words(content):
-    import pdb
-    pdb.set_trace()
     conn = sqlite3.connect(DATABASE_FILE)
     cursor = conn.cursor()
     for line in content.strip().splitlines():
