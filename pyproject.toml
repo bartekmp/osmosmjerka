@@ -1,0 +1,8 @@
+[project]
+name = "osmosmjerka"
+version = "0.2"
+description = "Web-based word search game for learning foreign languages"
+readme = "README.md"
+license = "Apache-2.0"
+license-files = ["LICENSE"]
+requires-python = ">= 3.12"
