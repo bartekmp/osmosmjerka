@@ -1,58 +1,75 @@
 import io
 import random
+from contextlib import asynccontextmanager
 
-from flask import Flask, jsonify, request, send_file, send_from_directory
-from flask_cors import CORS
+from fastapi import FastAPI, File, Request, UploadFile
+from fastapi.middleware.cors import CORSMiddleware
+from fastapi.responses import FileResponse, JSONResponse
+from fastapi.staticfiles import StaticFiles
 from utils import export_to_docx
 
 from db import get_categories, get_words_by_category, init_db, insert_words
 from wordsearch import generate_grid
 
-app = Flask(__name__, static_folder="static", static_url_path="")
-CORS(app)
+
+@asynccontextmanager
+async def lifespan(_: FastAPI):
+    init_db()
+    yield
 
 
-@app.route("/api/categories")
-def get_all_categories():
-    return jsonify(get_categories())
+app = FastAPI(lifespan=lifespan)
+
+# Enable CORS
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=["*"],
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
+
+# Serve static files at /static
+app.mount("/static", StaticFiles(directory="static"), name="static")
 
 
-@app.route("/api/words")
-def get_words():
-    if "category" not in request.args:
-        category = random.choice(get_categories())
-    else:
-        category = request.args.get("category")
+@app.get("/api/categories")
+async def get_all_categories():
+    return JSONResponse(get_categories())
+
+
+@app.get("/api/words")
+async def get_words(category: str | None = None):
+    categories = get_categories()
+    if not category:
+        category = random.choice(categories)
     words = get_words_by_category(category)
     selected = random.sample(words, min(10, max(15, len(words))))
     grid, placed_words = generate_grid(selected)
-    return jsonify({"grid": grid, "words": placed_words})
+    return JSONResponse({"grid": grid, "words": placed_words})
 
 
-@app.route("/api/upload", methods=["POST"])
-def upload():
-    file = request.files["file"]
-    content = file.read().decode("utf-8")
+@app.post("/api/upload")
+async def upload(file: UploadFile = File(...)):
+    content = (await file.read()).decode("utf-8")
     insert_words(content)
-    return "Uploaded", 200
+    return "Uploaded"
 
 
-@app.route("/api/export", methods=["POST"])
-def export():
-    data = request.get_json()
+@app.post("/api/export")
+async def export(request: Request):
+    data = await request.json()
     docx_bytes = export_to_docx(data["category"], data["grid"], data["words"])
-    return send_file(
+    return FileResponse(
         io.BytesIO(docx_bytes),
-        as_attachment=True,
-        download_name=f"wordsearch-{data["category"]}.docx",
+        media_type="application/vnd.openxmlformats-officedocument.wordprocessingml.document",
+        filename=f"wordsearch-{data['category']}.docx",
     )
 
 
-@app.route("/")
-def root():
-    return send_from_directory(app.static_folder, "index.html")
-
-
-if __name__ == "__main__":
-    init_db()
-    app.run(host="0.0.0.0", port=8085)
+# Catch-all for SPA (must be last, and must not intercept /api)
+@app.get("/{full_path:path}")
+async def serve_spa(full_path: str):
+    if not full_path.startswith("api/"):
+        return FileResponse("static/index.html")
+    return JSONResponse({"detail": "Not Found"}, status_code=404)

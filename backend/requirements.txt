@@ -1,3 +1,4 @@
-flask
-flask-cors
+fastapi
 python-docx
+python-multipart
+uvicorn

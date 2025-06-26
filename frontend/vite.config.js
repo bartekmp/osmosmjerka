@@ -9,5 +9,5 @@ export default defineConfig({
         emptyOutDir: true
     },
     publicDir: 'public',
-    base: './'
+    base: '/static/'
 });

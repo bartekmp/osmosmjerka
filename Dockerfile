@@ -21,4 +21,5 @@ WORKDIR /app/backend
 
 RUN pip install -r requirements.txt
 
-CMD ["python", "app.py"]
+EXPOSE 8085
+CMD ["uvicorn", "app:app", "--host", "0.0.0.0", "--port", "8085"]
