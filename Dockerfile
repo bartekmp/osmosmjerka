@@ -7,6 +7,7 @@ FROM node:20-slim AS frontend
 WORKDIR /app
 COPY frontend/ frontend/
 WORKDIR /app/frontend
+COPY frontend/public public/
 RUN npm install && npm run build
 
 FROM python:3.12-slim

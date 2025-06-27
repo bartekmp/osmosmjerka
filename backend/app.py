@@ -3,7 +3,7 @@ import random
 from contextlib import asynccontextmanager
 
 from auth import verify_credentials
-from fastapi import Depends, FastAPI, File, Request, UploadFile, status
+from fastapi import Depends, FastAPI, File, Query, Request, UploadFile, status
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import FileResponse, JSONResponse
 from fastapi.staticfiles import StaticFiles
@@ -23,9 +23,12 @@ from db import (
 )
 from wordsearch import generate_grid
 
+# List of API endpoints that should be ignored for the SPA routing
+# This is used to ensure that the SPA does not interfere with API calls.
 API_ENDPOINTS = ["api/", "admin/"]
 
 
+# Initialize the FastAPI application
 @asynccontextmanager
 async def lifespan(_: FastAPI):
     init_db()
@@ -48,70 +51,122 @@ app.mount("/static", StaticFiles(directory="static", html=True), name="static")
 
 
 @app.get("/admin/status")
-def admin_status(user=Depends(verify_credentials)):
+def admin_status(user=Depends(verify_credentials)) -> JSONResponse:
     return JSONResponse({"status": "ok"}, status_code=status.HTTP_200_OK)
 
 
 @app.get("/admin/rows")
-def get_all_rows(offset: int = 0, limit: int = 20, user=Depends(verify_credentials)):
-    rows = get_all_words(offset, limit)
-    return [
-        {"id": r[0], "categories": r[1], "word": r[2], "translation": r[3]}
-        for r in rows
-    ]
+def get_all_rows(
+    offset: int = 0,
+    limit: int = 20,
+    category: str = Query(None),
+    user=Depends(verify_credentials)
+) -> dict:
+    rows, total = get_all_words(offset, limit, category)
+    return {
+        "rows": [
+            {"id": r[0], "categories": r[1], "word": r[2], "translation": r[3]}
+            for r in rows
+        ],
+        "total": total
+    }
 
 
 @app.post("/admin/row")
-def add_row(row: dict, user=Depends(verify_credentials)):
+def add_row(row: dict, user=Depends(verify_credentials)) -> JSONResponse:
     add_word(row["categories"], row["word"], row["translation"])
     return {"status": "ok"}
 
 
 @app.put("/admin/row/{id}")
-def update_row(id: int, row: dict, user=Depends(verify_credentials)):
+def update_row(id: int, row: dict, user=Depends(verify_credentials)) -> JSONResponse:
     update_word(id, row["categories"], row["word"], row["translation"])
     return {"status": "ok"}
 
 
 @app.delete("/admin/row/{id}")
-def delete_row(id: int, row: dict, user=Depends(verify_credentials)):
+def delete_row(id: int, row: dict, user=Depends(verify_credentials)) -> JSONResponse:
     delete_word(id)
     return {"status": "deleted"}
 
 
 @app.delete("/admin/clear")
-def clear_db(user=Depends(verify_credentials)):
+def clear_db(user=Depends(verify_credentials)) -> JSONResponse:
     delete_all_words()
     return {"status": "cleared"}
 
 
 @app.get("/api/categories")
-async def get_all_categories():
+async def get_all_categories() -> JSONResponse:
     all_categories = get_categories()
     filtered = [cat for cat in all_categories if cat not in IGNORED_CATEGORIES]
     return JSONResponse(filtered)
 
 
+def get_grid_size_and_num_words(selected: list, difficulty: str) -> tuple:
+    """Determine the grid size and number of words based on difficulty level.
+    Args:
+        selected (list): List of selected words.
+        difficulty (str): Difficulty level ("easy", "medium", "hard", "demanding").
+    Returns:
+        tuple: (size, num_words) where size is the grid size and num_words is the number of words to place.
+    """
+    if difficulty == "easy":
+        return 10, 7
+    elif difficulty == "medium":
+        return 15, 12
+    elif difficulty == "hard":
+        return 20, 18
+    elif difficulty == "demanding":
+        size = (
+            max(len(w["word"].replace(" ", "")) for w in selected) if selected else 10
+        )
+        num_words = min(25, len(selected))
+        return size, num_words
+    else:
+        return 10, 7
+
+
 @app.get("/api/words")
-async def get_words(category: str | None = None):
+async def get_words(category: str | None = None, difficulty: str = "medium"):
     categories = get_categories()
     if not category:
         category = random.choice(categories)
     selected = get_words_by_category(category, ignored_categories=IGNORED_CATEGORIES)
-    word_pairs = [(w["word"].upper(), w["translation"]) for w in selected]
-    grid, placed_words = generate_grid(word_pairs)
+    if not selected:
+        return JSONResponse({"grid": [], "words": []})
+
+    if difficulty not in ["easy", "medium", "hard", "demanding"]:
+        return JSONResponse(
+            {"detail": "Invalid difficulty level"},
+            status_code=status.HTTP_400_BAD_REQUEST,
+        )
+
+    size, num_words = get_grid_size_and_num_words(selected, difficulty)
+
+    if len(selected) < num_words:
+        return JSONResponse(
+            {"detail": "Not enough words in the selected category"},
+            status_code=status.HTTP_400_BAD_REQUEST,
+        )
+    if len(selected) > num_words:
+        selected = random.sample(selected, num_words)
+    else:
+        random.shuffle(selected)
+
+    grid, placed_words = generate_grid(selected, size=size)
     return JSONResponse({"grid": grid, "words": placed_words})
 
 
 @app.post("/api/upload")
-async def upload(file: UploadFile = File(...)):
+async def upload(file: UploadFile = File(...)) -> str:
     content = (await file.read()).decode("utf-8")
     insert_words(content)
     return "Uploaded"
 
 
 @app.post("/api/export")
-async def export(request: Request):
+async def export(request: Request) -> FileResponse:
     data = await request.json()
     docx_bytes = export_to_docx(data["category"], data["grid"], data["words"])
     return FileResponse(
@@ -122,12 +177,17 @@ async def export(request: Request):
 
 
 @app.get("/api/ignored_categories")
-async def get_ignored_categories():
+async def get_ignored_categories() -> JSONResponse:
+    """Return the list of ignored categories.
+    Returns:
+        JSONResponse: A sorted list of ignored categories.
+    """
     return JSONResponse(sorted(list(IGNORED_CATEGORIES)))
 
 
 @app.get("/{full_path:path}")
 async def serve_spa(full_path: str):
+    """Catch-all: Serve the SPA for any path that does not start with 'api/' or 'admin/'."""
     if not (full_path.startswith("api/") or full_path.startswith("admin/")):
         return FileResponse("static/index.html")
     return JSONResponse({"detail": "Not Found"}, status_code=404)

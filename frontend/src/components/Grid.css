@@ -23,5 +23,20 @@
 }
 
 .grid-cell.found {
-    background: #90ee90;
+    background: #e0e0e0;
+}
+
+body,
+#root {
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+}
+
+@media (min-width: 900px) {
+    .word-list {
+        columns: 3;
+    }
 }
