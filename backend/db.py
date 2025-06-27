@@ -14,6 +14,7 @@ IGNORED_CATEGORIES = set(
 
 
 def init_db():
+    """Initialize the database and create the words table if it doesn't exist."""
     conn = sqlite3.connect(DATABASE_FILE)
     cursor = conn.cursor()
     cursor.execute(
@@ -23,7 +24,15 @@ def init_db():
     conn.close()
 
 
-def get_words_by_category(category, ignored_categories=None):
+def get_words_by_category(
+    category: str, ignored_categories: set | None = None
+) -> list[dict]:
+    """Retrieve words from the database by category.
+    Args:
+        category (str): The category to filter words by.
+        ignored_categories (set, optional): Categories to ignore.
+    Returns:
+        list: A list of dictionaries containing words and their translations."""
     conn = sqlite3.connect(DATABASE_FILE)
     cursor = conn.cursor()
     cursor.execute(f"SELECT word, translation, categories FROM {TABLE_NAME}")
@@ -40,7 +49,12 @@ def get_words_by_category(category, ignored_categories=None):
     return words
 
 
-def get_categories(ignored_categories=None):
+def get_categories(ignored_categories: set | None = None) -> list[str]:
+    """Retrieve all unique categories from the database.
+    Args:
+        ignored_categories (set, optional): Categories to ignore.
+    Returns:
+        list: A sorted list of unique categories."""
     conn = sqlite3.connect(DATABASE_FILE)
     cursor = conn.cursor()
     cursor.execute(f"SELECT categories FROM {TABLE_NAME}")
@@ -55,13 +69,21 @@ def get_categories(ignored_categories=None):
     return sorted(all_cats)
 
 
-def insert_words(content):
+def insert_words(content: str):
+    """Insert words into the database from a given content string.
+    The content should be formatted as 'word; translation; categories'.
+    Args:
+        content (str): The content string containing words, translations, and categories.
+    """
     conn = sqlite3.connect(DATABASE_FILE)
     cursor = conn.cursor()
     for line in content.splitlines():
-        parts = line.strip().split("\t")
+        parts = [p.strip() for p in line.strip().split(";")]
         if len(parts) == 3:
-            categories, word, translation = parts
+            word, translation, categories = parts
+            cursor.execute(f"SELECT 1 FROM {TABLE_NAME} WHERE word = ?", (word,))
+            if cursor.fetchone():
+                continue
             try:
                 cursor.execute(
                     f"INSERT INTO {TABLE_NAME} (categories, word, translation) VALUES (?, ?, ?)",
@@ -69,23 +91,49 @@ def insert_words(content):
                 )
             except sqlite3.IntegrityError:
                 continue
+        else:
+            print(f"Invalid line format: {line}")
     conn.commit()
     conn.close()
 
 
-def get_all_words(offset: int = 0, limit: int = 20):
+def get_all_words(offset: int = 0, limit: int = 20, category: str = None) -> tuple[list[tuple], int]:
+    """Retrieve all words from the database with pagination and optional category filter.
+    Returns: (rows, total_rows)
+    """
     conn = sqlite3.connect(DATABASE_FILE)
     cursor = conn.cursor()
-    cursor.execute(
-        f"SELECT id, categories, word, translation FROM {TABLE_NAME} LIMIT ? OFFSET ?",
-        (limit, offset),
-    )
-    rows = cursor.fetchall()
+    if category:
+        # Filtrowanie po kategorii (dokładne dopasowanie w stringu kategorii)
+        cursor.execute(
+            f"SELECT id, categories, word, translation FROM {TABLE_NAME} WHERE categories LIKE ? LIMIT ? OFFSET ?",
+            (f"%{category}%", limit, offset),
+        )
+        rows = cursor.fetchall()
+        cursor.execute(
+            f"SELECT COUNT(*) FROM {TABLE_NAME} WHERE categories LIKE ?",
+            (f"%{category}%",)
+        )
+        total = cursor.fetchone()[0]
+    else:
+        cursor.execute(
+            f"SELECT id, categories, word, translation FROM {TABLE_NAME} LIMIT ? OFFSET ?",
+            (limit, offset),
+        )
+        rows = cursor.fetchall()
+        cursor.execute(f"SELECT COUNT(*) FROM {TABLE_NAME}")
+        total = cursor.fetchone()[0]
     conn.close()
-    return rows
+    return rows, total
 
 
-def add_word(categories, word, translation):
+def add_word(categories: str, word: str, translation: str):
+    """Add a new word to the database.
+    Args:
+        categories (str): The categories associated with the word.
+        word (str): The word to add.
+        translation (str): The translation of the word.
+    """
     conn = sqlite3.connect(DATABASE_FILE)
     cursor = conn.cursor()
     cursor.execute(
@@ -96,7 +144,14 @@ def add_word(categories, word, translation):
     conn.close()
 
 
-def update_word(id, categories, word, translation):
+def update_word(id: int, categories: str, word: str, translation: str):
+    """Update an existing word in the database.
+    Args:
+        id (int): The ID of the word to update.
+        categories (str): The new categories for the word.
+        word (str): The new word.
+        translation (str): The new translation of the word.
+    """
     conn = sqlite3.connect(DATABASE_FILE)
     cursor = conn.cursor()
     cursor.execute(
@@ -107,7 +162,11 @@ def update_word(id, categories, word, translation):
     conn.close()
 
 
-def delete_word(id):
+def delete_word(id: int):
+    """Delete a word from the database by its ID.
+    Args:
+        id (int): The ID of the word to delete.
+    """
     conn = sqlite3.connect(DATABASE_FILE)
     cursor = conn.cursor()
     cursor.execute(f"DELETE FROM {TABLE_NAME} WHERE id=?", (id,))
@@ -116,6 +175,7 @@ def delete_word(id):
 
 
 def delete_all_words():
+    """Delete all words from the database."""
     conn = sqlite3.connect(DATABASE_FILE)
     cursor = conn.cursor()
     cursor.execute(f"DELETE FROM {TABLE_NAME}")

@@ -4,7 +4,6 @@ import axios from 'axios';
 import Grid from './components/Grid';
 import WordList from './components/WordList';
 import CategorySelector from './components/CategorySelector';
-import UploadForm from './components/UploadForm';
 import ExportButton from './components/ExportButton';
 import confetti from 'canvas-confetti';
 import AdminPanel from './components/AdminPanel';
@@ -16,6 +15,7 @@ export default function App() {
     const [grid, setGrid] = useState([]);
     const [words, setWords] = useState([]);
     const [found, setFound] = useState([]);
+    const [difficulty, setDifficulty] = useState('easy');
 
     useEffect(() => {
         axios.get('/api/ignored_categories').then(res => {
@@ -23,13 +23,20 @@ export default function App() {
         });
         axios.get('/api/categories').then(res => {
             setCategories(res.data);
-            if (res.data.length > 0) loadPuzzle(res.data[0]);
+            if (res.data.length > 0) setSelectedCategory(res.data[0]);
         });
     }, []);
 
-    const loadPuzzle = (categories) => {
-        setSelectedCategory(categories);
-        axios.get(`/api/words?categories=${categories}`).then(res => {
+    useEffect(() => {
+        if (selectedCategory) {
+            loadPuzzle(selectedCategory, difficulty);
+        }
+        // eslint-disable-next-line
+    }, [selectedCategory, difficulty]);
+
+    const loadPuzzle = (category, diff = difficulty) => {
+        setSelectedCategory(category);
+        axios.get(`/api/words?category=${category}&difficulty=${diff}`).then(res => {
             setGrid(res.data.grid);
             setWords(res.data.words);
             setFound([]);
@@ -48,29 +55,76 @@ export default function App() {
     const visibleCategories = categories.filter(cat => !ignoredCategories.includes(cat));
 
     return (
-        <div style={{ padding: '1rem', fontFamily: 'sans-serif' }}>
-            <Link to="/admin" style={{ float: 'right', marginBottom: '1rem' }}>Admin</Link>
+        <div
+            style={{
+                padding: '1rem',
+                fontFamily: 'sans-serif',
+                minHeight: '100vh',
+                display: 'flex',
+                flexDirection: 'column',
+                alignItems: 'center',
+                justifyContent: 'center'
+            }}
+        >
+            <Link to="/admin" style={{ position: 'absolute', top: 20, right: 40 }}>Admin</Link>
             <Routes>
                 <Route path="/admin" element={<AdminPanel />} />
                 <Route path="/" element={
                     <>
                         <h1>Osmosmjerka Word Search Game</h1>
-                        <CategorySelector
-                            categories={visibleCategories}
-                            selected={selectedCategory}
-                            onSelect={loadPuzzle}
-                        />
+                        <div style={{ display: 'flex', alignItems: 'center', marginBottom: '1rem' }}>
+                            <CategorySelector
+                                categories={visibleCategories}
+                                selected={selectedCategory}
+                                onSelect={cat => setSelectedCategory(cat)}
+                            />
+                            <button
+                                style={{ marginLeft: 12, padding: '0.3rem 0.8rem' }}
+                                onClick={() => loadPuzzle(selectedCategory, difficulty)}
+                                title="Reload puzzle"
+                            >
+                                🔄
+                            </button>
+                        </div>
+                        <div style={{ marginBottom: '1rem' }}>
+                            <label>
+                                Difficulty:&nbsp;
+                                <select
+                                    value={difficulty}
+                                    onChange={e => setDifficulty(e.target.value)}
+                                >
+                                    <option value="easy">Easy (10x10)</option>
+                                    <option value="medium">Medium (15x15)</option>
+                                    <option value="hard">Hard (20x20)</option>
+                                    <option value="demanding">Demanding (longest word)</option>
+                                </select>
+                            </label>
+                        </div>
                         {allFound && (
                             <div style={{ margin: '1rem 0', fontWeight: 'bold', color: 'green' }}>
                                 All words found!
-                                <button style={{ marginLeft: '1rem' }} onClick={() => loadPuzzle(selectedCategory)}>
+                                <button style={{ marginLeft: '1rem' }} onClick={() => loadPuzzle(selectedCategory, difficulty)}>
                                     Load new puzzle
                                 </button>
                             </div>
                         )}
-                        <Grid grid={grid} words={words} found={found} onFound={markFound} />
-                        <WordList words={words} found={found} />
-                        <UploadForm onUpload={() => loadPuzzle(selectedCategory)} />
+                        <div
+                            style={{
+                                display: 'flex',
+                                alignItems: 'flex-start',
+                                justifyContent: 'center',
+                                width: '100%',
+                                maxWidth: 1200,
+                                margin: '0 auto'
+                            }}
+                        >
+                            <div style={{ flexShrink: 0, display: 'flex', justifyContent: 'center' }}>
+                                <Grid grid={grid} words={words} found={found} onFound={markFound} />
+                            </div>
+                            <div style={{ marginLeft: '3rem', minWidth: 220 }}>
+                                <WordList words={words} found={found} />
+                            </div>
+                        </div>
                         <ExportButton category={selectedCategory} grid={grid} words={words} />
                     </>
                 } />
