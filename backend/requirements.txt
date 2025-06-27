@@ -1,4 +1,6 @@
+bcrypt
 fastapi
 python-docx
+python-dotenv
 python-multipart
 uvicorn

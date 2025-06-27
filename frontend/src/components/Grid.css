@@ -1,0 +1,27 @@
+.grid-table {
+    border-spacing: 5px;
+    user-select: none;
+    font-family: monospace;
+    font-size: 1.4rem;
+    margin: 1rem auto;
+}
+
+.grid-cell {
+    border: 2px solid #ccc;
+    width: 2rem;
+    height: 2rem;
+    text-align: center;
+    border-radius: 5px;
+    box-shadow: 0 0 3px #aaa;
+    cursor: pointer;
+    font-weight: bold;
+    background: #fff;
+}
+
+.grid-cell.selected {
+    background: #ffcccc;
+}
+
+.grid-cell.found {
+    background: #90ee90;
+}

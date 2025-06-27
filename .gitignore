@@ -1,4 +1,6 @@
+.env
 .venv/
+.vscode/
 __pycache__/
 *.pyc
 *.pyo
@@ -7,3 +9,4 @@ __pycache__/
 *.db
 *.sqlite3
 *.log
+package-lock.json

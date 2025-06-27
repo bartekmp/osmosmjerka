@@ -1,9 +1,9 @@
 import React from 'react';
 
-export default function CategorySelector({ categories, onSelect }) {
+export default function CategorySelector({ categories, selected, onSelect }) {
     return (
-        <select onChange={e => onSelect(e.target.value)}>
-            {categories.map(cat => <option key={cat}>{cat}</option>)}
+        <select value={selected} onChange={e => onSelect(e.target.value)}>
+            {categories.map(cat => <option key={cat} value={cat}>{cat}</option>)}
         </select>
     );
 }
