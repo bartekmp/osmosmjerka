@@ -1,6 +1,7 @@
 FROM python:3.12-slim AS backend
 WORKDIR /app
 COPY backend/ backend/
+COPY .env backend/.env
 
 FROM node:20-slim AS frontend
 WORKDIR /app

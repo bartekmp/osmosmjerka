@@ -2,6 +2,8 @@ import random
 
 
 def generate_grid(word_pairs):
+    if not word_pairs:
+        return [], []
     words = [w[0].upper() for w in word_pairs]
     size = max(len(w) for w in words)
     grid = [["" for _ in range(size)] for _ in range(size)]
