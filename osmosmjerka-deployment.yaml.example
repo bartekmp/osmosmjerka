@@ -10,7 +10,7 @@ spec:
   accessModes:
     - ReadWriteOnce
   hostPath:
-    path: /home/bartek/workspace/wordsearch/db
+    path: <your path to the SQLite DB file>
   capacity:
     storage: 1Gi
 ---
@@ -35,13 +35,14 @@ metadata:
   labels:
     app: osmosmjerka
 spec:
-  type: LoadBalancer
+  type: NodePort
   selector:
     app: osmosmjerka
   ports:
     - protocol: TCP
-      port: 80
+      port: 8085
       targetPort: 8085
+      nodePort: 30085
 ---
 apiVersion: apps/v1
 kind: Deployment
@@ -63,7 +64,7 @@ spec:
             claimName: osmosmjerka-pvc
       containers:
         - name: osmosmjerka
-          image: osmosmjerka
+          image: osmosmjerka:latest
           imagePullPolicy: Never
           ports:
             - containerPort: 8085
