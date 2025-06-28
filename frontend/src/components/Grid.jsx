@@ -1,4 +1,4 @@
-import React, { useEffect, useRef, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import './Grid.css';
 
 export default function Grid({ grid, words, found, onFound }) {

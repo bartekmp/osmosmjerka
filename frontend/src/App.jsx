@@ -24,7 +24,7 @@ export default function App() {
         axios.get('/api/categories').then(res => {
             setCategories(res.data);
             if (res.data.length > 0) {
-                // Pick a random category
+                // Pick a random category on initial load
                 const randomIndex = Math.floor(Math.random() * res.data.length);
                 setSelectedCategory(res.data[randomIndex]);
             }

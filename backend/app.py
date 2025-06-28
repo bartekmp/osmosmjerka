@@ -180,6 +180,26 @@ async def get_ignored_categories() -> JSONResponse:
     return JSONResponse(sorted(list(IGNORED_CATEGORIES)))
 
 
+@app.get("/admin/export")
+def export_txt(
+    category: str = Query(None),
+    user=Depends(verify_credentials)
+):
+    # Download all words for the category
+    rows, _ = get_all_words(0, None, category)
+    def row_to_line(row):
+        # row: (id, categories, word, translation)
+        return f"{row[1]};{row[2]};{row[3]}"
+    content = "\n".join(row_to_line(row) for row in rows)
+    file_like = io.BytesIO(content.encode("utf-8"))
+    filename = f"export_{category or 'all'}.txt"
+    return StreamingResponse(
+        file_like,
+        media_type="text/plain",
+        headers={"Content-Disposition": f'attachment; filename="{filename}"'}
+    )
+
+
 @app.get("/{full_path:path}")
 async def serve_spa(full_path: str):
     """Catch-all: Serve the SPA for any path that does not start with 'api/' or 'admin/'."""

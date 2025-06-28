@@ -1,3 +1,4 @@
+import axios from 'axios';
 import { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
 import UploadForm from './UploadForm';
@@ -73,6 +74,24 @@ export default function AdminPanel() {
             } else {
                 setEditRow({ categories: '', word: '', translation: '' });
             }
+        });
+    };
+
+    const handleExportTxt = () => {
+        const params = new URLSearchParams();
+        if (filterCategory) params.append('category', filterCategory);
+
+        axios.get(`/admin/export?${params.toString()}`, {
+            headers: authHeader,
+            responseType: 'blob'
+        }).then(res => {
+            const url = window.URL.createObjectURL(new Blob([res.data]));
+            const link = document.createElement('a');
+            link.href = url;
+            link.setAttribute('download', `export_${filterCategory || 'all'}.txt`);
+            document.body.appendChild(link);
+            link.click();
+            link.remove();
         });
     };
 
@@ -162,6 +181,7 @@ export default function AdminPanel() {
                 <button className="scrabble-btn" onClick={fetchRows}>Load Data</button>
                 <button className="scrabble-btn" onClick={() => setEditRow({ categories: '', word: '', translation: '' })}>Add Row</button>
                 <UploadForm onUpload={fetchRows} />
+                <button className="scrabble-btn" onClick={handleExportTxt} style={{ color: 'green' }}>Export to file</button>
                 <button className="scrabble-btn" onClick={clearDb} style={{ color: 'red' }}>Clear All</button>
             </div>
 

@@ -116,6 +116,7 @@ select:disabled,
         transform: scale(var(--grid-scale, 1));
         transform-origin: top left;
     }
+
     .grid-cell {
         font-size: 1em;
         min-width: 2.2em;
@@ -124,6 +125,7 @@ select:disabled,
         height: 2.2em;
         padding: 0.15em;
     }
+
     .main-flex {
         flex-direction: column !important;
         align-items: center !important;
@@ -133,6 +135,7 @@ select:disabled,
         padding: 0 !important;
         box-sizing: border-box !important;
     }
+
     .word-list-wrapper {
         margin-left: 0 !important;
         margin-top: 1rem !important;
@@ -141,6 +144,7 @@ select:disabled,
         max-width: 100vw !important;
         box-sizing: border-box !important;
     }
+
     .word-list {
         font-size: 1em;
         min-width: 0 !important;
