@@ -41,6 +41,8 @@ def get_words_by_category(
 
     words = []
     for word, translation, categories in rows:
+        if len(word.strip()) < 3:
+            continue  # Skip words shorter than 3 characters
         cats_set = set(categories.split())
         if ignored_categories and cats_set.intersection(ignored_categories):
             continue
@@ -97,7 +99,7 @@ def insert_words(content: str):
     conn.close()
 
 
-def get_all_words(offset: int = 0, limit: int = 20, category: str = None) -> tuple[list[tuple], int]:
+def get_all_words(offset: int = 0, limit: int = 20, category: str | None = None) -> tuple[list[tuple], int]:
     """Retrieve all words from the database with pagination and optional category filter.
     Returns: (rows, total_rows)
     """
