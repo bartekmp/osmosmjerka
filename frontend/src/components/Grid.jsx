@@ -1,4 +1,4 @@
-import React, { useRef, useState } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import './Grid.css';
 
 export default function Grid({ grid, words, found, onFound }) {
@@ -79,14 +79,88 @@ export default function Grid({ grid, words, found, onFound }) {
         );
     };
 
+    // Function to get cell coordinates from touch events
+    // This function retrieves the cell coordinates from a touch event by checking the touch position
+    // and finding the closest table cell that has data attributes for row and column.
+    const getCellFromTouch = (e) => {
+        const touch = e.touches[0];
+        const el = document.elementFromPoint(touch.clientX, touch.clientY);
+        if (!el) return null;
+        const cell = el.closest('td[data-row][data-col]');
+        if (!cell) return null;
+        return [parseInt(cell.dataset.row), parseInt(cell.dataset.col)];
+    };
+
+    const handleTouchStart = (e) => {
+        const cell = getCellFromTouch(e);
+        if (cell) {
+            isMouseDown.current = true;
+            setSelected([cell]);
+            setDirection(null);
+        }
+    };
+
+    const handleTouchMove = (e) => {
+        if (!isMouseDown.current) return;
+        const cell = getCellFromTouch(e);
+        if (cell) {
+            handleMouseEnter(...cell);
+        }
+    };
+
+    const handleTouchEnd = () => {
+        handleMouseUp();
+    };
+
+    // Debounce for dynamic grid scaling on mobile devices
+    useEffect(() => {
+        let timeout;
+        function updateScale() {
+            if (window.innerWidth <= 600 && grid.length > 0) {
+                const cellSize = 2.2; // em
+                const totalWidthEm = grid[0].length * cellSize;
+                const fontSize = parseFloat(getComputedStyle(document.documentElement).fontSize) || 16;
+                const totalWidthPx = totalWidthEm * fontSize;
+                const scale = Math.min(1, (window.innerWidth - 8) / totalWidthPx);
+                document.documentElement.style.setProperty('--grid-scale', scale);
+            } else {
+                document.documentElement.style.setProperty('--grid-scale', 1);
+            }
+        }
+        function debouncedUpdate() {
+            clearTimeout(timeout);
+            timeout = setTimeout(updateScale, 100);
+        }
+        updateScale();
+        window.addEventListener('resize', debouncedUpdate);
+        return () => {
+            window.removeEventListener('resize', debouncedUpdate);
+            clearTimeout(timeout);
+        };
+    }, [grid]);
+
     if (grid.length === 0) return <div style={{ padding: '1rem' }}>No puzzle available</div>;
 
     return (
         <table
             onMouseUp={handleMouseUp}
             onMouseLeave={() => setSelected([])}
+            onTouchStart={handleTouchStart}
+            onTouchMove={handleTouchMove}
+            onTouchEnd={handleTouchEnd}
             className="grid-table"
+            style={{ touchAction: 'none' }}
         >
+            <colgroup>
+                {grid[0].map((_, idx) => (
+                    <col
+                        key={idx}
+                        style={{
+                            width: window.innerWidth <= 600 ? '2.2em' : '4em'
+                        }}
+                    />
+                ))}
+            </colgroup>
             <tbody>
                 {grid.map((row, r) => (
                     <tr key={r}>
@@ -101,6 +175,8 @@ export default function Grid({ grid, words, found, onFound }) {
                             return (
                                 <td
                                     key={c}
+                                    data-row={r}
+                                    data-col={c}
                                     onMouseDown={() => handleMouseDown(r, c)}
                                     onMouseEnter={() => handleMouseEnter(r, c)}
                                     className={cellClasses}
