@@ -99,32 +99,50 @@ def insert_words(content: str):
     conn.close()
 
 
-def get_all_words(offset: int = 0, limit: int = 20, category: str | None = None) -> tuple[list[tuple], int]:
-    """Retrieve all words from the database with pagination and optional category filter.
-    Returns: (rows, total_rows)
+def get_all_words(
+    offset: int = 0, limit: int | None = 20, category: str | None = None
+) -> tuple[list[tuple], int]:
+    """Retrieve all words from the database with optional pagination and optional category filter.
+    Args:
+        offset (int): The starting point for pagination.
+        limit (int | None): The maximum number of results to return. If None, return all results.
+        category (str | None): The category to filter words by. If None, return all words.
+    Returns:
+        tuple: A tuple containing a list of rows (each row is a tuple of id, categories, word, translation) and the total count of words.
     """
     conn = sqlite3.connect(DATABASE_FILE)
     cursor = conn.cursor()
+
+    base_query = f"SELECT id, categories, word, translation FROM {TABLE_NAME}"
+    count_query = f"SELECT COUNT(*) FROM {TABLE_NAME}"
+    params = []
+    where_clause = ""
+
+    # If a category is specified, add a WHERE clause to filter by categories
     if category:
-        # Filtrowanie po kategorii (dokładne dopasowanie w stringu kategorii)
-        cursor.execute(
-            f"SELECT id, categories, word, translation FROM {TABLE_NAME} WHERE categories LIKE ? LIMIT ? OFFSET ?",
-            (f"%{category}%", limit, offset),
-        )
-        rows = cursor.fetchall()
-        cursor.execute(
-            f"SELECT COUNT(*) FROM {TABLE_NAME} WHERE categories LIKE ?",
-            (f"%{category}%",)
-        )
-        total = cursor.fetchone()[0]
-    else:
-        cursor.execute(
-            f"SELECT id, categories, word, translation FROM {TABLE_NAME} LIMIT ? OFFSET ?",
-            (limit, offset),
-        )
-        rows = cursor.fetchall()
-        cursor.execute(f"SELECT COUNT(*) FROM {TABLE_NAME}")
-        total = cursor.fetchone()[0]
+        where_clause = " WHERE categories LIKE ?"
+        params.append(f"%{category}%")
+
+    # Compose main queries
+    main_query = base_query + where_clause
+    count_query = count_query + where_clause
+
+    # Add pagination to the query if limit or offset is specified
+    if limit is not None:
+        main_query += " LIMIT ? OFFSET ?"
+        params.extend([limit, offset])
+    elif offset:
+        main_query += " OFFSET ?"
+        params.append(offset)
+
+    cursor.execute(main_query, params)
+    rows = cursor.fetchall()
+
+    # Prepare parameters for the count query (only category filter if present)
+    count_params = params[:1] if category else []
+    cursor.execute(count_query, count_params)
+    total = cursor.fetchone()[0]
+
     conn.close()
     return rows, total
 
