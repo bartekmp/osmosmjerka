@@ -1,5 +1,5 @@
 # osmosmjerka
-[Osmosmjerka](https://hr.wikipedia.org/wiki/Osmosmjerka) is a simple web-based [word search](https://en.wikipedia.org/wiki/Word_search) game, with a little twist.
+[Osmosmjerka](https://hr.wikipedia.org/wiki/Osmosmjerka) (*Croatian word for eight-direction word search puzzle*) is a simple web-based [word search](https://en.wikipedia.org/wiki/Word_search) game, with a little twist.
 It uses words from the internal database, which are divided into separate categories, so each puzzle is having a certain theme.
 Each word has to have the translation into the other language, so you can treat the game as something similar to [flashcard](https://en.wikipedia.org/wiki/Flashcard) language training.
 
@@ -10,17 +10,18 @@ Osmosmjerka consists of three layers - a frontend app in [React](https://react.d
 The web app communicates with the server, which pulls data from the database and returns it via HTTP requests to the frontend.
 The database so far is expected to have a single table called `words`, which consists of three self-explaining columns `categories`, `word` and `translation`.
 You need to provide your own sets of words, either by inserting them directly to the database (under `db/words.db` path) or use the *Upload Words* functionality on the admin page. The supported file formats are `.txt` and `.csv`, and the expected single-line format is `<categories>;<word>;<translation>`.
+The words should have at least 3 characters, since less is going to make the hell of a game to find in a grid, however, the API will filter them out automatically.
 
 ## The game
 The player needs to find a words shown on the word list in the displayed grid. The words can be found vertically, horizontally, diagonally and with the reversed order of letters.
 The puzzle is generated based on the chosen theme and its size (currently there are four levels of difficulty).
 
-![New round](docs/assets/osmosmjerka-new-round.png).
+![New round](docs/assets/osmosmjerka-new-round.png)
 
 Once the word is found, there's a neat confetti effect displayed and the translation of the word appears on the word list.
 When all words are discovered, the game ends and allows to load a new puzzle.
 
-![Won round](docs/assets/osmosmjerka-won-round.png).
+![Won round](docs/assets/osmosmjerka-won-round.png)
 
 You may also wish to export the current puzzle to `.docx` format and download it for whatever reason using `Export to DOCX` button.
 

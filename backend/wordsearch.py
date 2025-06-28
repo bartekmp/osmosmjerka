@@ -1,7 +1,7 @@
 import random
 
 
-def generate_grid(words, size=None):
+def generate_grid(words: list, size: int | None=None) -> tuple[list, list]:
     """Generate a word search grid with the given words and size.
     Args:
         words (list): A list of dictionaries with "word" and "translation" keys.

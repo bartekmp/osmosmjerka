@@ -11,15 +11,13 @@ COPY frontend/public public/
 RUN npm install && npm run build
 
 FROM python:3.12-slim
-
 LABEL maintainer="bartekmp"
 LABEL version="0.1"
 LABEL description="Dockerfile for a Python backend with a Node.js frontend wordsearch game app called Osmosmjerka."
 
 WORKDIR /app
-COPY --from=backend /app/backend /app/backend
-COPY --from=frontend /app/backend/static /app/backend/static
-WORKDIR /app/backend
+COPY --from=backend /app/backend /app
+COPY --from=frontend /app/frontend/build /app/static
 
 RUN pip install -r requirements.txt
 

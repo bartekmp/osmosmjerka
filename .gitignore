@@ -9,4 +9,8 @@ __pycache__/
 *.db
 *.sqlite3
 *.log
+
+frontend/node_modules/
+frontend/dist/
+frontend/build/
 package-lock.json

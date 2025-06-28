@@ -6,6 +6,10 @@ export default function Grid({ grid, words, found, onFound }) {
     const isMouseDown = useRef(false);
 
     const isStraightLine = (path) => {
+        // Check if the path is a straight line (horizontal, vertical, or diagonal)
+        // A path is a straight line if it consists of points that are either all in the same row, column, or diagonal.
+        // It makes no sense for the player to select anything that is not a straight line
+
         if (path.length < 2) return false;
         const [r0, c0] = path[0];
         const [r1, c1] = path[path.length - 1];
@@ -25,17 +29,19 @@ export default function Grid({ grid, words, found, onFound }) {
 
     const [direction, setDirection] = useState(null); // 'horizontal' | 'vertical' | 'diagonal'
 
-    const handleMouseDown = (r, c) => {
-        isMouseDown.current = true;
-        setSelected([[r, c]]);
-        setDirection(null);
-    };
-
+    // Function to determine the direction of the selection based on start and end coordinates
     const getDirection = ([r0, c0], [r1, c1]) => {
         if (r0 === r1) return 'horizontal';
         if (c0 === c1) return 'vertical';
         if (Math.abs(r1 - r0) === Math.abs(c1 - c0)) return 'diagonal';
         return null;
+    };
+
+    // Handle mouse and touch events for selecting cells
+    const handleMouseDown = (r, c) => {
+        isMouseDown.current = true;
+        setSelected([[r, c]]);
+        setDirection(null);
     };
 
     const handleMouseEnter = (r, c) => {
@@ -72,13 +78,6 @@ export default function Grid({ grid, words, found, onFound }) {
         setSelected([]);
     };
 
-    const isFound = (r, c) => {
-        return words.some(w =>
-            found.includes(w.word) &&
-            w.coords.some(([wr, wc]) => wr === r && wc === c)
-        );
-    };
-
     // Function to get cell coordinates from touch events
     // This function retrieves the cell coordinates from a touch event by checking the touch position
     // and finding the closest table cell that has data attributes for row and column.
@@ -110,6 +109,14 @@ export default function Grid({ grid, words, found, onFound }) {
 
     const handleTouchEnd = () => {
         handleMouseUp();
+    };
+
+    // Function to check if a cell is part of a found word
+    const isFound = (r, c) => {
+        return words.some(w =>
+            found.includes(w.word) &&
+            w.coords.some(([wr, wc]) => wr === r && wc === c)
+        );
     };
 
     // Debounce for dynamic grid scaling on mobile devices

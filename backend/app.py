@@ -8,20 +8,11 @@ from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import FileResponse, JSONResponse, StreamingResponse
 from fastapi.staticfiles import StaticFiles
 from utils import export_to_docx
-
-from db import (
-    IGNORED_CATEGORIES,
-    add_word,
-    delete_all_words,
-    delete_word,
-    get_all_words,
-    get_categories,
-    get_words_by_category,
-    init_db,
-    insert_words,
-    update_word,
-)
 from wordsearch import generate_grid
+
+from db import (IGNORED_CATEGORIES, add_word, delete_all_words, delete_word,
+                get_all_words, get_categories, get_words_by_category, init_db,
+                insert_words, update_word)
 
 # List of API endpoints that should be ignored for the SPA routing
 # This is used to ensure that the SPA does not interfere with API calls.
@@ -75,25 +66,25 @@ def get_all_rows(
 @app.post("/admin/row")
 def add_row(row: dict, user=Depends(verify_credentials)) -> JSONResponse:
     add_word(row["categories"], row["word"], row["translation"])
-    return {"status": "ok"}
+    return JSONResponse({"status": "ok"})
 
 
 @app.put("/admin/row/{id}")
 def update_row(id: int, row: dict, user=Depends(verify_credentials)) -> JSONResponse:
     update_word(id, row["categories"], row["word"], row["translation"])
-    return {"status": "ok"}
+    return JSONResponse({"status": "ok"})
 
 
 @app.delete("/admin/row/{id}")
 def delete_row(id: int, row: dict, user=Depends(verify_credentials)) -> JSONResponse:
     delete_word(id)
-    return {"status": "deleted"}
+    return JSONResponse({"status": "deleted"})
 
 
 @app.delete("/admin/clear")
 def clear_db(user=Depends(verify_credentials)) -> JSONResponse:
     delete_all_words()
-    return {"status": "cleared"}
+    return JSONResponse({"status": "cleared"})
 
 
 @app.get("/api/categories")
@@ -128,7 +119,7 @@ def get_grid_size_and_num_words(selected: list, difficulty: str) -> tuple:
 
 
 @app.get("/api/words")
-async def get_words(category: str | None = None, difficulty: str = "medium"):
+async def get_words(category: str | None = None, difficulty: str = "medium") -> JSONResponse:
     categories = get_categories()
     if not category:
         category = random.choice(categories)
@@ -166,7 +157,7 @@ async def upload(file: UploadFile = File(...)) -> str:
 
 
 @app.post("/api/export")
-async def export(request: Request):
+async def export(request: Request) -> StreamingResponse:
     data = await request.json()
     docx_bytes = export_to_docx(data["category"], data["grid"], data["words"])
     file_like = io.BytesIO(docx_bytes)
@@ -190,7 +181,7 @@ async def get_ignored_categories() -> JSONResponse:
 
 
 @app.get("/{full_path:path}")
-async def serve_spa(full_path: str):
+async def serve_spa(full_path: str) -> JSONResponse | FileResponse:
     """Catch-all: Serve the SPA for any path that does not start with 'api/' or 'admin/'."""
     if not (full_path.startswith("api/") or full_path.startswith("admin/")):
         return FileResponse("static/index.html")

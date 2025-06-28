@@ -1,12 +1,12 @@
-import React, { useEffect, useState } from 'react';
-import { Routes, Route, Link } from 'react-router-dom';
 import axios from 'axios';
-import Grid from './components/Grid';
-import WordList from './components/WordList';
+import confetti from 'canvas-confetti';
+import { useEffect, useState } from 'react';
+import { Link, Route, Routes } from 'react-router-dom';
+import AdminPanel from './components/AdminPanel';
 import CategorySelector from './components/CategorySelector';
 import ExportButton from './components/ExportButton';
-import confetti from 'canvas-confetti';
-import AdminPanel from './components/AdminPanel';
+import Grid from './components/Grid';
+import WordList from './components/WordList';
 
 export default function App() {
     const [categories, setCategories] = useState([]);
@@ -23,7 +23,11 @@ export default function App() {
         });
         axios.get('/api/categories').then(res => {
             setCategories(res.data);
-            if (res.data.length > 0) setSelectedCategory(res.data[0]);
+            if (res.data.length > 0) {
+                // Pick a random category
+                const randomIndex = Math.floor(Math.random() * res.data.length);
+                setSelectedCategory(res.data[randomIndex]);
+            }
         });
     }, []);
 
@@ -73,7 +77,43 @@ export default function App() {
                 <Route path="/admin" element={<AdminPanel />} />
                 <Route path="/" element={
                     <>
-                        <h1>Osmosmjerka Word Search Game</h1>
+                        <div
+                            style={{
+                                display: 'flex',
+                                alignItems: 'center',
+                                justifyContent: 'center',
+                                marginBottom: '2rem',
+                                marginTop: '1rem',
+                                width: '100%',
+                                maxWidth: 600,
+                                flexWrap: 'wrap'
+                            }}
+                        >
+                            <img
+                                src="/static/android-chrome-512x512.png"
+                                alt="Osmosmjerka logo"
+                                style={{
+                                    height: 'clamp(40px, 10vw, 64px)',
+                                    width: 'clamp(40px, 10vw, 64px)',
+                                    marginRight: '1rem',
+                                    flexShrink: 0
+                                }}
+                                onError={e => { e.target.onerror = null; e.target.src = "/static/favicon-32x32.png"; }}
+                            />
+                            <span
+                                style={{
+                                    fontFamily: "'Roboto Mono', 'Clear Sans', monospace, sans-serif",
+                                    fontSize: 'clamp(32px, 8vw, 64px)',
+                                    color: '#2d2d2d',
+                                    letterSpacing: 2,
+                                    lineHeight: 1,
+                                    wordBreak: 'break-word',
+                                    flexShrink: 1
+                                }}
+                            >
+                                Osmosmjerka
+                            </span>
+                        </div>
                         <div style={{ display: 'flex', alignItems: 'center', marginBottom: '1rem' }}>
                             <CategorySelector
                                 categories={visibleCategories}
@@ -119,7 +159,6 @@ export default function App() {
                             className="main-flex"
                             style={{
                                 display: 'flex',
-                                alignItems: 'flex-start',
                                 justifyContent: 'center',
                                 width: '100%',
                                 maxWidth: 1200,
