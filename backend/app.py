@@ -181,7 +181,7 @@ async def get_ignored_categories() -> JSONResponse:
 
 
 @app.get("/{full_path:path}")
-async def serve_spa(full_path: str) -> JSONResponse | FileResponse:
+async def serve_spa(full_path: str):
     """Catch-all: Serve the SPA for any path that does not start with 'api/' or 'admin/'."""
     if not (full_path.startswith("api/") or full_path.startswith("admin/")):
         return FileResponse("static/index.html")

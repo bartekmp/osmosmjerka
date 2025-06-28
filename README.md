@@ -58,10 +58,12 @@ docker run --rm -d -p 8085:8085 --name osmosmjerka -v ./db/:/app/db/ osmosmjerka
 You might use my Croatian-Polish word database as an example placed in the `example` folder.
 
 ## Planned features and fixes
-- Fixing obvious bugs (duh)
+- Fixing obvious bugs (duh, sure)
 - Multi-language support
-- Robust visual effects
+- Robust visual effects and responsiveness across various devices
 - Integration with [Anki](https://apps.ankiweb.net/)
+- Move to PostgreSQL
+- Add loadbalancing to the API (yeah, overkill)
 - Code quality improvements
 
 # License
