@@ -1,20 +1,36 @@
-import React from 'react';
 import axios from 'axios';
+import { useRef } from 'react';
 
 export default function UploadForm({ onUpload }) {
-    const handleSubmit = async (e) => {
-        e.preventDefault();
-        const file = e.target.file.files[0];
+    const fileInputRef = useRef();
+
+    const handleButtonClick = () => {
+        fileInputRef.current.click();
+    };
+
+    const handleFileChange = async (e) => {
+        const file = e.target.files[0];
+        if (!file) return;
         const formData = new FormData();
         formData.append("file", file);
         await axios.post("/api/upload", formData);
         onUpload();
+        e.target.value = ""; // allows selecting the same file again
     };
 
     return (
-        <form onSubmit={handleSubmit} style={{ display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
-            <input type="file" name="file" accept=".txt,.csv" required />
-            <button type="submit">Upload Words</button>
-        </form>
+        <>
+            <input
+                ref={fileInputRef}
+                type="file"
+                name="file"
+                accept=".txt,.csv"
+                style={{ display: 'none' }}
+                onChange={handleFileChange}
+            />
+            <button className="scrabble-btn" type="button" onClick={handleButtonClick}>
+                Upload Words
+            </button>
+        </>
     );
 }

@@ -63,7 +63,9 @@ export default function App() {
                 display: 'flex',
                 flexDirection: 'column',
                 alignItems: 'center',
-                justifyContent: 'center'
+                justifyContent: 'center',
+                width: '100vw',
+                boxSizing: 'border-box'
             }}
         >
             <Link to="/admin" style={{ position: 'absolute', top: 20, right: 40 }}>Admin</Link>
@@ -79,6 +81,7 @@ export default function App() {
                                 onSelect={cat => setSelectedCategory(cat)}
                             />
                             <button
+                                className="scrabble-btn"
                                 style={{ marginLeft: 12, padding: '0.3rem 0.8rem' }}
                                 onClick={() => loadPuzzle(selectedCategory, difficulty)}
                                 title="Reload puzzle"
@@ -96,19 +99,24 @@ export default function App() {
                                     <option value="easy">Easy (10x10)</option>
                                     <option value="medium">Medium (15x15)</option>
                                     <option value="hard">Hard (20x20)</option>
-                                    <option value="demanding">Demanding (longest word)</option>
+                                    <option value="dynamic">Dynamic (longest word)</option>
                                 </select>
                             </label>
                         </div>
                         {allFound && (
                             <div style={{ margin: '1rem 0', fontWeight: 'bold', color: 'green' }}>
                                 All words found!
-                                <button style={{ marginLeft: '1rem' }} onClick={() => loadPuzzle(selectedCategory, difficulty)}>
+                                <button
+                                    className="scrabble-btn"
+                                    style={{ marginLeft: '1rem' }}
+                                    onClick={() => loadPuzzle(selectedCategory, difficulty)}
+                                >
                                     Load new puzzle
                                 </button>
                             </div>
                         )}
                         <div
+                            className="main-flex"
                             style={{
                                 display: 'flex',
                                 alignItems: 'flex-start',
@@ -118,10 +126,10 @@ export default function App() {
                                 margin: '0 auto'
                             }}
                         >
-                            <div style={{ flexShrink: 0, display: 'flex', justifyContent: 'center' }}>
+                            <div style={{ flexShrink: 0, display: 'flex', justifyContent: 'center', width: 'min-content', minWidth: 0 }}>
                                 <Grid grid={grid} words={words} found={found} onFound={markFound} />
                             </div>
-                            <div style={{ marginLeft: '3rem', minWidth: 220 }}>
+                            <div className="word-list-wrapper" style={{ marginLeft: '3rem', minWidth: 220 }}>
                                 <WordList words={words} found={found} />
                             </div>
                         </div>

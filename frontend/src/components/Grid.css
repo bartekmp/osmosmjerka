@@ -1,29 +1,38 @@
 .grid-table {
-    border-spacing: 5px;
-    user-select: none;
-    font-family: monospace;
-    font-size: 1.4rem;
+    border-spacing: 4px;
     margin: 1rem auto;
+    font-family: monospace;
 }
 
 .grid-cell {
-    border: 2px solid #ccc;
-    width: 2rem;
-    height: 2rem;
+    border: 2px solid #b89c4e;
+    aspect-ratio: 1 / 1;
     text-align: center;
-    border-radius: 5px;
-    box-shadow: 0 0 3px #aaa;
+    border-radius: 4px;
+    box-shadow: 1px 2px 0 #b89c4e, 0 1px 0 #fff inset;
     cursor: pointer;
-    font-weight: bold;
-    background: #fff;
+    font-weight: 500;
+    background: #EDEDED;
+    color: #333;
+    font-family: 'Clear Sans', 'Trebuchet MS', 'Arial', sans-serif;
+    font-size: 1.35em;
+    letter-spacing: 0.03em;
+    transition: background 0.2s, box-shadow 0.2s;
+    user-select: none;
+    vertical-align: middle;
+    position: relative;
+    padding: 0.4em;
+    line-height: 1;
+    align-items: center;
+    justify-content: center;
 }
 
 .grid-cell.selected {
-    background: #ffcccc;
+    background: #b3e5ff;
 }
 
 .grid-cell.found {
-    background: #e0e0e0;
+    background: #e6c97a;
 }
 
 body,
@@ -35,8 +44,126 @@ body,
     justify-content: center;
 }
 
-@media (min-width: 900px) {
-    .word-list {
-        columns: 3;
+.main-flex {
+    flex-direction: row;
+    width: 100%;
+    max-width: 1200px;
+    margin: 0 auto;
+}
+
+@media (max-width: 900px) {
+    .main-flex {
+        flex-direction: column;
+        align-items: center;
     }
+
+    .word-list-wrapper {
+        margin-left: 0 !important;
+        margin-top: 2rem;
+        width: 100%;
+        max-width: 600px;
+    }
+}
+
+.word-list {
+    font-size: clamp(1rem, 2vw, 1.3rem);
+}
+
+/* Scrabble style for select dropdowns */
+select,
+.scrabble-select {
+    background: #f9e7b3;
+    border: 2px solid #b89c4e;
+    border-radius: 7px;
+    box-shadow: 1px 2px 0 #b89c4e, 0 1px 0 #fff inset;
+    color: #333;
+    font-family: 'Arial Black', Arial, sans-serif;
+    font-size: 1.1em;
+    font-weight: bold;
+    padding: 0.35em 1.1em 0.35em 0.7em;
+    margin: 0.2em;
+    cursor: pointer;
+    letter-spacing: 0.04em;
+    transition: background 0.2s, box-shadow 0.2s;
+    outline: none;
+    appearance: none;
+    -webkit-appearance: none;
+    -moz-appearance: none;
+}
+
+select:focus,
+.scrabble-select:focus {
+    border-color: #e6c97a;
+    background: #fffbe6;
+}
+
+select:disabled,
+.scrabble-select:disabled {
+    background: #eee6c7;
+    color: #aaa;
+    border-color: #d1c18a;
+    cursor: not-allowed;
+    box-shadow: none;
+}
+
+/* Adapt to mobile screens */
+@media (max-width: 600px) {
+    .grid-table {
+        display: block;
+        width: max-content;
+        max-width: 100vw;
+        /* Dynamic scale based on CSS variable to be set in JS */
+        transform: scale(var(--grid-scale, 1));
+        transform-origin: top left;
+    }
+    .grid-cell {
+        font-size: 1em;
+        min-width: 2.2em;
+        min-height: 2.2em;
+        width: 2.2em;
+        height: 2.2em;
+        padding: 0.15em;
+    }
+    .main-flex {
+        flex-direction: column !important;
+        align-items: center !important;
+        max-width: 100vw !important;
+        width: 100vw !important;
+        margin: 0 !important;
+        padding: 0 !important;
+        box-sizing: border-box !important;
+    }
+    .word-list-wrapper {
+        margin-left: 0 !important;
+        margin-top: 1rem !important;
+        min-width: 0 !important;
+        width: 100vw !important;
+        max-width: 100vw !important;
+        box-sizing: border-box !important;
+    }
+    .word-list {
+        font-size: 1em;
+        min-width: 0 !important;
+        width: 100vw !important;
+        max-width: 100vw !important;
+    }
+}
+
+/* Force smaller font size and grid cells for some really small screens */
+@media (max-width: 400px) {
+    .grid-cell {
+        font-size: 0.8em;
+        min-width: 1.7em;
+        min-height: 1.7em;
+        width: 1.7em;
+        height: 1.7em;
+        padding: 0.1em;
+    }
+}
+
+/* Horizontal scrolling if the grid is not fitting the screen */
+.grid-table {
+    max-width: 100vw;
+    overflow-x: auto;
+    display: block;
 }

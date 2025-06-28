@@ -5,7 +5,7 @@ from contextlib import asynccontextmanager
 from auth import verify_credentials
 from fastapi import Depends, FastAPI, File, Query, Request, UploadFile, status
 from fastapi.middleware.cors import CORSMiddleware
-from fastapi.responses import FileResponse, JSONResponse
+from fastapi.responses import FileResponse, JSONResponse, StreamingResponse
 from fastapi.staticfiles import StaticFiles
 from utils import export_to_docx
 
@@ -107,7 +107,7 @@ def get_grid_size_and_num_words(selected: list, difficulty: str) -> tuple:
     """Determine the grid size and number of words based on difficulty level.
     Args:
         selected (list): List of selected words.
-        difficulty (str): Difficulty level ("easy", "medium", "hard", "demanding").
+        difficulty (str): Difficulty level ("easy", "medium", "hard", "dynamic").
     Returns:
         tuple: (size, num_words) where size is the grid size and num_words is the number of words to place.
     """
@@ -117,7 +117,7 @@ def get_grid_size_and_num_words(selected: list, difficulty: str) -> tuple:
         return 15, 12
     elif difficulty == "hard":
         return 20, 18
-    elif difficulty == "demanding":
+    elif difficulty == "dynamic":
         size = (
             max(len(w["word"].replace(" ", "")) for w in selected) if selected else 10
         )
@@ -136,7 +136,7 @@ async def get_words(category: str | None = None, difficulty: str = "medium"):
     if not selected:
         return JSONResponse({"grid": [], "words": []})
 
-    if difficulty not in ["easy", "medium", "hard", "demanding"]:
+    if difficulty not in ["easy", "medium", "hard", "dynamic"]:
         return JSONResponse(
             {"detail": "Invalid difficulty level"},
             status_code=status.HTTP_400_BAD_REQUEST,
@@ -166,13 +166,17 @@ async def upload(file: UploadFile = File(...)) -> str:
 
 
 @app.post("/api/export")
-async def export(request: Request) -> FileResponse:
+async def export(request: Request):
     data = await request.json()
     docx_bytes = export_to_docx(data["category"], data["grid"], data["words"])
-    return FileResponse(
-        io.BytesIO(docx_bytes),
+    file_like = io.BytesIO(docx_bytes)
+    file_like.seek(0)
+    return StreamingResponse(
+        file_like,
         media_type="application/vnd.openxmlformats-officedocument.wordprocessingml.document",
-        filename=f"wordsearch-{data['category']}.docx",
+        headers={
+            "Content-Disposition": f'attachment; filename="wordsearch-{data["category"]}.docx"'
+        }
     )
 
 
