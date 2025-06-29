@@ -2,8 +2,10 @@ import io
 import random
 from contextlib import asynccontextmanager
 
-from auth import verify_credentials
-from fastapi import Depends, FastAPI, File, Query, Request, UploadFile, status
+import bcrypt
+from auth import PASSWORD_HASH, USERNAME, create_access_token, get_current_user
+from fastapi import (Body, Depends, FastAPI, File, Query, Request, UploadFile,
+                     status)
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import FileResponse, JSONResponse, StreamingResponse
 from fastapi.staticfiles import StaticFiles
@@ -42,7 +44,7 @@ app.mount("/static", StaticFiles(directory="static", html=True), name="static")
 
 
 @app.get("/admin/status")
-def admin_status(user=Depends(verify_credentials)) -> JSONResponse:
+def admin_status(user=Depends(get_current_user)) -> JSONResponse:
     return JSONResponse({"status": "ok"}, status_code=status.HTTP_200_OK)
 
 
@@ -51,7 +53,7 @@ def get_all_rows(
     offset: int = 0,
     limit: int = 20,
     category: str = Query(None),
-    user=Depends(verify_credentials)
+    user=Depends(get_current_user),
 ) -> dict:
     rows, total = get_all_words(offset, limit, category)
     return {
@@ -59,30 +61,30 @@ def get_all_rows(
             {"id": r[0], "categories": r[1], "word": r[2], "translation": r[3]}
             for r in rows
         ],
-        "total": total
+        "total": total,
     }
 
 
 @app.post("/admin/row")
-def add_row(row: dict, user=Depends(verify_credentials)) -> JSONResponse:
+def add_row(row: dict, user=Depends(get_current_user)) -> JSONResponse:
     add_word(row["categories"], row["word"], row["translation"])
     return JSONResponse({"status": "ok"})
 
 
 @app.put("/admin/row/{id}")
-def update_row(id: int, row: dict, user=Depends(verify_credentials)) -> JSONResponse:
+def update_row(id: int, row: dict, user=Depends(get_current_user)) -> JSONResponse:
     update_word(id, row["categories"], row["word"], row["translation"])
     return JSONResponse({"status": "ok"})
 
 
 @app.delete("/admin/row/{id}")
-def delete_row(id: int, row: dict, user=Depends(verify_credentials)) -> JSONResponse:
+def delete_row(id: int, row: dict, user=Depends(get_current_user)) -> JSONResponse:
     delete_word(id)
     return JSONResponse({"status": "deleted"})
 
 
 @app.delete("/admin/clear")
-def clear_db(user=Depends(verify_credentials)) -> JSONResponse:
+def clear_db(user=Depends(get_current_user)) -> JSONResponse:
     delete_all_words()
     return JSONResponse({"status": "cleared"})
 
@@ -119,7 +121,9 @@ def get_grid_size_and_num_words(selected: list, difficulty: str) -> tuple:
 
 
 @app.get("/api/words")
-async def get_words(category: str | None = None, difficulty: str = "medium") -> JSONResponse:
+async def get_words(
+    category: str | None = None, difficulty: str = "medium"
+) -> JSONResponse:
     categories = get_categories()
     if not category:
         category = random.choice(categories)
@@ -167,7 +171,7 @@ async def export(request: Request) -> StreamingResponse:
         media_type="application/vnd.openxmlformats-officedocument.wordprocessingml.document",
         headers={
             "Content-Disposition": f'attachment; filename="wordsearch-{data["category"]}.docx"'
-        }
+        },
     )
 
 
@@ -181,23 +185,36 @@ async def get_ignored_categories() -> JSONResponse:
 
 
 @app.get("/admin/export")
-def export_txt(
-    category: str = Query(None),
-    user=Depends(verify_credentials)
-):
+def export_txt(category: str = Query(None), user=Depends(get_current_user)):
     # Download all words for the category
     rows, _ = get_all_words(0, None, category)
+
     def row_to_line(row):
         # row: (id, categories, word, translation)
         return f"{row[1]};{row[2]};{row[3]}"
+
     content = "\n".join(row_to_line(row) for row in rows)
     file_like = io.BytesIO(content.encode("utf-8"))
     filename = f"export_{category or 'all'}.txt"
     return StreamingResponse(
         file_like,
         media_type="text/plain",
-        headers={"Content-Disposition": f'attachment; filename="{filename}"'}
+        headers={"Content-Disposition": f'attachment; filename="{filename}"'},
     )
+
+
+@app.post("/admin/login")
+def admin_login(data: dict = Body(...)):
+    username = data.get("username")
+    password = data.get("password")
+    if not username or not password:
+        return JSONResponse({"detail": "Missing credentials"}, status_code=400)
+    if username != USERNAME or not bcrypt.checkpw(
+        password.encode(), PASSWORD_HASH.encode()
+    ):
+        return JSONResponse({"detail": "Incorrect credentials"}, status_code=401)
+    token = create_access_token({"sub": username})
+    return {"access_token": token, "token_type": "bearer"}
 
 
 @app.get("/{full_path:path}")

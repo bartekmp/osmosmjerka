@@ -57,6 +57,26 @@ docker run --rm -d -p 8085:8085 --name osmosmjerka -v ./db/:/app/db/ osmosmjerka
 ## Example words database
 You might use my Croatian-Polish word database as an example placed in the `example` folder.
 
+## HTTPS
+The API server ([`uvicorn`](https://www.uvicorn.org/)) supports SSL. If you're not using Nginx or other tech, you might continue using `uvicorn` with HTTPS, making use of self-signed certificate or issued by [Let's Encrypt](https://letsencrypt.org/). 
+Store them in the `backend` directory and update your command-line:
+```bash
+uvicorn your_module:app --host 0.0.0.0 --port 443 --ssl-keyfile=<your private key.pem> --ssl-certfile=<your cert chain file.pem>
+```
+or the `Dockerfile` entrypoint:
+```bash
+CMD ["uvicorn", "app:app", "--host", "0.0.0.0", "--port", "443", "--ssl-keyfile=<your private key.pem>", "--ssl-certfile=<your cert chain file.pem>"]
+```
+
+Now Osmosmjerka is available on `https://<the host ip>`.
+
+### How to generate a self-signed certificate
+Use the `openssl` command to create both key and certificate chain files:
+```bash
+openssl req -x509 -nodes -days 365 -newkey rsa:2048 -keyout privkey.pem -out fullchain.pem -subj "/CN=localhost"
+```
+As this is self-signed, the browser will show you dreadful warnings when accessing the app.
+
 ## Planned features and fixes
 - Fixing obvious bugs (duh, sure)
 - Multi-language support

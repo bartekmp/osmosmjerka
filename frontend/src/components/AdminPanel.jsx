@@ -1,8 +1,20 @@
 import axios from 'axios';
 import { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
-import UploadForm from './UploadForm';
 import './AdminPanel.css';
+import UploadForm from './UploadForm';
+import { jwtDecode } from "jwt-decode";
+
+// Helper to check if JWT is expired
+function isTokenExpired(token) {
+    try {
+        const { exp } = jwtDecode(token);
+        if (!exp) return true;
+        return Date.now() >= exp * 1000;
+    } catch {
+        return true;
+    }
+}
 
 export default function AdminPanel() {
     const [auth, setAuth] = useState({ user: '', pass: '' });
@@ -17,11 +29,11 @@ export default function AdminPanel() {
     const [filterCategory, setFilterCategory] = useState('');
     const [totalRows, setTotalRows] = useState(0);
     const [offsetInput, setOffsetInput] = useState(0);
+    const [token, setToken] = useState(localStorage.getItem('adminToken') || '');
 
-    const authHeader = {
-        Authorization: 'Basic ' + btoa(`${auth.user}:${auth.pass}`),
-        'Content-Type': 'application/json',
-    };
+    const authHeader = token
+        ? { Authorization: 'Bearer ' + token, 'Content-Type': 'application/json' }
+        : {};
 
     useEffect(() => {
         fetch('/api/categories')
@@ -49,11 +61,22 @@ export default function AdminPanel() {
     };
 
     const handleLogin = () => {
-        fetch(`/admin/status`, { headers: authHeader })
-            .then(res => {
-                if (!res.ok) throw new Error("Unauthorized or server error");
-                setIsLogged(true);
-                setError("");
+        fetch(`/admin/login`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ username: auth.user, password: auth.pass })
+        })
+            .then(res => res.json())
+            .then(data => {
+                if (data.access_token) {
+                    setToken(data.access_token);
+                    localStorage.setItem('adminToken', data.access_token);
+                    setIsLogged(true);
+                    setError("");
+                } else {
+                    setError(data.detail || "Login failed");
+                    setIsLogged(false);
+                }
             })
             .catch(err => {
                 setError(err.message);
@@ -117,12 +140,40 @@ export default function AdminPanel() {
     };
 
     // Automatically fetch rows when logged in and dashboard is active
-    // This ensures that the data is loaded when the user logs in or when the filter changes
-    // and the dashboard is not showing editRow.
     useEffect(() => {
         if (isLogged && !dashboard) fetchRows();
         // eslint-disable-next-line
     }, [offset, filterCategory]);
+
+    // Check token on mount and after login
+    useEffect(() => {
+        if (token) {
+            if (isTokenExpired(token)) {
+                setIsLogged(false);
+                setToken('');
+                localStorage.removeItem('adminToken');
+                return;
+            }
+            fetch('/admin/status', { headers: authHeader })
+                .then(res => {
+                    if (!res.ok) throw new Error("Unauthorized or server error");
+                    setIsLogged(true);
+                })
+                .catch(() => {
+                    setIsLogged(false);
+                    setToken('');
+                    localStorage.removeItem('adminToken');
+                });
+        }
+        // eslint-disable-next-line
+    }, [token]);
+
+    // Logout handler
+    const handleLogout = () => {
+        setToken('');
+        localStorage.removeItem('adminToken');
+        setIsLogged(false);
+    };
 
     if (!isLogged) {
         return (
@@ -148,6 +199,7 @@ export default function AdminPanel() {
                     <button type="submit">Login</button>
                 </form>
                 {error && <div style={{ color: 'red' }}>{error}</div>}
+                {isTokenExpired(token) && <div style={{ color: 'orange' }}>Session expired, please log in again.</div>}
             </div>
         );
     }
@@ -162,8 +214,7 @@ export default function AdminPanel() {
                 </div>
                 <h2>Admin Dashboard</h2>
                 <button onClick={fetchRows} style={{ marginLeft: '1rem' }}>Load Data</button>
-                <button onClick={() => setEditRow({ categories: '', word: '', translation: '' })} style={{ marginLeft: '1rem' }}>Add Row</button>
-                <button onClick={clearDb} style={{ marginLeft: '1rem', color: 'red' }}>Clear All</button>
+                <button onClick={handleLogout} style={{ marginLeft: '1rem' }}>Logout</button>
                 {error && <div style={{ color: 'red', marginTop: '1rem' }}>{error}</div>}
             </div>
         );
@@ -175,6 +226,7 @@ export default function AdminPanel() {
                 <Link to="/" style={{ textDecoration: 'none', color: '#1976d2', fontWeight: 'bold' }}>
                     ← Back to Game
                 </Link>
+                <button className="scrabble-btn" onClick={handleLogout} style={{ marginLeft: '2rem' }}>Logout</button>
             </div>
             <h2>Admin Panel</h2>
             <div style={{ display: 'flex', flexDirection: 'row', alignItems: 'center', gap: '1rem', marginBottom: '1rem' }}>
