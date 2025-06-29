@@ -7,6 +7,7 @@ import CategorySelector from './components/CategorySelector';
 import ExportButton from './components/ExportButton';
 import Grid from './components/Grid';
 import WordList from './components/WordList';
+import './style.css';
 
 export default function App() {
     const [categories, setCategories] = useState([]);
@@ -16,6 +17,7 @@ export default function App() {
     const [words, setWords] = useState([]);
     const [found, setFound] = useState([]);
     const [difficulty, setDifficulty] = useState('easy');
+    const [hideWords, setHideWords] = useState(false);
 
     useEffect(() => {
         axios.get('/api/ignored_categories').then(res => {
@@ -44,6 +46,7 @@ export default function App() {
             setGrid(res.data.grid);
             setWords(res.data.words);
             setFound([]);
+            setHideWords(true); // Hide words after loading a new puzzle
         });
     };
 
@@ -54,82 +57,49 @@ export default function App() {
         }
     };
 
+    // Winning condition: all words found
     const allFound = words.length > 0 && found.length === words.length;
+
+    // Automatically reveal words when all are found
+    useEffect(() => {
+        if (allFound) setHideWords(false);
+    }, [allFound]);
 
     const visibleCategories = categories.filter(cat => !ignoredCategories.includes(cat));
 
     return (
-        <div
-            style={{
-                padding: '1rem',
-                fontFamily: 'sans-serif',
-                minHeight: '100vh',
-                display: 'flex',
-                flexDirection: 'column',
-                alignItems: 'center',
-                justifyContent: 'center',
-                width: '100vw',
-                boxSizing: 'border-box'
-            }}
-        >
+        <div className="osmo-app-root">
             <Link to="/admin" style={{ position: 'absolute', top: 20, right: 40 }}>Admin</Link>
             <Routes>
                 <Route path="/admin" element={<AdminPanel />} />
                 <Route path="/" element={
                     <>
-                        <div
-                            style={{
-                                display: 'flex',
-                                alignItems: 'center',
-                                justifyContent: 'center',
-                                marginBottom: '2rem',
-                                marginTop: '1rem',
-                                width: '100%',
-                                maxWidth: 600,
-                                flexWrap: 'wrap'
-                            }}
-                        >
+                        <div className="osmo-header-bar">
                             <img
                                 src="/static/android-chrome-512x512.png"
                                 alt="Osmosmjerka logo"
-                                style={{
-                                    height: 'clamp(40px, 10vw, 64px)',
-                                    width: 'clamp(40px, 10vw, 64px)',
-                                    marginRight: '1rem',
-                                    flexShrink: 0
-                                }}
+                                className="osmo-logo-img"
                                 onError={e => { e.target.onerror = null; e.target.src = "/static/favicon-32x32.png"; }}
                             />
-                            <span
-                                style={{
-                                    fontFamily: "'Roboto Mono', 'Clear Sans', monospace, sans-serif",
-                                    fontSize: 'clamp(32px, 8vw, 64px)',
-                                    color: '#2d2d2d',
-                                    letterSpacing: 2,
-                                    lineHeight: 1,
-                                    wordBreak: 'break-word',
-                                    flexShrink: 1
-                                }}
-                            >
+                            <span className="osmo-logo-title">
                                 Osmosmjerka
                             </span>
                         </div>
-                        <div style={{ display: 'flex', alignItems: 'center', marginBottom: '1rem' }}>
+                        <div className="osmo-category-row">
                             <CategorySelector
                                 categories={visibleCategories}
                                 selected={selectedCategory}
                                 onSelect={cat => setSelectedCategory(cat)}
                             />
                             <button
-                                className="scrabble-btn"
-                                style={{ marginLeft: 12, padding: '0.3rem 0.8rem' }}
+                                className="scrabble-btn osmo-reload-btn"
                                 onClick={() => loadPuzzle(selectedCategory, difficulty)}
                                 title="Reload puzzle"
                             >
                                 🔄
                             </button>
                         </div>
-                        <div style={{ marginBottom: '1rem' }}>
+                        <div className="osmo-difficulty-row">
                             <label>
                                 Difficulty:&nbsp;
                                 <select
@@ -143,33 +113,31 @@ export default function App() {
                                 </select>
                             </label>
                         </div>
-                        {allFound && (
-                            <div style={{ margin: '1rem 0', fontWeight: 'bold', color: 'green' }}>
-                                All words found!
-                                <button
-                                    className="scrabble-btn"
-                                    style={{ marginLeft: '1rem' }}
-                                    onClick={() => loadPuzzle(selectedCategory, difficulty)}
-                                >
-                                    Load new puzzle
-                                </button>
-                            </div>
-                        )}
-                        <div
-                            className="main-flex"
-                            style={{
-                                display: 'flex',
-                                justifyContent: 'center',
-                                width: '100%',
-                                maxWidth: 1200,
-                                margin: '0 auto'
-                            }}
-                        >
-                            <div style={{ flexShrink: 0, display: 'flex', justifyContent: 'center', width: 'min-content', minWidth: 0 }}>
+                        <div className="osmo-allfound-row">
+                            {allFound ? (
+                                <div className="osmo-allfound-inner">
+                                    All words found!
+                                    <button
+                                        className="scrabble-btn osmo-reload-btn"
+                                        onClick={() => loadPuzzle(selectedCategory, difficulty)}
+                                    >
+                                        Load new puzzle
+                                    </button>
+                                </div>
+                            ) : null}
+                        </div>
+                        <div className="main-flex">
+                            <div className="osmo-grid-wrapper">
                                 <Grid grid={grid} words={words} found={found} onFound={markFound} />
                             </div>
-                            <div className="word-list-wrapper" style={{ marginLeft: '3rem', minWidth: 220 }}>
-                                <WordList words={words} found={found} />
+                            <div className="word-list-wrapper">
+                                <WordList
+                                    words={words}
+                                    found={found}
+                                    hideWords={hideWords}
+                                    setHideWords={setHideWords}
+                                    allFound={allFound}
+                                />
                             </div>
                         </div>
                         <ExportButton category={selectedCategory} grid={grid} words={words} />

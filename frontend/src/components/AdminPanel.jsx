@@ -2,6 +2,7 @@ import axios from 'axios';
 import { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
 import UploadForm from './UploadForm';
+import './AdminPanel.css';
 
 export default function AdminPanel() {
     const [auth, setAuth] = useState({ user: '', pass: '' });
@@ -125,8 +126,8 @@ export default function AdminPanel() {
 
     if (!isLogged) {
         return (
-            <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
-                <div style={{ alignSelf: 'flex-end', marginBottom: '1rem' }}>
+            <div className="admin-panel-container">
+                <div className="admin-panel-header">
                     <Link to="/" style={{ textDecoration: 'none', color: '#1976d2', fontWeight: 'bold' }}>
                         ← Back to Game
                     </Link>
@@ -153,8 +154,8 @@ export default function AdminPanel() {
 
     if (dashboard && !editRow) {
         return (
-            <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
-                <div style={{ alignSelf: 'flex-end', marginBottom: '1rem' }}>
+            <div className="admin-panel-container">
+                <div className="admin-panel-header">
                     <Link to="/" style={{ textDecoration: 'none', color: '#1976d2', fontWeight: 'bold' }}>
                         ← Back to Game
                     </Link>
@@ -169,8 +170,8 @@ export default function AdminPanel() {
     }
 
     return (
-        <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
-            <div style={{ alignSelf: 'flex-end', marginBottom: '1rem' }}>
+        <div className="admin-panel-container">
+            <div className="admin-panel-header">
                 <Link to="/" style={{ textDecoration: 'none', color: '#1976d2', fontWeight: 'bold' }}>
                     ← Back to Game
                 </Link>
