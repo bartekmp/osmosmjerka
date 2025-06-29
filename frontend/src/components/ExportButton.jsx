@@ -1,4 +1,5 @@
 import axios from 'axios';
+import './ExportButton.css';
 
 export default function ExportButton({ category, grid, words }) {
     const handleExport = async () => {
@@ -12,5 +13,5 @@ export default function ExportButton({ category, grid, words }) {
         link.click();
         link.remove();
     };
-    return <button className="scrabble-btn" onClick={handleExport}>Export to DOCX</button>;
+    return <button className="scrabble-btn export-btn" onClick={handleExport}>Export to DOCX</button>;
 }

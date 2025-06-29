@@ -1,0 +1,51 @@
+.word-list-container {}
+
+.word-list-hide-btn {
+    user-select: none;
+    padding: 0.2em 0.7em;
+    margin-bottom: 0.5rem;
+}
+
+.word-list-ul {
+    list-style: none;
+    padding: 0;
+    margin: 2rem 0 0 0;
+    text-align: left;
+    min-width: 220px;
+    max-width: 600px;
+    width: 100%;
+    transition: filter 0.2s;
+}
+
+.word-list-ul.blurred {
+    filter: blur(8px);
+    user-select: none;
+    pointer-events: none;
+}
+
+.word-list-li {
+    margin-bottom: 8px;
+    display: flex;
+    align-items: center;
+    justify-content: flex-start;
+}
+
+.word-list-word {
+    font-weight: bold;
+    text-transform: uppercase;
+    min-width: 120px;
+    margin-right: 2.5em;
+}
+
+.word-list-word.found {
+    text-decoration: underline red;
+}
+
+.word-list-translation {
+    display: inline-block;
+    color: #bbb;
+}
+
+.word-list-translation.found {
+    color: inherit;
+}
