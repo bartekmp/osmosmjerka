@@ -26,5 +26,6 @@ RUN pip install -r requirements.txt
 # CMD ["uvicorn", "app:app", "--host", "0.0.0.0", "--port", "8085"]
 
 # If using HTTPS
+# Add privkey.pem and cert.pem to the ./backend directory
 EXPOSE 443
 CMD ["uvicorn", "app:app", "--host", "0.0.0.0", "--port", "443", "--ssl-keyfile=/app/privkey.pem", "--ssl-certfile=/app/cert.pem"]

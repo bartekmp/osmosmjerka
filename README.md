@@ -41,18 +41,18 @@ It allows the administrator to display all existing entries from the database (w
 cp .env.example .env
 ```
 3. Set the variables in the `.env` file. 
-The `ADMIN_` variables are used as the credentials to the administrator's page (the hash must be made with [bcrypt](https://github.com/pyca/bcrypt) - `hashpw`).
+The `ADMIN_` variables are used as the credentials to the administrator's page (the hash must be made with [bcrypt](https://github.com/pyca/bcrypt) `hashpw` and the secret is any string of your choice).
 The ignored categories allows you to filter out entries of certain categories from your database you don't want to be used in the game.
-2. Create the `db` directory, for the purpose of mounting it to the container.
-3. Build the Docker image using:
+1. Create the `db` directory, for the purpose of mounting it to the container.
+2. Build the Docker image using:
 ```bash
 docker build -t osmosmjerka .
 ```
-4. Start the app, exposing the `8085` port and mounting the `db` directory:
+1. Start the app, exposing the `8085` port and mounting the `db` directory:
 ```bash
 docker run --rm -d -p 8085:8085 --name osmosmjerka -v ./db/:/app/db/ osmosmjerka
 ```
-5. Access the app in your browser at `http://<the host ip>:8085`.
+1. Access the app in your browser at `http://<the host ip>:8085`.
 
 ## Example words database
 You might use my Croatian-Polish word database as an example placed in the `example` folder.
