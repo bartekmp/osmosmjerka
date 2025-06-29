@@ -9,6 +9,7 @@ __pycache__/
 *.db
 *.sqlite3
 *.log
+*.pem
 
 frontend/node_modules/
 frontend/dist/
@@ -16,3 +17,5 @@ frontend/build/
 package-lock.json
 
 osmosmjerka-deployment.yaml
+
+db/
