@@ -18,6 +18,16 @@ export default function App() {
     const [found, setFound] = useState([]);
     const [difficulty, setDifficulty] = useState('easy');
     const [hideWords, setHideWords] = useState(false);
+    const [showTranslations, setShowTranslations] = useState(() => {
+        const saved = localStorage.getItem('osmosmjerkaGameState');
+        if (saved) {
+            try {
+                const state = JSON.parse(saved);
+                return !!state.showTranslations;
+            } catch {}
+        }
+        return false;
+    });
     const [restored, setRestored] = useState(false);
 
     // Winning condition: all words found
@@ -45,6 +55,7 @@ export default function App() {
                     setSelectedCategory(state.selectedCategory || '');
                     setDifficulty(state.difficulty || 'easy');
                     setHideWords(state.hideWords ?? false);
+                    setShowTranslations(!!state.showTranslations);
                     setRestored(true); // Mark as restored
                     return;
                 }
@@ -69,7 +80,7 @@ export default function App() {
         // eslint-disable-next-line
     }, [restored]);
 
-    // Save state to localStorage on change
+    // Save state to localStorage on change, including showTranslations
     useEffect(() => {
         const state = {
             grid,
@@ -79,9 +90,10 @@ export default function App() {
             difficulty,
             hideWords,
             allFound,
+            showTranslations,
         };
         localStorage.setItem('osmosmjerkaGameState', JSON.stringify(state));
-    }, [grid, words, found, selectedCategory, difficulty, hideWords, allFound]);
+    }, [grid, words, found, selectedCategory, difficulty, hideWords, allFound, showTranslations]);
 
     useEffect(() => {
         if (!restored) return; // Wait until restoration is done
@@ -98,6 +110,7 @@ export default function App() {
             setWords(res.data.words);
             setFound([]);
             setHideWords(true); // Hide words after loading a new puzzle
+            setShowTranslations(false); // Hide translations after loading a new puzzle
             // Clear saved state when starting a new puzzle
             localStorage.removeItem('osmosmjerkaGameState');
         });
@@ -187,6 +200,8 @@ export default function App() {
                                     hideWords={hideWords}
                                     setHideWords={setHideWords}
                                     allFound={allFound}
+                                    showTranslations={showTranslations}
+                                    setShowTranslations={setShowTranslations}
                                 />
                             </div>
                         </div>
