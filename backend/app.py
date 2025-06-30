@@ -89,6 +89,17 @@ def clear_db(user=Depends(get_current_user)) -> JSONResponse:
     return JSONResponse({"status": "cleared"})
 
 
+@app.post("/admin/upload")
+async def upload(
+    file: UploadFile = File(...), user=Depends(get_current_user)
+) -> JSONResponse:
+    content = (await file.read()).decode("utf-8")
+    success, error = insert_words(content)
+    if not success:
+        return JSONResponse({"detail": error}, status_code=400)
+    return JSONResponse({"status": "uploaded"})
+
+
 @app.get("/api/categories")
 async def get_all_categories() -> JSONResponse:
     all_categories = get_categories()
@@ -151,13 +162,6 @@ async def get_words(
 
     grid, placed_words = generate_grid(selected, size=size)
     return JSONResponse({"grid": grid, "words": placed_words})
-
-
-@app.post("/api/upload")
-async def upload(file: UploadFile = File(...)) -> str:
-    content = (await file.read()).decode("utf-8")
-    insert_words(content)
-    return "Uploaded"
 
 
 @app.post("/api/export")

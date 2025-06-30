@@ -74,29 +74,44 @@ def get_categories(ignored_categories: set | None = None) -> list[str]:
 def insert_words(content: str):
     """Insert words into the database from a given content string.
     The content should be formatted as 'word; translation; categories'.
+    If the word already exists, it will be skipped.
+    If any line does not match the expected format, the transaction will be rolled back and an error message will be returned.
     Args:
         content (str): The content string containing words, translations, and categories.
+    Returns:
+        tuple: (success: bool, error_message: str | None)
     """
     conn = sqlite3.connect(DATABASE_FILE)
     cursor = conn.cursor()
-    for line in content.splitlines():
-        parts = [p.strip() for p in line.strip().split(";")]
-        if len(parts) == 3:
-            word, translation, categories = parts
-            cursor.execute(f"SELECT 1 FROM {TABLE_NAME} WHERE word = ?", (word,))
-            if cursor.fetchone():
-                continue
-            try:
-                cursor.execute(
-                    f"INSERT INTO {TABLE_NAME} (categories, word, translation) VALUES (?, ?, ?)",
-                    (categories, word, translation),
-                )
-            except sqlite3.IntegrityError:
-                continue
-        else:
-            print(f"Invalid line format: {line}")
-    conn.commit()
-    conn.close()
+    try:
+        conn.execute("BEGIN")
+        for line in content.splitlines():
+            parts = [p.strip() for p in line.strip().split(";")]
+            if len(parts) == 3:
+                word, translation, categories = parts
+                cursor.execute(f"SELECT 1 FROM {TABLE_NAME} WHERE word = ?", (word,))
+                if cursor.fetchone():
+                    continue
+                try:
+                    cursor.execute(
+                        f"INSERT INTO {TABLE_NAME} (categories, word, translation) VALUES (?, ?, ?)",
+                        (categories, word, translation),
+                    )
+                except sqlite3.IntegrityError as e:
+                    conn.rollback()
+                    conn.close()
+                    return False, f"Integrity error on word '{word}': {e}"
+            else:
+                conn.rollback()
+                conn.close()
+                return False, f"Invalid line format: {line}"
+        conn.commit()
+        conn.close()
+        return True, None
+    except Exception as e:
+        conn.rollback()
+        conn.close()
+        return False, str(e)
 
 
 def get_all_words(

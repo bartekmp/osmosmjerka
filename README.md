@@ -30,7 +30,7 @@ The admin page can be accessed via the `/admin` endpoint, which displays a login
 
 ![Admin page](docs/assets/osmosmjerka-admin.gif)
 
-It allows the administrator to display all existing entries from the database (with pagination), as well as filtering them by category, adding new or editing existing rows to the database, and clearing the entire database (because why not). It also allows to upload new entries to the database from `.txt` and `.csv` files, following this format: `<categories>;<word>;<translation>`, where multiple categories are just separated with spaces, e.g. `Toys Sport Nouns;pelota;ball`. The `word` field is used to determine if there are duplicates in the database, and if the backend finds that there's already such a word, it is ignored and not added.
+It allows the administrator to display all existing entries from the database (with pagination), as well as filtering them by category, adding new or editing existing rows to the database, and clearing the entire database (because why not). It also allows to upload new entries to the database from `.txt` and `.csv` files, following this format and order: `<word>;<translation>;<categories>`, where multiple categories are just separated with spaces, e.g. `pelota;ball;Toys Sport Nouns`. The `word` field is used to determine if there are duplicates in the database, and if the backend finds that there's already such a word, it is ignored and not added.
 
 ![Main admin page](docs/assets/osmosmjerka-admin-view.png)
 
