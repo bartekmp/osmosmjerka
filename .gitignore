@@ -1,11 +1,14 @@
 .env
 .venv/
 .vscode/
+
 __pycache__/
 *.pyc
 *.pyo
 *.pyd
 *.pkl
+osmosmjerka.egg-info/
+
 *.db
 *.sqlite3
 *.log
@@ -19,3 +22,5 @@ package-lock.json
 osmosmjerka-deployment.yaml
 
 db/
+
+build/

@@ -5,6 +5,7 @@ COPY .env backend/.env
 
 FROM node:20-slim AS frontend
 WORKDIR /app
+COPY VERSION VERSION
 COPY frontend/ frontend/
 WORKDIR /app/frontend
 COPY frontend/public public/
@@ -19,13 +20,13 @@ WORKDIR /app
 COPY --from=backend /app/backend /app
 COPY --from=frontend /app/frontend/build /app/static
 
-RUN pip install -r requirements.txt
+RUN pip install .
 
 # If using HTTP
 # EXPOSE 8085
-# CMD ["uvicorn", "app:app", "--host", "0.0.0.0", "--port", "8085"]
+# CMD ["uvicorn", "osmosmjerka.app:app", "--host", "0.0.0.0", "--port", "8085"]
 
 # If using HTTPS
-# Add privkey.pem and cert.pem to the ./backend directory
+# Add privkey.pem and cert.pem to the ./backend directory before building the image
 EXPOSE 443
-CMD ["uvicorn", "app:app", "--host", "0.0.0.0", "--port", "443", "--ssl-keyfile=/app/privkey.pem", "--ssl-certfile=/app/cert.pem"]
+CMD ["uvicorn", "osmosmjerka.app:app", "--host", "0.0.0.0", "--port", "443", "--ssl-keyfile=/app/privkey.pem", "--ssl-certfile=/app/cert.pem"]
