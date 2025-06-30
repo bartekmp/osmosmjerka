@@ -1,0 +1,20 @@
+[project]
+name = "osmosmjerka"
+version = "0.6.0"
+description = "Web-based word search game for learning foreign languages"
+license = "Apache-2.0"
+requires-python = ">= 3.12"
+dependencies = [
+    "bcrypt",
+    "fastapi",
+    "passlib[bcrypt]",
+    "python-docx",
+    "python-dotenv",
+    "python-jose[cryptography]",
+    "python-multipart",
+    "uvicorn",
+]
+[project.optional-dependencies]
+dev = ["black", "isort"]
+[tool.setuptools.packages.find]
+where = ["."]

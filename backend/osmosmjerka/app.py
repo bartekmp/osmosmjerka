@@ -3,18 +3,20 @@ import random
 from contextlib import asynccontextmanager
 
 import bcrypt
-from auth import PASSWORD_HASH, USERNAME, create_access_token, get_current_user
 from fastapi import (Body, Depends, FastAPI, File, Query, Request, UploadFile,
                      status)
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import FileResponse, JSONResponse, StreamingResponse
 from fastapi.staticfiles import StaticFiles
-from utils import export_to_docx
-from wordsearch import generate_grid
+from osmosmjerka.auth import (PASSWORD_HASH, USERNAME, create_access_token,
+                              get_current_user)
+from osmosmjerka.utils import export_to_docx
+from osmosmjerka.wordsearch import generate_grid
 
-from db import (IGNORED_CATEGORIES, add_word, delete_all_words, delete_word,
-                get_all_words, get_categories, get_words_by_category, init_db,
-                insert_words, update_word)
+from osmosmjerka.db import (IGNORED_CATEGORIES, add_word, delete_all_words,
+                            delete_word, get_all_words, get_categories,
+                            get_words_by_category, init_db, insert_words,
+                            update_word)
 
 # List of API endpoints that should be ignored for the SPA routing
 # This is used to ensure that the SPA does not interfere with API calls.

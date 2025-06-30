@@ -18,6 +18,41 @@ export default function App() {
     const [found, setFound] = useState([]);
     const [difficulty, setDifficulty] = useState('easy');
     const [hideWords, setHideWords] = useState(false);
+    const [restored, setRestored] = useState(false);
+
+    // Winning condition: all words found
+    const allFound = words.length > 0 && found.length === words.length;
+
+    // Restore state from localStorage on mount, but only if not already won
+    useEffect(() => {
+        const saved = localStorage.getItem('osmosmjerkaGameState');
+        if (saved) {
+            try {
+                const state = JSON.parse(saved);
+                const savedAllFound = typeof state.allFound === "boolean"
+                    ? state.allFound
+                    : (Array.isArray(state.words) && Array.isArray(state.found) && state.words.length > 0 && state.found.length === state.words.length);
+
+                if (
+                    Array.isArray(state.words) &&
+                    Array.isArray(state.found) &&
+                    state.words.length > 0 &&
+                    !savedAllFound
+                ) {
+                    setGrid(state.grid || []);
+                    setWords(state.words || []);
+                    setFound(state.found || []);
+                    setSelectedCategory(state.selectedCategory || '');
+                    setDifficulty(state.difficulty || 'easy');
+                    setHideWords(state.hideWords ?? false);
+                    setRestored(true); // Mark as restored
+                    return;
+                }
+            } catch {}
+            localStorage.removeItem('osmosmjerkaGameState');
+        }
+        setRestored(true); // Even if nothing to restore, mark as done
+    }, []);
 
     useEffect(() => {
         axios.get('/api/ignored_categories').then(res => {
@@ -25,20 +60,36 @@ export default function App() {
         });
         axios.get('/api/categories').then(res => {
             setCategories(res.data);
-            if (res.data.length > 0) {
-                // Pick a random category on initial load
+            // Only pick a random category if not restored from localStorage
+            if (res.data.length > 0 && !selectedCategory && restored && grid.length === 0) {
                 const randomIndex = Math.floor(Math.random() * res.data.length);
                 setSelectedCategory(res.data[randomIndex]);
             }
         });
-    }, []);
+        // eslint-disable-next-line
+    }, [restored]);
+
+    // Save state to localStorage on change
+    useEffect(() => {
+        const state = {
+            grid,
+            words,
+            found,
+            selectedCategory,
+            difficulty,
+            hideWords,
+            allFound,
+        };
+        localStorage.setItem('osmosmjerkaGameState', JSON.stringify(state));
+    }, [grid, words, found, selectedCategory, difficulty, hideWords, allFound]);
 
     useEffect(() => {
-        if (selectedCategory) {
+        if (!restored) return; // Wait until restoration is done
+        if (selectedCategory && grid.length === 0) {
             loadPuzzle(selectedCategory, difficulty);
         }
         // eslint-disable-next-line
-    }, [selectedCategory, difficulty]);
+    }, [restored, selectedCategory, difficulty]);
 
     const loadPuzzle = (category, diff = difficulty) => {
         setSelectedCategory(category);
@@ -47,6 +98,8 @@ export default function App() {
             setWords(res.data.words);
             setFound([]);
             setHideWords(true); // Hide words after loading a new puzzle
+            // Clear saved state when starting a new puzzle
+            localStorage.removeItem('osmosmjerkaGameState');
         });
     };
 
@@ -56,9 +109,6 @@ export default function App() {
             confetti();
         }
     };
-
-    // Winning condition: all words found
-    const allFound = words.length > 0 && found.length === words.length;
 
     // Automatically reveal words when all are found
     useEffect(() => {
