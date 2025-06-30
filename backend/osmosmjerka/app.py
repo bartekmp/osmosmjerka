@@ -10,8 +10,8 @@ from fastapi.responses import FileResponse, JSONResponse, StreamingResponse
 from fastapi.staticfiles import StaticFiles
 from osmosmjerka.auth import (PASSWORD_HASH, USERNAME, create_access_token,
                               get_current_user)
+from osmosmjerka.grid_generator import generate_grid
 from osmosmjerka.utils import export_to_docx
-from osmosmjerka.wordsearch import generate_grid
 
 from osmosmjerka.db import (IGNORED_CATEGORIES, add_word, delete_all_words,
                             delete_word, get_all_words, get_categories,
