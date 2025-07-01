@@ -15,6 +15,12 @@ dependencies = [
     "uvicorn",
 ]
 [project.optional-dependencies]
-dev = ["black", "isort"]
+dev = ["black", "isort", "pytest", "pytest-mock"]
 [tool.setuptools.packages.find]
 where = ["."]
+[tool.pytest.ini_options]
+addopts = "-ra"
+testpaths = ["tests"]
+python_files = "test_*.py"
+python_classes = "Test*"
+python_functions = "test_*"
