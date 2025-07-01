@@ -16,7 +16,7 @@ dependencies = [
 ]
 
 [project.optional-dependencies]
-dev = ["black", "isort", "pytest", "pytest-mock"]
+dev = ["black", "isort", "pytest", "pytest-mock", "httpx"]
 
 [tool.setuptools.packages.find]
 where = ["."]

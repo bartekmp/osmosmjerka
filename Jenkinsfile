@@ -2,7 +2,11 @@ pipeline {
     agent any
 
     parameters {
-        string(name: 'DOCKER_REGISTRY', defaultValue: '', description: 'Docker registry address, e.g. my-rtegistry.com:123')
+        string(name: 'DOCKER_REGISTRY', defaultValue: '', description: 'Docker registry address, e.g. my-registry.com:123')
+        string(name: 'ADMIN_USERNAME', defaultValue: 'admin', description: 'Username for the admin account used to access the application')
+        string(name: 'ADMIN_PASSWORD_HASH', defaultValue: '', description: 'Password hash for the admin account used to access the application')
+        string(name: 'ADMIN_SECRET_KEY', defaultValue: '', description: 'Secret key for the admin account used to access the application')
+        string(name: 'IGNORED_CATEGORIES', defaultValue: '', description: 'Comma-separated list of categories to ignore when processing data from the DB')        
     }
 
     environment {
@@ -38,8 +42,8 @@ pipeline {
                         stage('Lint & Format') {
                             steps {
                                 dir("${BACKEND_DIR}") {
-                                    sh '. .venv/bin/activate && black --check .'
                                     sh '. .venv/bin/activate && isort --check-only .'
+                                    sh '. .venv/bin/activate && black --check --diff .'
                                 }
                             }
                         }
@@ -63,7 +67,7 @@ pipeline {
                         stage('Install Node Modules') {
                             steps {
                                 dir("${FRONTEND_DIR}") {
-                                    sh 'npm ci || npm install'
+                                    sh 'npm install'
                                 }
                             }
                         }
@@ -110,6 +114,19 @@ pipeline {
             }
         }
 
+        stage('Prepare .env') {
+            steps {
+                script {
+                    writeFile file: '.env', text: """
+ADMIN_USERNAME=${env.ADMIN_USERNAME}
+ADMIN_PASSWORD_HASH=${env.ADMIN_PASSWORD_HASH}
+ADMIN_SECRET_KEY=${env.ADMIN_SECRET_KEY}
+IGNORED_CATEGORIES=${env.IGNORED_CATEGORIES}
+""".stripIndent()
+                }
+            }
+        }
+
         stage('Docker Build & Push') {
             steps {
                 script {
@@ -122,6 +139,7 @@ pipeline {
     }
     post {
         always {
+            sh 'rm -f .env'
             cleanWs()
         }
     }
