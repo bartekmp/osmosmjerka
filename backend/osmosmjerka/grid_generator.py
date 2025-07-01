@@ -64,17 +64,12 @@ def generate_grid(words: list, size: int | None = None) -> tuple[list, list]:
                     # Generate the coordinates for the word
                     coords = [(row + dr * i, col + dc * i) for i in range(word_len)]
                     # Check if the word can be placed (no conflicts)
-                    if all(
-                        grid[r][c] in ("", word_nospaces[i])
-                        for i, (r, c) in enumerate(coords)
-                    ):
+                    if all(grid[r][c] in ("", word_nospaces[i]) for i, (r, c) in enumerate(coords)):
                         # Place the word in the grid
                         for i, (r, c) in enumerate(coords):
                             grid[r][c] = word_nospaces[i]
                         # Add the word and its translation to the placed words list
-                        placed_words.append(
-                            {"word": orig_word, "translation": trans, "coords": coords}
-                        )
+                        placed_words.append({"word": orig_word, "translation": trans, "coords": coords})
                         placed_word = True
                         break
             # If the word was placed, break out of the loop

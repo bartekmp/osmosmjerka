@@ -1,4 +1,5 @@
 import pytest
+
 from osmosmjerka.grid_generator import generate_grid
 
 
@@ -65,6 +66,7 @@ def test_fill_empty_cells():
 def test_randomness_of_grid(monkeypatch):
     # Patch random.choice to always return 'X'
     import random
+
     monkeypatch.setattr(random, "choice", lambda seq: "X")
     words = [{"word": "PY", "translation": "PI"}]
     grid, placed = generate_grid(words, size=4)

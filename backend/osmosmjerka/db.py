@@ -8,9 +8,7 @@ load_dotenv()
 DATABASE_FILE = "/app/db/words.db"
 TABLE_NAME = "words"
 
-IGNORED_CATEGORIES = set(
-    c.strip() for c in os.getenv("IGNORED_CATEGORIES", "").split(",") if c.strip()
-)
+IGNORED_CATEGORIES = set(c.strip() for c in os.getenv("IGNORED_CATEGORIES", "").split(",") if c.strip())
 
 
 def init_db():
@@ -24,9 +22,7 @@ def init_db():
     conn.close()
 
 
-def get_words_by_category(
-    category: str, ignored_categories: set | None = None
-) -> list[dict]:
+def get_words_by_category(category: str, ignored_categories: set | None = None) -> list[dict]:
     """Retrieve words from the database by category.
     Args:
         category (str): The category to filter words by.
@@ -114,9 +110,7 @@ def insert_words(content: str):
         return False, str(e)
 
 
-def get_all_words(
-    offset: int = 0, limit: int | None = 20, category: str | None = None
-) -> tuple[list[tuple], int]:
+def get_all_words(offset: int = 0, limit: int | None = 20, category: str | None = None) -> tuple[list[tuple], int]:
     """Retrieve all words from the database with optional pagination and optional category filter.
     Args:
         offset (int): The starting point for pagination.

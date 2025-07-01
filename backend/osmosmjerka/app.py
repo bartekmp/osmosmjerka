@@ -65,10 +65,7 @@ def get_all_rows(
 ) -> dict:
     rows, total = get_all_words(offset, limit, category)
     return {
-        "rows": [
-            {"id": r[0], "categories": r[1], "word": r[2], "translation": r[3]}
-            for r in rows
-        ],
+        "rows": [{"id": r[0], "categories": r[1], "word": r[2], "translation": r[3]} for r in rows],
         "total": total,
     }
 
@@ -98,9 +95,7 @@ def clear_db(user=Depends(get_current_user)) -> JSONResponse:
 
 
 @app.post("/admin/upload")
-async def upload(
-    file: UploadFile = File(...), user=Depends(get_current_user)
-) -> JSONResponse:
+async def upload(file: UploadFile = File(...), user=Depends(get_current_user)) -> JSONResponse:
     content = (await file.read()).decode("utf-8")
     success, error = insert_words(content)
     if not success:
@@ -130,9 +125,7 @@ def get_grid_size_and_num_words(selected: list, difficulty: str) -> tuple:
     elif difficulty == "hard":
         return 20, 18
     elif difficulty == "dynamic":
-        size = (
-            max(len(w["word"].replace(" ", "")) for w in selected) if selected else 10
-        )
+        size = max(len(w["word"].replace(" ", "")) for w in selected) if selected else 10
         num_words = min(25, len(selected))
         return size, num_words
     else:
@@ -140,9 +133,7 @@ def get_grid_size_and_num_words(selected: list, difficulty: str) -> tuple:
 
 
 @app.get("/api/words")
-async def get_words(
-    category: str | None = None, difficulty: str = "medium"
-) -> JSONResponse:
+async def get_words(category: str | None = None, difficulty: str = "medium") -> JSONResponse:
     categories = get_categories()
     if not category:
         category = random.choice(categories)
@@ -181,9 +172,7 @@ async def export(request: Request) -> StreamingResponse:
     return StreamingResponse(
         file_like,
         media_type="application/vnd.openxmlformats-officedocument.wordprocessingml.document",
-        headers={
-            "Content-Disposition": f'attachment; filename="wordsearch-{data["category"]}.docx"'
-        },
+        headers={"Content-Disposition": f'attachment; filename="wordsearch-{data["category"]}.docx"'},
     )
 
 
@@ -221,9 +210,7 @@ def admin_login(data: dict = Body(...)):
     password = data.get("password")
     if not username or not password:
         return JSONResponse({"detail": "Missing credentials"}, status_code=400)
-    if username != USERNAME or not bcrypt.checkpw(
-        password.encode(), PASSWORD_HASH.encode()
-    ):
+    if username != USERNAME or not bcrypt.checkpw(password.encode(), PASSWORD_HASH.encode()):
         return JSONResponse({"detail": "Incorrect credentials"}, status_code=401)
     token = create_access_token({"sub": username})
     return {"access_token": token, "token_type": "bearer"}
