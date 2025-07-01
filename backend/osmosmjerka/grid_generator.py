@@ -10,14 +10,17 @@ def generate_grid(words: list, size: int | None = None) -> tuple[list, list]:
     Returns:
         tuple: A tuple containing the grid (list of lists) and a list of placed words with their coordinates.
     """
-    if not words:
-        return [], []
     # Ensure all words are at least 3 characters long
     words = [w for w in words if len(w["word"].strip()) >= 3]
 
+    # Normalize words: remove spaces and convert to uppercase
     # Create a list of word pairs (word, translation) for easier handling
     word_pairs = [(w["word"], w["translation"]) for w in words]
     words_nospaces = [w[0].replace(" ", "").upper() for w in word_pairs]
+
+    # If there are no valid words left, return empty results
+    if not words_nospaces:
+        return [], []
 
     # If size is not provided, determine it based on the longest word
     if size is None:
