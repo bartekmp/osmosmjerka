@@ -14,13 +14,25 @@ dependencies = [
     "python-multipart",
     "uvicorn",
 ]
+
 [project.optional-dependencies]
 dev = ["black", "isort", "pytest", "pytest-mock"]
+
 [tool.setuptools.packages.find]
 where = ["."]
+
 [tool.pytest.ini_options]
 addopts = "-ra"
 testpaths = ["tests"]
 python_files = "test_*.py"
 python_classes = "Test*"
 python_functions = "test_*"
+
+[tool.black]
+line-length = 120
+target-version = ["py312"]
+
+[tool.isort]
+profile = "black"
+line_length = 120
+skip_gitignore = true
