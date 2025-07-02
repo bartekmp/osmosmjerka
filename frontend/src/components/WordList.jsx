@@ -1,7 +1,7 @@
 import { useMemo } from 'react';
 import './WordList.css';
 
-export default function WordList({ words, found, hideWords, setHideWords, allFound, showTranslations, setShowTranslations }) {
+export default function WordList({ words, found, hideWords, setHideWords, allFound, showTranslations, setShowTranslations, disableShowWords }) {
     // Calculate the maximum length of translations to set a consistent width
     // This is done to ensure that the translation text does not wrap unnecessarily
     // and to maintain a clean layout for the word list.
@@ -26,7 +26,7 @@ export default function WordList({ words, found, hideWords, setHideWords, allFou
                     className="scrabble-btn word-list-hide-btn"
                     type="button"
                     onClick={() => setHideWords(h => !h)}
-                    disabled={allFound}
+                    disabled={allFound || disableShowWords}
                     style={{ width: buttonWidth, textAlign: 'center' }}
                 >
                     {hideWords ? 'Show words' : 'Hide words'}

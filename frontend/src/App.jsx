@@ -31,6 +31,8 @@ export default function App() {
         return false;
     });
     const [restored, setRestored] = useState(false);
+    const [notEnoughWords, setNotEnoughWords] = useState(false);
+    const [notEnoughWordsMsg, setNotEnoughWordsMsg] = useState("");
 
     // Winning condition: all words found
     const allFound = words.length > 0 && found.length === words.length;
@@ -81,14 +83,7 @@ export default function App() {
     useEffect(() => {
         if (!restored) return;
         if (selectedCategory && grid.length === 0) {
-            loadPuzzleHelper(selectedCategory, difficulty, {
-                setSelectedCategory,
-                setGrid,
-                setWords,
-                setFound,
-                setHideWords,
-                setShowTranslations
-            });
+            loadPuzzle(selectedCategory, difficulty);
         }
         // eslint-disable-next-line
     }, [restored, selectedCategory, difficulty]);
@@ -100,7 +95,9 @@ export default function App() {
             setWords,
             setFound,
             setHideWords,
-            setShowTranslations
+            setShowTranslations,
+            setNotEnoughWords,
+            setNotEnoughWordsMsg
         });
     };
 
@@ -178,8 +175,15 @@ export default function App() {
                             ) : null}
                         </div>
                         <div className="main-flex">
-                            <div className="osmo-grid-wrapper">
+                            <div className="osmo-grid-wrapper" style={{ position: "relative" }}>
                                 <Grid grid={grid} words={words} found={found} onFound={markFound} />
+                                {notEnoughWords && (
+                                    <div className="osmo-notenough-overlay">
+                                        <div className="osmo-notenough-message">
+                                            {notEnoughWordsMsg || "Not enough words in the selected category to generate a puzzle."}
+                                        </div>
+                                    </div>
+                                )}
                             </div>
                             <div className="word-list-wrapper">
                                 <WordList
@@ -190,6 +194,7 @@ export default function App() {
                                     allFound={allFound}
                                     showTranslations={showTranslations}
                                     setShowTranslations={setShowTranslations}
+                                    disableShowWords={notEnoughWords}
                                 />
                             </div>
                         </div>
