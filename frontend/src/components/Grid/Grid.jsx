@@ -1,47 +1,16 @@
 import { useEffect, useRef, useState } from 'react';
 import './Grid.css';
+import GridCell from './GridCell';
+import { getCellFromTouch, getDirection, isStraightLine } from './helpers';
 
 export default function Grid({ grid, words, found, onFound }) {
     const [selected, setSelected] = useState([]);
     const isMouseDown = useRef(false);
 
-    const isStraightLine = (path) => {
-        // Check if the path is a straight line (horizontal, vertical, or diagonal)
-        // A path is a straight line if it consists of points that are either all in the same row, column, or diagonal.
-        // It makes no sense for the player to select anything that is not a straight line
-
-        if (path.length < 2) return false;
-        const [r0, c0] = path[0];
-        const [r1, c1] = path[path.length - 1];
-        const dr = r1 - r0;
-        const dc = c1 - c0;
-
-        if (dr !== 0 && dc !== 0 && Math.abs(dr) !== Math.abs(dc)) return false;
-
-        const steps = Math.max(Math.abs(dr), Math.abs(dc));
-        for (let i = 0; i <= steps; i++) {
-            const rr = r0 + Math.sign(dr) * i;
-            const cc = c0 + Math.sign(dc) * i;
-            if (!path.some(([r, c]) => r === rr && c === cc)) return false;
-        }
-        return true;
-    };
-
-    const [direction, setDirection] = useState(null); // 'horizontal' | 'vertical' | 'diagonal'
-
-    // Function to determine the direction of the selection based on start and end coordinates
-    const getDirection = ([r0, c0], [r1, c1]) => {
-        if (r0 === r1) return 'horizontal';
-        if (c0 === c1) return 'vertical';
-        if (Math.abs(r1 - r0) === Math.abs(c1 - c0)) return 'diagonal';
-        return null;
-    };
-
     // Handle mouse and touch events for selecting cells
     const handleMouseDown = (r, c) => {
         isMouseDown.current = true;
         setSelected([[r, c]]);
-        setDirection(null);
     };
 
     const handleMouseEnter = (r, c) => {
@@ -55,7 +24,6 @@ export default function Grid({ grid, words, found, onFound }) {
         const length = Math.max(Math.abs(r - start[0]), Math.abs(c - start[1])) + 1;
         const newSelected = Array.from({ length }, (_, i) => [start[0] + dr * i, start[1] + dc * i]);
 
-        setDirection(newDirection);
         setSelected(newSelected);
     };
 
@@ -78,24 +46,11 @@ export default function Grid({ grid, words, found, onFound }) {
         setSelected([]);
     };
 
-    // Function to get cell coordinates from touch events
-    // This function retrieves the cell coordinates from a touch event by checking the touch position
-    // and finding the closest table cell that has data attributes for row and column.
-    const getCellFromTouch = (e) => {
-        const touch = e.touches[0];
-        const el = document.elementFromPoint(touch.clientX, touch.clientY);
-        if (!el) return null;
-        const cell = el.closest('td[data-row][data-col]');
-        if (!cell) return null;
-        return [parseInt(cell.dataset.row), parseInt(cell.dataset.col)];
-    };
-
     const handleTouchStart = (e) => {
         const cell = getCellFromTouch(e);
         if (cell) {
             isMouseDown.current = true;
             setSelected([cell]);
-            setDirection(null);
         }
     };
 
@@ -173,23 +128,17 @@ export default function Grid({ grid, words, found, onFound }) {
                     <tr key={r}>
                         {row.map((cell, c) => {
                             const isSelected = selected.some(([sr, sc]) => sr === r && sc === c);
-                            const cellClasses = [
-                                "grid-cell",
-                                isSelected ? "selected" : "",
-                                isFound(r, c) ? "found" : ""
-                            ].join(" ").trim();
-
                             return (
-                                <td
+                                <GridCell
                                     key={c}
-                                    data-row={r}
-                                    data-col={c}
-                                    onMouseDown={() => handleMouseDown(r, c)}
-                                    onMouseEnter={() => handleMouseEnter(r, c)}
-                                    className={cellClasses}
-                                >
-                                    {cell}
-                                </td>
+                                    r={r}
+                                    c={c}
+                                    cell={cell}
+                                    isSelected={isSelected}
+                                    isFound={isFound(r, c)}
+                                    handleMouseDown={handleMouseDown}
+                                    handleMouseEnter={handleMouseEnter}
+                                />
                             );
                         })}
                     </tr>

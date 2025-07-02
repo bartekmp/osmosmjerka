@@ -2,12 +2,14 @@ import axios from 'axios';
 import confetti from 'canvas-confetti';
 import { useEffect, useState } from 'react';
 import { Link, Route, Routes } from 'react-router-dom';
-import AdminPanel from './components/AdminPanel';
+import AdminPanel from './components/AdminPanel/AdminPanel';
 import CategorySelector from './components/CategorySelector';
 import ExportButton from './components/ExportButton';
-import Grid from './components/Grid';
+import Grid from './components/Grid/Grid';
 import WordList from './components/WordList';
 import './style.css';
+
+import { loadPuzzle as loadPuzzleHelper, restoreGameState, saveGameState } from './helpers/appHelpers';
 
 export default function App() {
     const [categories, setCategories] = useState([]);
@@ -24,7 +26,7 @@ export default function App() {
             try {
                 const state = JSON.parse(saved);
                 return !!state.showTranslations;
-            } catch {}
+            } catch { }
         }
         return false;
     });
@@ -35,34 +37,17 @@ export default function App() {
 
     // Restore state from localStorage on mount, but only if not already won
     useEffect(() => {
-        const saved = localStorage.getItem('osmosmjerkaGameState');
-        if (saved) {
-            try {
-                const state = JSON.parse(saved);
-                const savedAllFound = typeof state.allFound === "boolean"
-                    ? state.allFound
-                    : (Array.isArray(state.words) && Array.isArray(state.found) && state.words.length > 0 && state.found.length === state.words.length);
-
-                if (
-                    Array.isArray(state.words) &&
-                    Array.isArray(state.found) &&
-                    state.words.length > 0 &&
-                    !savedAllFound
-                ) {
-                    setGrid(state.grid || []);
-                    setWords(state.words || []);
-                    setFound(state.found || []);
-                    setSelectedCategory(state.selectedCategory || '');
-                    setDifficulty(state.difficulty || 'easy');
-                    setHideWords(state.hideWords ?? false);
-                    setShowTranslations(!!state.showTranslations);
-                    setRestored(true); // Mark as restored
-                    return;
-                }
-            } catch {}
-            localStorage.removeItem('osmosmjerkaGameState');
-        }
-        setRestored(true); // Even if nothing to restore, mark as done
+        restoreGameState({
+            setGrid,
+            setWords,
+            setFound,
+            setSelectedCategory,
+            setDifficulty,
+            setHideWords,
+            setShowTranslations,
+            setRestored
+        });
+        // eslint-disable-next-line
     }, []);
 
     useEffect(() => {
@@ -71,7 +56,6 @@ export default function App() {
         });
         axios.get('/api/categories').then(res => {
             setCategories(res.data);
-            // Only pick a random category if not restored from localStorage
             if (res.data.length > 0 && !selectedCategory && restored && grid.length === 0) {
                 const randomIndex = Math.floor(Math.random() * res.data.length);
                 setSelectedCategory(res.data[randomIndex]);
@@ -82,7 +66,7 @@ export default function App() {
 
     // Save state to localStorage on change, including showTranslations
     useEffect(() => {
-        const state = {
+        saveGameState({
             grid,
             words,
             found,
@@ -91,28 +75,32 @@ export default function App() {
             hideWords,
             allFound,
             showTranslations,
-        };
-        localStorage.setItem('osmosmjerkaGameState', JSON.stringify(state));
+        });
     }, [grid, words, found, selectedCategory, difficulty, hideWords, allFound, showTranslations]);
 
     useEffect(() => {
-        if (!restored) return; // Wait until restoration is done
+        if (!restored) return;
         if (selectedCategory && grid.length === 0) {
-            loadPuzzle(selectedCategory, difficulty);
+            loadPuzzleHelper(selectedCategory, difficulty, {
+                setSelectedCategory,
+                setGrid,
+                setWords,
+                setFound,
+                setHideWords,
+                setShowTranslations
+            });
         }
         // eslint-disable-next-line
     }, [restored, selectedCategory, difficulty]);
 
     const loadPuzzle = (category, diff = difficulty) => {
-        setSelectedCategory(category);
-        axios.get(`/api/words?category=${category}&difficulty=${diff}`).then(res => {
-            setGrid(res.data.grid);
-            setWords(res.data.words);
-            setFound([]);
-            setHideWords(true); // Hide words after loading a new puzzle
-            setShowTranslations(false); // Hide translations after loading a new puzzle
-            // Clear saved state when starting a new puzzle
-            localStorage.removeItem('osmosmjerkaGameState');
+        loadPuzzleHelper(category, diff, {
+            setSelectedCategory,
+            setGrid,
+            setWords,
+            setFound,
+            setHideWords,
+            setShowTranslations
         });
     };
 
