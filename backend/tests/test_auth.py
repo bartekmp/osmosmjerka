@@ -1,4 +1,5 @@
-from datetime import datetime, timedelta
+from datetime import datetime, timedelta, timezone
+from unittest.mock import MagicMock
 
 import pytest
 from fastapi import HTTPException, Request
@@ -7,8 +8,9 @@ from jose import jwt
 from osmosmjerka import auth
 
 
-class DummyRequest:
+class DummyRequest(MagicMock):
     def __init__(self, token):
+        super().__init__(spec=Request)
         self.headers = {"Authorization": token}
 
 
@@ -63,7 +65,7 @@ def test_verify_token_wrong_user(monkeypatch):
     importlib.reload(auth_mod)
     # Create token with wrong username
     token = jwt.encode(
-        {"sub": "notadmin", "exp": datetime.utcnow() + timedelta(minutes=5)}, "testsecret", algorithm="HS256"
+        {"sub": "notadmin", "exp": datetime.now(timezone.utc) + timedelta(minutes=5)}, "testsecret", algorithm="HS256"
     )
     with pytest.raises(HTTPException) as exc:
         auth_mod.verify_token(token)

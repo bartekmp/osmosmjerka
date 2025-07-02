@@ -69,8 +69,10 @@ def test_get_words_not_enough_words(client, monkeypatch):
     monkeypatch.setattr("osmosmjerka.app.get_categories", lambda: ["A"])
     monkeypatch.setattr("osmosmjerka.app.get_words_by_category", lambda cat, ignored_categories: [{"word": "a"}])
     response = client.get("/api/words?category=A&difficulty=hard")
-    assert response.status_code == 400
-    assert "Not enough words" in response.text
+    assert response.status_code == 200
+    data = response.json()
+    assert data.get("error_code") == "NOT_ENOUGH_WORDS"
+    assert "Not enough words" in data.get("detail", "")
 
 
 def test_get_words_success(client, monkeypatch):

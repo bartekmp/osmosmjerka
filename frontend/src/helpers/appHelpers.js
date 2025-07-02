@@ -50,14 +50,50 @@ export function saveGameState(state) {
 
 // Load puzzle from API
 export function loadPuzzle(category, diff, setters) {
-    const { setSelectedCategory, setGrid, setWords, setFound, setHideWords, setShowTranslations } = setters;
+    const {
+        setSelectedCategory,
+        setGrid,
+        setWords,
+        setFound,
+        setHideWords,
+        setShowTranslations,
+        setNotEnoughWords,
+        setNotEnoughWordsMsg
+    } = setters;
     setSelectedCategory(category);
-    axios.get(`/api/words?category=${category}&difficulty=${diff}`).then(res => {
-        setGrid(res.data.grid);
-        setWords(res.data.words);
-        setFound([]);
-        setHideWords(true);
-        setShowTranslations(false);
-        localStorage.removeItem('osmosmjerkaGameState');
-    });
+    if (setNotEnoughWords) setNotEnoughWords(false);
+    if (setNotEnoughWordsMsg) setNotEnoughWordsMsg("");
+    axios.get(`/api/words?category=${category}&difficulty=${diff}`)
+        .then(res => {
+            if (res.data.error_code === "NOT_ENOUGH_WORDS") {
+                if (setNotEnoughWords) setNotEnoughWords(true);
+                if (setNotEnoughWordsMsg) setNotEnoughWordsMsg(res.data.detail || "Not enough words in the selected category.");
+                setGrid(Array.from({ length: 10 }, () => Array(10).fill("")));
+                setWords([]);
+                setFound([]);
+                setHideWords(true);
+                setShowTranslations(false);
+            } else {
+                setGrid(res.data.grid);
+                setWords(res.data.words);
+                setFound([]);
+                setHideWords(true);
+                setShowTranslations(false);
+            }
+            localStorage.removeItem('osmosmjerkaGameState');
+        })
+        .catch(err => {
+            // Only handle true network/server errors here
+            if (setNotEnoughWords) setNotEnoughWords(true);
+            let msg = "Error loading puzzle.";
+            if (err.response && err.response.data && err.response.data.detail) {
+                msg = err.response.data.detail;
+            }
+            if (setNotEnoughWordsMsg) setNotEnoughWordsMsg(msg);
+            setGrid(Array.from({ length: 10 }, () => Array(10).fill("")));
+            setWords([]);
+            setFound([]);
+            setHideWords(true);
+            setShowTranslations(false);
+        });
 }

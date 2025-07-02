@@ -139,7 +139,10 @@ async def get_words(category: str | None = None, difficulty: str = "medium") -> 
         category = random.choice(categories)
     selected = get_words_by_category(category, ignored_categories=IGNORED_CATEGORIES)
     if not selected:
-        return JSONResponse({"grid": [], "words": []})
+        return JSONResponse(
+            {"grid": [], "words": [], "detail": "No words in selected category", "error_code": "NO_WORDS"},
+            status_code=200,
+        )
 
     if difficulty not in ["easy", "medium", "hard", "dynamic"]:
         return JSONResponse(
@@ -151,8 +154,15 @@ async def get_words(category: str | None = None, difficulty: str = "medium") -> 
 
     if len(selected) < num_words:
         return JSONResponse(
-            {"detail": "Not enough words in the selected category"},
-            status_code=status.HTTP_400_BAD_REQUEST,
+            {
+                "detail": "Not enough words in the selected category",
+                "error_code": "NOT_ENOUGH_WORDS",
+                "required": num_words,
+                "available": len(selected),
+                "grid": [],
+                "words": [],
+            },
+            status_code=200,
         )
     if len(selected) > num_words:
         selected = random.sample(selected, num_words)
