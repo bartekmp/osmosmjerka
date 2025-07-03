@@ -1,4 +1,4 @@
-import { useMemo } from 'react';
+import React, { useMemo } from 'react';
 import './WordList.css';
 
 export default function WordList({ words, found, hideWords, setHideWords, allFound, showTranslations, setShowTranslations, disableShowWords }) {

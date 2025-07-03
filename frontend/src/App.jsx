@@ -1,6 +1,6 @@
 import axios from 'axios';
 import confetti from 'canvas-confetti';
-import { useEffect, useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { Link, Route, Routes } from 'react-router-dom';
 import AdminPanel from './components/AdminPanel/AdminPanel';
 import CategorySelector from './components/CategorySelector';

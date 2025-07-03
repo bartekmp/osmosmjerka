@@ -1,3 +1,4 @@
+import React from 'react';
 import './CategorySelector.css';
 
 export default function CategorySelector({ categories, selected, onSelect }) {
