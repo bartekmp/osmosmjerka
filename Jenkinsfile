@@ -3,7 +3,9 @@ pipeline {
 
     parameters {
         string(name: 'DOCKER_REGISTRY', defaultValue: '', description: 'Docker registry address, e.g. my-registry.com:123')
-        string(name: 'DEPLOY_TO_ARGOCD', defaultValue: true, description: 'Deploy to ArgoCD after build? Set to false to skip deployment.')
+        string(name: 'DEPLOY_TO_ARGOCD', defaultValue: 'true', description: 'Deploy to ArgoCD after build? Set to false to skip deployment.')
+        string(name: 'GITOPS_REPO', defaultValue: '', description: 'GitOps repository URL where the ArgoCD manifests are stored')
+
         string(name: 'ADMIN_USERNAME', defaultValue: 'admin', description: 'Username for the admin account used to access the application')
         string(name: 'ADMIN_PASSWORD_HASH', defaultValue: '', description: 'Password hash for the admin account used to access the application')
         string(name: 'ADMIN_SECRET_KEY', defaultValue: '', description: 'Secret key for the admin account used to access the application')
