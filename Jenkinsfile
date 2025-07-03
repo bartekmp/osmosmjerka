@@ -140,13 +140,15 @@ IGNORED_CATEGORIES=${env.IGNORED_CATEGORIES}
             }
         }
 
-        stage('Deploy to ArgoCD') {
+        stage('Deploy to Argo CD') {
             when {
                 branch 'main'
             }
             steps {
                 script {
-                    if (params.DEPLOY_TO_ARGOCD.toBoolean()) {
+                    if (!params.GITOPS_REPO?.trim()) {
+                        echo "Skipping deployment to ArgoCD because GITOPS_REPO is not set."
+                    } else if (params.DEPLOY_TO_ARGOCD.toBoolean()) {
                         // Clone the GitOps repo, update image, commit, and push to trigger ArgoCD deployment
                         sh 'rm -rf gitops-tmp'
                         sh "git clone ${params.GITOPS_REPO} gitops-tmp"
@@ -154,7 +156,7 @@ IGNORED_CATEGORIES=${env.IGNORED_CATEGORIES}
                             sh "kustomize edit set image ${env.DOCKER_REGISTRY}/${IMAGE_NAME}=${env.DOCKER_REGISTRY}/${IMAGE_NAME}:${IMAGE_TAG}"
                             sh 'git config user.email "ci@example.com"'
                             sh 'git config user.name "CI Bot"'
-                            sh 'git commit -am "Update prod image to ${IMAGE_TAG}" || echo "No changes to commit"'
+                            sh 'git commit -am "Update prod image to ${IMAGE_TAG}" || echo \"No changes to commit\"'
                             sh 'git push'
                         }
                         sh 'rm -rf gitops-tmp'
