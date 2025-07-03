@@ -3,6 +3,7 @@ pipeline {
 
     parameters {
         string(name: 'DOCKER_REGISTRY', defaultValue: '', description: 'Docker registry address, e.g. my-registry.com:123')
+        string(name: 'DEPLOY_TO_ARGOCD', defaultValue: true, description: 'Deploy to ArgoCD after build? Set to false to skip deployment.')
         string(name: 'ADMIN_USERNAME', defaultValue: 'admin', description: 'Username for the admin account used to access the application')
         string(name: 'ADMIN_PASSWORD_HASH', defaultValue: '', description: 'Password hash for the admin account used to access the application')
         string(name: 'ADMIN_SECRET_KEY', defaultValue: '', description: 'Secret key for the admin account used to access the application')
@@ -133,6 +134,31 @@ IGNORED_CATEGORIES=${env.IGNORED_CATEGORIES}
                     sh "docker build -t ${env.DOCKER_REGISTRY}/${IMAGE_NAME}:latest -t ${env.DOCKER_REGISTRY}/${IMAGE_NAME}:${IMAGE_TAG} ."
                     sh "docker push ${env.DOCKER_REGISTRY}/${IMAGE_NAME}:latest"
                     sh "docker push ${env.DOCKER_REGISTRY}/${IMAGE_NAME}:${IMAGE_TAG}"
+                }
+            }
+        }
+
+        stage('Deploy to ArgoCD') {
+            when {
+                branch 'main'
+            }
+            steps {
+                script {
+                    if (params.DEPLOY_TO_ARGOCD.toBoolean()) {
+                        // Clone the GitOps repo, update image, commit, and push to trigger ArgoCD deployment
+                        sh 'rm -rf gitops-tmp'
+                        sh "git clone ${params.GITOPS_REPO} gitops-tmp"
+                        dir('gitops-tmp/k8s/overlays/prod') {
+                            sh "kustomize edit set image ${env.DOCKER_REGISTRY}/${IMAGE_NAME}=${env.DOCKER_REGISTRY}/${IMAGE_NAME}:${IMAGE_TAG}"
+                            sh 'git config user.email "ci@example.com"'
+                            sh 'git config user.name "CI Bot"'
+                            sh 'git commit -am "Update prod image to ${IMAGE_TAG}" || echo "No changes to commit"'
+                            sh 'git push'
+                        }
+                        sh 'rm -rf gitops-tmp'
+                    } else {
+                        echo "Skipping deployment to ArgoCD as per user request."
+                    }
                 }
             }
         }
