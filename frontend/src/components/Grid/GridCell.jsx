@@ -1,3 +1,5 @@
+import React from 'react';
+
 export default function GridCell({ r, c, cell, isSelected, isFound, handleMouseDown, handleMouseEnter }) {
     const cellClasses = [
         "grid-cell",

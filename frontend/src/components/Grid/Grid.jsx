@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import './Grid.css';
 import GridCell from './GridCell';
 import { getCellFromTouch, getDirection, isStraightLine } from './helpers';
