@@ -7,8 +7,8 @@ from jose import JWTError, jwt
 
 load_dotenv()
 
-USERNAME = os.getenv("ADMIN_USERNAME")
-PASSWORD_HASH = os.getenv("ADMIN_PASSWORD_HASH")
+USERNAME = os.getenv("ADMIN_USERNAME", "")
+PASSWORD_HASH = os.getenv("ADMIN_PASSWORD_HASH", "")
 SECRET_KEY = os.getenv("ADMIN_SECRET_KEY", "")
 
 ALGORITHM = "HS256"
