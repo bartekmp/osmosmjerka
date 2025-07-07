@@ -3,20 +3,27 @@ pipeline {
 
     parameters {
         string(name: 'DOCKER_REGISTRY', defaultValue: '', description: 'Docker registry address, e.g. my-registry.com:123')
-        string(name: 'DEPLOY_TO_ARGOCD', defaultValue: 'true', description: 'Deploy to ArgoCD after build? Set to false to skip deployment.')
+        booleanParam(name: 'PUSH_IMAGE', defaultValue: true, description: 'Push Docker image after build?')
+
+        booleanParam(name: 'DEPLOY_TO_ARGOCD', defaultValue: true, description: 'Deploy to ArgoCD after build? Set to false to skip deployment.')
         string(name: 'GITOPS_REPO', defaultValue: '', description: 'GitOps repository URL where the ArgoCD manifests are stored')
 
         string(name: 'ADMIN_USERNAME', defaultValue: 'admin', description: 'Username for the admin account used to access the application')
         string(name: 'ADMIN_PASSWORD_HASH', defaultValue: '', description: 'Password hash for the admin account used to access the application')
         string(name: 'ADMIN_SECRET_KEY', defaultValue: '', description: 'Secret key for the admin account used to access the application')
-        string(name: 'IGNORED_CATEGORIES', defaultValue: '', description: 'Comma-separated list of categories to ignore when processing data from the DB')        
+        string(name: 'IGNORED_CATEGORIES', defaultValue: '', description: 'Comma-separated list of categories to ignore when processing data from the DB')
     }
 
     environment {
-        IMAGE_NAME = "osmosmjerka"
-        BACKEND_DIR = "backend"
-        FRONTEND_DIR = "frontend"
-        VERSION_FILE = "VERSION"
+        IMAGE_NAME = 'osmosmjerka'
+        BACKEND_DIR = 'backend'
+        FRONTEND_DIR = 'frontend'
+        VERSION_FILE = 'VERSION'
+        DOCKER_REGISTRY = "${params.DOCKER_REGISTRY ?: env.DOCKER_REGISTRY}"
+        ADMIN_USERNAME = "${params.ADMIN_USERNAME ?: env.ADMIN_USERNAME}"
+        ADMIN_PASSWORD_HASH = "${params.ADMIN_PASSWORD_HASH ?: env.ADMIN_PASSWORD_HASH}"
+        ADMIN_SECRET_KEY = "${params.ADMIN_SECRET_KEY ?: env.ADMIN_SECRET_KEY}"
+        IGNORED_CATEGORIES = "${params.IGNORED_CATEGORIES ?: env.IGNORED_CATEGORIES}"
     }
 
     stages {
@@ -54,10 +61,10 @@ pipeline {
                             steps {
                                 dir("${BACKEND_DIR}") {
                                     script {
-                                        if (fileExists('tests') && sh(script: 'ls tests/test_*.py 2>/dev/null | wc -l', returnStdout: true).trim() != "0") {
+                                        if (fileExists('tests') && sh(script: 'ls tests/test_*.py 2>/dev/null | wc -l', returnStdout: true).trim() != '0') {
                                             sh '. .venv/bin/activate && pytest'
                                         } else {
-                                            echo "No backend tests found, skipping."
+                                            echo 'No backend tests found, skipping.'
                                         }
                                     }
                                 }
@@ -81,12 +88,12 @@ pipeline {
                                         if (fileExists('node_modules/.bin/eslint')) {
                                             sh 'npx eslint . || true'
                                         } else {
-                                            echo "No ESLint found, skipping lint."
+                                            echo 'No ESLint found, skipping lint.'
                                         }
                                         if (fileExists('node_modules/.bin/prettier')) {
                                             sh 'npx prettier --check . || true'
                                         } else {
-                                            echo "No Prettier found, skipping formatting check."
+                                            echo 'No Prettier found, skipping formatting check.'
                                         }
                                     }
                                 }
@@ -99,7 +106,7 @@ pipeline {
                                         if (fileExists('node_modules/.bin/jest')) {
                                             sh 'npx jest'
                                         } else {
-                                            echo "No frontend tests found, skipping."
+                                            echo 'No frontend tests found, skipping.'
                                         }
                                     }
                                 }
@@ -134,8 +141,10 @@ IGNORED_CATEGORIES=${env.IGNORED_CATEGORIES}
             steps {
                 script {
                     sh "docker build -t ${env.DOCKER_REGISTRY}/${IMAGE_NAME}:latest -t ${env.DOCKER_REGISTRY}/${IMAGE_NAME}:${IMAGE_TAG} ."
-                    sh "docker push ${env.DOCKER_REGISTRY}/${IMAGE_NAME}:latest"
-                    sh "docker push ${env.DOCKER_REGISTRY}/${IMAGE_NAME}:${IMAGE_TAG}"
+                    if (params.PUSH_IMAGE) {
+                        sh "docker push ${env.DOCKER_REGISTRY}/${IMAGE_NAME}:latest"
+                        sh "docker push ${env.DOCKER_REGISTRY}/${IMAGE_NAME}:${IMAGE_TAG}"
+                    }
                 }
             }
         }
@@ -147,8 +156,8 @@ IGNORED_CATEGORIES=${env.IGNORED_CATEGORIES}
             steps {
                 script {
                     if (!params.GITOPS_REPO?.trim()) {
-                        echo "Skipping deployment to ArgoCD because GITOPS_REPO is not set."
-                    } else if (params.DEPLOY_TO_ARGOCD.toBoolean()) {
+                        echo 'Skipping deployment to ArgoCD because GITOPS_REPO is not set.'
+                    } else if (params.DEPLOY_TO_ARGOCD) {
                         // Clone the GitOps repo, update image, commit, and push to trigger ArgoCD deployment
                         sh 'rm -rf gitops-tmp'
                         sh "git clone ${params.GITOPS_REPO} gitops-tmp"
@@ -161,7 +170,7 @@ IGNORED_CATEGORIES=${env.IGNORED_CATEGORIES}
                         }
                         sh 'rm -rf gitops-tmp'
                     } else {
-                        echo "Skipping deployment to ArgoCD as per user request."
+                        echo 'Skipping deployment to ArgoCD as per user request.'
                     }
                 }
             }
