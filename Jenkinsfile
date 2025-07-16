@@ -3,11 +3,7 @@ pipeline {
 
     parameters {
         booleanParam(name: 'PUSH_IMAGE', defaultValue: true, description: 'Push Docker image after build?')
-
         booleanParam(name: 'DEPLOY_TO_ARGOCD', defaultValue: true, description: 'Deploy to ArgoCD after build? Set to false to skip deployment.')
-        string(name: 'GITOPS_REPO', defaultValue: '', description: 'GitOps repository URL where the ArgoCD manifests are stored')
-
-        string(name: 'ADMIN_USERNAME', defaultValue: '', description: 'Username for the admin account used to access the application')
         string(name: 'IGNORED_CATEGORIES', defaultValue: '', description: 'Comma-separated list of categories to ignore when processing data from the DB')
     }
 
@@ -15,10 +11,8 @@ pipeline {
         IMAGE_NAME = 'osmosmjerka'
         BACKEND_DIR = 'backend'
         FRONTEND_DIR = 'frontend'
-        VERSION_FILE = 'VERSION'
-        GITOPS_REPO = "${params.OSMOSMJERKA_GITOPS_REPO ?: env.GITOPS_REPO}"
-        DOCKER_REGISTRY = "${params.DOCKER_REGISTRY}"
-        ADMIN_USERNAME = credentials('osmosmjerka-admin-username') ?: "${params.ADMIN_USERNAME ?: env.ADMIN_USERNAME}"
+        GITOPS_REPO = "${env.OSMOSMJERKA_GITOPS_REPO}"
+        ADMIN_USERNAME = credentials('osmosmjerka-admin-username')
         ADMIN_PASSWORD_HASH = credentials('osmosmjerka-admin-password-hash')
         ADMIN_SECRET_KEY = credentials('osmosmjerka-admin-secret-key')
         IGNORED_CATEGORIES = "${params.IGNORED_CATEGORIES ?: env.IGNORED_CATEGORIES}"
@@ -27,7 +21,17 @@ pipeline {
     stages {
         stage('Checkout') {
             steps {
-                checkout scm
+                // Ensure full clone with history and tags
+                checkout([
+                    $class: 'GitSCM',
+                    branches: [[name: '*/main']],
+                    doGenerateSubmoduleConfigurations: false,
+                    extensions: [
+                        [$class: 'CloneOption', noTags: false, shallow: false, depth: 0]
+                    ],
+                    submoduleCfg: [],
+                    userRemoteConfigs: [[url: 'git@github.com:bartekmp/osmosmjerka.git', credentialsId: 'github_token']]
+                ])
             }
         }
         stage('Install Dependencies') {
@@ -123,17 +127,15 @@ pipeline {
                 }
             }
             steps {
-                dir('frontend') {
-                    sh 'npx semantic-release --dry-run > release.log'
-                    script {
-                        def version = sh(script: "grep 'next release version is' release.log | awk '{print \$NF}'", returnStdout: true).trim()
-                        echo "Next version: ${version}"
+                sh 'npx semantic-release --dry-run > release.log'
+                script {
+                    def version = sh(script: "grep 'next release version is' release.log | awk '{print \$NF}'", returnStdout: true).trim()
+                    env.IMAGE_TAG = version
+                    echo "Next version: ${version}"
+                    dir('frontend') {
                         sh "npm version ${version} --no-git-tag-version"
                     }
-                }
-                dir('backend') {
-                    script {
-                        def version = sh(script: "grep 'next release version is' ../frontend/release.log | awk '{print \$NF}'", returnStdout: true).trim()
+                    dir('backend') {
                         sh "sed -i 's/^version = \".*\"/version = \"${version}\"/' pyproject.toml"
                     }
                 }
@@ -158,6 +160,12 @@ pipeline {
         }
 
         stage('Prepare .env') {
+            when {
+                allOf {
+                    branch 'main'
+                    not { buildingTag() }
+                }
+            }
             steps {
                 script {
                     writeFile file: '.env', text: """
@@ -171,6 +179,12 @@ IGNORED_CATEGORIES=${env.IGNORED_CATEGORIES}
         }
 
         stage('Docker Build & Push') {
+            when {
+                allOf {
+                    branch 'main'
+                    not { buildingTag() }
+                }
+            }
             steps {
                 script {
                     sh "docker build -t ${env.DOCKER_REGISTRY}/${IMAGE_NAME}:latest -t ${env.DOCKER_REGISTRY}/${IMAGE_NAME}:${IMAGE_TAG} ."
@@ -185,6 +199,7 @@ IGNORED_CATEGORIES=${env.IGNORED_CATEGORIES}
         stage('Deploy to Argo CD') {
             when {
                 branch 'main'
+                not { buildingTag() }
             }
             steps {
                 script {
@@ -210,6 +225,8 @@ IGNORED_CATEGORIES=${env.IGNORED_CATEGORIES}
     }
     post {
         always {
+            sh "docker rm ${env.DOCKER_REGISTRY}/${IMAGE_NAME}:latest || true"
+            sh "docker rm ${env.DOCKER_REGISTRY}/${IMAGE_NAME}:${IMAGE_TAG} || true"
             sh 'rm -f .env'
             cleanWs()
         }
