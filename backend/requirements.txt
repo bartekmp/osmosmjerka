@@ -1,8 +1,0 @@
-bcrypt
-fastapi
-passlib[bcrypt]
-python-docx
-python-dotenv
-python-jose[cryptography]
-python-multipart
-uvicorn

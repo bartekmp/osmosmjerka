@@ -2,15 +2,12 @@ pipeline {
     agent any
 
     parameters {
-        string(name: 'DOCKER_REGISTRY', defaultValue: '', description: 'Docker registry address, e.g. my-registry.com:123')
         booleanParam(name: 'PUSH_IMAGE', defaultValue: true, description: 'Push Docker image after build?')
 
         booleanParam(name: 'DEPLOY_TO_ARGOCD', defaultValue: true, description: 'Deploy to ArgoCD after build? Set to false to skip deployment.')
         string(name: 'GITOPS_REPO', defaultValue: '', description: 'GitOps repository URL where the ArgoCD manifests are stored')
 
-        string(name: 'ADMIN_USERNAME', defaultValue: 'admin', description: 'Username for the admin account used to access the application')
-        string(name: 'ADMIN_PASSWORD_HASH', defaultValue: '', description: 'Password hash for the admin account used to access the application')
-        string(name: 'ADMIN_SECRET_KEY', defaultValue: '', description: 'Secret key for the admin account used to access the application')
+        string(name: 'ADMIN_USERNAME', defaultValue: '', description: 'Username for the admin account used to access the application')
         string(name: 'IGNORED_CATEGORIES', defaultValue: '', description: 'Comma-separated list of categories to ignore when processing data from the DB')
     }
 
@@ -19,19 +16,29 @@ pipeline {
         BACKEND_DIR = 'backend'
         FRONTEND_DIR = 'frontend'
         VERSION_FILE = 'VERSION'
-        DOCKER_REGISTRY = "${params.DOCKER_REGISTRY ?: env.DOCKER_REGISTRY}"
-        ADMIN_USERNAME = "${params.ADMIN_USERNAME ?: env.ADMIN_USERNAME}"
-        ADMIN_PASSWORD_HASH = "${params.ADMIN_PASSWORD_HASH ?: env.ADMIN_PASSWORD_HASH}"
-        ADMIN_SECRET_KEY = "${params.ADMIN_SECRET_KEY ?: env.ADMIN_SECRET_KEY}"
+        GITOPS_REPO = "${params.OSMOSMJERKA_GITOPS_REPO ?: env.GITOPS_REPO}"
+        DOCKER_REGISTRY = "${params.DOCKER_REGISTRY}"
+        ADMIN_USERNAME = credentials('osmosmjerka-admin-username') ?: "${params.ADMIN_USERNAME ?: env.ADMIN_USERNAME}"
+        ADMIN_PASSWORD_HASH = credentials('osmosmjerka-admin-password-hash')
+        ADMIN_SECRET_KEY = credentials('osmosmjerka-admin-secret-key')
         IGNORED_CATEGORIES = "${params.IGNORED_CATEGORIES ?: env.IGNORED_CATEGORIES}"
     }
 
     stages {
-        stage('Read Version') {
+        stage('Checkout') {
             steps {
-                script {
-                    VERSION = readFile("${VERSION_FILE}").trim()
-                    env.IMAGE_TAG = VERSION
+                checkout scm
+            }
+        }
+        stage('Install Dependencies') {
+            steps {
+                dir("${FRONTEND_DIR}") {
+                    sh 'npm i'
+                }
+                dir("${BACKEND_DIR}") {
+                    sh 'python3 -m venv .venv'
+                    sh '. .venv/bin/activate && pip install --upgrade pip'
+                    sh '. .venv/bin/activate && pip install .[dev]'
                 }
             }
         }
@@ -40,15 +47,6 @@ pipeline {
             parallel {
                 stage('Backend') {
                     stages {
-                        stage('Setup Python') {
-                            steps {
-                                dir("${BACKEND_DIR}") {
-                                    sh 'python3 -m venv .venv'
-                                    sh '. .venv/bin/activate && pip install --upgrade pip'
-                                    sh '. .venv/bin/activate && pip install .[dev]'
-                                }
-                            }
-                        }
                         stage('Lint & Format') {
                             steps {
                                 dir("${BACKEND_DIR}") {
@@ -74,13 +72,6 @@ pipeline {
                 }
                 stage('Frontend') {
                     stages {
-                        stage('Install Node Modules') {
-                            steps {
-                                dir("${FRONTEND_DIR}") {
-                                    sh 'npm install'
-                                }
-                            }
-                        }
                         stage('Lint & Format') {
                             steps {
                                 dir("${FRONTEND_DIR}") {
@@ -124,6 +115,48 @@ pipeline {
             }
         }
 
+        stage('Semantic Release') {
+            when {
+                allOf {
+                    branch 'main'
+                    not { buildingTag() }
+                }
+            }
+            steps {
+                dir('frontend') {
+                    sh 'npx semantic-release --dry-run > release.log'
+                    script {
+                        def version = sh(script: "grep 'next release version is' release.log | awk '{print \$NF}'", returnStdout: true).trim()
+                        echo "Next version: ${version}"
+                        sh "npm version ${version} --no-git-tag-version"
+                    }
+                }
+                dir('backend') {
+                    script {
+                        def version = sh(script: "grep 'next release version is' ../frontend/release.log | awk '{print \$NF}'", returnStdout: true).trim()
+                        sh "sed -i 's/^version = \".*\"/version = \"${version}\"/' pyproject.toml"
+                    }
+                }
+            }
+        }
+
+        stage('Release') {
+            when {
+                allOf {
+                    branch 'main'
+                    not { buildingTag() }
+                }
+            }
+            steps {
+                dir('frontend') {
+                    sh 'npx semantic-release'
+                }
+                dir('backend') {
+                    sh 'semantic-release publish'
+                }
+            }
+        }
+
         stage('Prepare .env') {
             steps {
                 script {
@@ -158,7 +191,6 @@ IGNORED_CATEGORIES=${env.IGNORED_CATEGORIES}
                     if (!params.GITOPS_REPO?.trim()) {
                         echo 'Skipping deployment to ArgoCD because GITOPS_REPO is not set.'
                     } else if (params.DEPLOY_TO_ARGOCD) {
-                        // Clone the GitOps repo, update image, commit, and push to trigger ArgoCD deployment
                         sh 'rm -rf gitops-tmp'
                         sh "git clone ${params.GITOPS_REPO} gitops-tmp"
                         dir('gitops-tmp/k8s/overlays/prod') {

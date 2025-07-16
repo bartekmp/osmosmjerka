@@ -16,7 +16,15 @@ dependencies = [
 ]
 
 [project.optional-dependencies]
-dev = ["black", "isort", "pytest", "pytest-mock", "httpx"]
+dev = [
+    "black",
+    "isort",
+    "pytest",
+    "pytest-mock",
+    "httpx",
+    "python-semantic-release",
+]
+
 
 [tool.setuptools.packages.find]
 where = ["."]
@@ -28,11 +36,48 @@ python_files = "test_*.py"
 python_classes = "Test*"
 python_functions = "test_*"
 
+[build-system]
+requires = ["setuptools>=61", "setuptools_scm"]
+build-backend = "setuptools.build_meta"
+
+[tool.setuptools]
+py-modules = ["osmosmjerka"]
+include-package-data = true
+
+[tool.setuptools_scm]
+version_scheme = "guess-next-dev"
+local_scheme = "node-and-date"
+
 [tool.black]
 line-length = 120
+preview = true
+include = "\\.py$"
 target-version = ["py312"]
+exclude = "(\\.git|\\.hg|\\.mypy_cache|\\.tox|\\.venv|_build|buck-out|build|dist|node_modules|venv|__pycache__)"
 
 [tool.isort]
 profile = "black"
 line_length = 120
 skip_gitignore = true
+
+[tool.semantic_release]
+branch = "main"
+changelog_file = ""
+commit_parser = "conventional"
+tag_format = "v{version}"
+version_toml = ["pyproject.toml:project.version"]
+
+[tool.semantic_release.commit_parser_options]
+minor_tags = ["feat", "feature"]
+patch_tags = ["fix", "bugfix", "improvement", "enhancement"]
+allowed_tags = [
+    "feat",
+    "feature",
+    "fix",
+    "bugfix",
+    "improvement",
+    "enhancement",
+]
+default_bump_level = 0
+parse_squash_commits = true
+ignore_merge_commits = true
