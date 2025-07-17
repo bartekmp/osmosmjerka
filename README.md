@@ -34,6 +34,12 @@ It allows the administrator to display all existing entries from the database (w
 
 ![Main admin page](docs/assets/osmosmjerka-admin-view.png)
 
+### How to generate admin's password hash
+Use this one-liner to convert your password into a hash, which then you can use to log into admin's page:
+```bash
+python3 -c "import bcrypt; import getpass; pwd=getpass.getpass('Password: ').encode(); print(bcrypt.hashpw(pwd, bcrypt.gensalt()).decode())"
+```
+
 ## How to run
 1. Pull the code and enter the main directory.
 2. Create the `.env` file from the template:
