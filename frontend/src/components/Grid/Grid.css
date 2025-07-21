@@ -44,24 +44,20 @@ body,
     justify-content: center;
 }
 
-.main-flex {
-    flex-direction: row;
-    width: 100%;
-    max-width: 1200px;
-    margin: 0 auto;
-}
-
 @media (max-width: 900px) {
     .main-flex {
-        flex-direction: column;
-        align-items: center;
+        grid-template-columns: 1fr;
+        grid-template-areas: 
+            "grid"
+            "sidebar";
+        gap: 1.5rem;
     }
 
     .word-list-wrapper {
-        margin-left: 0 !important;
-        margin-top: 2rem;
-        width: 100%;
-        max-width: 600px;
+        width: 100% !important;
+        min-width: unset !important;
+        max-width: 600px !important;
+        margin: 0 auto !important;
     }
 }
 
@@ -114,7 +110,7 @@ select:disabled,
         max-width: 100vw;
         /* Dynamic scale based on CSS variable to be set in JS */
         transform: scale(var(--grid-scale, 1));
-        transform-origin: top left;
+        transform-origin: center top;
     }
 
     .grid-cell {
@@ -127,29 +123,34 @@ select:disabled,
     }
 
     .main-flex {
-        flex-direction: column !important;
-        align-items: center !important;
+        grid-template-columns: 1fr !important;
+        grid-template-areas: 
+            "grid"
+            "sidebar" !important;
+        gap: 1rem !important;
         max-width: 100vw !important;
         width: 100vw !important;
         margin: 0 !important;
-        padding: 0 !important;
+        padding: 0 0.5rem !important;
         box-sizing: border-box !important;
     }
 
+    .osmo-grid-wrapper {
+        justify-self: center;
+    }
+
     .word-list-wrapper {
-        margin-left: 0 !important;
-        margin-top: 1rem !important;
-        min-width: 0 !important;
-        width: 100vw !important;
-        max-width: 100vw !important;
+        width: 100% !important;
+        min-width: unset !important;
+        max-width: 100% !important;
         box-sizing: border-box !important;
     }
 
     .word-list {
         font-size: 1em;
-        min-width: 0 !important;
-        width: 100vw !important;
-        max-width: 100vw !important;
+        width: 100% !important;
+        max-width: 100% !important;
+        min-width: unset !important;
     }
 }
 

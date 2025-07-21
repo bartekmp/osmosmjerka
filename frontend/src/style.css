@@ -125,27 +125,31 @@ body,
   align-items: center;
 }
 
-/* Main flex layout */
+/* Main grid layout - stable positioning */
 .main-flex {
-  display: flex;
-  justify-content: center;
+  display: grid;
+  grid-template-columns: 1fr auto 320px;
+  grid-template-areas: "spacer grid sidebar";
+  gap: 2rem;
   width: 100%;
   max-width: 1200px;
   margin: 0 auto;
+  align-items: start;
 }
 
 .word-list-wrapper {
-  margin-left: 3rem;
-  min-width: 220px;
+  grid-area: sidebar;
+  width: 320px;
+  min-width: 320px;
+  max-width: 320px;
 }
 
-/* Main-flex grid wrapper */
+/* Grid wrapper - fixed position, never moves */
 .osmo-grid-wrapper {
-  flex-shrink: 0;
+  grid-area: grid;
   display: flex;
   justify-content: center;
-  width: min-content;
-  min-width: 0;
+  position: relative;
 }
 
 .osmo-new-puzzle-btn {
