@@ -1,4 +1,7 @@
-.word-list-container {}
+.word-list-container {
+    width: 100%;
+    max-width: 320px;
+}
 
 .word-list-hide-btn {
     user-select: none;
@@ -44,8 +47,6 @@
     padding: 0;
     margin: 2rem 0 0 0;
     text-align: left;
-    min-width: 220px;
-    max-width: 600px;
     width: 100%;
     transition: filter 0.2s;
 }
@@ -59,15 +60,16 @@
 .word-list-li {
     margin-bottom: 8px;
     display: flex;
-    align-items: center;
+    align-items: flex-start;
     justify-content: flex-start;
+    gap: 1rem;
 }
 
 .word-list-word {
     font-weight: bold;
     text-transform: uppercase;
     min-width: 120px;
-    margin-right: 2.5em;
+    flex-shrink: 0;
     font-family: 'Clear Sans', 'Trebuchet MS', 'Arial', sans-serif; /* Match grid */
 }
 
@@ -78,6 +80,9 @@
 .word-list-translation {
     display: inline-block;
     color: #bbb;
+    flex: 1;
+    word-wrap: break-word;
+    overflow-wrap: break-word;
 }
 
 .word-list-translation.found {

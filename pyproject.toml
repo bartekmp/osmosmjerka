@@ -3,7 +3,7 @@ name = "osmosmjerka"
 version = "0.7.5"
 description = "Web-based word search game for learning foreign languages"
 license = "Apache-2.0"
-requires-python = ">= 3.12"
+requires-python = ">= 3.13"
 dependencies = [
     "bcrypt",
     "fastapi",
@@ -18,6 +18,7 @@ dependencies = [
 [project.optional-dependencies]
 dev = [
     "black",
+    "flake8",
     "isort",
     "pytest",
     "pytest-mock",
@@ -41,7 +42,7 @@ requires = ["setuptools>=61", "setuptools_scm"]
 build-backend = "setuptools.build_meta"
 
 [tool.setuptools]
-py-modules = ["osmosmjerka"]
+py-modules = ["backend.osmosmjerka"]
 include-package-data = true
 
 [tool.setuptools_scm]

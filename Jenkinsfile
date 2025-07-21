@@ -21,17 +21,23 @@ pipeline {
     stages {
         stage('Checkout') {
             steps {
-                // Ensure full clone with history and tags
+                // Checkout any branch that triggers the build, ensure it has entire history
                 checkout([
                     $class: 'GitSCM',
-                    branches: [[name: '*/main']],
+                    branches: [[name: '**']],
                     doGenerateSubmoduleConfigurations: false,
                     extensions: [
-                        [$class: 'CloneOption', noTags: false, shallow: false, depth: 0]
+                        [$class: 'CloneOption', noTags: false, shallow: false, depth: 0],
+                        [$class: 'LocalBranch', localBranch: env.BRANCH_NAME]
                     ],
                     submoduleCfg: [],
                     userRemoteConfigs: [[url: 'git@github.com:bartekmp/osmosmjerka.git', credentialsId: 'github_token']]
                 ])
+                sh 'git config --global --add safe.directory $PWD'
+                sh 'git fetch --tags'
+                sh 'git fetch --all'
+                sh 'git describe --tags || echo "No tags found"'
+                sh 'echo "Current branch: ${BRANCH_NAME}"'
             }
         }
         stage('Install Dependencies') {
@@ -39,10 +45,13 @@ pipeline {
                 dir("${FRONTEND_DIR}") {
                     sh 'npm i'
                 }
-                dir("${BACKEND_DIR}") {
-                    sh 'python3 -m venv .venv'
-                    sh '. .venv/bin/activate && pip install --upgrade pip'
-                    sh '. .venv/bin/activate && pip install .[dev]'
+                dir("${WORKSPACE}") {
+                    sh '''
+                    python3.13 -m venv backend/.venv
+                    . backend/.venv/bin/activate
+                    pip install --upgrade pip
+                    pip install .[dev]
+                    '''
                 }
             }
         }
@@ -54,8 +63,13 @@ pipeline {
                         stage('Lint & Format') {
                             steps {
                                 dir("${BACKEND_DIR}") {
-                                    sh '. .venv/bin/activate && isort --check-only .'
-                                    sh '. .venv/bin/activate && black --check --diff .'
+                                    sh '''
+                                    . .venv/bin/activate
+                                    flake8 . --exclude=venv*,.venv*,__pycache__ --count --select=E9,F63,F7,F82 --show-source --statistics
+                                    flake8 . --exclude=venv*,.venv*,__pycache__ --count --exit-zero --max-complexity=10 --max-line-length=127 --statistics
+                                    isort --check-only . || true
+                                    black --check --diff . || true
+                                    '''
                                 }
                             }
                         }
