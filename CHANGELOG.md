@@ -2,6 +2,14 @@
 
 <!-- version list -->
 
+## v1.0.5 (2025-07-22)
+
+### Bug Fixes
+
+- Remove default variable value from Jenkinsfile
+  ([`832157f`](https://github.com/bartekmp/osmosmjerka/commit/832157f1c0529d56ebce7f080238589d619e8d57))
+
+
 ## v1.0.4 (2025-07-22)
 
 ### Bug Fixes
