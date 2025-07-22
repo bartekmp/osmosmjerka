@@ -2,6 +2,14 @@
 
 <!-- version list -->
 
+## v1.0.6 (2025-07-22)
+
+### Bug Fixes
+
+- Dockerfile paths
+  ([`bc820fc`](https://github.com/bartekmp/osmosmjerka/commit/bc820fc7b49498d27e302877dd8b419fd3882c51))
+
+
 ## v1.0.5 (2025-07-22)
 
 ### Bug Fixes
