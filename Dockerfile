@@ -25,6 +25,7 @@ COPY --from=frontend /app/frontend/build /app/static
 
 ARG VERSION
 ENV SETUPTOOLS_SCM_PRETEND_VERSION=$VERSION
+
 RUN pip install .
 
 # If using HTTP or reverse proxy
