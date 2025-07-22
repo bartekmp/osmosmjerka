@@ -2,8 +2,8 @@ pipeline {
     agent any
 
     parameters {
-        booleanParam(name: 'PUSH_IMAGE', defaultValue: true, description: 'Push Docker image after build?')
         booleanParam(name: 'DEPLOY_TO_ARGOCD', defaultValue: true, description: 'Deploy to ArgoCD after build? Set to false to skip deployment.')
+        booleanParam(name: 'SKIP_IMAGE_PUSH', defaultValue: false, description: 'Skip Docker image push? Set to false to skip.')
         string(name: 'IGNORED_CATEGORIES', defaultValue: '', description: 'Comma-separated list of categories to ignore when processing data from the DB')
     }
 
@@ -11,11 +11,16 @@ pipeline {
         IMAGE_NAME = 'osmosmjerka'
         BACKEND_DIR = 'backend'
         FRONTEND_DIR = 'frontend'
+        IGNORED_CATEGORIES = "${params.IGNORED_CATEGORIES ?: env.IGNORED_CATEGORIES}"
+
         GITOPS_REPO = "${env.OSMOSMJERKA_GITOPS_REPO}"
+
         ADMIN_USERNAME = credentials('osmosmjerka-admin-username')
         ADMIN_PASSWORD_HASH = credentials('osmosmjerka-admin-password-hash')
         ADMIN_SECRET_KEY = credentials('osmosmjerka-admin-secret-key')
-        IGNORED_CATEGORIES = "${params.IGNORED_CATEGORIES ?: env.IGNORED_CATEGORIES}"
+
+        DEPLOY_TO_ARGOCD_PARAM = "${params.DEPLOY_TO_ARGOCD.toString()}"
+        SKIP_IMAGE_PUSH_PARAM = "${params.SKIP_IMAGE_PUSH.toString()}"
         GH_TOKEN = credentials('github_token')
     }
 
@@ -143,20 +148,48 @@ pipeline {
             }
             steps {
                 script {
-                    dir('frontend') {
-                        sh 'npx semantic-release --dry-run > release.log'
-                        def version = sh(script: "grep 'next release version is' release.log | awk '{print \$NF}'", returnStdout: true).trim()
-                        if (!version) {
-                            error 'No version found in semantic-release output.'
-                        }
+                    if (!env.DEPLOY_TO_ARGOCD) {
+                        env.DEPLOY_TO_ARGOCD = env.DEPLOY_TO_ARGOCD_PARAM ?: 'false'
+                    }
+                    if (!env.SKIP_IMAGE_PUSH) {
+                        env.SKIP_IMAGE_PUSH = env.SKIP_IMAGE_PUSH_PARAM ?: 'false'
+                    }
+                    echo "Initial DEPLOY_TO_ARGOCD value: ${env.DEPLOY_TO_ARGOCD}"
+                    echo "Initial SKIP_IMAGE_PUSH value: ${env.SKIP_IMAGE_PUSH}"
 
-                        env.IMAGE_TAG = version
-                        echo "Next version: ${version}"
+                    def exitCode = sh(
+                        script: """
+                            . backend/.venv/bin/activate
+                            semantic-release --strict version --push
+                        """,
+                        returnStatus: true
+                    )
+
+                    echo "Semantic-release exit code: ${exitCode}"
+                    if (exitCode == 0) {
+                        echo "Branch: New version released successfully"
+                        env.DEPLOY_TO_ARGOCD = 'true'
+                        env.SKIP_IMAGE_PUSH = 'true'
+                        echo "Set DEPLOY_TO_ARGOCD to: ${env.DEPLOY_TO_ARGOCD}"
+                        echo "Set SKIP_IMAGE_PUSH to: ${env.SKIP_IMAGE_PUSH}"
+                    } else if (exitCode == 2) {
+                        echo "Branch: No release necessary or already released, setting DEPLOY_TO_ARGOCD to false"
+                        env.DEPLOY_TO_ARGOCD = 'false'
+                        env.SKIP_IMAGE_PUSH = 'true'
+                        echo "Set DEPLOY_TO_ARGOCD to: ${env.DEPLOY_TO_ARGOCD}"
+                        echo "Set SKIP_IMAGE_PUSH to: ${env.SKIP_IMAGE_PUSH}"
+                    } else {
+                        echo "Branch: Unexpected exit code ${exitCode}"
+                        error("Semantic-release failed with exit code ${exitCode}")
+                    }
+                    
+                    def version = sh(script: "grep '^version' pyproject.toml | head -1 | awk -F '\"' '{print \$2}'", returnStdout: true).trim()
+                    dir('frontend') {
+                        echo "Setting frontend version: ${version}"
                         sh "npm version ${version} --no-git-tag-version"
                     }
-                    dir('backend') {
-                        sh "sed -i 's/^version = \".*\"/version = \"${version}\"/' pyproject.toml"
-                    }
+
+                    env.IMAGE_TAG = version
                 }
             }
         }
@@ -169,11 +202,9 @@ pipeline {
                 }
             }
             steps {
+                sh '. backend/.venv/bin/activate && semantic-release publish'
                 dir('frontend') {
                     sh 'npx semantic-release'
-                }
-                dir('backend') {
-                    sh 'semantic-release publish'
                 }
             }
         }
@@ -206,10 +237,10 @@ IGNORED_CATEGORIES=${env.IGNORED_CATEGORIES}
             }
             steps {
                 script {
-                    sh "docker build -t ${env.DOCKER_REGISTRY}/${IMAGE_NAME}:latest -t ${env.DOCKER_REGISTRY}/${IMAGE_NAME}:${IMAGE_TAG} ."
-                    if (params.PUSH_IMAGE) {
+                    sh "docker build -t ${env.DOCKER_REGISTRY}/${IMAGE_NAME}:latest -t ${env.DOCKER_REGISTRY}/${IMAGE_NAME}:${env.IMAGE_TAG} ."
+                    if (!env.SKIP_IMAGE_PUSH) {
                         sh "docker push ${env.DOCKER_REGISTRY}/${IMAGE_NAME}:latest"
-                        sh "docker push ${env.DOCKER_REGISTRY}/${IMAGE_NAME}:${IMAGE_TAG}"
+                        sh "docker push ${env.DOCKER_REGISTRY}/${IMAGE_NAME}:${env.IMAGE_TAG}"
                     }
                 }
             }
@@ -224,11 +255,11 @@ IGNORED_CATEGORIES=${env.IGNORED_CATEGORIES}
                 script {
                     if (!params.GITOPS_REPO?.trim()) {
                         echo 'Skipping deployment to ArgoCD because GITOPS_REPO is not set.'
-                    } else if (params.DEPLOY_TO_ARGOCD) {
+                    } else if (env.DEPLOY_TO_ARGOCD) {
                         sh 'rm -rf gitops-tmp'
                         sh "git clone ${params.GITOPS_REPO} gitops-tmp"
                         dir('gitops-tmp/k8s/overlays/prod') {
-                            sh "kustomize edit set image ${env.DOCKER_REGISTRY}/${IMAGE_NAME}=${env.DOCKER_REGISTRY}/${IMAGE_NAME}:${IMAGE_TAG}"
+                            sh "kustomize edit set image ${env.DOCKER_REGISTRY}/${IMAGE_NAME}=${env.DOCKER_REGISTRY}/${IMAGE_NAME}:${env.IMAGE_TAG}"
                             sh 'git config user.email "ci@example.com"'
                             sh 'git config user.name "CI Bot"'
                             sh 'git commit -am "Update prod image to ${IMAGE_TAG}" || echo \"No changes to commit\"'
@@ -245,8 +276,8 @@ IGNORED_CATEGORIES=${env.IGNORED_CATEGORIES}
     post {
         always {
             sh "docker rm ${env.DOCKER_REGISTRY}/${IMAGE_NAME}:latest || true"
-            sh "docker rm ${env.DOCKER_REGISTRY}/${IMAGE_NAME}:${IMAGE_TAG} || true"
-            sh 'rm -f .env'
+            sh "docker rm ${env.DOCKER_REGISTRY}/${IMAGE_NAME}:${env.IMAGE_TAG} || true"
+            sh 'rm -f .env || true'
             sh 'rm -rf gitops-tmp || true'
             sh 'rm -rf frontend/node_modules backend/.venv'
             cleanWs()

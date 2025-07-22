@@ -5,7 +5,6 @@ COPY .env backend/.env
 
 FROM node:20-slim AS frontend
 WORKDIR /app
-COPY VERSION VERSION
 COPY frontend/ frontend/
 WORKDIR /app/frontend
 COPY frontend/public public/
