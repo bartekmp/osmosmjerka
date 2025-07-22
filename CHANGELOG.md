@@ -2,6 +2,14 @@
 
 <!-- version list -->
 
+## v1.0.2 (2025-07-22)
+
+### Bug Fixes
+
+- Jenkinsfile inverted logic
+  ([`bd52acd`](https://github.com/bartekmp/osmosmjerka/commit/bd52acd3c92fe2cc87aced3825b624fdf6fe9999))
+
+
 ## v1.0.1 (2025-07-22)
 
 ### Bug Fixes
