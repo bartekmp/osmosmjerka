@@ -21,7 +21,6 @@ pipeline {
 
         DEPLOY_TO_ARGOCD_PARAM = "${params.DEPLOY_TO_ARGOCD.toString()}"
         SKIP_IMAGE_PUSH_PARAM = "${params.SKIP_IMAGE_PUSH.toString()}"
-        IS_NEW_RELEASE = "false"
         GH_TOKEN = credentials('github_token')
     }
 
