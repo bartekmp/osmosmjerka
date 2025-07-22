@@ -149,12 +149,9 @@ pipeline {
             }
             steps {
                 script {
-                    if (!env.DEPLOY_TO_ARGOCD) {
-                        env.DEPLOY_TO_ARGOCD = env.DEPLOY_TO_ARGOCD_PARAM ?: 'false'
-                    }
-                    if (!env.SKIP_IMAGE_PUSH) {
-                        env.SKIP_IMAGE_PUSH = env.SKIP_IMAGE_PUSH_PARAM ?: 'false'
-                    }
+                    env.DEPLOY_TO_ARGOCD = env.DEPLOY_TO_ARGOCD_PARAM ?: 'false'
+                    env.SKIP_IMAGE_PUSH = env.SKIP_IMAGE_PUSH_PARAM ?: 'false'
+
                     echo "Initial DEPLOY_TO_ARGOCD value: ${env.DEPLOY_TO_ARGOCD}"
                     echo "Initial SKIP_IMAGE_PUSH value: ${env.SKIP_IMAGE_PUSH}"
 
@@ -252,7 +249,7 @@ IGNORED_CATEGORIES=${env.IGNORED_CATEGORIES}
             steps {
                 script {
                     sh "docker build -t ${env.DOCKER_REGISTRY}/${IMAGE_NAME}:${env.IMAGE_TAG} . --build-arg VERSION=${env.IMAGE_TAG} --label=\"build_id=${env.BUILD_ID}\" --label=\"version=${env.IMAGE_TAG}\""
-                    if (!env.SKIP_IMAGE_PUSH) {
+                    if (env.SKIP_IMAGE_PUSH != 'true') {
                         if(env.BRANCH_NAME == 'main') {
                             sh "docker tag ${env.DOCKER_REGISTRY}/${IMAGE_NAME}:${env.IMAGE_TAG} ${env.DOCKER_REGISTRY}/${IMAGE_NAME}:latest"
                         }
