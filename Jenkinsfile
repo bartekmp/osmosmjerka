@@ -16,6 +16,7 @@ pipeline {
         ADMIN_PASSWORD_HASH = credentials('osmosmjerka-admin-password-hash')
         ADMIN_SECRET_KEY = credentials('osmosmjerka-admin-secret-key')
         IGNORED_CATEGORIES = "${params.IGNORED_CATEGORIES ?: env.IGNORED_CATEGORIES}"
+        GH_TOKEN = credentials('github_token')
     }
 
     stages {
@@ -141,12 +142,16 @@ pipeline {
                 }
             }
             steps {
-                sh 'npx semantic-release --dry-run > release.log'
                 script {
-                    def version = sh(script: "grep 'next release version is' release.log | awk '{print \$NF}'", returnStdout: true).trim()
-                    env.IMAGE_TAG = version
-                    echo "Next version: ${version}"
                     dir('frontend') {
+                        sh 'npx semantic-release --dry-run > release.log'
+                        def version = sh(script: "grep 'next release version is' release.log | awk '{print \$NF}'", returnStdout: true).trim()
+                        if (!version) {
+                            error 'No version found in semantic-release output.'
+                        }
+
+                        env.IMAGE_TAG = version
+                        echo "Next version: ${version}"
                         sh "npm version ${version} --no-git-tag-version"
                     }
                     dir('backend') {
@@ -242,6 +247,8 @@ IGNORED_CATEGORIES=${env.IGNORED_CATEGORIES}
             sh "docker rm ${env.DOCKER_REGISTRY}/${IMAGE_NAME}:latest || true"
             sh "docker rm ${env.DOCKER_REGISTRY}/${IMAGE_NAME}:${IMAGE_TAG} || true"
             sh 'rm -f .env'
+            sh 'rm -rf gitops-tmp || true'
+            sh 'rm -rf frontend/node_modules backend/.venv'
             cleanWs()
         }
     }
