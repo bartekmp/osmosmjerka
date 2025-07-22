@@ -1,11 +1,8 @@
 FROM python:3.13-slim AS backend
-#ARG VERSION
-#ENV SETUPTOOLS_SCM_PRETEND_VERSION=$VERSION
 WORKDIR /app
 COPY backend/ backend/
 COPY .env backend/.env
 COPY pyproject.toml pyproject.toml
-#RUN pip install .
 
 FROM node:20-slim AS frontend
 WORKDIR /app
