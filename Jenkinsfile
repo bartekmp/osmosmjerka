@@ -151,9 +151,11 @@ pipeline {
                 script {
                     env.DEPLOY_TO_ARGOCD = env.DEPLOY_TO_ARGOCD_PARAM ?: 'false'
                     env.SKIP_IMAGE_PUSH = env.SKIP_IMAGE_PUSH_PARAM ?: 'false'
+                    env.IS_NEW_RELEASE = 'false'
 
                     echo "Initial DEPLOY_TO_ARGOCD value: ${env.DEPLOY_TO_ARGOCD}"
                     echo "Initial SKIP_IMAGE_PUSH value: ${env.SKIP_IMAGE_PUSH}"
+                    echo "Initial IS_NEW_RELEASE value: ${env.IS_NEW_RELEASE}"
 
                     def exitCode = sh(
                         script: """
