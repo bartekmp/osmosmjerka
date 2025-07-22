@@ -18,7 +18,7 @@ LABEL description="Dockerfile for a Python backend with a Node.js frontend words
 WORKDIR /app
 COPY --from=backend /app/backend /app/backend/
 COPY --from=backend /app/pyproject.toml /app/
-COPY --from=frontend /app/frontend/build /app/static
+COPY --from=frontend /app/frontend/build /app/backend/static
 
 ARG VERSION
 ENV SETUPTOOLS_SCM_PRETEND_VERSION=$VERSION
@@ -27,6 +27,7 @@ RUN pip install .
 
 # If using HTTP or reverse proxy
 EXPOSE 8085
+WORKDIR /app/backend
 CMD ["uvicorn", "osmosmjerka.app:app", "--host", "0.0.0.0", "--port", "8085"]
 
 # If using HTTPS
