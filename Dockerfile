@@ -1,7 +1,11 @@
 FROM python:3.13-slim AS backend
+ARG VERSION
+ENV SETUPTOOLS_SCM_PRETEND_VERSION=$VERSION
 WORKDIR /app
 COPY backend/ backend/
 COPY .env backend/.env
+COPY pyproject.toml pyproject.toml
+RUN pip install .
 
 FROM node:20-slim AS frontend
 WORKDIR /app
@@ -17,8 +21,6 @@ LABEL description="Dockerfile for a Python backend with a Node.js frontend words
 WORKDIR /app
 COPY --from=backend /app/backend /app
 COPY --from=frontend /app/frontend/build /app/static
-
-RUN pip install .
 
 # If using HTTP or reverse proxy
 EXPOSE 8085

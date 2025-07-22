@@ -237,7 +237,7 @@ IGNORED_CATEGORIES=${env.IGNORED_CATEGORIES}
             }
             steps {
                 script {
-                    sh "docker build -t ${env.DOCKER_REGISTRY}/${IMAGE_NAME}:latest -t ${env.DOCKER_REGISTRY}/${IMAGE_NAME}:${env.IMAGE_TAG} ."
+                    sh "docker build -t ${env.DOCKER_REGISTRY}/${IMAGE_NAME}:latest -t ${env.DOCKER_REGISTRY}/${IMAGE_NAME}:${env.IMAGE_TAG} . --build-arg VERSION=${env.IMAGE_TAG} --label=\"build_id=${env.BUILD_ID}\" --label=\"version=${env.IMAGE_TAG}\""
                     if (!env.SKIP_IMAGE_PUSH) {
                         sh "docker push ${env.DOCKER_REGISTRY}/${IMAGE_NAME}:latest"
                         sh "docker push ${env.DOCKER_REGISTRY}/${IMAGE_NAME}:${env.IMAGE_TAG}"
@@ -275,11 +275,14 @@ IGNORED_CATEGORIES=${env.IGNORED_CATEGORIES}
     }
     post {
         always {
-            sh "docker rm ${env.DOCKER_REGISTRY}/${IMAGE_NAME}:latest || true"
-            sh "docker rm ${env.DOCKER_REGISTRY}/${IMAGE_NAME}:${env.IMAGE_TAG} || true"
-            sh 'rm -f .env || true'
-            sh 'rm -rf gitops-tmp || true'
-            sh 'rm -rf frontend/node_modules backend/.venv'
+            script {
+                def versionTag = env.BRANCH_NAME == 'main' ? env.IMAGE_TAG : '999.0.0-dev'
+                sh "docker rm ${env.DOCKER_REGISTRY}/${IMAGE_NAME}:latest || true"
+                sh "docker rm ${env.DOCKER_REGISTRY}/${IMAGE_NAME}:${versionTag} || true"
+                sh 'rm -f .env || true'
+                sh 'rm -rf gitops-tmp || true'
+                sh 'rm -rf frontend/node_modules backend/.venv'
+            }
             cleanWs()
         }
     }
