@@ -21,6 +21,7 @@ pipeline {
 
         DEPLOY_TO_ARGOCD_PARAM = "${params.DEPLOY_TO_ARGOCD.toString()}"
         SKIP_IMAGE_PUSH_PARAM = "${params.SKIP_IMAGE_PUSH.toString()}"
+        IS_NEW_RELEASE = "false"
         GH_TOKEN = credentials('github_token')
     }
 
@@ -170,14 +171,20 @@ pipeline {
                         echo "Branch: New version released successfully"
                         env.DEPLOY_TO_ARGOCD = 'true'
                         env.SKIP_IMAGE_PUSH = 'true'
+                        env.IS_NEW_RELEASE = 'true'
                         echo "Set DEPLOY_TO_ARGOCD to: ${env.DEPLOY_TO_ARGOCD}"
                         echo "Set SKIP_IMAGE_PUSH to: ${env.SKIP_IMAGE_PUSH}"
+                        echo "Set IS_NEW_RELEASE to: ${env.IS_NEW_RELEASE}"
                     } else if (exitCode == 2) {
                         echo "Branch: No release necessary or already released, setting DEPLOY_TO_ARGOCD to false"
                         env.DEPLOY_TO_ARGOCD = 'false'
                         env.SKIP_IMAGE_PUSH = 'true'
+                        env.IS_NEW_RELEASE = 'false'
                         echo "Set DEPLOY_TO_ARGOCD to: ${env.DEPLOY_TO_ARGOCD}"
                         echo "Set SKIP_IMAGE_PUSH to: ${env.SKIP_IMAGE_PUSH}"
+                        echo "Set IS_NEW_RELEASE to: ${env.IS_NEW_RELEASE}"
+                        env.IMAGE_TAG = "v999.0.0-dev"
+                        return
                     } else {
                         echo "Branch: Unexpected exit code ${exitCode}"
                         error("Semantic-release failed with exit code ${exitCode}")
@@ -202,9 +209,16 @@ pipeline {
                 }
             }
             steps {
-                sh '. backend/.venv/bin/activate && semantic-release publish'
-                dir('frontend') {
-                    sh 'npx semantic-release'
+                script {
+                    if (env.IS_NEW_RELEASE == 'false') {
+                        echo "No new release, skipping semantic release publish."
+                        return
+                    }
+
+                    sh '. backend/.venv/bin/activate && semantic-release publish'
+                    dir('frontend') {
+                        sh 'npx semantic-release'
+                    }
                 }
             }
         }
@@ -242,6 +256,9 @@ IGNORED_CATEGORIES=${env.IGNORED_CATEGORIES}
                         sh "docker push ${env.DOCKER_REGISTRY}/${IMAGE_NAME}:latest"
                         sh "docker push ${env.DOCKER_REGISTRY}/${IMAGE_NAME}:${env.IMAGE_TAG}"
                     }
+                    else {
+                        echo 'Skipping Docker image push.'
+                    }
                 }
             }
         }
@@ -253,12 +270,12 @@ IGNORED_CATEGORIES=${env.IGNORED_CATEGORIES}
             }
             steps {
                 script {
-                    if (!params.GITOPS_REPO?.trim()) {
+                    if (!env.GITOPS_REPO?.trim()) {
                         echo 'Skipping deployment to ArgoCD because GITOPS_REPO is not set.'
-                    } else if (env.DEPLOY_TO_ARGOCD) {
+                    } else if (env.DEPLOY_TO_ARGOCD == 'true') {
                         sh 'rm -rf gitops-tmp'
-                        sh "git clone ${params.GITOPS_REPO} gitops-tmp"
-                        dir('gitops-tmp/k8s/overlays/prod') {
+                        sh "git clone ${env.GITOPS_REPO} gitops-tmp"
+                        dir('gitops-tmp/k8s/overlays/osmosmjerka') {
                             sh "kustomize edit set image ${env.DOCKER_REGISTRY}/${IMAGE_NAME}=${env.DOCKER_REGISTRY}/${IMAGE_NAME}:${env.IMAGE_TAG}"
                             sh 'git config user.email "ci@example.com"'
                             sh 'git config user.name "CI Bot"'
@@ -267,7 +284,7 @@ IGNORED_CATEGORIES=${env.IGNORED_CATEGORIES}
                         }
                         sh 'rm -rf gitops-tmp'
                     } else {
-                        echo 'Skipping deployment to ArgoCD as per user request.'
+                        echo 'Skipping deployment to ArgoCD.'
                     }
                 }
             }
