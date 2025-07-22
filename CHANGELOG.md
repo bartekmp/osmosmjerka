@@ -2,6 +2,14 @@
 
 <!-- version list -->
 
+## v1.0.4 (2025-07-22)
+
+### Bug Fixes
+
+- Image push skip
+  ([`a06f21a`](https://github.com/bartekmp/osmosmjerka/commit/a06f21a21c79c5f521bc899ab86e5b000eafb13a))
+
+
 ## v1.0.3 (2025-07-22)
 
 ### Bug Fixes
