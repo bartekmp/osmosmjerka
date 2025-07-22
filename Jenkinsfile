@@ -170,7 +170,7 @@ pipeline {
                     if (exitCode == 0) {
                         echo "Branch: New version released successfully"
                         env.DEPLOY_TO_ARGOCD = 'true'
-                        env.SKIP_IMAGE_PUSH = 'true'
+                        env.SKIP_IMAGE_PUSH = 'false'
                         env.IS_NEW_RELEASE = 'true'
                         echo "Set DEPLOY_TO_ARGOCD to: ${env.DEPLOY_TO_ARGOCD}"
                         echo "Set SKIP_IMAGE_PUSH to: ${env.SKIP_IMAGE_PUSH}"
@@ -251,8 +251,11 @@ IGNORED_CATEGORIES=${env.IGNORED_CATEGORIES}
             }
             steps {
                 script {
-                    sh "docker build -t ${env.DOCKER_REGISTRY}/${IMAGE_NAME}:latest -t ${env.DOCKER_REGISTRY}/${IMAGE_NAME}:${env.IMAGE_TAG} . --build-arg VERSION=${env.IMAGE_TAG} --label=\"build_id=${env.BUILD_ID}\" --label=\"version=${env.IMAGE_TAG}\""
+                    sh "docker build -t ${env.DOCKER_REGISTRY}/${IMAGE_NAME}:${env.IMAGE_TAG} . --build-arg VERSION=${env.IMAGE_TAG} --label=\"build_id=${env.BUILD_ID}\" --label=\"version=${env.IMAGE_TAG}\""
                     if (!env.SKIP_IMAGE_PUSH) {
+                        if(env.BRANCH_NAME == 'main') {
+                            sh "docker tag ${env.DOCKER_REGISTRY}/${IMAGE_NAME}:${env.IMAGE_TAG} ${env.DOCKER_REGISTRY}/${IMAGE_NAME}:latest"
+                        }
                         sh "docker push ${env.DOCKER_REGISTRY}/${IMAGE_NAME}:latest"
                         sh "docker push ${env.DOCKER_REGISTRY}/${IMAGE_NAME}:${env.IMAGE_TAG}"
                     }
