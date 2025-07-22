@@ -2,6 +2,14 @@
 
 <!-- version list -->
 
+## v1.0.3 (2025-07-22)
+
+### Bug Fixes
+
+- Invalid conditional in jenkinsfile
+  ([`bf9cadc`](https://github.com/bartekmp/osmosmjerka/commit/bf9cadc907115a3948cd2b7bef015d325d3c99e7))
+
+
 ## v1.0.2 (2025-07-22)
 
 ### Bug Fixes
