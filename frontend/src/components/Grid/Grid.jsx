@@ -48,6 +48,7 @@ export default function ScrabbleGrid({ grid, words, found, onFound }) {
     };
 
     const handleTouchStart = (e) => {
+        e.preventDefault(); // Prevent scrolling and other default touch behaviors
         const cell = getCellFromTouch(e);
         if (cell) {
             isMouseDown.current = true;
@@ -56,6 +57,7 @@ export default function ScrabbleGrid({ grid, words, found, onFound }) {
     };
 
     const handleTouchMove = (e) => {
+        e.preventDefault(); // Prevent scrolling during selection
         if (!isMouseDown.current) return;
         const cell = getCellFromTouch(e);
         if (cell) {
@@ -63,7 +65,8 @@ export default function ScrabbleGrid({ grid, words, found, onFound }) {
         }
     };
 
-    const handleTouchEnd = () => {
+    const handleTouchEnd = (e) => {
+        e.preventDefault(); // Prevent any default touch end behavior
         handleMouseUp();
     };
 
@@ -140,6 +143,7 @@ export default function ScrabbleGrid({ grid, words, found, onFound }) {
                 onTouchStart={handleTouchStart}
                 onTouchMove={handleTouchMove}
                 onTouchEnd={handleTouchEnd}
+                onTouchCancel={handleTouchEnd} // Handle touch cancel events
                 sx={{
                     display: 'grid',
                     gridTemplateColumns: `repeat(${gridSize}, ${cellSize}px)`,
@@ -151,7 +155,11 @@ export default function ScrabbleGrid({ grid, words, found, onFound }) {
                     boxShadow: '0 4px 8px rgba(0,0,0,0.1)',
                     width: `${totalGridSize}px`,
                     height: `${totalGridSize}px`,
-                    touchAction: 'none',
+                    touchAction: 'none', // Prevent default touch behaviors
+                    userSelect: 'none', // Prevent text selection
+                    WebkitUserSelect: 'none',
+                    MozUserSelect: 'none',
+                    msUserSelect: 'none',
                 }}
             >
                 {grid.flat().map((cell, index) => {

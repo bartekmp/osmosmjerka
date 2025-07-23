@@ -19,6 +19,14 @@ export default function GridCell({ r, c, cell, isSelected, isFound, handleMouseD
                 width: `${cellSize}px`,
                 height: `${cellSize}px`,
                 fontSize: `${Math.max(cellSize * 0.5, 12)}px`,
+                userSelect: 'none', // Prevent text selection
+                WebkitUserSelect: 'none',
+                MozUserSelect: 'none',
+                msUserSelect: 'none',
+                touchAction: 'none', // Prevent default touch behaviors
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
             }}
         >
             {cell}
