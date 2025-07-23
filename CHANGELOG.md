@@ -2,6 +2,14 @@
 
 <!-- version list -->
 
+## v1.1.1 (2025-07-24)
+
+### Bug Fixes
+
+- Wrong DB file path
+  ([`e1f19af`](https://github.com/bartekmp/osmosmjerka/commit/e1f19af96e79a347c0823be983b2e0f01deb00d8))
+
+
 ## v1.1.0 (2025-07-24)
 
 ### Feature
