@@ -5,7 +5,7 @@ from dotenv import load_dotenv
 
 load_dotenv()
 
-DATABASE_FILE = "/app/db/words.db"
+DATABASE_FILE = "db/words.db"
 TABLE_NAME = "words"
 
 IGNORED_CATEGORIES = set(c.strip() for c in os.getenv("IGNORED_CATEGORIES", "").split(",") if c.strip())

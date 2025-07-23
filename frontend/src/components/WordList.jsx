@@ -19,19 +19,24 @@ export default function WordList({ words, found, hideWords, setHideWords, allFou
                     type="button"
                     onClick={() => setHideWords(h => !h)}
                     disabled={allFound || disableShowWords}
-                    style={{ width: buttonWidth, textAlign: 'center' }}
+                    style={{ width: buttonWidth, textAlign: 'center', fontSize: '1.1em', display: 'flex', alignItems: 'center', justifyContent: 'center' }}
                 >
-                    {hideWords ? 'Show words' : 'Hide words'}
+                    <span style={{ marginRight: 6 }}>{hideWords ? '👁️' : '🙈'}</span>
+                    <span className="word-list-btn-label" style={{ display: 'none', sm: 'inline' }}>{hideWords ? 'Show words' : 'Hide words'}</span>
+                    <span className="word-list-btn-label" style={{ display: 'inline', sm: 'none' }}>{hideWords ? 'Show' : 'Hide'}</span>
                 </button>
-                <button
-                    className={`scrabble-btn word-list-toggle-translations`}
-                    type="button"
-                    onClick={() => canToggleTranslations && setShowTranslations(t => !t)}
-                    disabled={!canToggleTranslations}
-                    aria-label={showTranslations ? "Hide all translations" : "Show all translations"}
-                >
-                    {showTranslations ? '▼' : '▶'}
-                </button>
+                {/* Only render translation toggle if enabled */}
+                {canToggleTranslations && (
+                    <button
+                        className={`scrabble-btn word-list-toggle-translations`}
+                        type="button"
+                        onClick={() => setShowTranslations(t => !t)}
+                        aria-label={showTranslations ? "Hide all translations" : "Show all translations"}
+                        style={{ fontSize: '1.3em', display: 'flex', alignItems: 'center', justifyContent: 'center' }}
+                    >
+                        <span style={{ marginRight: 6 }}>{showTranslations ? '◀🔤' : '🔤🌐▶'}</span>
+                    </button>
+                )}
             </div>
             <ul className={`word-list-ul${hideWords ? ' blurred' : ''}`}>
                 {words.map(({ word, translation }) => (

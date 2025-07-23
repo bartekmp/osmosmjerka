@@ -1,6 +1,7 @@
 import React from 'react';
 import axios from 'axios';
 import { useRef, useState } from 'react';
+import { Button, Box, Typography } from '@mui/material';
 
 export default function UploadForm({ onUpload }) {
     const fileInputRef = useRef();
@@ -35,7 +36,7 @@ export default function UploadForm({ onUpload }) {
     };
 
     return (
-        <>
+        <Box sx={{ width: '100%' }}>
             <input
                 ref={fileInputRef}
                 type="file"
@@ -44,10 +45,26 @@ export default function UploadForm({ onUpload }) {
                 style={{ display: 'none' }}
                 onChange={handleFileChange}
             />
-            <button className="scrabble-btn" type="button" onClick={handleButtonClick}>
-                Upload Words
-            </button>
-            {error && <div style={{ color: 'red', marginTop: 8 }}>{error}</div>}
-        </>
+            <Button 
+                fullWidth 
+                variant="contained" 
+                color="info" 
+                onClick={handleButtonClick}
+                size="small"
+            >
+                <span style={{ marginRight: '4px' }}>📁</span>
+                <Box component="span" sx={{ display: { xs: 'none', sm: 'inline' } }}>
+                    Upload Words
+                </Box>
+                <Box component="span" sx={{ display: { xs: 'inline', sm: 'none' } }}>
+                    Upload
+                </Box>
+            </Button>
+            {error && (
+                <Typography variant="caption" color="error" sx={{ mt: 1, display: 'block' }}>
+                    {error}
+                </Typography>
+            )}
+        </Box>
     );
 }

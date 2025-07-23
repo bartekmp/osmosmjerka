@@ -1,17 +1,22 @@
 import axios from 'axios';
 import confetti from 'canvas-confetti';
 import React, { useEffect, useState } from 'react';
-import { Link, Route, Routes } from 'react-router-dom';
+import { Link, Route, Routes, useLocation } from 'react-router-dom';
+import { ThemeProvider, CssBaseline, Button } from '@mui/material';
+import { Container, Box, Typography, Stack, FormControl, InputLabel, Select, MenuItem } from '@mui/material';
 import AdminPanel from './components/AdminPanel/AdminPanel';
 import CategorySelector from './components/CategorySelector';
 import ExportButton from './components/ExportButton';
-import Grid from './components/Grid/Grid';
+import ScrabbleGrid from './components/Grid/Grid';
 import WordList from './components/WordList';
+import theme from './theme';
 import './style.css';
 
 import { loadPuzzle as loadPuzzleHelper, restoreGameState, saveGameState } from './helpers/appHelpers';
 
 export default function App() {
+    const location = useLocation();
+    const isAdminRoute = location.pathname.startsWith('/admin');
     const [categories, setCategories] = useState([]);
     const [ignoredCategories, setIgnoredCategories] = useState([]);
     const [selectedCategory, setSelectedCategory] = useState('');
@@ -115,93 +120,312 @@ export default function App() {
 
     const visibleCategories = categories.filter(cat => !ignoredCategories.includes(cat));
 
+    // Calculate which difficulties are suitable for current screen size
+    const getAvailableDifficulties = () => {
+        const screenWidth = window.innerWidth;
+        const screenHeight = window.innerHeight;
+        const maxGridSize = Math.min(screenWidth * 0.9, screenHeight * 0.6);
+        
+        const difficulties = [
+            { value: 'easy', label: 'Easy (10x10)', gridSize: 10 },
+            { value: 'medium', label: 'Medium (15x15)', gridSize: 15 },
+            { value: 'hard', label: 'Hard (20x20)', gridSize: 20 },
+            { value: 'dynamic', label: 'Dynamic (longest word)', gridSize: 15 } // Assume medium size for dynamic
+        ];
+
+        return difficulties.filter(diff => {
+            // Calculate minimum space needed: grid size * (min cell size + spacing)
+            const minSpaceNeeded = diff.gridSize * 25; // 20px min cell + 5px spacing
+            return minSpaceNeeded <= maxGridSize;
+        });
+    };
+
+    const [availableDifficulties, setAvailableDifficulties] = React.useState(getAvailableDifficulties());
+
+    // Update available difficulties on window resize
+    React.useEffect(() => {
+        const handleResize = () => {
+            setAvailableDifficulties(getAvailableDifficulties());
+        };
+        
+        window.addEventListener('resize', handleResize);
+        return () => window.removeEventListener('resize', handleResize);
+    }, []);
+
+    // Auto-adjust difficulty if current one becomes unavailable
+    React.useEffect(() => {
+        const isCurrentDifficultyAvailable = availableDifficulties.some(d => d.value === difficulty);
+        if (!isCurrentDifficultyAvailable && availableDifficulties.length > 0) {
+            setDifficulty(availableDifficulties[0].value);
+        }
+    }, [availableDifficulties, difficulty]);
+
     return (
-        <div className="osmo-app-root">
-            <Link to="/admin" style={{ position: 'absolute', top: 20, right: 40 }}>Admin</Link>
-            <Routes>
-                <Route path="/admin" element={<AdminPanel />} />
-                <Route path="/" element={
-                    <>
-                        <div className="osmo-header-bar">
-                            <img
-                                src="/static/android-chrome-512x512.png"
-                                alt="Osmosmjerka logo"
-                                className="osmo-logo-img"
-                                onError={e => { e.target.onerror = null; e.target.src = "/static/favicon-32x32.png"; }}
-                            />
-                            <span className="osmo-logo-title">
-                                Osmosmjerka
-                            </span>
-                        </div>
-                        <div className="osmo-category-row">
-                            <CategorySelector
-                                categories={visibleCategories}
-                                selected={selectedCategory}
-                                onSelect={cat => setSelectedCategory(cat)}
-                            />
-                            <button
-                                className="scrabble-btn osmo-reload-btn"
-                                onClick={() => loadPuzzle(selectedCategory, difficulty)}
-                                title="Reload puzzle"
-                            >
-                                🔄
-                            </button>
-                        </div>
-                        <div className="osmo-difficulty-row">
-                            <label>
-                                Difficulty:&nbsp;
-                                <select
-                                    value={difficulty}
-                                    onChange={e => setDifficulty(e.target.value)}
+        <ThemeProvider theme={theme}>
+            <CssBaseline />
+            <Container maxWidth="xl" sx={{ minHeight: '100vh', py: 2, position: 'relative' }}>
+                {/* Admin Button - Top Right on Desktop, Hidden on Mobile and Admin Routes */}
+                {!isAdminRoute && (
+                    <Button
+                        component={Link}
+                        to="/admin"
+                        sx={{
+                            position: 'absolute',
+                            top: 16,
+                            right: 16,
+                            zIndex: 1000,
+                            display: { xs: 'none', md: 'block' }, // Hidden on mobile
+                        }}
+                    >
+                        Admin
+                    </Button>
+                )}
+
+                <Routes>
+                    <Route path="/admin" element={<AdminPanel />} />
+                    <Route path="/" element={
+                        <Stack spacing={3} alignItems="center">
+                            {/* Header */}
+                            <Box sx={{ 
+                                display: 'flex', 
+                                alignItems: 'center', 
+                                justifyContent: 'center',
+                                flexWrap: 'wrap',
+                                gap: 2,
+                                mt: 2
+                            }}>
+                                <Box
+                                    component="img"
+                                    src="/static/android-chrome-512x512.png"
+                                    alt="Osmosmjerka logo"
+                                    sx={{
+                                        height: { xs: 40, sm: 48, md: 64 },
+                                        width: { xs: 40, sm: 48, md: 64 },
+                                    }}
+                                    onError={e => { e.target.onerror = null; e.target.src = "/static/favicon-32x32.png"; }}
+                                />
+                                <Typography 
+                                    variant="h1" 
+                                    sx={{ 
+                                        fontSize: { xs: '2rem', sm: '3rem', md: '4rem' },
+                                        textAlign: 'center'
+                                    }}
                                 >
-                                    <option value="easy">Easy (10x10)</option>
-                                    <option value="medium">Medium (15x15)</option>
-                                    <option value="hard">Hard (20x20)</option>
-                                    <option value="dynamic">Dynamic (longest word)</option>
-                                </select>
-                            </label>
-                        </div>
-                        <div className="osmo-allfound-row">
-                            {allFound ? (
-                                <div className="osmo-allfound-inner">
-                                    All words found!
-                                    <button
-                                        className="scrabble-btn osmo-reload-btn"
+                                    Osmosmjerka
+                                </Typography>
+                            </Box>
+
+                            {/* Category, Difficulty, Refresh, and Export */}
+                            <Box sx={{ display: 'flex', flexDirection: { xs: 'column', sm: 'row' }, alignItems: 'flex-start', gap: 2, width: '100%', maxWidth: 600 }}>
+                                <Box sx={{ flex: 1, display: 'flex', flexDirection: 'column', gap: 2 }}>
+                                    <CategorySelector
+                                        categories={visibleCategories}
+                                        selected={selectedCategory}
+                                        onSelect={cat => setSelectedCategory(cat)}
+                                    />
+                                    <FormControl fullWidth size="small">
+                                        <InputLabel>Difficulty</InputLabel>
+                                        <Select
+                                            value={difficulty}
+                                            label="Difficulty"
+                                            onChange={e => setDifficulty(e.target.value)}
+                                        >
+                                            {availableDifficulties.map(diff => (
+                                                <MenuItem key={diff.value} value={diff.value}>
+                                                    {diff.label}
+                                                </MenuItem>
+                                            ))}
+                                        </Select>
+                                    </FormControl>
+                                    {availableDifficulties.length < 4 && (
+                                        <Typography variant="caption" color="text.secondary" sx={{ mt: 0.5, display: 'block' }}>
+                                            Some difficulties hidden due to screen size
+                                        </Typography>
+                                    )}
+                                </Box>
+                                <Box sx={{ display: 'flex', flexDirection: 'row', alignItems: 'center', gap: 2 }}>
+                                    <Button
+                                        onClick={() => loadPuzzle(selectedCategory, difficulty)}
+                                        title="Reload puzzle"
+                                        sx={{
+                                            height: { xs: 96, sm: 96 },
+                                            minWidth: 56,
+                                            fontSize: '2rem',
+                                            px: 2,
+                                            alignSelf: 'center',
+                                            display: 'flex',
+                                            flexDirection: 'column',
+                                            justifyContent: 'center',
+                                        }}
+                                    >
+                                        <span>🔄</span>
+                                        <Box component="span" sx={{ display: { xs: 'none', sm: 'inline' }, fontSize: '1rem', mt: 1 }}>
+                                            Refresh
+                                        </Box>
+                                    </Button>
+                                    <Box sx={{ minWidth: 120 }}>
+                                        <ExportButton category={selectedCategory} grid={grid} words={words} />
+                                    </Box>
+                                </Box>
+                            </Box>
+
+                            {/* All Found Message */}
+                            {allFound && (
+                                <Box sx={{ 
+                                    textAlign: 'center', 
+                                    color: 'success.main',
+                                    fontWeight: 'bold',
+                                    fontSize: '1.2rem'
+                                }}>
+                                    <Typography variant="h6" color="success.main" gutterBottom>
+                                        All words found!
+                                    </Typography>
+                                    <Button
                                         onClick={() => loadPuzzle(selectedCategory, difficulty)}
                                     >
                                         Load new puzzle
-                                    </button>
-                                </div>
-                            ) : null}
-                        </div>
-                        <div className="main-flex">
-                            <div className="osmo-grid-wrapper" style={{ position: "relative" }}>
-                                <Grid grid={grid} words={words} found={found} onFound={markFound} />
-                                {notEnoughWords && (
-                                    <div className="osmo-notenough-overlay">
-                                        <div className="osmo-notenough-message">
-                                            {notEnoughWordsMsg || "Not enough words in the selected category to generate a puzzle."}
-                                        </div>
-                                    </div>
-                                )}
-                            </div>
-                            <div className="word-list-wrapper">
-                                <WordList
-                                    words={words}
-                                    found={found}
-                                    hideWords={hideWords}
-                                    setHideWords={setHideWords}
-                                    allFound={allFound}
-                                    showTranslations={showTranslations}
-                                    setShowTranslations={setShowTranslations}
-                                    disableShowWords={notEnoughWords}
-                                />
-                            </div>
-                        </div>
-                        <ExportButton category={selectedCategory} grid={grid} words={words} />
-                    </>
-                } />
-            </Routes>
-        </div>
+                                    </Button>
+                                </Box>
+                            )}
+
+                            {/* Main Game Area */}
+                            <Box sx={{ 
+                                display: { xs: 'flex', md: 'block' },
+                                flexDirection: 'column',
+                                alignItems: 'center',
+                                width: '100%',
+                                maxWidth: '100vw',
+                                position: 'relative'
+                            }}>
+                                {/* On mobile: stack vertically */}
+                                <Box sx={{ 
+                                    display: { xs: 'flex', md: 'none' },
+                                    flexDirection: 'column',
+                                    alignItems: 'center',
+                                    gap: 3,
+                                    width: '100%'
+                                }}>
+                                    <Box sx={{ position: 'relative' }}>
+                                        <ScrabbleGrid grid={grid} words={words} found={found} onFound={markFound} />
+                                        {notEnoughWords && (
+                                            <Box sx={{
+                                                position: 'absolute',
+                                                top: 0,
+                                                left: 0,
+                                                width: '100%',
+                                                height: '100%',
+                                                backdropFilter: 'blur(6px)',
+                                                bgcolor: 'rgba(255,255,255,0.7)',
+                                                zIndex: 10,
+                                                display: 'flex',
+                                                alignItems: 'center',
+                                                justifyContent: 'center',
+                                            }}>
+                                                <Box sx={{
+                                                    bgcolor: 'rgba(255,255,255,0.95)',
+                                                    borderRadius: 3,
+                                                    p: 3,
+                                                    boxShadow: 2,
+                                                    textAlign: 'center',
+                                                    color: 'error.main',
+                                                    fontWeight: 'bold'
+                                                }}>
+                                                    {notEnoughWordsMsg || "Not enough words in the selected category to generate a puzzle."}
+                                                </Box>
+                                            </Box>
+                                        )}
+                                    </Box>
+                                    <Box sx={{ width: '100%', maxWidth: 400, alignSelf: 'flex-start' }}>
+                                        <WordList
+                                            words={words}
+                                            found={found}
+                                            hideWords={hideWords}
+                                            setHideWords={setHideWords}
+                                            allFound={allFound}
+                                            showTranslations={showTranslations}
+                                            setShowTranslations={setShowTranslations}
+                                            disableShowWords={notEnoughWords}
+                                        />
+                                    </Box>
+                                </Box>
+
+                                {/* On desktop: side by side with centered grid */}
+                                <Box sx={{ 
+                                    display: { xs: 'none', md: 'flex' },
+                                    justifyContent: 'center',
+                                    alignItems: 'flex-start',
+                                    width: '100%',
+                                    minHeight: '60vh',
+                                    position: 'relative'
+                                }}>
+                                    {/* Grid Container - centered */}
+                                    <Box sx={{ 
+                                        position: 'absolute',
+                                        left: '50%',
+                                        transform: 'translateX(-50%)',
+                                        top: 0
+                                    }}>
+                                        <ScrabbleGrid grid={grid} words={words} found={found} onFound={markFound} />
+                                        {notEnoughWords && (
+                                            <Box sx={{
+                                                position: 'absolute',
+                                                top: 0,
+                                                left: 0,
+                                                width: '100%',
+                                                height: '100%',
+                                                backdropFilter: 'blur(6px)',
+                                                bgcolor: 'rgba(255,255,255,0.7)',
+                                                zIndex: 10,
+                                                display: 'flex',
+                                                alignItems: 'center',
+                                                justifyContent: 'center',
+                                            }}>
+                                                <Box sx={{
+                                                    bgcolor: 'rgba(255,255,255,0.95)',
+                                                    borderRadius: 3,
+                                                    p: 3,
+                                                    boxShadow: 2,
+                                                    textAlign: 'center',
+                                                    color: 'error.main',
+                                                    fontWeight: 'bold'
+                                                }}>
+                                                    {notEnoughWordsMsg || "Not enough words in the selected category to generate a puzzle."}
+                                                </Box>
+                                            </Box>
+                                        )}
+                                    </Box>
+
+                                    {/* Word List - positioned to the right with consistent spacing */}
+                                    <Box sx={{ 
+                                        position: 'absolute',
+                                        left: 'calc(50% + 350px)', // Grid center + grid half-width + spacing
+                                        top: 0,
+                                        width: 320,
+                                        '@media (max-width: 1400px)': {
+                                            left: 'calc(50% + 300px)',
+                                        },
+                                        '@media (max-width: 1200px)': {
+                                            left: 'calc(50% + 280px)',
+                                            width: 280,
+                                        }
+                                    }}>
+                                        <WordList
+                                            words={words}
+                                            found={found}
+                                            hideWords={hideWords}
+                                            setHideWords={setHideWords}
+                                            allFound={allFound}
+                                            showTranslations={showTranslations}
+                                            setShowTranslations={setShowTranslations}
+                                            disableShowWords={notEnoughWords}
+                                        />
+                                    </Box>
+                                </Box>
+                            </Box>
+                        </Stack>
+                    } />
+                </Routes>
+            </Container>
+        </ThemeProvider>
     );
 }

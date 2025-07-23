@@ -15,6 +15,9 @@ osmosmjerka.egg-info/
 *.log
 *.pem
 
+backend/static/
+backend/db/
+
 frontend/node_modules/
 frontend/dist/
 frontend/build/
