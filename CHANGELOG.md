@@ -2,6 +2,14 @@
 
 <!-- version list -->
 
+## v1.1.2 (2025-07-24)
+
+### Bug Fixes
+
+- Remove leftover emoji from translation button
+  ([`82681fd`](https://github.com/bartekmp/osmosmjerka/commit/82681fd7061aa2ea32430ffd301365a39a64924f))
+
+
 ## v1.1.1 (2025-07-24)
 
 ### Bug Fixes
