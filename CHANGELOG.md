@@ -2,6 +2,15 @@
 
 <!-- version list -->
 
+## v1.1.3 (2025-07-24)
+
+### Bug Fixes
+
+- Restore touch controls on mobile after introducing MUI
+  ([#28](https://github.com/bartekmp/osmosmjerka/pull/28),
+  [`30080a6`](https://github.com/bartekmp/osmosmjerka/commit/30080a603d96bca319c74beb9cb01eef2811e525))
+
+
 ## v1.1.2 (2025-07-24)
 
 ### Bug Fixes
