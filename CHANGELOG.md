@@ -2,6 +2,19 @@
 
 <!-- version list -->
 
+## v1.1.0 (2025-07-24)
+
+### Feature
+
+- Allow editing rows inline in the admin panel page
+  ([#27](https://github.com/bartekmp/osmosmjerka/pull/27),
+  [`1554bcc`](https://github.com/bartekmp/osmosmjerka/commit/1554bccfd013b153a2e48d9359abbab8c613df83))
+
+- Use Material UI framework instead of raw CSS styling, use themes
+  ([#27](https://github.com/bartekmp/osmosmjerka/pull/27),
+  [`1554bcc`](https://github.com/bartekmp/osmosmjerka/commit/1554bccfd013b153a2e48d9359abbab8c613df83))
+
+
 ## v1.0.6 (2025-07-22)
 
 ### Bug Fixes
