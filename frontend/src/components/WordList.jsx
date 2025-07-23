@@ -34,7 +34,7 @@ export default function WordList({ words, found, hideWords, setHideWords, allFou
                         aria-label={showTranslations ? "Hide all translations" : "Show all translations"}
                         style={{ fontSize: '1.3em', display: 'flex', alignItems: 'center', justifyContent: 'center' }}
                     >
-                        <span style={{ marginRight: 6 }}>{showTranslations ? '◀🔤' : '🔤🌐▶'}</span>
+                        <span style={{ marginRight: 6 }}>{showTranslations ? '◀🔤' : '🌐▶'}</span>
                     </button>
                 )}
             </div>
