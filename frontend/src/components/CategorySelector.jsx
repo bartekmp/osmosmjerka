@@ -1,13 +1,21 @@
 import React from 'react';
-import './CategorySelector.css';
+import { FormControl, InputLabel, Select, MenuItem, Box } from '@mui/material';
 
 export default function CategorySelector({ categories, selected, onSelect }) {
     return (
-        <label className="category-selector-label">
-            Category:&nbsp;
-            <select value={selected} onChange={e => onSelect(e.target.value)}>
-                {categories.map(cat => <option key={cat} value={cat}>{cat}</option>)}
-            </select>
-        </label>
+        <Box sx={{ minWidth: 200 }}>
+            <FormControl fullWidth size="small">
+                <InputLabel>Category</InputLabel>
+                <Select
+                    value={selected}
+                    label="Category"
+                    onChange={e => onSelect(e.target.value)}
+                >
+                    {categories.map(cat => (
+                        <MenuItem key={cat} value={cat}>{cat}</MenuItem>
+                    ))}
+                </Select>
+            </FormControl>
+        </Box>
     );
 }

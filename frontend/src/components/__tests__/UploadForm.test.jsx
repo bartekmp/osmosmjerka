@@ -7,7 +7,9 @@ jest.mock('axios');
 
 test('renders upload button', () => {
     render(<UploadForm onUpload={() => { }} />);
-    expect(screen.getByText(/Upload Words/i)).toBeInTheDocument();
+    // The button text now includes emoji and may have responsive text
+    const button = screen.getByRole('button', { name: /upload/i });
+    expect(button).toBeInTheDocument();
 });
 
 test('shows error on upload failure', async () => {

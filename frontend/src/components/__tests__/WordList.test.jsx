@@ -20,7 +20,9 @@ test('hides words when hideWords is true', () => {
 
 test('disables show words button when disableShowWords is true', () => {
     render(<WordList words={words} found={[]} hideWords={true} setHideWords={() => { }} allFound={false} showTranslations={false} setShowTranslations={() => { }} disableShowWords={true} />);
-    expect(screen.getByText('Show words')).toBeDisabled();
+    // The button text now includes emoji and may have responsive text
+    const button = screen.getByRole('button', { name: /show/i });
+    expect(button).toBeDisabled();
 });
 
 test('shows translations when showTranslations is true', () => {

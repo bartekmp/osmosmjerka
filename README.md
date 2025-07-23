@@ -52,7 +52,7 @@ The ignored categories allows you to filter out entries of certain categories fr
 1. Create the `db` directory, for the purpose of mounting it to the container.
 2. Build the Docker image using:
 ```bash
-docker build -t osmosmjerka .
+docker build -t osmosmjerka --build-arg VERSION=v1.0.0 .
 ```
 1. Start the app, exposing the `8085` port and mounting the `db` directory:
 ```bash
