@@ -30,7 +30,8 @@ export function getCellFromTouch(e) {
     const touch = e.touches[0];
     const el = document.elementFromPoint(touch.clientX, touch.clientY);
     if (!el) return null;
-    const cell = el.closest('td[data-row][data-col]');
+    // Look for MUI Box elements with data-row and data-col attributes
+    const cell = el.closest('[data-row][data-col]');
     if (!cell) return null;
     return [parseInt(cell.dataset.row), parseInt(cell.dataset.col)];
 }
