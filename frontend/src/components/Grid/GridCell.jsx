@@ -1,11 +1,12 @@
 import React from 'react';
 import Box from '@mui/material/Box';
 
-export default function GridCell({ r, c, cell, isSelected, isFound, handleMouseDown, handleMouseEnter, cellSize }) {
+export default function GridCell({ r, c, cell, isSelected, isFound, isBlinking, handleMouseDown, handleMouseEnter, cellSize }) {
     const cellClasses = [
         "grid-cell",
         isSelected ? "selected" : "",
-        isFound ? "found" : ""
+        isFound ? "found" : "",
+        isBlinking ? "blinking" : ""
     ].join(" ").trim();
 
     return (

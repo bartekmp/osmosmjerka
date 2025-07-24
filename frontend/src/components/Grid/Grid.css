@@ -35,6 +35,21 @@
     background: #e6c97a;
 }
 
+.grid-cell.blinking {
+    animation: cell-blink 0.5s 3;
+}
+
+@keyframes cell-blink {
+    0%, 100% { 
+        background: #EDEDED;
+        color: #333;
+    }
+    50% { 
+        background: #ff4444;
+        color: white;
+    }
+}
+
 body,
 #root {
     min-height: 100vh;

@@ -1,7 +1,10 @@
-import React from 'react';
+import React, { useState, useRef } from 'react';
 import './WordList.css';
 
-export default function WordList({ words, found, hideWords, setHideWords, allFound, showTranslations, setShowTranslations, disableShowWords }) {
+export default function WordList({ words, found, hideWords, setHideWords, allFound, showTranslations, setShowTranslations, disableShowWords, onWordBlink }) {
+    const [blinkingWord, setBlinkingWord] = useState(null);
+    const blinkTimeoutRef = useRef(null);
+
     // Fixed width for translation to prevent layout shifts
     // Instead of dynamic calculation, use a consistent width
     const translationMinWidth = "12em"; // Fixed width for stability
@@ -10,6 +13,34 @@ export default function WordList({ words, found, hideWords, setHideWords, allFou
 
     // For consistent button width
     const buttonWidth = "7.2em";
+
+    const handleWordClick = (word) => {
+        // Clear any existing timeout
+        if (blinkTimeoutRef.current) {
+            clearTimeout(blinkTimeoutRef.current);
+        }
+        
+        setBlinkingWord(word);
+        
+        // Also trigger grid blinking if callback is provided
+        if (onWordBlink) {
+            onWordBlink(word);
+        }
+        
+        // Remove the blinking after 3 blinks (1.5 seconds)
+        blinkTimeoutRef.current = setTimeout(() => {
+            setBlinkingWord(null);
+        }, 1500);
+    };
+
+    // Cleanup timeout on unmount
+    React.useEffect(() => {
+        return () => {
+            if (blinkTimeoutRef.current) {
+                clearTimeout(blinkTimeoutRef.current);
+            }
+        };
+    }, []);
 
     return (
         <div className="word-list-container">
@@ -34,14 +65,18 @@ export default function WordList({ words, found, hideWords, setHideWords, allFou
                         aria-label={showTranslations ? "Hide all translations" : "Show all translations"}
                         style={{ fontSize: '1.3em', display: 'flex', alignItems: 'center', justifyContent: 'center' }}
                     >
-                        <span style={{ marginRight: 6 }}>{showTranslations ? '◀🔤' : '🌐▶'}</span>
+                        <span style={{ marginRight: 6 }}>{showTranslations ? '◀' : '▶'}</span>
                     </button>
                 )}
             </div>
             <ul className={`word-list-ul${hideWords ? ' blurred' : ''}`}>
                 {words.map(({ word, translation }) => (
                     <li className="word-list-li" key={word}>
-                        <span className={`word-list-word${found.includes(word) ? ' found' : ''}`}>
+                        <span 
+                            className={`word-list-word${found.includes(word) ? ' found' : ''}${blinkingWord === word ? ' blinking' : ''}`}
+                            onClick={() => handleWordClick(word)}
+                            style={{ cursor: 'pointer' }}
+                        >
                             {word}
                         </span>
                         <span

@@ -63,7 +63,8 @@ export function loadPuzzle(category, diff, setters) {
     setSelectedCategory(category);
     if (setNotEnoughWords) setNotEnoughWords(false);
     if (setNotEnoughWordsMsg) setNotEnoughWordsMsg("");
-    axios.get(`/api/words?category=${category}&difficulty=${diff}`)
+    
+    return axios.get(`/api/words?category=${category}&difficulty=${diff}`)
         .then(res => {
             if (res.data.error_code === "NOT_ENOUGH_WORDS") {
                 if (setNotEnoughWords) setNotEnoughWords(true);
@@ -95,5 +96,6 @@ export function loadPuzzle(category, diff, setters) {
             setFound([]);
             setHideWords(true);
             setShowTranslations(false);
+            throw err; // Re-throw to handle loading state
         });
 }

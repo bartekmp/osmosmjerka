@@ -1,9 +1,9 @@
 import axios from 'axios';
 import confetti from 'canvas-confetti';
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, useRef } from 'react';
 import { Link, Route, Routes, useLocation } from 'react-router-dom';
 import { ThemeProvider, CssBaseline, Button } from '@mui/material';
-import { Container, Box, Typography, Stack, FormControl, InputLabel, Select, MenuItem } from '@mui/material';
+import { Container, Box, Typography, Stack, FormControl, InputLabel, Select, MenuItem, CircularProgress } from '@mui/material';
 import AdminPanel from './components/AdminPanel/AdminPanel';
 import CategorySelector from './components/CategorySelector';
 import ExportButton from './components/ExportButton';
@@ -17,6 +17,7 @@ import { loadPuzzle as loadPuzzleHelper, restoreGameState, saveGameState } from 
 export default function App() {
     const location = useLocation();
     const isAdminRoute = location.pathname.startsWith('/admin');
+    const gridRef = useRef(null);
     const [categories, setCategories] = useState([]);
     const [ignoredCategories, setIgnoredCategories] = useState([]);
     const [selectedCategory, setSelectedCategory] = useState('');
@@ -38,6 +39,7 @@ export default function App() {
     const [restored, setRestored] = useState(false);
     const [notEnoughWords, setNotEnoughWords] = useState(false);
     const [notEnoughWordsMsg, setNotEnoughWordsMsg] = useState("");
+    const [isLoading, setIsLoading] = useState(false);
 
     // Winning condition: all words found
     const allFound = words.length > 0 && found.length === words.length;
@@ -94,6 +96,7 @@ export default function App() {
     }, [restored, selectedCategory, difficulty]);
 
     const loadPuzzle = (category, diff = difficulty) => {
+        setIsLoading(true);
         loadPuzzleHelper(category, diff, {
             setSelectedCategory,
             setGrid,
@@ -103,6 +106,8 @@ export default function App() {
             setShowTranslations,
             setNotEnoughWords,
             setNotEnoughWordsMsg
+        }).finally(() => {
+            setIsLoading(false);
         });
     };
 
@@ -110,6 +115,12 @@ export default function App() {
         if (!found.includes(word)) {
             setFound([...found, word]);
             confetti();
+        }
+    };
+
+    const handleWordBlink = (word) => {
+        if (gridRef.current) {
+            gridRef.current.blinkWord(word);
         }
     };
 
@@ -164,6 +175,39 @@ export default function App() {
         <ThemeProvider theme={theme}>
             <CssBaseline />
             <Container maxWidth="xl" sx={{ minHeight: '100vh', py: 2, position: 'relative' }}>
+                {/* Loading overlay */}
+                {isLoading && (
+                    <Box
+                        sx={{
+                            position: 'fixed',
+                            top: 0,
+                            left: 0,
+                            right: 0,
+                            bottom: 0,
+                            backgroundColor: 'rgba(0, 0, 0, 0.5)',
+                            backdropFilter: 'blur(3px)',
+                            display: 'flex',
+                            alignItems: 'center',
+                            justifyContent: 'center',
+                            zIndex: 9999
+                        }}
+                    >
+                        <Box
+                            sx={{
+                                backgroundColor: 'white',
+                                borderRadius: 2,
+                                p: 3,
+                                display: 'flex',
+                                flexDirection: 'column',
+                                alignItems: 'center',
+                                gap: 2
+                            }}
+                        >
+                            <CircularProgress size={40} />
+                            <Typography variant="body1">Loading puzzle...</Typography>
+                        </Box>
+                    </Box>
+                )}
                 {/* Admin Button - Top Right on Desktop, Hidden on Mobile and Admin Routes */}
                 {!isAdminRoute && (
                     <Button
@@ -216,8 +260,9 @@ export default function App() {
                             </Box>
 
                             {/* Category, Difficulty, Refresh, and Export */}
-                            <Box sx={{ display: 'flex', flexDirection: { xs: 'column', sm: 'row' }, alignItems: 'flex-start', gap: 2, width: '100%', maxWidth: 600 }}>
-                                <Box sx={{ flex: 1, display: 'flex', flexDirection: 'column', gap: 2 }}>
+                            <Box sx={{ display: 'flex', flexDirection: 'row', alignItems: 'flex-start', gap: 2, width: '100%', maxWidth: 600 }}>
+                                {/* Dropdowns container */}
+                                <Box sx={{ flex: 1, display: 'flex', flexDirection: 'column', gap: 2, maxWidth: { xs: '60%', sm: '70%' } }}>
                                     <CategorySelector
                                         categories={visibleCategories}
                                         selected={selectedCategory}
@@ -243,16 +288,18 @@ export default function App() {
                                         </Typography>
                                     )}
                                 </Box>
-                                <Box sx={{ display: 'flex', flexDirection: 'row', alignItems: 'center', gap: 2 }}>
+                                
+                                {/* Buttons container */}
+                                <Box sx={{ display: 'flex', flexDirection: { xs: 'row', sm: 'row' }, alignItems: { xs: 'center', sm: 'flex-start' }, gap: { xs: 1, sm: 2 } }}>
+                                    {/* Refresh button - spans height of dropdowns */}
                                     <Button
                                         onClick={() => loadPuzzle(selectedCategory, difficulty)}
                                         title="Reload puzzle"
                                         sx={{
-                                            height: { xs: 96, sm: 96 },
-                                            minWidth: 56,
-                                            fontSize: '2rem',
-                                            px: 2,
-                                            alignSelf: 'center',
+                                            height: { xs: 48, sm: 96 },
+                                            minWidth: { xs: 48, sm: 56 },
+                                            fontSize: { xs: '1.2rem', sm: '2rem' },
+                                            px: { xs: 1, sm: 2 },
                                             display: 'flex',
                                             flexDirection: 'column',
                                             justifyContent: 'center',
@@ -263,8 +310,19 @@ export default function App() {
                                             Refresh
                                         </Box>
                                     </Button>
-                                    <Box sx={{ minWidth: 120 }}>
-                                        <ExportButton category={selectedCategory} grid={grid} words={words} />
+                                    
+                                    {/* Export button - normal size on desktop, same as refresh on mobile */}
+                                    <Box sx={{ 
+                                        display: 'flex', 
+                                        alignItems: 'center',
+                                        height: { xs: 48, sm: 96 }
+                                    }}>
+                                        <ExportButton 
+                                            category={selectedCategory} 
+                                            grid={grid} 
+                                            words={words} 
+                                            disabled={isLoading || grid.length === 0 || notEnoughWords}
+                                        />
                                     </Box>
                                 </Box>
                             </Box>
@@ -275,15 +333,34 @@ export default function App() {
                                     textAlign: 'center', 
                                     color: 'success.main',
                                     fontWeight: 'bold',
-                                    fontSize: '1.2rem'
+                                    fontSize: '1.2rem',
+                                    minHeight: 80, // Reserve space for consistent layout
+                                    display: 'flex',
+                                    flexDirection: { xs: 'row', sm: 'row' },
+                                    alignItems: 'center',
+                                    justifyContent: 'center',
+                                    gap: 2
                                 }}>
-                                    <Typography variant="h6" color="success.main" gutterBottom>
-                                        All words found!
+                                    <Typography variant="h6" color="success.main" sx={{ mb: 0 }}>
+                                        🎉 All words found! 🎊
                                     </Typography>
                                     <Button
                                         onClick={() => loadPuzzle(selectedCategory, difficulty)}
+                                        sx={{
+                                            display: 'flex',
+                                            alignItems: 'center',
+                                            gap: 1,
+                                            fontSize: { xs: '0.9rem', sm: '1rem' },
+                                            py: { xs: 0.5, sm: 1 },
+                                            px: { xs: 2, sm: 3 }
+                                        }}
                                     >
-                                        Load new puzzle
+                                        <Box component="span" sx={{ display: { xs: 'none', sm: 'inline' } }}>
+                                            New game
+                                        </Box>
+                                        <Box component="span" sx={{ display: { xs: 'inline', sm: 'none' } }}>
+                                            🎮
+                                        </Box>
                                     </Button>
                                 </Box>
                             )}
@@ -306,7 +383,7 @@ export default function App() {
                                     width: '100%'
                                 }}>
                                     <Box sx={{ position: 'relative' }}>
-                                        <ScrabbleGrid grid={grid} words={words} found={found} onFound={markFound} />
+                                        <ScrabbleGrid ref={gridRef} grid={grid} words={words} found={found} onFound={markFound} />
                                         {notEnoughWords && (
                                             <Box sx={{
                                                 position: 'absolute',
@@ -345,6 +422,7 @@ export default function App() {
                                             showTranslations={showTranslations}
                                             setShowTranslations={setShowTranslations}
                                             disableShowWords={notEnoughWords}
+                                            onWordBlink={handleWordBlink}
                                         />
                                     </Box>
                                 </Box>
@@ -365,7 +443,7 @@ export default function App() {
                                         transform: 'translateX(-50%)',
                                         top: 0
                                     }}>
-                                        <ScrabbleGrid grid={grid} words={words} found={found} onFound={markFound} />
+                                        <ScrabbleGrid ref={gridRef} grid={grid} words={words} found={found} onFound={markFound} />
                                         {notEnoughWords && (
                                             <Box sx={{
                                                 position: 'absolute',
@@ -418,6 +496,7 @@ export default function App() {
                                             showTranslations={showTranslations}
                                             setShowTranslations={setShowTranslations}
                                             disableShowWords={notEnoughWords}
+                                            onWordBlink={handleWordBlink}
                                         />
                                     </Box>
                                 </Box>
