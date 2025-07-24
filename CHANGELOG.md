@@ -2,6 +2,19 @@
 
 <!-- version list -->
 
+## v1.2.0 (2025-07-25)
+
+### Feature
+
+- Change the buttons to emoji-only on narrow displays
+  ([#29](https://github.com/bartekmp/osmosmjerka/pull/29),
+  [`f9ccd63`](https://github.com/bartekmp/osmosmjerka/commit/f9ccd6302ea8ff9dafd0dfa74988f436ac5a9ed4))
+
+- Make the layout more readable on smaller screens
+  ([#29](https://github.com/bartekmp/osmosmjerka/pull/29),
+  [`f9ccd63`](https://github.com/bartekmp/osmosmjerka/commit/f9ccd6302ea8ff9dafd0dfa74988f436ac5a9ed4))
+
+
 ## v1.1.3 (2025-07-24)
 
 ### Bug Fixes
