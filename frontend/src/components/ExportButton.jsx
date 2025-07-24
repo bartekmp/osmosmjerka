@@ -1,9 +1,10 @@
 import React from 'react';
 import axios from 'axios';
 import Button from '@mui/material/Button';
+import Box from '@mui/material/Box';
 import './ExportButton.css';
 
-export default function ExportButton({ category, grid, words }) {
+export default function ExportButton({ category, grid, words, disabled }) {
     const handleExport = async () => {
         try {
             const response = await axios.post("/api/export", { category, grid, words }, { responseType: 'blob' });
@@ -20,10 +21,27 @@ export default function ExportButton({ category, grid, words }) {
         }
     };
     return (
-        <Button className="scrabble-btn export-btn" onClick={handleExport} sx={{ width: '100%', py: 2, fontSize: '1.2rem' }}>
-            <span style={{ marginRight: 8 }}>📄</span>
-            <span style={{ display: 'none', sm: 'inline' }}>Export to DOCX</span>
-            <span style={{ display: 'inline', sm: 'none' }}>Export</span>
+        <Button 
+            className="scrabble-btn export-btn" 
+            onClick={handleExport} 
+            disabled={disabled}
+            sx={{ 
+                height: { xs: 48, sm: 'auto' },
+                minWidth: { xs: 48, sm: 'auto' },
+                fontSize: { xs: '1.2rem', sm: '1rem' },
+                px: { xs: 1, sm: 2 },
+                py: { xs: 0, sm: 1 },
+                display: 'flex',
+                flexDirection: { xs: 'column', sm: 'row' },
+                alignItems: 'center',
+                justifyContent: 'center',
+                gap: { xs: 0, sm: 1 }
+            }}
+        >
+            <span>📄</span>
+            <Box component="span" sx={{ display: { xs: 'none', sm: 'inline' } }}>
+                Export
+            </Box>
         </Button>
     );
 }

@@ -18,7 +18,8 @@ test('handles export failure', async () => {
     const consoleErrorSpy = jest.spyOn(console, 'error').mockImplementation(() => { });
 
     render(<ExportButton category="TestCat" grid={[[1]]} words={['word']} />);
-    const btn = screen.getByText(/Export to DOCX/i);
+    // Updated selector to match the new button label
+    const btn = screen.getByRole('button', { name: /export/i });
 
     fireEvent.click(btn);
 
