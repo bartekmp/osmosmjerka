@@ -2,6 +2,23 @@
 
 <!-- version list -->
 
+## v1.3.0 (2025-07-25)
+
+### Bug Fixes
+
+- Pull the entire repo for semantic releasing
+  ([`756fbf0`](https://github.com/bartekmp/osmosmjerka/commit/756fbf0b124c958a8ce93ee91edb75e8ee89f7d7))
+
+### Feature
+
+- Add a button to collapse the controls on mobile screen
+  ([#30](https://github.com/bartekmp/osmosmjerka/pull/30),
+  [`8636d25`](https://github.com/bartekmp/osmosmjerka/commit/8636d2512a54fa88456585209b78c355190dbd0c))
+
+- Optimize layout on small displays ([#30](https://github.com/bartekmp/osmosmjerka/pull/30),
+  [`8636d25`](https://github.com/bartekmp/osmosmjerka/commit/8636d2512a54fa88456585209b78c355190dbd0c))
+
+
 ## v1.2.0 (2025-07-25)
 
 ### Feature
