@@ -12,7 +12,7 @@ import {
     Paper
 } from '@mui/material';
 
-export default function AdminTable({ rows, setEditRow, onSaveRow }) {
+export default function AdminTable({ rows, setEditRow, onSaveRow, onDeleteRow }) {
     const [editingId, setEditingId] = useState(null);
     const [editData, setEditData] = useState({});
     const [errors, setErrors] = useState({});
@@ -57,6 +57,12 @@ export default function AdminTable({ rows, setEditRow, onSaveRow }) {
         setEditingId(null);
         setEditData({});
         setErrors({});
+    };
+
+    const handleDelete = (row) => {
+        if (window.confirm(`Are you sure you want to delete the word "${row.word}"?`)) {
+            onDeleteRow(row.id);
+        }
     };
 
     const handleChange = (field, value) => {
@@ -174,12 +180,21 @@ export default function AdminTable({ rows, setEditRow, onSaveRow }) {
                                         </Button>
                                     </Box>
                                 ) : (
-                                    <Button 
-                                        size="small"
-                                        onClick={() => handleEdit(row)}
-                                    >
-                                        Edit
-                                    </Button>
+                                    <Box sx={{ display: 'flex', gap: 1, flexWrap: 'wrap', justifyContent: 'center' }}>
+                                        <Button 
+                                            size="small"
+                                            onClick={() => handleEdit(row)}
+                                        >
+                                            Edit
+                                        </Button>
+                                        <Button 
+                                            size="small"
+                                            onClick={() => handleDelete(row)}
+                                            color="error"
+                                        >
+                                            Delete
+                                        </Button>
+                                    </Box>
                                 )}
                             </TableCell>
                         </TableRow>

@@ -42,7 +42,8 @@ export default function AdminPanel() {
         handleLogin,
         handleSave,
         handleExportTxt,
-        clearDb
+        clearDb,
+        handleDelete
     } = useAdminApi({
         token,
         setRows,
@@ -109,6 +110,11 @@ export default function AdminPanel() {
     // Handle inline save from table
     const handleInlineSave = (updatedRow) => {
         handleSave(updatedRow, () => fetchRows(offset, limit, filterCategory), () => {});
+    };
+
+    // Handle inline delete from table
+    const handleInlineDelete = (id) => {
+        handleDelete(id, () => fetchRows(offset, limit, filterCategory));
     };
 
     // Handle clear database with confirmation
@@ -368,6 +374,7 @@ export default function AdminPanel() {
                 rows={rows} 
                 setEditRow={setEditRow} 
                 onSaveRow={handleInlineSave}
+                onDeleteRow={handleInlineDelete}
             />
 
             {/* Pagination */}

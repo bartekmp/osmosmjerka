@@ -90,5 +90,16 @@ export function useAdminApi({ token, setRows, setTotalRows, setDashboard, setErr
             .then(() => fetchRows());
     }, [authHeader]);
 
-    return { fetchRows, handleLogin, handleSave, handleExportTxt, clearDb };
+    const handleDelete = useCallback((id, fetchRows) => {
+        fetch(`/admin/row/${id}`, {
+            method: 'DELETE',
+            headers: authHeader
+        }).then(() => {
+            fetchRows();
+        }).catch(err => {
+            console.error('Error deleting row:', err);
+        });
+    }, [authHeader]);
+
+    return { fetchRows, handleLogin, handleSave, handleExportTxt, clearDb, handleDelete };
 }

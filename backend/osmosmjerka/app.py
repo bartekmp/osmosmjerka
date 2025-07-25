@@ -83,7 +83,7 @@ def update_row(id: int, row: dict, user=Depends(get_current_user)) -> JSONRespon
 
 
 @app.delete("/admin/row/{id}")
-def delete_row(id: int, row: dict, user=Depends(get_current_user)) -> JSONResponse:
+def delete_row(id: int, user=Depends(get_current_user)) -> JSONResponse:
     delete_word(id)
     return JSONResponse({"status": "deleted"})
 
