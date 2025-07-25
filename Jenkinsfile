@@ -42,6 +42,7 @@ pipeline {
                 sh 'git config --global --add safe.directory $PWD'
                 sh 'git fetch --tags'
                 sh 'git fetch --all'
+                sh 'git pull origin main'
                 sh 'git describe --tags || echo "No tags found"'
                 sh 'echo "Current branch: ${BRANCH_NAME}"'
             }
