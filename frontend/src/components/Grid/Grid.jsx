@@ -4,7 +4,7 @@ import { getCellFromTouch, getDirection, isStraightLine } from './helpers';
 import Box from '@mui/material/Box';
 import './Grid.css';
 
-const ScrabbleGrid = forwardRef(({ grid, words, found, onFound }, ref) => {
+const ScrabbleGrid = forwardRef(({ grid, words, found, onFound, disabled = false }, ref) => {
     const [selected, setSelected] = useState([]);
     const [blinkingCells, setBlinkingCells] = useState([]);
     const isMouseDown = useRef(false);
@@ -48,6 +48,7 @@ const ScrabbleGrid = forwardRef(({ grid, words, found, onFound }, ref) => {
 
     // Handle mouse and touch events for selecting cells
     const handleMouseDown = (r, c) => {
+        if (disabled) return;
         isMouseDown.current = true;
         selectionStart.current = [r, c];
         lastDirection.current = null;
@@ -55,6 +56,7 @@ const ScrabbleGrid = forwardRef(({ grid, words, found, onFound }, ref) => {
     };
 
     const handleMouseEnter = (r, c) => {
+        if (disabled) return;
         if (!isMouseDown.current || !selectionStart.current) return;
         
         const start = selectionStart.current;
@@ -319,9 +321,9 @@ const ScrabbleGrid = forwardRef(({ grid, words, found, onFound }, ref) => {
                             r={r}
                             c={c}
                             cell={cell}
-                            isSelected={isSelected}
                             isFound={isFound(r, c)}
                             isBlinking={isBlinking}
+                            isSelected={isSelected}
                             handleMouseDown={handleMouseDown}
                             handleMouseEnter={handleMouseEnter}
                             cellSize={cellSize}

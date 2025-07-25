@@ -28,7 +28,10 @@
 }
 
 .grid-cell.selected {
-    background: #b3e5ff;
+    background: #b3e5ff !important;
+    color: #222 !important;
+    /* Add any other styles you want to ensure selected is visually dominant */
+    z-index: 2;
 }
 
 .grid-cell.found {
@@ -45,7 +48,7 @@
         color: #333;
     }
     50% { 
-        background: #ff4444;
+        background: #ff6e6e;
         color: white;
     }
 }

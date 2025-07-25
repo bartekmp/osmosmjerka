@@ -4,9 +4,9 @@ import Box from '@mui/material/Box';
 export default function GridCell({ r, c, cell, isSelected, isFound, isBlinking, handleMouseDown, handleMouseEnter, cellSize }) {
     const cellClasses = [
         "grid-cell",
-        isSelected ? "selected" : "",
         isFound ? "found" : "",
-        isBlinking ? "blinking" : ""
+        isBlinking ? "blinking" : "",
+        isSelected ? "selected" : ""
     ].join(" ").trim();
 
     return (
