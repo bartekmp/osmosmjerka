@@ -2,6 +2,18 @@
 
 <!-- version list -->
 
+## v1.4.0 (2025-07-25)
+
+### Feature
+
+- Add day/night toggle switch, create night mode style
+  ([#31](https://github.com/bartekmp/osmosmjerka/pull/31),
+  [`a57f56e`](https://github.com/bartekmp/osmosmjerka/commit/a57f56eabe1f615aceead46b3346b26bba999a70))
+
+- Logo changing colors easter egg ([#31](https://github.com/bartekmp/osmosmjerka/pull/31),
+  [`a57f56e`](https://github.com/bartekmp/osmosmjerka/commit/a57f56eabe1f615aceead46b3346b26bba999a70))
+
+
 ## v1.3.0 (2025-07-25)
 
 ### Bug Fixes
