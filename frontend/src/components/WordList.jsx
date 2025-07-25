@@ -63,7 +63,7 @@ export default function WordList({ words, found, hideWords, setHideWords, allFou
                         type="button"
                         onClick={() => setShowTranslations(t => !t)}
                         aria-label={showTranslations ? "Hide all translations" : "Show all translations"}
-                        style={{ fontSize: '1.3em', display: 'flex', alignItems: 'center', justifyContent: 'center' }}
+                        style={{ fontSize: '1.1em', display: 'flex', alignItems: 'center', justifyContent: 'center' }}
                     >
                         <span style={{ marginRight: 6 }}>{showTranslations ? '◀' : '▶'}</span>
                     </button>

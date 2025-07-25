@@ -40,6 +40,7 @@ export default function App() {
     const [notEnoughWords, setNotEnoughWords] = useState(false);
     const [notEnoughWordsMsg, setNotEnoughWordsMsg] = useState("");
     const [isLoading, setIsLoading] = useState(false);
+    const [panelOpen, setPanelOpen] = useState(false);
 
     // Winning condition: all words found
     const allFound = words.length > 0 && found.length === words.length;
@@ -136,7 +137,7 @@ export default function App() {
         const screenWidth = window.innerWidth;
         const screenHeight = window.innerHeight;
         const maxGridSize = Math.min(screenWidth * 0.9, screenHeight * 0.6);
-        
+
         const difficulties = [
             { value: 'easy', label: 'Easy (10x10)', gridSize: 10 },
             { value: 'medium', label: 'Medium (15x15)', gridSize: 15 },
@@ -158,7 +159,7 @@ export default function App() {
         const handleResize = () => {
             setAvailableDifficulties(getAvailableDifficulties());
         };
-        
+
         window.addEventListener('resize', handleResize);
         return () => window.removeEventListener('resize', handleResize);
     }, []);
@@ -230,9 +231,9 @@ export default function App() {
                     <Route path="/" element={
                         <Stack spacing={3} alignItems="center">
                             {/* Header */}
-                            <Box sx={{ 
-                                display: 'flex', 
-                                alignItems: 'center', 
+                            <Box sx={{
+                                display: 'flex',
+                                alignItems: 'center',
                                 justifyContent: 'center',
                                 flexWrap: 'wrap',
                                 gap: 2,
@@ -248,9 +249,9 @@ export default function App() {
                                     }}
                                     onError={e => { e.target.onerror = null; e.target.src = "/static/favicon-32x32.png"; }}
                                 />
-                                <Typography 
-                                    variant="h1" 
-                                    sx={{ 
+                                <Typography
+                                    variant="h1"
+                                    sx={{
                                         fontSize: { xs: '2rem', sm: '3rem', md: '4rem' },
                                         textAlign: 'center'
                                     }}
@@ -259,10 +260,41 @@ export default function App() {
                                 </Typography>
                             </Box>
 
-                            {/* Category, Difficulty, Refresh, and Export */}
-                            <Box sx={{ display: 'flex', flexDirection: 'row', alignItems: 'flex-start', gap: 2, width: '100%', maxWidth: 600 }}>
+                            {/* Toggle button for mobile, only when menu is closed */}
+                            {!panelOpen && (
+                                <Button
+                                    onClick={() => setPanelOpen(true)}
+                                    sx={{
+                                        display: { xs: 'flex', sm: 'none' },
+                                        alignItems: 'center',
+                                        justifyContent: 'center',
+                                        minWidth: 0,
+                                        width: 240,
+                                        height: 40,
+                                        mb: 1,
+                                        mx: 'auto'
+                                    }}
+                                    aria-label="Show controls"
+                                >
+                                    Menu ⬇️
+                                </Button>
+                            )}
+
+                            {/* Control Panel: collapsible on mobile, always visible on desktop */}
+                            <Box
+                                sx={{
+                                    display: { xs: panelOpen ? 'flex' : 'none', sm: 'flex' },
+                                    flexDirection: 'row',
+                                    alignItems: 'flex-start',
+                                    gap: 2,
+                                    width: '100%',
+                                    maxWidth: 600,
+                                    mb: { xs: 1, sm: 2 },
+                                    transition: 'all 0.2s'
+                                }}
+                            >
                                 {/* Dropdowns container */}
-                                <Box sx={{ flex: 1, display: 'flex', flexDirection: 'column', gap: 2, maxWidth: { xs: '60%', sm: '70%' } }}>
+                                <Box sx={{ flex: 1, display: 'flex', flexDirection: 'column', gap: 2, maxWidth: { xs: '40%', sm: '70%' } }}>
                                     <CategorySelector
                                         categories={visibleCategories}
                                         selected={selectedCategory}
@@ -282,16 +314,17 @@ export default function App() {
                                             ))}
                                         </Select>
                                     </FormControl>
-                                    {availableDifficulties.length < 4 && (
-                                        <Typography variant="caption" color="text.secondary" sx={{ mt: 0.5, display: 'block' }}>
-                                            Some difficulties hidden due to screen size
-                                        </Typography>
-                                    )}
                                 </Box>
-                                
+
                                 {/* Buttons container */}
-                                <Box sx={{ display: 'flex', flexDirection: { xs: 'row', sm: 'row' }, alignItems: { xs: 'center', sm: 'flex-start' }, gap: { xs: 1, sm: 2 } }}>
-                                    {/* Refresh button - spans height of dropdowns */}
+                                <Box sx={{
+                                    display: 'flex',
+                                    flexDirection: { xs: 'row', sm: 'row' },
+                                    alignItems: { xs: 'center', sm: 'flex-start' },
+                                    gap: { xs: 1, sm: 2 },
+                                    position: 'relative'
+                                }}>
+                                    {/* Refresh button */}
                                     <Button
                                         onClick={() => loadPuzzle(selectedCategory, difficulty)}
                                         title="Reload puzzle"
@@ -310,38 +343,66 @@ export default function App() {
                                             Refresh
                                         </Box>
                                     </Button>
-                                    
-                                    {/* Export button - normal size on desktop, same as refresh on mobile */}
-                                    <Box sx={{ 
-                                        display: 'flex', 
-                                        alignItems: 'center',
-                                        height: { xs: 48, sm: 96 }
-                                    }}>
-                                        <ExportButton 
-                                            category={selectedCategory} 
-                                            grid={grid} 
-                                            words={words} 
-                                            disabled={isLoading || grid.length === 0 || notEnoughWords}
-                                        />
-                                    </Box>
+
+                                    {/* Export button */}
+                                    <ExportButton
+                                        category={selectedCategory}
+                                        grid={grid}
+                                        words={words}
+                                        disabled={isLoading || grid.length === 0 || notEnoughWords}
+                                    />
+
+                                    {/* Hide menu button for mobile, only when menu is open */}
+                                    {panelOpen && (
+                                        <Button
+                                            onClick={() => setPanelOpen(false)}
+                                            sx={{
+                                                display: { xs: 'flex', sm: 'none' },
+                                                alignItems: 'center',
+                                                justifyContent: 'center',
+                                                minWidth: 0,
+                                                width: 48,
+                                                height: 48,
+                                                fontSize: '1.5rem',
+                                                p: 0
+                                            }}
+                                            aria-label="Hide controls"
+                                        >
+                                            ⬆️
+                                        </Button>
+                                    )}
                                 </Box>
                             </Box>
 
                             {/* All Found Message */}
+                            {!allFound && (
+                                <Box sx={{ minHeight: 56, display: 'flex', alignItems: 'center' }} >
+
+                                </Box>
+                            )}
                             {allFound && (
-                                <Box sx={{ 
-                                    textAlign: 'center', 
+                                <Box sx={{
+                                    textAlign: 'center',
                                     color: 'success.main',
                                     fontWeight: 'bold',
-                                    fontSize: '1.2rem',
-                                    minHeight: 80, // Reserve space for consistent layout
+                                    fontSize: { xs: '1rem', sm: '1.2rem' },
+                                    minHeight: { xs: 32, sm: 56 },
                                     display: 'flex',
-                                    flexDirection: { xs: 'row', sm: 'row' },
+                                    flexDirection: 'row',
                                     alignItems: 'center',
                                     justifyContent: 'center',
-                                    gap: 2
+                                    gap: { xs: 1, sm: 2 },
+                                    mb: { xs: 1, sm: 2 } // minimal margin below on mobile
                                 }}>
-                                    <Typography variant="h6" color="success.main" sx={{ mb: 0 }}>
+                                    <Typography
+                                        variant="h6"
+                                        color="success.main"
+                                        sx={{
+                                            mb: 0,
+                                            fontSize: { xs: '1rem', sm: '1.2rem' },
+                                            lineHeight: 1.2
+                                        }}
+                                    >
                                         🎉 All words found! 🎊
                                     </Typography>
                                     <Button
@@ -350,9 +411,10 @@ export default function App() {
                                             display: 'flex',
                                             alignItems: 'center',
                                             gap: 1,
-                                            fontSize: { xs: '0.9rem', sm: '1rem' },
-                                            py: { xs: 0.5, sm: 1 },
-                                            px: { xs: 2, sm: 3 }
+                                            fontSize: { xs: '0.8rem', sm: '1rem' },
+                                            py: { xs: 0.2, sm: 1 },
+                                            px: { xs: 1, sm: 3 },
+                                            minHeight: { xs: 28, sm: 36 }
                                         }}
                                     >
                                         <Box component="span" sx={{ display: { xs: 'none', sm: 'inline' } }}>
@@ -366,7 +428,7 @@ export default function App() {
                             )}
 
                             {/* Main Game Area */}
-                            <Box sx={{ 
+                            <Box sx={{
                                 display: { xs: 'flex', md: 'block' },
                                 flexDirection: 'column',
                                 alignItems: 'center',
@@ -375,7 +437,7 @@ export default function App() {
                                 position: 'relative'
                             }}>
                                 {/* On mobile: stack vertically */}
-                                <Box sx={{ 
+                                <Box sx={{
                                     display: { xs: 'flex', md: 'none' },
                                     flexDirection: 'column',
                                     alignItems: 'center',
@@ -383,7 +445,14 @@ export default function App() {
                                     width: '100%'
                                 }}>
                                     <Box sx={{ position: 'relative' }}>
-                                        <ScrabbleGrid ref={gridRef} grid={grid} words={words} found={found} onFound={markFound} />
+                                        <ScrabbleGrid
+                                            ref={gridRef}
+                                            grid={grid}
+                                            words={words}
+                                            found={found}
+                                            onFound={markFound}
+                                            disabled={allFound}
+                                        />
                                         {notEnoughWords && (
                                             <Box sx={{
                                                 position: 'absolute',
@@ -428,7 +497,7 @@ export default function App() {
                                 </Box>
 
                                 {/* On desktop: side by side with centered grid */}
-                                <Box sx={{ 
+                                <Box sx={{
                                     display: { xs: 'none', md: 'flex' },
                                     justifyContent: 'center',
                                     alignItems: 'flex-start',
@@ -437,13 +506,20 @@ export default function App() {
                                     position: 'relative'
                                 }}>
                                     {/* Grid Container - centered */}
-                                    <Box sx={{ 
+                                    <Box sx={{
                                         position: 'absolute',
                                         left: '50%',
                                         transform: 'translateX(-50%)',
                                         top: 0
                                     }}>
-                                        <ScrabbleGrid ref={gridRef} grid={grid} words={words} found={found} onFound={markFound} />
+                                        <ScrabbleGrid
+                                            ref={gridRef}
+                                            grid={grid}
+                                            words={words}
+                                            found={found}
+                                            onFound={markFound}
+                                            disabled={allFound}
+                                        />
                                         {notEnoughWords && (
                                             <Box sx={{
                                                 position: 'absolute',
@@ -474,7 +550,7 @@ export default function App() {
                                     </Box>
 
                                     {/* Word List - positioned to the right with consistent spacing */}
-                                    <Box sx={{ 
+                                    <Box sx={{
                                         position: 'absolute',
                                         left: 'calc(50% + 350px)', // Grid center + grid half-width + spacing
                                         top: 0,
