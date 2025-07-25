@@ -18,11 +18,26 @@ button,
   user-select: none;
 }
 
+/* Dark mode button styles */
+[data-theme="dark"] button,
+[data-theme="dark"] .scrabble-btn {
+  background: #4a4a4a;
+  border: 2px solid #6b5b3a;
+  box-shadow: 1px 2px 0 #6b5b3a, 0 1px 0 #5a5a5a inset;
+  color: #e0e0e0;
+}
+
 button:active,
 .scrabble-btn:active {
   background: #e6c97a;
   box-shadow: 0 1px 0 #b89c4e inset;
   transform: translateY(2px);
+}
+
+[data-theme="dark"] button:active,
+[data-theme="dark"] .scrabble-btn:active {
+  background: #6b5b3a;
+  box-shadow: 0 1px 0 #6b5b3a inset;
 }
 
 button:disabled,
@@ -34,11 +49,26 @@ button:disabled,
   box-shadow: none;
 }
 
+[data-theme="dark"] button:disabled,
+[data-theme="dark"] .scrabble-btn:disabled {
+  background: #3a3a3a;
+  color: #666;
+  border-color: #555;
+}
+
 body,
 #root {
   min-height: 100vh;
   width: 100vw;
   overflow-x: auto;
+  transition: background-color 0.3s ease, color 0.3s ease;
+}
+
+/* Dark mode body styles */
+[data-theme="dark"] body,
+[data-theme="dark"] #root {
+  background-color: #2a2a2a;
+  color: #e0e0e0;
 }
 
 @media (max-width: 600px) {
@@ -89,6 +119,13 @@ body,
   line-height: 1;
   word-break: break-word;
   flex-shrink: 1;
+  cursor: pointer;
+  transition: color 0.3s ease;
+}
+
+/* Dark mode title styles */
+[data-theme="dark"] .osmo-logo-title {
+  color: #e0e0e0;
 }
 
 /* Category and reload row */

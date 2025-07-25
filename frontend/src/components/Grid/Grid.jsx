@@ -4,9 +4,10 @@ import { getCellFromTouch, getDirection, isStraightLine } from './helpers';
 import Box from '@mui/material/Box';
 import './Grid.css';
 
-const ScrabbleGrid = forwardRef(({ grid, words, found, onFound, disabled = false }, ref) => {
+const ScrabbleGrid = forwardRef(({ grid, words, found, onFound, disabled = false, isDarkMode = false }, ref) => {
     const [selected, setSelected] = useState([]);
     const [blinkingCells, setBlinkingCells] = useState([]);
+    const [, forceRender] = useState(0); // Force re-render on resize
     const isMouseDown = useRef(false);
     const selectionStart = useRef(null);
     const lastDirection = useRef(null);
@@ -23,13 +24,19 @@ const ScrabbleGrid = forwardRef(({ grid, words, found, onFound, disabled = false
         const wordData = words.find(w => w.word === word);
         if (!wordData) return;
 
-        // Set the blinking cells
-        setBlinkingCells(wordData.coords);
+        // Clear any existing blinking first
+        setBlinkingCells([]);
+        
+        // Use a small delay to ensure the DOM updates
+        setTimeout(() => {
+            // Set the blinking cells
+            setBlinkingCells(wordData.coords);
 
-        // Remove the blinking after 1.5 seconds (3 blinks)
-        blinkTimeoutRef.current = setTimeout(() => {
-            setBlinkingCells([]);
-        }, 1500);
+            // Remove the blinking after 1.5 seconds (3 blinks)
+            blinkTimeoutRef.current = setTimeout(() => {
+                setBlinkingCells([]);
+            }, 1500);
+        }, 10);
     };
 
     // Expose the blink function to parent components
@@ -232,6 +239,8 @@ const ScrabbleGrid = forwardRef(({ grid, words, found, onFound, disabled = false
             } else {
                 document.documentElement.style.setProperty('--grid-scale', 1);
             }
+            // Force re-render to recalculate cell size
+            forceRender(prev => prev + 1);
         }
         function debouncedUpdate() {
             clearTimeout(timeout);
@@ -252,16 +261,35 @@ const ScrabbleGrid = forwardRef(({ grid, words, found, onFound, disabled = false
     // Calculate optimal cell size that maintains square grid
     const calculateCellSize = () => {
         const minSize = 20; // Minimum cell size in pixels
-        const maxSize = 45;  // Maximum cell size in pixels
-        const fixedSize = 40; // Consistent cell size for wide screens
+        const maxSize = 60;  // Increased maximum cell size for wide screens
+        const fixedSize = 50; // Increased consistent cell size for wide screens
         const screenWidth = window.innerWidth;
         const screenHeight = window.innerHeight;
-        const availableWidth = Math.min(screenWidth * 0.85, 600);
-        const availableHeight = Math.min(screenHeight * 0.6, 600);
+        
+        // Get more accurate available space
+        const padding = 16; // Account for page padding
+        const gap = { xs: 3, md: 6 }; // Gap between grid and word list
+        const wordListWidth = 320; // Fixed word list width on desktop
+        
+        let availableWidth, availableHeight;
+        
+        if (screenWidth < 900) { // Mobile/tablet
+            availableWidth = screenWidth - (padding * 2);
+            availableHeight = Math.min(screenHeight * 0.6, 600);
+        } else { // Desktop
+            availableWidth = Math.min(screenWidth * 0.6, 800); // Increased space for wider screens
+            availableHeight = Math.min(screenHeight * 0.8, 800); // Increased vertical space
+        }
+        
         const availableSize = Math.min(availableWidth, availableHeight);
-        // On wide screens, keep cell size fixed
-        if (screenWidth > 900) return fixedSize;
-        // Otherwise, scale as before
+        
+        // On wide screens, use a more responsive approach
+        if (screenWidth > 1200) {
+            const cellSize = Math.floor((availableSize - (gridSize + 1) * 4) / gridSize);
+            return Math.max(minSize, Math.min(fixedSize, cellSize));
+        }
+        
+        // For smaller screens, scale more aggressively
         const cellSize = Math.floor((availableSize - (gridSize + 1) * 4) / gridSize);
         return Math.max(minSize, Math.min(maxSize, cellSize));
     };
@@ -275,11 +303,14 @@ const ScrabbleGrid = forwardRef(({ grid, words, found, onFound, disabled = false
             justifyContent: 'center', 
             alignItems: 'center', 
             width: '100%',
-            p: 2
+            maxWidth: '100%',
+            overflow: 'hidden', // Prevent overflow
+            p: 1
         }}>
             <Box
                 data-grid-container="true"
                 data-cell-size={cellSize}
+                className="grid-container"
                 onMouseUp={handleMouseUp}
                 onMouseLeave={() => {
                     // Only clear selection if mouse truly leaves and we're not in the middle of a selection
@@ -297,11 +328,12 @@ const ScrabbleGrid = forwardRef(({ grid, words, found, onFound, disabled = false
                     gridTemplateRows: `repeat(${gridSize}, ${cellSize}px)`,
                     gap: '4px',
                     padding: '4px',
-                    backgroundColor: '#f5f5f5',
+                    backgroundColor: isDarkMode ? '#23272e' : '#f5f5f5',
                     borderRadius: '8px',
-                    boxShadow: '0 4px 8px rgba(0,0,0,0.1)',
+                    boxShadow: isDarkMode ? '0 4px 16px rgba(0,0,0,0.7)' : '0 4px 8px rgba(0,0,0,0.1)',
                     width: `${totalGridSize}px`,
                     height: `${totalGridSize}px`,
+                    maxWidth: '100%', // Ensure grid doesn't exceed container
                     touchAction: 'none', // Prevent default touch behaviors
                     userSelect: 'none', // Prevent text selection
                     WebkitUserSelect: 'none',

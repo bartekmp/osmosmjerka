@@ -2,22 +2,27 @@ import axios from 'axios';
 import confetti from 'canvas-confetti';
 import React, { useEffect, useState, useRef } from 'react';
 import { Link, Route, Routes, useLocation } from 'react-router-dom';
-import { ThemeProvider, CssBaseline, Button } from '@mui/material';
+import { ThemeProvider as MUIThemeProvider, CssBaseline, Button } from '@mui/material';
 import { Container, Box, Typography, Stack, FormControl, InputLabel, Select, MenuItem, CircularProgress } from '@mui/material';
 import AdminPanel from './components/AdminPanel/AdminPanel';
 import CategorySelector from './components/CategorySelector';
 import ExportButton from './components/ExportButton';
 import ScrabbleGrid from './components/Grid/Grid';
 import WordList from './components/WordList';
-import theme from './theme';
+import { ThemeProvider, useThemeMode } from './contexts/ThemeContext';
+import createAppTheme from './theme';
 import './style.css';
 
 import { loadPuzzle as loadPuzzleHelper, restoreGameState, saveGameState } from './helpers/appHelpers';
 
-export default function App() {
+function AppContent() {
     const location = useLocation();
     const isAdminRoute = location.pathname.startsWith('/admin');
     const gridRef = useRef(null);
+    const { isDarkMode, toggleDarkMode } = useThemeMode();
+    const [logoColor, setLogoColor] = useState('#2d2d2d');
+    const [logoFilter, setLogoFilter] = useState('none');
+    
     const [categories, setCategories] = useState([]);
     const [ignoredCategories, setIgnoredCategories] = useState([]);
     const [selectedCategory, setSelectedCategory] = useState('');
@@ -42,6 +47,39 @@ export default function App() {
     const [isLoading, setIsLoading] = useState(false);
     const [panelOpen, setPanelOpen] = useState(false);
 
+    // Function to change logo color to random bright color
+    const changeLogoColor = () => {
+        const colorFilters = [
+            'hue-rotate(45deg) saturate(2)', // orange
+            'hue-rotate(120deg) saturate(2)', // green  
+            'hue-rotate(240deg) saturate(2)', // blue
+            'hue-rotate(300deg) saturate(2)', // purple
+            'hue-rotate(0deg) saturate(3)', // red
+            'hue-rotate(60deg) saturate(2)', // yellow
+            'hue-rotate(180deg) saturate(2)', // cyan
+            'hue-rotate(320deg) saturate(2)', // magenta
+        ];
+        const currentFilter = logoFilter;
+        let newFilter;
+        do {
+            newFilter = colorFilters[Math.floor(Math.random() * colorFilters.length)];
+        } while (newFilter === currentFilter);
+        setLogoFilter(newFilter);
+    };
+
+    // Function to navigate to home page
+    const handleLogoClick = () => {
+        changeLogoColor();
+        if (window.location.pathname !== '/') {
+            window.location.href = '/';
+        }
+    };
+
+    // Apply theme data attribute to body
+    useEffect(() => {
+        document.body.setAttribute('data-theme', isDarkMode ? 'dark' : 'light');
+    }, [isDarkMode]);
+
     // Winning condition: all words found
     const allFound = words.length > 0 && found.length === words.length;
 
@@ -63,16 +101,30 @@ export default function App() {
     useEffect(() => {
         axios.get('/api/ignored_categories').then(res => {
             setIgnoredCategories(res.data);
+        }).catch(err => {
+            console.error('Error loading ignored categories:', err);
         });
+        
         axios.get('/api/categories').then(res => {
             setCategories(res.data);
             if (res.data.length > 0 && !selectedCategory && restored && grid.length === 0) {
                 const randomIndex = Math.floor(Math.random() * res.data.length);
                 setSelectedCategory(res.data[randomIndex]);
             }
+        }).catch(err => {
+            console.error('Error loading categories:', err);
         });
         // eslint-disable-next-line
     }, [restored]);
+
+    // Also load categories immediately, not just when restored
+    useEffect(() => {
+        axios.get('/api/categories').then(res => {
+            setCategories(res.data);
+        }).catch(err => {
+            console.error('Error loading categories on mount:', err);
+        });
+    }, []);
 
     // Save state to localStorage on change, including showTranslations
     useEffect(() => {
@@ -173,7 +225,7 @@ export default function App() {
     }, [availableDifficulties, difficulty]);
 
     return (
-        <ThemeProvider theme={theme}>
+        <MUIThemeProvider theme={createAppTheme(isDarkMode)}>
             <CssBaseline />
             <Container maxWidth="xl" sx={{ minHeight: '100vh', py: 2, position: 'relative' }}>
                 {/* Loading overlay */}
@@ -209,22 +261,46 @@ export default function App() {
                         </Box>
                     </Box>
                 )}
-                {/* Admin Button - Top Right on Desktop, Hidden on Mobile and Admin Routes */}
-                {!isAdminRoute && (
+                
+                {/* Night Mode and Admin Buttons - Top Right, always visible, aligned */}
+                <Box
+                    sx={{
+                        position: 'absolute',
+                        top: 16,
+                        right: 16,
+                        zIndex: 1000,
+                        display: { xs: 'none', md: 'flex' },
+                        flexDirection: 'row',
+                        alignItems: 'center',
+                        gap: 1,
+                    }}
+                >
                     <Button
-                        component={Link}
-                        to="/admin"
+                        onClick={toggleDarkMode}
                         sx={{
-                            position: 'absolute',
-                            top: 16,
-                            right: 16,
-                            zIndex: 1000,
-                            display: { xs: 'none', md: 'block' }, // Hidden on mobile
+                            minWidth: 48,
+                            height: 48,
+                            fontSize: '1.5rem',
+                            p: 0,
                         }}
+                        title={isDarkMode ? 'Switch to light mode' : 'Switch to dark mode'}
                     >
-                        Admin
+                        {isDarkMode ? '☀️' : '🌙'}
                     </Button>
-                )}
+                    {!isAdminRoute && (
+                        <Button
+                            component={Link}
+                            to="/admin"
+                            sx={{
+                                minWidth: 48,
+                                height: 48,
+                                fontSize: '1rem',
+                            }}
+                        >
+                            Admin
+                        </Button>
+                    )}
+                </Box>
 
                 <Routes>
                     <Route path="/admin" element={<AdminPanel />} />
@@ -237,8 +313,11 @@ export default function App() {
                                 justifyContent: 'center',
                                 flexWrap: 'wrap',
                                 gap: 2,
-                                mt: 2
-                            }}>
+                                mt: 2,
+                                cursor: 'pointer'
+                            }}
+                            onClick={handleLogoClick}
+                            >
                                 <Box
                                     component="img"
                                     src="/static/android-chrome-512x512.png"
@@ -246,6 +325,9 @@ export default function App() {
                                     sx={{
                                         height: { xs: 40, sm: 48, md: 64 },
                                         width: { xs: 40, sm: 48, md: 64 },
+                                        filter: logoFilter,
+                                        transition: 'filter 0.3s ease',
+                                        userSelect: 'none' // Prevent text selection
                                     }}
                                     onError={e => { e.target.onerror = null; e.target.src = "/static/favicon-32x32.png"; }}
                                 />
@@ -253,7 +335,8 @@ export default function App() {
                                     variant="h1"
                                     sx={{
                                         fontSize: { xs: '2rem', sm: '3rem', md: '4rem' },
-                                        textAlign: 'center'
+                                        textAlign: 'center',
+                                        userSelect: 'none' // Prevent text selection
                                     }}
                                 >
                                     Osmosmjerka
@@ -376,7 +459,7 @@ export default function App() {
 
                             {/* All Found Message */}
                             {!allFound && (
-                                <Box sx={{ minHeight: 56, display: 'flex', alignItems: 'center' }} >
+                                <Box sx={{ minHeight: { xs: 16, sm: 24 }, display: 'flex', alignItems: 'center' }} >
 
                                 </Box>
                             )}
@@ -386,13 +469,13 @@ export default function App() {
                                     color: 'success.main',
                                     fontWeight: 'bold',
                                     fontSize: { xs: '1rem', sm: '1.2rem' },
-                                    minHeight: { xs: 32, sm: 56 },
+                                    minHeight: { xs: 16, sm: 24 },
                                     display: 'flex',
                                     flexDirection: 'row',
                                     alignItems: 'center',
                                     justifyContent: 'center',
                                     gap: { xs: 1, sm: 2 },
-                                    mb: { xs: 1, sm: 2 } // minimal margin below on mobile
+                                    mb: { xs: 0.5, sm: 1 } // reduced margin below
                                 }}>
                                     <Typography
                                         variant="h6"
@@ -429,158 +512,88 @@ export default function App() {
 
                             {/* Main Game Area */}
                             <Box sx={{
-                                display: { xs: 'flex', md: 'block' },
-                                flexDirection: 'column',
-                                alignItems: 'center',
+                                display: 'flex',
+                                flexDirection: { xs: 'column', md: 'row' },
+                                alignItems: { xs: 'center', md: 'flex-start' },
                                 width: '100%',
                                 maxWidth: '100vw',
-                                position: 'relative'
+                                position: 'relative',
+                                gap: { xs: 3, md: 6 },
+                                justifyContent: 'center',
+                                overflow: 'hidden', // Prevent horizontal overflow
                             }}>
-                                {/* On mobile: stack vertically */}
-                                <Box sx={{
-                                    display: { xs: 'flex', md: 'none' },
-                                    flexDirection: 'column',
-                                    alignItems: 'center',
-                                    gap: 3,
-                                    width: '100%'
-                                }}>
-                                    <Box sx={{ position: 'relative' }}>
-                                        <ScrabbleGrid
-                                            ref={gridRef}
-                                            grid={grid}
-                                            words={words}
-                                            found={found}
-                                            onFound={markFound}
-                                            disabled={allFound}
-                                        />
-                                        {notEnoughWords && (
-                                            <Box sx={{
-                                                position: 'absolute',
-                                                top: 0,
-                                                left: 0,
-                                                width: '100%',
-                                                height: '100%',
-                                                backdropFilter: 'blur(6px)',
-                                                bgcolor: 'rgba(255,255,255,0.7)',
-                                                zIndex: 10,
-                                                display: 'flex',
-                                                alignItems: 'center',
-                                                justifyContent: 'center',
-                                            }}>
-                                                <Box sx={{
-                                                    bgcolor: 'rgba(255,255,255,0.95)',
-                                                    borderRadius: 3,
-                                                    p: 3,
-                                                    boxShadow: 2,
-                                                    textAlign: 'center',
-                                                    color: 'error.main',
-                                                    fontWeight: 'bold'
-                                                }}>
-                                                    {notEnoughWordsMsg || "Not enough words in the selected category to generate a puzzle."}
-                                                </Box>
-                                            </Box>
-                                        )}
-                                    </Box>
-                                    <Box sx={{ width: '100%', maxWidth: 400, alignSelf: 'flex-start' }}>
-                                        <WordList
-                                            words={words}
-                                            found={found}
-                                            hideWords={hideWords}
-                                            setHideWords={setHideWords}
-                                            allFound={allFound}
-                                            showTranslations={showTranslations}
-                                            setShowTranslations={setShowTranslations}
-                                            disableShowWords={notEnoughWords}
-                                            onWordBlink={handleWordBlink}
-                                        />
-                                    </Box>
-                                </Box>
-
-                                {/* On desktop: side by side with centered grid */}
-                                <Box sx={{
-                                    display: { xs: 'none', md: 'flex' },
+                                <Box sx={{ 
+                                    position: 'relative', 
+                                    flex: '0 0 auto',
+                                    display: 'flex',
                                     justifyContent: 'center',
-                                    alignItems: 'flex-start',
-                                    width: '100%',
-                                    minHeight: '60vh',
-                                    position: 'relative'
+                                    alignItems: 'center',
+                                    width: { xs: '100%', md: 'auto' },
+                                    maxWidth: '100%',
                                 }}>
-                                    {/* Grid Container - centered */}
-                                    <Box sx={{
-                                        position: 'absolute',
-                                        left: '50%',
-                                        transform: 'translateX(-50%)',
-                                        top: 0
-                                    }}>
-                                        <ScrabbleGrid
-                                            ref={gridRef}
-                                            grid={grid}
-                                            words={words}
-                                            found={found}
-                                            onFound={markFound}
-                                            disabled={allFound}
-                                        />
-                                        {notEnoughWords && (
+                                    <ScrabbleGrid
+                                        ref={gridRef}
+                                        grid={grid}
+                                        words={words}
+                                        found={found}
+                                        onFound={markFound}
+                                        disabled={allFound}
+                                        isDarkMode={isDarkMode}
+                                    />
+                                    {notEnoughWords && (
+                                        <Box sx={{
+                                            position: 'absolute',
+                                            top: 0,
+                                            left: 0,
+                                            width: '100%',
+                                            height: '100%',
+                                            backdropFilter: 'blur(6px)',
+                                            bgcolor: 'rgba(255,255,255,0.7)',
+                                            zIndex: 10,
+                                            display: 'flex',
+                                            alignItems: 'center',
+                                            justifyContent: 'center',
+                                        }}>
                                             <Box sx={{
-                                                position: 'absolute',
-                                                top: 0,
-                                                left: 0,
-                                                width: '100%',
-                                                height: '100%',
-                                                backdropFilter: 'blur(6px)',
-                                                bgcolor: 'rgba(255,255,255,0.7)',
-                                                zIndex: 10,
-                                                display: 'flex',
-                                                alignItems: 'center',
-                                                justifyContent: 'center',
+                                                bgcolor: 'rgba(255,255,255,0.95)',
+                                                borderRadius: 3,
+                                                p: 3,
+                                                boxShadow: 2,
+                                                textAlign: 'center',
+                                                color: 'error.main',
+                                                fontWeight: 'bold'
                                             }}>
-                                                <Box sx={{
-                                                    bgcolor: 'rgba(255,255,255,0.95)',
-                                                    borderRadius: 3,
-                                                    p: 3,
-                                                    boxShadow: 2,
-                                                    textAlign: 'center',
-                                                    color: 'error.main',
-                                                    fontWeight: 'bold'
-                                                }}>
-                                                    {notEnoughWordsMsg || "Not enough words in the selected category to generate a puzzle."}
-                                                </Box>
+                                                {notEnoughWordsMsg || "Not enough words in the selected category to generate a puzzle."}
                                             </Box>
-                                        )}
-                                    </Box>
-
-                                    {/* Word List - positioned to the right with consistent spacing */}
-                                    <Box sx={{
-                                        position: 'absolute',
-                                        left: 'calc(50% + 350px)', // Grid center + grid half-width + spacing
-                                        top: 0,
-                                        width: 320,
-                                        '@media (max-width: 1400px)': {
-                                            left: 'calc(50% + 300px)',
-                                        },
-                                        '@media (max-width: 1200px)': {
-                                            left: 'calc(50% + 280px)',
-                                            width: 280,
-                                        }
-                                    }}>
-                                        <WordList
-                                            words={words}
-                                            found={found}
-                                            hideWords={hideWords}
-                                            setHideWords={setHideWords}
-                                            allFound={allFound}
-                                            showTranslations={showTranslations}
-                                            setShowTranslations={setShowTranslations}
-                                            disableShowWords={notEnoughWords}
-                                            onWordBlink={handleWordBlink}
-                                        />
-                                    </Box>
+                                        </Box>
+                                    )}
+                                </Box>
+                                <Box sx={{ width: { xs: '100%', md: 320 }, maxWidth: 400, alignSelf: { xs: 'flex-start', md: 'flex-start' }, position: { md: 'relative' }, left: { md: '0' }, top: { md: '0' } }}>
+                                    <WordList
+                                        words={words}
+                                        found={found}
+                                        hideWords={hideWords}
+                                        setHideWords={setHideWords}
+                                        allFound={allFound}
+                                        showTranslations={showTranslations}
+                                        setShowTranslations={setShowTranslations}
+                                        disableShowWords={notEnoughWords}
+                                        onWordBlink={handleWordBlink}
+                                    />
                                 </Box>
                             </Box>
                         </Stack>
                     } />
                 </Routes>
             </Container>
+        </MUIThemeProvider>
+    );
+}
+
+export default function App() {
+    return (
+        <ThemeProvider>
+            <AppContent />
         </ThemeProvider>
     );
 }

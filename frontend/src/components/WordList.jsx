@@ -75,6 +75,7 @@ export default function WordList({ words, found, hideWords, setHideWords, allFou
                         <span 
                             className={`word-list-word${found.includes(word) ? ' found' : ''}${blinkingWord === word ? ' blinking' : ''}`}
                             onClick={() => handleWordClick(word)}
+                            onTouchEnd={e => { e.preventDefault(); handleWordClick(word); }}
                             style={{ cursor: 'pointer' }}
                         >
                             {word}

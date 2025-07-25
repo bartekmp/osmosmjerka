@@ -34,12 +34,26 @@
     transition: background 0.2s, box-shadow 0.2s, transform 0.1s;
 }
 
+/* Dark mode toggle button */
+[data-theme="dark"] .word-list-toggle-translations {
+    background: #4a4a4a;
+    border: 2px solid #6b5b3a;
+    box-shadow: 1px 2px 0 #6b5b3a, 0 1px 0 #5a5a5a inset;
+    color: #6b5b3a;
+}
+
 .word-list-toggle-translations:disabled {
     background: #eee6c7;
     color: #aaa;
     border-color: #d1c18a;
     cursor: not-allowed;
     box-shadow: none;
+}
+
+[data-theme="dark"] .word-list-toggle-translations:disabled {
+    background: #3a3a3a;
+    color: #666;
+    border-color: #555;
 }
 
 .word-list-ul {
@@ -94,12 +108,34 @@
     }
 }
 
+/* Dark mode blink animation */
+[data-theme="dark"] .word-list-word.blinking {
+    animation: blink-highlight-dark 0.5s 3;
+}
+
+@keyframes blink-highlight-dark {
+    0%, 100% { 
+        background-color: transparent; 
+        color: inherit;
+    }
+    50% { 
+        background-color: #6b5b3a; 
+        color: #e0e0e0;
+        padding: 2px 4px;
+        border-radius: 3px;
+    }
+}
+
 .word-list-translation {
     display: inline-block;
     color: #bbb;
     flex: 1;
     word-wrap: break-word;
     overflow-wrap: break-word;
+}
+
+[data-theme="dark"] .word-list-translation {
+    color: #888;
 }
 
 .word-list-translation.found {
