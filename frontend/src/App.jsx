@@ -262,105 +262,154 @@ function AppContent() {
                     </Box>
                 )}
                 
-                {/* Night Mode and Admin Buttons - Top Right, always visible, aligned */}
-                <Box
+                {/* Night Mode Button - Always visible, top right on desktop */}
+                <Button
+                    onClick={toggleDarkMode}
                     sx={{
                         position: 'absolute',
                         top: 16,
                         right: 16,
                         zIndex: 1000,
-                        display: { xs: 'none', md: 'flex' },
-                        flexDirection: 'row',
-                        alignItems: 'center',
-                        gap: 1,
+                        minWidth: 48,
+                        height: 48,
+                        fontSize: '1.5rem',
+                        p: 0,
+                        display: { xs: 'none', sm: 'flex' },
                     }}
+                    title={isDarkMode ? 'Switch to light mode' : 'Switch to dark mode'}
                 >
+                    {isDarkMode ? '☀️' : '🌙'}
+                </Button>
+
+                {/* Admin Button - Top Right on Desktop, Hidden on Mobile and Admin Routes */}
+                {!isAdminRoute && (
                     <Button
-                        onClick={toggleDarkMode}
+                        component={Link}
+                        to="/admin"
                         sx={{
+                            position: 'absolute',
+                            top: 16,
+                            right: 80,
+                            zIndex: 1000,
+                            display: { xs: 'none', md: 'flex' },
                             minWidth: 48,
                             height: 48,
-                            fontSize: '1.5rem',
-                            p: 0,
+                            fontSize: '1rem',
                         }}
-                        title={isDarkMode ? 'Switch to light mode' : 'Switch to dark mode'}
                     >
-                        {isDarkMode ? '☀️' : '🌙'}
+                        Admin
                     </Button>
-                    {!isAdminRoute && (
-                        <Button
-                            component={Link}
-                            to="/admin"
-                            sx={{
-                                minWidth: 48,
-                                height: 48,
-                                fontSize: '1rem',
-                            }}
-                        >
-                            Admin
-                        </Button>
-                    )}
-                </Box>
+                )}
 
                 <Routes>
                     <Route path="/admin" element={<AdminPanel />} />
                     <Route path="/" element={
                         <Stack spacing={3} alignItems="center">
-                            {/* Header */}
-                            <Box sx={{
-                                display: 'flex',
-                                alignItems: 'center',
+                            {/* Header with night mode button positioned at top right on mobile when menu is open */}
+                            <Box sx={{ 
+                                position: 'relative', 
+                                width: '100%', 
+                                display: 'flex', 
                                 justifyContent: 'center',
-                                flexWrap: 'wrap',
-                                gap: 2,
-                                mt: 2,
-                                cursor: 'pointer'
-                            }}
-                            onClick={handleLogoClick}
-                            >
-                                <Box
-                                    component="img"
-                                    src="/static/android-chrome-512x512.png"
-                                    alt="Osmosmjerka logo"
-                                    sx={{
-                                        height: { xs: 40, sm: 48, md: 64 },
-                                        width: { xs: 40, sm: 48, md: 64 },
-                                        filter: logoFilter,
-                                        transition: 'filter 0.3s ease',
-                                        userSelect: 'none' // Prevent text selection
-                                    }}
-                                    onError={e => { e.target.onerror = null; e.target.src = "/static/favicon-32x32.png"; }}
-                                />
-                                <Typography
-                                    variant="h1"
-                                    sx={{
-                                        fontSize: { xs: '2rem', sm: '3rem', md: '4rem' },
-                                        textAlign: 'center',
-                                        userSelect: 'none' // Prevent text selection
-                                    }}
+                                mt: 2 
+                            }}>
+                                <Box sx={{
+                                    display: 'flex',
+                                    alignItems: 'center',
+                                    justifyContent: panelOpen ? { xs: 'flex-start', sm: 'center' } : 'center',
+                                    flexWrap: 'wrap',
+                                    gap: 2,
+                                    cursor: 'pointer',
+                                    width: '100%',
+                                }}
+                                onClick={handleLogoClick}
                                 >
-                                    Osmosmjerka
-                                </Typography>
+                                    <Box
+                                        component="img"
+                                        src="/static/android-chrome-512x512.png"
+                                        alt="Osmosmjerka logo"
+                                        sx={{
+                                            height: { xs: 40, sm: 48, md: 64 },
+                                            width: { xs: 40, sm: 48, md: 64 },
+                                            filter: logoFilter,
+                                            transition: 'filter 0.3s ease',
+                                            userSelect: 'none' // Prevent text selection
+                                        }}
+                                        onError={e => { e.target.onerror = null; e.target.src = "/static/favicon-32x32.png"; }}
+                                    />
+                                    <Typography
+                                        variant="h1"
+                                        sx={{
+                                            fontSize: { xs: '2rem', sm: '3rem', md: '4rem' },
+                                            textAlign: panelOpen ? { xs: 'left', sm: 'center' } : 'center',
+                                            userSelect: 'none' // Prevent text selection
+                                        }}
+                                    >
+                                        Osmosmjerka
+                                    </Typography>
+                                </Box>
+                                
+                                {/* Night mode button on mobile when menu is open - positioned at top right */}
+                                {panelOpen && (
+                                    <Button
+                                        onClick={toggleDarkMode}
+                                        sx={{
+                                            position: 'absolute',
+                                            top: 0,
+                                            right: 0,
+                                            display: { xs: 'flex', sm: 'none' },
+                                            minWidth: 48,
+                                            height: 48,
+                                            fontSize: '1.5rem',
+                                            p: 0,
+                                            zIndex: 1000,
+                                        }}
+                                        title={isDarkMode ? 'Switch to light mode' : 'Switch to dark mode'}
+                                    >
+                                        {isDarkMode ? '☀️' : '🌙'}
+                                    </Button>
+                                )}
                             </Box>
 
                             {/* Toggle button for mobile, only when menu is closed */}
                             {!panelOpen && (
-                                <Button
-                                    onClick={() => setPanelOpen(true)}
-                                    sx={{
-                                        display: { xs: 'flex', sm: 'none' },
-                                        alignItems: 'center',
-                                        justifyContent: 'center',
-                                        minWidth: 0,
-                                        width: 240,
-                                        height: 40,
-                                        mb: 1,
-                                        mx: 'auto'
-                                    }}
-                                    aria-label="Show controls"
-                                >
-                                    Menu ⬇️
-                                </Button>
+                                <Box sx={{
+                                    display: { xs: 'flex', sm: 'none' },
+                                    flexDirection: 'row',
+                                    alignItems: 'center',
+                                    width: '100%',
+                                    justifyContent: 'center',
+                                    mb: 1,
+                                }}>
+                                    <Button
+                                        onClick={() => setPanelOpen(true)}
+                                        sx={{
+                                            minWidth: 0,
+                                            width: 180,
+                                            height: 40,
+                                            mr: 1,
+                                            display: 'flex',
+                                            alignItems: 'center',
+                                            justifyContent: 'center',
+                                        }}
+                                        aria-label="Show controls"
+                                    >
+                                        Menu ⬇️
+                                    </Button>
+                                    <Button
+                                        onClick={toggleDarkMode}
+                                        sx={{
+                                            minWidth: 40,
+                                            height: 40,
+                                            fontSize: '1.5rem',
+                                            p: 0,
+                                            ml: 1,
+                                        }}
+                                        title={isDarkMode ? 'Switch to light mode' : 'Switch to dark mode'}
+                                    >
+                                        {isDarkMode ? '☀️' : '🌙'}
+                                    </Button>
+                                </Box>
                             )}
 
                             {/* Control Panel: collapsible on mobile, always visible on desktop */}
@@ -475,7 +524,7 @@ function AppContent() {
                                     alignItems: 'center',
                                     justifyContent: 'center',
                                     gap: { xs: 1, sm: 2 },
-                                    mb: { xs: 0.5, sm: 1 } // reduced margin below
+                                    mb: { xs: 0.5, sm: 1 }
                                 }}>
                                     <Typography
                                         variant="h6"
