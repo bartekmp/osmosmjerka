@@ -44,12 +44,21 @@ const ScrabbleGrid = forwardRef(({ grid, words, found, onFound, disabled = false
         blinkWord
     }));
 
-    // Cleanup timeout on unmount
+    // Cleanup timeout on unmount and handle resize
     useEffect(() => {
+        const handleResize = () => {
+            // Force re-render on window resize to recalculate grid size
+            setSelected([]); // Clear selection
+            forceRender(prev => prev + 1);
+        };
+
+        window.addEventListener('resize', handleResize);
+        
         return () => {
             if (blinkTimeoutRef.current) {
                 clearTimeout(blinkTimeoutRef.current);
             }
+            window.removeEventListener('resize', handleResize);
         };
     }, []);
 
@@ -260,38 +269,51 @@ const ScrabbleGrid = forwardRef(({ grid, words, found, onFound, disabled = false
 
     // Calculate optimal cell size that maintains square grid
     const calculateCellSize = () => {
-        const minSize = 20; // Minimum cell size in pixels
-        const maxSize = 60;  // Increased maximum cell size for wide screens
-        const fixedSize = 50; // Increased consistent cell size for wide screens
+        const minSize = 15; // Reduced minimum cell size for better mobile fit
+        const maxSize = 70;  // Increased maximum cell size for wide screens
         const screenWidth = window.innerWidth;
         const screenHeight = window.innerHeight;
         
         // Get more accurate available space
         const padding = 16; // Account for page padding
-        const gap = { xs: 3, md: 6 }; // Gap between grid and word list
         const wordListWidth = 320; // Fixed word list width on desktop
         
         let availableWidth, availableHeight;
         
         if (screenWidth < 900) { // Mobile/tablet
-            availableWidth = screenWidth - (padding * 2);
+            // Be more conservative on mobile - subtract more padding and container margins
+            availableWidth = window.innerWidth - (padding * 3); // Extra padding for safety
             availableHeight = Math.min(screenHeight * 0.6, 600);
         } else { // Desktop
-            availableWidth = Math.min(screenWidth * 0.6, 800); // Increased space for wider screens
-            availableHeight = Math.min(screenHeight * 0.8, 800); // Increased vertical space
+            // On wide screens (>1200px), give more space to the grid
+            const baseWidth = screenWidth > 1200 ? screenWidth * 0.65 : screenWidth * 0.6;
+            availableWidth = Math.min(baseWidth, 900); // Allow larger grids on wide screens
+            availableHeight = Math.min(screenHeight * 0.8, 900);
         }
         
-        const availableSize = Math.min(availableWidth, availableHeight);
+        // On mobile, prioritize width constraint to prevent horizontal overflow
+        const availableSize = screenWidth < 900 ? availableWidth : Math.min(availableWidth, availableHeight);
         
-        // On wide screens, use a more responsive approach
-        if (screenWidth > 1200) {
-            const cellSize = Math.floor((availableSize - (gridSize + 1) * 4) / gridSize);
-            return Math.max(minSize, Math.min(fixedSize, cellSize));
+        // Calculate cell size with gap consideration - be more conservative
+        const totalGap = (gridSize + 1) * 4; // 4px gap between cells
+        const cellSize = Math.floor((availableSize - totalGap) / gridSize);
+        
+        // On very wide screens (>1200px), allow larger cells
+        const effectiveMaxSize = screenWidth > 1200 ? maxSize : Math.min(maxSize, 50);
+        
+        const finalCellSize = Math.max(minSize, Math.min(effectiveMaxSize, cellSize));
+        
+        // Final safety check for mobile - ensure total grid size doesn't exceed viewport
+        if (screenWidth < 900) {
+            const totalGridWidth = gridSize * finalCellSize + totalGap;
+            if (totalGridWidth > availableWidth) {
+                // Recalculate with even more conservative approach
+                const safeCellSize = Math.floor((availableWidth - totalGap) / gridSize);
+                return Math.max(minSize, safeCellSize);
+            }
         }
         
-        // For smaller screens, scale more aggressively
-        const cellSize = Math.floor((availableSize - (gridSize + 1) * 4) / gridSize);
-        return Math.max(minSize, Math.min(maxSize, cellSize));
+        return finalCellSize;
     };
 
     const cellSize = calculateCellSize();
@@ -333,7 +355,9 @@ const ScrabbleGrid = forwardRef(({ grid, words, found, onFound, disabled = false
                     boxShadow: isDarkMode ? '0 4px 16px rgba(0,0,0,0.7)' : '0 4px 8px rgba(0,0,0,0.1)',
                     width: `${totalGridSize}px`,
                     height: `${totalGridSize}px`,
-                    maxWidth: '100%', // Ensure grid doesn't exceed container
+                    maxWidth: '100vw', // Prevent horizontal overflow
+                    maxHeight: '100vh', // Prevent vertical overflow
+                    overflow: 'hidden', // Hide any potential overflow
                     touchAction: 'none', // Prevent default touch behaviors
                     userSelect: 'none', // Prevent text selection
                     WebkitUserSelect: 'none',
