@@ -2,6 +2,18 @@
 
 <!-- version list -->
 
+## v1.4.1 (2025-07-26)
+
+### Bug Fixes
+
+- Grid rightmost column overflow on mobile ([#32](https://github.com/bartekmp/osmosmjerka/pull/32),
+  [`b60842e`](https://github.com/bartekmp/osmosmjerka/commit/b60842e30aa1fdea4a97ded60801dce5bff72adc))
+
+- Night mode button position in various display modes
+  ([#32](https://github.com/bartekmp/osmosmjerka/pull/32),
+  [`b60842e`](https://github.com/bartekmp/osmosmjerka/commit/b60842e30aa1fdea4a97ded60801dce5bff72adc))
+
+
 ## v1.4.0 (2025-07-25)
 
 ### Feature
