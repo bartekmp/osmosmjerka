@@ -1,0 +1,2686 @@
+Hrana;kruh;chleb
+Hrana;voda;woda
+Fraze;ići ću kući;pójdę do domu
+Biljke Hrana;šipak;granat
+Imenice Priroda;brdo;wzgórze
+Imenice Stvari;poklon;podarunek
+Hrana Imenice;ručak;obiad
+Imenice;tajnica;sekretarka
+Pridjevi;sparno;duszno
+Imenice Odjeće;odijelo;garnitur
+Pridjevi Raspoloženje;tmuran;pochmurny
+Prilozi;usmeno;ustnie
+Hrana;doručak;śniadanie
+Imenice;riječ;słowo
+Biljke Hrana Imenice;patlidžan;bakłażan
+Imenice Stvari;ulaznica;wejściówka
+Imenice Obitelj;stric;stryj/brat ojca
+Prilozi;posebno;szczególnie
+Imenice;predsjednik;prezydent
+Glagoli Odmor Posao;odmoriti se;odpocząć
+Prilozi;jednostavno;prosto
+Imenice Obitelj;strina;żona stryja
+Glagoli Hobi;obožavati;uwielbiać
+Glagoli;morati;musieć
+Imenice Obitelj;bratić;kuzyn
+Imenice Mjesta;izložba;wystawa
+Imenice Posao;prodavač;sprzedawca
+Glagoli Vrijeme;trajati;trwać
+Prilozi Prostor;ispred;przed
+Imenice Odjeće;odjeće;odzież (l. poj.)
+Prilozi;prema meni;według mnie
+Biljke Hrana Imenice;krastavac;ogórek
+Kuća Prostor;kod kuće;w domu
+Pridjevi;običan;zwykły
+Imenice Vrijeme;trenutak;chwila
+Imenice Odmor;izlet;wycieczka
+Biljke Imenice Priroda;cvijet;kwiat
+Prilozi Prostor;iznad;ponad
+Imenice Vrijeme;jesen;jesień
+Glagoli Pokret;posjetiti;odwiedzić
+Svakidašnji Vrijeme;skoro;prawie
+Glagoli Svakidašnji Škola;zaboraviti;zapomnieć
+Prilozi;naravno;oczywiście
+Hrana Imenice Mjesta Trgovina;voćarnica;warzywniak
+Hrana Pridjevi;ukusan;smaczny
+Imenice Sport Stvari;lopta;piłka
+Biljke Hrana Imenice;češnjak;czosnek
+Imenice Obitelj;sestrična;kuzynka
+Prilozi Vrijeme;zatim;wtedy
+Imenice Pokret Stvari;romobil;hulajnoga
+Fraze Tijelo;skratiti kosu;ściąć włosy
+Biljke Imenice Priroda;cvijetovi;kwiaty
+Prilozi;vjerojatno;prawdopodobnie
+Fraze Odmor Raspoloženje;opustiti se;zrelaksować się
+Prilozi Prostor;kroz;przez
+Imenice;rečenica;zdanie
+Pridjevi;spreman;gotowy
+Glagoli Kuća Posao;spremiti;przygotować
+Imenice Vrijeme;proljeće;wiosna
+Osobine Pridjevi;ružan;brzydki
+Imenice Obitelj;teta;ciotka
+Pridjevi Vrijeme;sljedeći;następny
+Imenice;posjet;wizyta
+Hrana;povrće;warzywa
+Biljke Hrana;blitva;burak liściowy
+Biljke Hrana;brokula;brokuł
+Biljke Hrana Imenice;bundeva;dynia
+Hrana;celer;seler
+Biljke Hrana;cikla;burak
+Biljke Hrana;cvjetača;kalafior
+Biljke Hrana;grah;fasola
+Biljke Hrana;kopar;koper
+Biljke Hrana;krumpir;ziemniak
+Biljke Hrana;kukuruz;kukurydza
+Biljke Hrana;kupus;kapusta
+Biljke Hrana;luk;cebula
+Biljke Hrana;mrkva;marchew
+Biljke Hrana;paprika;papryka
+Biljke Hrana;peršin;pietruszka
+Biljke Hrana;poriluk;por
+Biljke Hrana;prokulica;brukselka
+Biljke Hrana;rajčica;pomidor
+Biljke Hrana;rotkvica;rzodkiewka
+Hrana;zelena salata;sałata
+Biljke Hrana;šparoge;szparagi
+Biljke Hrana;špinat;szpinak
+Biljke Hrana;tikvica;cukinia
+Biljke Hrana;banana;banan
+Biljke Hrana;borovnica;borówka / jagoda
+Biljke Hrana;breskva;brzoskwinia
+Biljke Hrana;dinja;melon
+Biljke Hrana;grožđe;winogrono
+Biljke Hrana;jabuka;jabłko
+Biljke Hrana;jagoda;truskawka
+Biljke Hrana;kivi;kiwi
+Biljke Hrana;limeta;limonka
+Biljke Hrana;limun;cytryna
+Biljke Hrana;lubenica;arbuz
+Biljke Hrana;malina;malina
+Biljke Hrana;mandarina;mandarynka
+Biljke Hrana;marelica;morela
+Biljke Hrana;naranča;pomarańcza
+Biljke Hrana;ribiz;porzeczka
+Biljke Hrana;smokva;figa
+Biljke Hrana;šljiva;śliwka
+Biljke Hrana;trešnja;czereśnia
+Biljke Hrana;višnja;wiśnia
+Hrana;začini;przyprawy
+Biljke Hrana;bosiljak;bazylia
+Hrana;sol;sól
+Hrana;papar;pieprz
+Biljke Hrana;origano;oregano
+Hrana;cimet;cynamon
+Biljke Hrana;đumbir;imbir
+Biljke Hrana;ružmarin;rozmaryn
+Biljke Hrana;lovorov list;liść laurowy
+Biljke Hrana;majčina dušica;tymianek
+Hrana;mliječni proizvodi;produkty mleczne
+Hrana;jogurt;jogurt
+Hrana;vrhnje;śmietana
+Hrana;šlag;śmietanka
+Hrana;mlijeko;mleko
+Hrana;sir;ser
+Hrana;jaje;jajo
+Hrana;meso;mięso
+Hrana Životinje;piletina;kurczak
+Hrana;kobasica;kiełbasa
+Hrana;šunka;szynka
+Hrana;pršut;suszona szynka
+Hrana;hobotnica;ośmiornica
+Hrana Životinje;lignje;kalmary
+Hrana Životinje;škampi;langustynki
+Hrana Životinje;jastog;langusta
+Hrana Životinje;hlap;homar
+Hrana;školjke;muszle
+Hrana Životinje;orada;dorada
+Hrana;losos;łosoś
+Hrana;pekarski proizvodi;wyroby piekarnicze
+Hrana;pecivo;bułka
+Hrana;kifla;rogal
+Hrana;baget;bagietka
+Hrana;burek;ciasto filo wypełnione mięsem
+Hrana;komad pizze;kawałek pizzy
+Hrana;slatkiši;słodycze
+Hrana;čokolada;czekolada
+Hrana;sladoled;lody
+Hrana;lizalica;lizak
+Hrana;bombon;cukierek
+Hrana;žvakaća guma;guma do żucia
+Hrana;keks;ciasto (małe, jak oreo)
+Hrana;torta;tort
+Hrana;krafna;pączek
+Hrana;grickalice;słone przekąski do chrupania
+Hrana;štapići;paluszki
+Hrana;krekeri;krakersy
+Hrana;čips;czipsy
+Hrana;kikiriki;orzeszki ziemne
+Hrana;kokice;popcorn
+Pridjevi;ostalo;inne
+Hrana;med;miód
+Hrana;džem;dżem
+Hrana;kečap;ketchup
+Hrana;majoneza;majonez
+Hrana;senf;musztarda
+Hrana;šećer;cukier
+Hrana;maslinovo ulje;oliwa
+Hrana;suncokretovo ulje;olej słonecznikowy
+Hrana;brašno;mąka
+Biljke Hrana;riža;ryż
+Hrana;tjestenina;makaron
+Fraze;Bio sam kod svojih roditelja;Byłem u swoich rodziców
+Prostor;usred šume;pośrodku lasu
+Fraze Mjesta Priroda;Selo je blizu šume;Wieś jest blisko lasu
+Imenice Stvari;klopka;pułapka
+Fraze;Auto je brz;Auto jest szybkie
+Pridjevi;malen;mały
+Posao;opasan posao;niebezpieczna praca
+Glagoli;pušiti;palić
+Fraze;Je li to sve? Je li to to?;Czy to wszystko?
+Fraze;To je to. / To je sve.;To wszystko.
+Fraze;To je to zasad.;To wszystko na teraz.
+Fraze;Kakvo je tvoje iskustvo?;Jakie jest twoje doświadczenie?
+Imenice Osobine;kavopija;kawosz
+Fraze;Molim kavu s toplim;Poproszę kawę z ciepłym mlekiem
+Fraze;Molim kavu s hladnim;Poproszę kawę z zimnym mlekiem
+Fraze;Možete li mi donijeti šećer?;Czy może Pan donieść mi cukier?
+Fraze;Mogu li zamoliti za šećer?;Czy mogę poprosić o cukier?
+Fraze;Možete li mi donijeti žličicu?;Czy może Pan donieść mi łyżeczkę?
+Fraze;Mogu li zamoliti za žličicu?;Czy mogę poprosić o łyżeczkę?
+Fraze Hrana;za van;na wynos
+Prostor;za ovdje;na miejscu (kawa, obiad)
+Hrana;cijeđeni sok;sok wyciskany
+Hrana Piće;narančada;lemoniada pomarańczowa
+Glagoli;nuditi;oferować
+Glagoli Posao Trgovina;ponuditi;zaoferować
+Imenice Posao;ponuda;oferta
+Fraze;Ne volim dimljene stvari;Nie lubię wędzonych rzeczy
+Fraze;zbog mirisa;ze względu na zapach
+Hrana Pridjevi;bljutav;mdły, bez smaku
+Hrana Prilozi;bljutavo;mdłe
+Biljke Hrana;začinsko bilje;zioła
+Glagoli Hrana;grickati;gryźć
+Imenice Piće;krigla;kufel
+Hrana Imenice Svakidašnji;čačkalica;wykałaczka
+Fraze;Idem u šumu brati gljive.;Idę do lasu zbierać grzyby.
+Fraze;Bio sam u šumi brati gljive.;Byłem w lesie zbierać grzyby.
+Hrana Imenice Svakidašnji Trgovina;namirnice;artykuły spożywcze
+Fraze;Ne znam kakvo će biti vrijeme;Nie wiem jaka będzie pogoda
+Fraze;Morali smo izvaditi poplune;Musieliśmy wyciągnąć kołdry
+Svakidašnji;bez veze;bez sensu
+Osobine Svakidašnji;bitan;ważny
+Osobine Posao Pridjevi Trgovina;isplativ;opłacalny
+Fraze Vrijeme;i ljeti i zimi;latem i zimą
+Hrana Imenice Stvari;mrvica;okruszek
+Hrana;krušne mrvice;bułka tarta
+Fraze Svakidašnji Trgovina;ići u kupovinu;iść na zakupy
+Fraze;ići u trgovinu;iść do sklepu
+Imenice Mjesta;ljekarna;apteka
+Imenice Mjesta;knjižara;księgarnia
+Imenice Svakidašnji Trgovina;dućan;sklep
+Imenice Mjesta Trgovina;tržnica;targ
+Imenice Mjesta Trgovina;mesnica;sklep mięsny
+Svakidašnji;rybny;ribarnica
+Imenice Mjesta Trgovina;pekarnica;piekarnia
+Mjesta Trgovina;tržni centar;centrum handlowe
+Hrana Imenice Trgovina;slastičarnica;cukiernia
+Imenice Mjesta Trgovina;drogerija;drogeria
+Imenice Mjesta Trgovina;parfumerija;perfumeria
+Biljke Imenice Trgovina;cvjećarnica;kwiaciarnia
+Imenice Trgovina;papirnica;papierniczy
+Imenice Stvari Trgovina;suvenirnica;sklep z pamiątkami
+Fraze Vrijeme;dva dana prije;dwa dni wcześniej
+Hrana Imenice Piće;kokteli;drinki
+Fraze;Volim tajsku kuhinju;Lubię tajską kuchnię
+Fraze;Ona zna odlično kuhati;Ona umie świetnie gotować
+Fraze Trgovina;obavljati kupovinu;robić zakupy
+Fraze;Idem u Lidl.;Idę do Lidla.
+Fraze;Kupujem u Lidlu.;Kupuję w Lidlu.
+Imenice Stvari;lanac;sieć
+Mjesta Trgovina;kvartovski dućan;osiedlowy market / sklep
+Pridjevi;ravna;prosta
+Hrana;suho vino;wytrawne wino
+Hrana;svinjetina;wieprzowina
+Hrana;janjetina;jagnięcina
+Hrana;teletina;cielęcina
+Hrana;hrenovka;parówka
+Hrana Priroda Životinje;brancin;okoń morski
+Hrana;tuna;tuńczyk
+Hrana Životinje;srdele;sardynki
+Hrana Životinje;skuša;makrela
+Hrana Životinje;šaran;karp
+Hrana;pastrva;pstrąg
+Fraze Glagoli Posao;misliti o poslu;myśleć o pracy
+Odmor Posao;šanker;barman
+Imenice Mjesta Piće;šank;bar, lada
+Biljke Glagoli Priroda;cvjetati;kwitnąć
+Imenice Životinje;cvrčak;cykada
+Imenice Životinje;cvrčci;cykady
+Biljke Imenice Stvari;kanta za zalijevanje;konewka
+Kuća;zaliti biljke;podlać rośliny
+Hrana Piće Priroda;izvorska voda;woda źródlana
+Imenice Kuća Mjesta;koliba;drewniana chata
+Imenice Životinje;krava;krowa
+Imenice Mjesta Priroda Životinje;pčelinjak;pasieka
+Imenice Priroda;planina;góra
+Imenice Sport;košarka;koszykówka
+Imenice Sport;nogometaš;piłkarz
+Imenice Sport;trening;trening
+Imenice Sport;utakmica;mecz
+Imenice Stvari;događaj;wydarzenie
+Hobi Imenice;glazba;muzyka
+Imenice Odmor Pokret;karta;bilet
+Fraze Hobi Mjesta;kazališni festival;festiwal teatralny
+Hobi Imenice Mjesta;kazalište;teatr
+Hobi Imenice;predstava;przedstawienie
+Fraze;Danas je ružno vrijeme.;Dzisiaj jest brzydka pogoda.
+Fraze;Danas pada kiša.;Dzisiaj pada deszcz.
+Fraze;Kiša je stala.;Deszcz przestał padać.
+Stvari Svakidašnji;kišan dan;deszczowy dzień
+Imenice Mjesta;pakao;piekło
+Imenice Svakidašnji;stupanj;stopień
+Fraze Priroda;svjež zrak;świeże powietrze
+Prilozi;vruće;gorąco
+Hrana;doručkovati;jeść śniadanie
+Hrana;grčki jogurt;jogurt grecki
+Hrana;hladni naresci;wędliny
+Hrana;kajgana;jajecznica
+Hrana;raskuhati;rozgotować
+Hrana;rižine pahuljice;płatki ryżowe
+Fraze Higijena;prati podove;myć podłogi
+Fraze Higijena;raširiti veš;rozwiesić pranie
+Glagoli;čekati;czekać
+Glagoli;dešavati se;dziać się
+Glagoli Raspoloženje Svakidašnji;nadati se;mieć nadzieję
+Glagoli Odmor Raspoloženje;naspavati se;wyspać się
+Glagoli;natočiti;nalać
+Glagoli;obećati;obiecać
+Glagoli;odlučiti se;zdecydować się
+Glagoli Posao;odraditi;odrobić coś w innym terminie
+Glagoli Hrana Svakidašnji;ogladnjeti;zgłodnieć
+Glagoli;počinjati;zaczynać
+Glagoli;postati;stać się
+Glagoli Pokret;požuriti se;pospieszyć się
+Glagoli;raspitati se;rozpytać się
+Glagoli Raspoloženje;šaliti se;żartować
+Glagoli Odmor Pokret;šetati;spacerować
+Glagoli Pokret;spustiti se;zejść
+Glagoli Raspoloženje;suosjećati;współczuć
+Glagoli Pokret;svratiti;wstąpić gdzieś, do kogoś
+Glagoli;ugrabiti;wyrwać
+Glagoli Pokret;uhvatiti;złapać
+Glagoli Posao;uspjeti;odnieść sukces
+Glagoli Pokret;ustati;wstać
+Glagoli Odmor Raspoloženje;uživati;dobrze się bawić
+Glagoli Tijelo;vidjeti;widzieć
+Fraze;Čujemo se malo kasnije!;Do usłyszenia później!
+Fraze;Da vidimo…;Zobaczmy…
+Imenice Obitelj;dečko;chłopak
+Odmor Posao;godišnji odmor;urlop
+Raspoloženje Svakidašnji;imati sreće;mieć szczęście
+Fraze;Izgleda da…;Wygląda
+Prilozi Vrijeme;iznenada;nagle
+Pridjevi;jednostavan;prosty
+Fraze;Jedva čekam!;Nie mogę się doczekać!
+Prilozi Vrijeme;jutros;dziś rano
+Fraze;Kakvo iznenađenje!;Co za niespodzianka!
+Prilozi Vrijeme;kasno;późno
+Prilozi Vrijeme;kasnije;później
+Prilozi Vrijeme;ljeti;latem
+Prilozi Vrijeme;maloprije;niedawno
+Prilozi Vrijeme;napokon;w końcu
+Vrijeme;navečer;wieczorem
+Prilozi;neizostavan;nieodłączny
+Brojevi Svakidašnji;ništa;nic
+Osobine;noćna ptica;nocny marek
+Fraze;o čemu je riječ?;o czym mowa?
+Fraze;o čemu se radi;o co chodzi
+Svakidašnji Trgovina;obaviti kupovinu;zrobić zakupy
+Pridjevi Raspoloženje;oduševljen;zachwycony
+Prilozi Vrijeme;popodne;popołudniu
+Fraze Prilozi;potpuno neočekivano;zupełnie niespodziewanie
+Fraze Prilozi;prije svega;przede wszystkim
+Imenice Posao Trgovina;prijedlog;propozycja
+Imenice Stvari;prilog;dodatek, załącznik
+Fraze Pokret;promijeniti okolinu;zmienić otoczenie
+Prilozi Vrijeme;rano;wcześnie
+Prilozi Vrijeme;ranije;wcześniej
+Hrana;roštilj;grill
+Fraze;S obzirom na to što…;Ze względu na to
+Osobine Pridjevi;savršen;idealny
+Odmor Posao Vrijeme;slobodan dan;dzień wolny
+Prilozi Svakidašnji;što prije;jak najszybciej
+Fraze;Što se tiče…;Jeśli chodzi o…
+Imenice Svakidašnji;svakodnevnica;codzienność
+Prilozi Prostor;svugdje;wszędzie
+Vrijeme;tjedan;tydzień
+Prilozi Vrijeme;trenutno;chwilowo
+Fraze Prostor;u pozadini;w tle
+Brojevi;uopće;w ogóle
+Prilozi Vrijeme;uskoro;wkrótce
+Prilozi;ustvari;w zasadzie
+Fraze Pokret Vrijeme;utrka s vremenom;wyścig z czasem
+Prostor Svakidašnji;vani;na zewnątrz
+Vrijeme;večeras;dziś wieczorem
+Svakidašnji;vratiti se kući;wrócić do domu
+Fraze Vrijeme;vrijeme je za;czas na… (+akuzativ)
+Hobi Imenice;zagonetka;zagadka
+Osobine Pridjevi;zreo;dojrzały
+Imenice Odmor Vrijeme;praznik;święto
+Glagoli;ući;wchodzić
+Prilozi Svakidašnji;slučajno;przypadkowo
+Imenice Stvari;struj;prąd elektryczny
+Prilozi Vrijeme;opet;znowu, ponownie
+Imenice;šteta;szkoda
+Imenice Stvari;razvlačenje;rozkładanie
+Prilozi;stvarno;naprawdę, rzeczywiście, czyżby
+Gramatyka;odmień smjeti;smijem, smiješ, smije, smijemo, smijete, smiju
+Gramatyka;odmień morati;moram, moraš, mora, moramo, morate, moraju
+Gramatyka;odmień htjeti;hoću, hoćeš, hoće, hoćemo, hoćete, hoće
+Gramatyka;odmień trebati;trebam, trebaš, treba, trebamo, trebate, trebaju
+Gramatyka;odmień moći;mogu, možeš, može, možemo, možete, mogu
+Glagoli Svakidašnji;reći;powiedzieć, mówić
+Glagoli;kazati;mówić, wymawiać
+Prilozi Prostor;van;na zewnątrz
+Kuća;unutar;wewnątrz
+Hrana;nešto za piti;coś do picia
+Prilozi Vrijeme;odmah;natychmiast
+Fraze;Evo me odmah!;Już się robi!
+Glagoli;odlučiti;decydować
+Glagoli;uzeti;brać, wziąć, przyjąć
+Hrana;odrezak;kotlet
+Konektori Prilozi Vrijeme;onda;wtedy, następnie, zatem, wówczas
+Glagoli;pokupiti;zabierać
+Hrana Imenice Stvari;tanjur;talerz
+Fraze;Možete nam naplatiti.;Proszę nas podliczyć.
+Imenice Stvari;kusur;reszta
+Posao;osoblje;obsługa
+Imenice Svakidašnji;preporuka;zalecenie, rekomendacja
+Glagoli;preporučiti;polecać
+Glagoli;pronaći;znaleźć
+Svakidašnji;može;tak jest
+Prilozi;možda;może (przypuszczenie)
+Fraze;Sad sam se sjetio;<div>Teraz sobie przypomniałem</div>
+Hobi;japanska slagalica;japońska układanka
+Glagoli;zauzeti;zająć, zajmować
+Fraze;Nisam znao.;Nie wiedziałem.
+Osobine Pridjevi;odrastao;dorosły
+Škola;sveučilište;uniwersytet
+Glagoli Svakidašnji;prihvatiti;akceptować, przyjmować
+Hobi Imenice Posao;reportaža;reportaż
+Imenice;titlovi;napisy
+Hobi Imenice;serija;serial
+Imenice;nasilje;przemoc
+Prilozi Trgovina;jeftino;tanio
+Prilozi;skupo;drogo
+Imenice Stvari;kruna;korona
+Imenice Mjesta;inozemstvo;zagranica
+Glagoli;provjeravati;sprawdzać
+Pridjevi;ozbiljan;poważny
+Pridjevi;neozbiljan;niepoważny
+Pridjevi;povoljan;przystępny, dobry cenowo
+Glagoli Kuća Posao;iznajmiti;wynająć
+Imenice Odjeće;majica;bluzka
+Fraze Imenice;povijesne knjige;powieści
+Brojevi Fraze;od tisuću devetstote godine do dvijetisućite;od 1900 do 2000 roku
+Biljke Imenice Priroda;biljka;roślina
+Imenice Pokret Sport;klizanje;jazda na łyżwach
+Hobi;streljana;strzelnica
+Fraze Škola;pasti ispit;oblać egzamin
+Stvari Svakidašnji Škola;položiti ispit;zdać egzamin
+Prilozi;savršeno;doskonale
+Fraze Stvari;mnogo mogućnosti;dużo możliwości
+Posao;mnogo područja;dużo obszarów
+Fraze;Kako ti to ide?;Jak ci to idzie?
+Fraze Vrijeme;sljedeći / idući tjedan;przyszły tydzień
+Fraze;Nećemo stići;Nie uda się nam
+Fraze;Reći ću ti;Powiem tobie
+Fraze;Ispeći ćemo kruh;Upieczemy chleb
+Hrana Imenice Stvari;lonac;garnek
+Fraze Obitelj Odmor;obiteljski izlazak;rodzinne wyjście
+Kuća Prostor;sav stan;całe mieszkanie
+Odmor Pokret Sport;ploviti brodom;pływać statkiem
+Glagoli Odmor Pokret Sport;jedriti;żeglować
+Odmor;sunčati;opalać się
+Fraze Posao Stvari;mijenjati gume;zmieniać opony
+Konektori Čestice;ipak;jednak, nadal, chociaż
+Fraze Obitelj;ići u posjet baki;pójść odwiedzić babcię
+Fraze;Poslat ću ti;Wyślę tobie
+Imenice Mjesta Sport;teretana;siłownia
+Imenice Sport Stvari;utezi;ciężary
+Glagoli Sport;trčati;biegać
+Konektori Prilozi Vrijeme;nakon;po, potem, później
+Glagoli Pokret;odlaziti;wyjeżdżać
+Imenice Stvari;novine;gazeta
+Glagoli;pričati;rozmawiać, opowiadać, gadać
+Imenice Stvari;pismo;list
+Glagoli;saznati;dowiadywać się
+Imenice Raspoloženje;uspjeh;powodzenie, sukces
+Glagoli Odjeće;odjenuti;ubrać się
+Fraze;za koga?;dla kogo?
+Higijena;brijati se;golić się
+Imenice Pokret;dolazak;przyjazd
+Prilozi;zajedno;razem
+Imenice Stvari;gužva;tłum
+Kuća;spavaća soba;sypialnia
+Kuća;u spavaćoj sobi;w sypialni
+Kuća;dnevna soba / dnevni boravak;pokój dzienny / salon
+Kuća;<div>u dnevnoj sobi / u dnevnom</div><div>boravku</div>;w pokoju dziennym
+Kuća;radna soba;gabinet
+Kuća;dječja soba;pokój dziecięcy
+Kuća;ostava / smočnica / špajza;spiżarnia
+Kuća;sudoper;zlewozmywak
+Imenice Kuća;napa;okap
+Kuća;kuhalo za vodu;czajnik
+Kuća;zmrzivač;zamrażarka
+Kuća;perilica posuđa;zmywarka
+Kuća;perilica rublja;pralka
+Kuća;kada;wanna
+Kuća;tuš;prysznic
+Higijena Imenice Kuća;slavina;kran
+Higijena Kuća;bide;bidet
+Kuća Prostor;pored kreveta;obok łóżka
+Kuća;noćni ormarić;szafka nocna
+Imenice Kuća;poplun;kołdra
+Kuća;plahta;prześcieradło
+Kuća;posteljina;pościel
+Kuća;jastučnica;powłoczka na poduszkę
+Kuća;deka;koc
+Kuća;naslonjač;fotel
+Kuća;sobna biljka;roślina pokojowa
+Kuća;ručnik;ręcznik
+Kuća;umivaonik;umywalka
+Higijena Imenice Kuća;WC školjka;muszla klozetowa
+Kuća;posuđe;naczynia
+Hrana Imenice Kuća;štednjak;kuchenka
+Hrana Imenice Kuća;mikrovalna;mikrofalówka (kuchenka mikrofalowa)
+Hrana Imenice Kuća;hladjnak;lodówka
+Imenice Kuća;prekrivač;narzuta
+Kuća Imenice;zid;ściana
+Kuća;zidovi;ściany
+Imenice Stvari;predmet;przedmiot
+Glagoli;dobiti;dostać
+Glagoli Tijelo;dodirivati;dotykać
+Imenice Stvari;dio;część
+Glagoli;uklopiti;pasować
+Kuća;kauč;sofa / kanapa
+Brojevi Prilozi;više;więcej
+Prilozi;još;jeszcze
+Imenice Vrijeme;već;już
+Imenice Kuća;kat;piętro
+Stvari Svakidašnji;svrha;cel, przeznaczenie
+Imenice Životinje;magarac;osioł
+Pridjevi Raspoloženje;ravnodušan;obojętny
+Imenice Kuća;prozor;okno
+Hobi Svakidašnji;igrati plejku;grać na konsoli
+Hobi Svakidašnji;šetati psa;wyprowadzać psa
+Hrana;peći kolač;piec ciasto
+Glagoli Pokret;doći;przyjść (nieregularny: ja dođem, ti dođeš, on/ona/ono dođe, mi dođemo, vi dođete, oni/one/ona dođu)
+Glagoli;nazvati;wzywać, dzwonić
+Kuća;zavijesa;zasłona
+Kuća;jastuk;poduszka
+Kuća;pod;podłoga
+Kuća;tepih;dywan
+Imenice Kuća;šalica;kubek, filiżanka
+Prilozi Prostor;iza;za
+Kuća;strop;sufit
+Imenice Prostor;sredina;środek
+Kuća;vrata;drzwi
+Kuća;vaza;wazon
+Prostor;desno;na prawo
+Prostor Čestice;pored;obok
+Fraze Konektori;kao odgovor;jako odpowiedź
+Vrijeme;svako jutro;każdego ranka
+Glagoli Odmor Pokret;roniti;nurkować
+Prilozi Raspoloženje;dosadno;nudno
+Glagoli Svakidašnji;sjesti;usiąść
+Glagoli;sjediti;siedzieć
+Prilozi Vrijeme Čestice;ponekad;czasami
+Glagoli Hrana Svakidašnji;pojesti;zjeść
+Fraze Tijelo;u drugom stanju;w stanie błogosławionym
+Prostor;s lijeve strane;z lewej strony
+Prostor;nalijevo;na lewo
+Kuća;u kutu;w kącie
+Prostor Svakidašnji Vrijeme;na kraju;na końcu
+Biljke Imenice Priroda;cvijeće;kwiaty (bukiet, kompozycja)
+Kuća Prostor;na prozoru;na/w oknie
+Imenice Odjeće;cipela;but
+Gramatyka;zaimki osobowe - akuzativ;mene, me<div>tebe, te</div><div>njega, ga</div><div>nju, je/ju</div><div>njega, ga</div><div><br></div><div>nas</div><div>vas/Vas</div><div>njih, ih</div>
+Gramatyka;zaimki osobowe - lokativ;meni<div>tebi</div><div>njemu</div><div>njoj</div><div>njemu</div><div><br></div><div>nama</div><div>vama/Vama</div><div>njima</div>
+Osobine Pridjevi;mršav;chudy
+Osobine Pridjevi;marljiv;staranny / pracowity
+Pridjevi Raspoloženje;veseo;wesoły
+Glagoli Vrijeme;kasniti;spóźniać się
+Glagoli Posao;izgraditi;budować
+Imenice Posao;sastanak;spotkanie
+Imenice Obitelj Raspoloženje;spoj;randka
+Pridjevi;prazan;pusty
+Prilozi;jako;bardzo
+Prilozi;dosta;dość, wystarczajaco
+Glagoli;poslati;wysłać, przesłać
+Prilozi Prostor;pokraj;obok
+Imenice Priroda;slap;wodospad
+Prilozi Vrijeme;jučer;wczoraj
+Prilozi Vrijeme;prekjučer;przedwczoraj
+Vrijeme;nakjučer;dwa dni temu
+Prilozi Vrijeme;sinoć;ostatniej nocy
+Vrijeme Čestice;nikad;nigdy (słowo nieprzymiotnikowe, ale często używane)
+Prilozi Vrijeme;ikad;kiedyś, kiedykolwiek
+Vrijeme;prošli vikend;miniony weekend
+Fraze Vrijeme;prošlu srijedu / prošli utorak;poprzedniej środy / poprzedni wtorek
+Vrijeme;prije tri mjeseca;trzy miesiące temu
+Fraze Vrijeme;prije tjedan dana;tydzień temu
+Vrijeme;prije mjesec dana;miesiąc temu
+Fraze Vrijeme;prije godinu dana;rok temu
+Vrijeme;prošli mjesec;poprzedni miesiąc
+Fraze Vrijeme;prošle godine;poprzednie lata
+Fraze Vrijeme;prije dvije godine;dwa lata temu
+Vrijeme;prošli tjedan;poprzedni tydzień
+Fraze;Idem na posao;Idę do pracy
+Fraze;Bio sam na poslu;Byłem w pracy
+Imenice Posao;dežurstvo;dyżur
+Fraze;Pržio sam kajganu;Smażyłem jajecznicę
+Kuća;svaštara;pomieszczenie / szafa / szuflada na cały szmelc
+Kuća Prostor;na polici;na półce
+Kuća Prostor;na zidu;na ścianie
+Kuća;u ormaru;w szafie
+Glagoli Pokret;prebacivati;przerzucać
+Posao;skladatelj;kompozytor
+Pridjevi;jak;silny
+Fraze Raspoloženje;miris je baš jak;zapach jest bardzo mocny
+Fraze Pokret Raspoloženje;Ne da im se trčati / Ne trči im se;nie chce im się biegać
+Imenice Stvari;čestitka;kartka z życzeniami
+Kuća Prostor;ispod stola;pod stołem
+Imenice Pokret Stvari;jahta;jacht
+Fraze Prostor Stvari;na slici;na obrazku, zdjęciu
+Fraze;<div>na prvoj, drugoj, trećoj, četvrtoj slici</div>;na pierwszym, drugim, trzecim, czwartym obrazie
+Glagoli Hobi Odmor;plesati;tańczyć
+Imenice Stvari;blago;skarb
+Imenice Stvari;škrinja;skrzynia
+Imenice Obitelj Odmor;gost;gość
+Imenice Životinje;medvjed;niedźwiedź
+Životinje;majmune;małpy
+Imenice Životinje;kornjača;żółw
+Imenice Životinje;leptir;motyl
+Imenice Životinje;lav;lew
+Imenice Životinje;tigar;tygrys
+Imenice Životinje;slon;słoń
+Imenice Životinje;žirafa;żyrafa
+Fraze;On će učiti djecu kako plivati;On będzie uczyć dzieci jak pływać
+Hobi Odmor;naočale za plivanje;okulary do pływania
+Fraze Sport Stvari;spužva za plivanje;makaron piankowy
+Hobi Odmor;kapa za plivanje;czepek
+Hobi Odmor;narukvice za plivanje;rękawki do pływania
+Hobi Odmor;lopatice za plivanje;płetwy ręczne
+Fraze Sport Stvari;peraje za plivanje;płetwy
+Fraze Odjeće Sport;natikače za bazen;klapki na basen
+Hobi;daska za plivanje;deska do pływania
+Higijena Tijelo;oprati kosu;umyć włosy
+Svakidašnji Tijelo;češljati kosu;czesać włosy
+Svakidašnji Tijelo;skraćivati kosu;obcinać włosy
+Pridjevi;pospan;śpiący
+Imenice Stvari;izvještaj;raport
+Imenice Stvari;objava;ogłoszenie
+Imenice Stvari;sitnice;drobnostki
+Konektori;isto kao;taki jak
+Pridjevi;isti;taki sam
+Prilozi;tiše;ciszej
+Biljke Imenice Kuća;jelka;choinka
+Obitelj;skupa;razem
+Imenice Priroda;pahulje;płatki
+Glagoli Svakidašnji;stići;dotrzeć, przybyć
+Mjesta Posao Prostor;na poslu;w pracy
+Fraze;Ništa nisam radio.;Nic nie robiłem.
+Fraze;biti u pitanju / radi se o ...;mowa o czymś
+Fraze;Vidio sam na televiziji.;Widziałem w telewizji.
+Imenice Posao;mašinovođa;maszynista
+Hobi;skupljati marke;zbierać znaczki
+Biljke Stvari;brati smokve;zbierać figi
+Higijena Prilozi;odvratno;ohydnie
+Imenice;tko;kto
+Imenice;nitko;nikt
+Imenice Raspoloženje;muka;zmartwienie
+Svakidašnji;san;sen
+Glagoli;krasti;kraść
+Glagoli;pasti;spaść
+Biljke Imenice;grana;gałąź
+Fraze Priroda Prostor;uz more;wzdłuż morza
+Biljke Hrana;kruška;gruszka
+Glagoli Hobi Odmor;ploviti;pływać (statkiem)
+Glagoli Odmor;plivati;pływać (w wodzie)
+Imenice Mjesta;dvorište;podwórko
+Imenice Raspoloženje;spas;ratunek
+Glagoli Hrana Tijelo Životinje;ujesti;ugryźć
+Fraze Stvari;novac / lova;pieniądz
+Imenice Stvari;metak;nabój
+Imenice;išta;cokolwiek
+Imenice;lopov;złodziej
+Konektori Čestice;mada;chociaż, choć
+Glagoli Raspoloženje;plakati;płakać (nieregularny: ja plačem, ti plačeš, on/ona/ono plače, mi plačemo, vi plačete, oni/one/ona plaču)
+Fraze Mjesta Prostor;u kvartu;na osiedlu
+Glagoli;razgovarati;rozmawiać
+Fraze Glagoli;govoriti engleski / tiho / glasno / gluposti;mówić po angielsku / cicho / głośno / głupoty
+Imenice Stvari;stroj;urządzenie
+Imenice Odjeće;jaketa;płaszcz
+Glagoli;ispasti;okazać się
+Osobine;biti u bedu;być w nieszczęściu / biedzie
+Vrijeme;tjedan dana / jedan tjedan;jeden tydzień
+Prostor;iz centra;z centrum
+Glagoli Kuća;obrisati;wytrzeć
+Imenice Stvari;ograda;płot
+Stvari;kasica prasica;świnka skarbonka
+Imenice Svakidašnji;ljestve;drabina
+Brojevi;dvijetisućite;2000
+Vrijeme;1995;tisuću devetsto devedeset pete
+Brojevi Fraze;tisuću devetsto devedeset druge godine;1992
+Prilozi;prvobitno;pierwotnie
+Imenice Stvari;prikolica;przyczepa
+Glagoli Svakidašnji;smjestiti;umieścić
+Imenice Kuća Prostor Stvari;smještaj;zakwaterowanie
+Vrijeme;lani;zeszłego roku
+Fraze Vrijeme;preko godine;w ciągu roku
+Prilozi;općenito;ogólnie
+Prilozi;uglavnom;głównie
+Imenice Tijelo;zdravlje;zdrowie
+Fraze Prostor Stvari;s bankomata;z bankomatu
+Osobine Pridjevi;ustrajan;zdeterminowany
+Osobine;strpljiv;cierpliwy
+Gramatyka;sufiks stopniowania przymiotników;-iji
+Imenice Obitelj Odmor;slavlje;świętowanie
+Imenice Raspoloženje;raspoloženje;nastrój / humor
+Glagoli Trgovina;precjenjivati;przeceniać
+Osobine Posao Pridjevi;mukotrpan;mozolny, męczący
+Glagoli;ispuniti;spełnić
+Pridjevi;ispunjavajuće;spełniające
+Pridjevi Raspoloženje;samopouzdanjiji;pewniejszy siebie
+Pridjevi;pametniji;mądrzejszy
+Fraze Posao;dobiti unapređenje;dostać awans
+Imenice Posao;regrutacija;rekrutacja
+Glagoli Posao;regrutirati;rekrutować
+Imenice Priroda Stvari;paučina;pajęczyna
+Glagoli;maknuti;usunąć
+Fraze Kuća Pokret;izaći iz sobe;wyjść z pokoju
+Gramatyka;zaimki osobowe - dativ;meni, mi<br>tebi, ti<br>njemu, mu<br>njoj, joj<br>njemu, mu<br><br>nama<br>Vama/vama<br>njima, im
+Prilozi Prostor;nasuprot;naprzeciwko
+Prilozi Prostor;prema;według, ku, w kierunku, wobec
+Imenice Posao;alat;narzędzie
+Glagoli;izvaditi;wyjąć
+Prilozi Prostor;ka;ku, do, w kierunku, w stronę
+Imenice Tijelo;brkovi;wąsy
+Imenice Kuća;prašina;kurz
+Kuća;ladica;szuflada
+Imenice;pištolj;pistolet
+Imenice Obitelj;nježnost;czułość
+Imenice Raspoloženje;trnci;ciarki
+Imenice Mjesta Tijelo;ludnica;psychiatryk
+Pridjevi;osumnjičen;podejrzany
+Imenice Mjesta;livada;łąka
+Imenice Odjeće;šešir;kapelusz
+Glagoli;izbaciti;wyrzucić
+Pridjevi;visok;wysoki
+Pridjevi;nizak;niski
+Fraze Pridjevi Tijelo;srednje visine;średniego wzrostu
+Pridjevi Tijelo;debeo;gruby
+Pridjevi Tijelo;debeljkast;przy kości
+Pridjevi Tijelo;punačak;pulchny
+Pridjevi Tijelo;bucmast;pucułowaty
+Pridjevi Tijelo;vitak;szczupły
+Pridjevi Sport Tijelo;muskulozan;umięśniony
+Pridjevi Tijelo;dežmekast;grubawy, nieumięśniony
+Pridjevi Tijelo;koščat;kościsty
+Pridjevi Tijelo;korpulentan;korpulentny
+Osobine Svakidašnji Tijelo;kovrčava kosa;kręcone włosy
+Hrana Pridjevi;masna;tłusta
+Osobine Tijelo;obojena kosa;farbowane włosy
+Pridjevi;tanka;cienka
+Osobine;plava kosa;blond włosy
+Pridjevi;riđa;ruda
+Boje Pridjevi;kestena;kasztanowa
+Fraze Tijelo;sijeda kosa;siwe włosy
+Pridjevi Tijelo;ćelav;łysy
+Pridjevi Tijelo;proćelav;łysiejący
+Fraze Tijelo;oči boje lješnjaka;oczy orzechowe
+Boje;boja jantara;bursztynowy kolor
+Imenice Tijelo;trepavice;rzęsy
+Tijelo;guste obrve;gęste brwi
+Tijelo;rijetke obrve;rzadkie brwi
+Osobine Tijelo;spojene obrve;złączone brwi
+Osobine Tijelo;pune usne;pełne usta
+Osobine Tijelo;uske usne;wąskie usta
+Tijelo;putene usne;całuśne usta
+Imenice Tijelo;usne;usta
+Imenice Tijelo;obrve;brwi
+Osobine Tijelo;kukast nos;haczykowaty nos
+Osobine Tijelo;prćast nos;zadarty nos
+Osobine Tijelo;orlovski nos;orli nos
+Imenice Tijelo;pjege;piegi
+Fraze Tijelo;klempave uši;odstające uszy
+Imenice Tijelo;brada;broda
+Imenice Tijelo;bore;zmarszczki
+Osobine Tijelo;konjski rep;kucyk
+Imenice Tijelo;punđa;kok
+Fraze Stvari Tijelo;rajf za kosu;opaska na włosy
+Imenice Tijelo;prištić;pryszcz
+Osobine Pridjevi;miran;spokojny
+Osobine Pridjevi Raspoloženje;dosadan;nudny
+Osobine Pridjevi;lukav;przebiegły
+Pridjevi Raspoloženje;opušten;wyluzowany
+Osobine Pridjevi;društven;towarzyski
+Osobine Pridjevi;brbljav;gadatliwy
+Osobine Pridjevi;hrabar;odważny
+Osobine Pridjevi;sebičan;samolubny
+Osobine Pridjevi;tvrdoglav;uparty
+Osobine Pridjevi;znatiželjan;ciekawski
+Pridjevi Raspoloženje;bijesan;wściekły
+Osobine Pridjevi;pijan;pijany
+Osobine Pridjevi;vrijedan;wartościowy, cenny, przydatny
+Osobine Pridjevi;kradljiv;złodziejski
+Pridjevi;spor;wolny
+Osobine Pridjevi;odgovoran;odpowiedzialny
+Osobine Pridjevi;neodgovoran;nieodpowiedzialny
+Osobine Pridjevi;strog;surowy
+Osobine Pridjevi;duhovit;dowcipny
+Osobine Pridjevi;ljubazan;uprzejmy, miły
+Pridjevi Raspoloženje;nervozan;nerwowy
+Osobine Pridjevi;lijen;leniwy
+Osobine Pridjevi;arogantan;arogancki
+Osobine Pridjevi;ambiciozan;ambitny
+Osobine Pridjevi;zločest;zły, okrutny
+Osobine Pridjevi;stidljiv;nieśmiały
+Imenice Raspoloženje;sram;wstyd
+Osobine Pridjevi;osvetoljubiv;mściwy
+Osobine Pridjevi;neodlučan;niezdecydowany
+Osobine Pridjevi;ljubomoran;zazdrosny
+Osobine Pridjevi;lažljiv;kłamliwy
+Osobine Pridjevi;pesimističan;pesymistyczny
+Imenice Životinje;bubašvaba;karaluch
+Obitelj;biti u braku;być w małżeństwie
+Imenice Odjeće;pregača;fartuch
+Imenice Stvari;kist;pędzel
+Imenice Stvari;kvaka;klamka
+Glagoli;pročekati;poczekać
+Pridjevi Raspoloženje;samouvjeren;pewny siebie
+Osobine Pridjevi;snažan;mocny
+Pridjevi;upadljiv;rzucający się w oczy
+Osobine Pridjevi;<div></div>";delikatny
+Pridjevi;grub;szorstki
+Imenice Stvari;nametanje;narzucanie
+Glagoli Raspoloženje;smiriti se;uspokoić się
+Osobine Pridjevi;maštovit;wizjonerski
+Imenice Raspoloženje;samosvijest;samoświadomość
+Fraze;Više nije ...;Już nie jest ...
+Glagoli;poznati;znać
+Pridjevi;neovisan;niezależny
+Pridjevi Raspoloženje;povučen;wycofany
+Glagoli Raspoloženje;isticati se;wyróżniać się
+Prilozi;veoma;bardzo, wielce
+Imenice Osobine Svakidašnji;prednost;zaleta
+Imenice Osobine Stvari;mana;wada
+Osobine Pridjevi;vedra;pogodna
+Priroda;vedro nebo;bezchmurne niebo
+Glagoli;privlačiti;przyciągać
+Osobine Pridjevi;privlačan;przyciągający, atrakcyjny
+Fraze Posao;štrajk glađu;strajk głodowy
+Fraze;Najviše je zaradio u Americi.;Najwięcej zarobił w Ameryce.
+Brojevi;pola pola;pół na pół
+Fraze;Bolje ostani ovdje.;Lepiej zostań tutaj.
+Osobine Pridjevi;lakovjeran;naiwny
+Osobine Pridjevi;moderna;nowoczesna
+Imenice;Zekoslav Mrkva;Królik Bugs
+Higijena Imenice Stvari;sredstva za čišćenje;środki czystości
+Hrana Imenice;okus;smak
+Imenice Raspoloženje;ukus;gust
+Brojevi Fraze;dvije tisuće sedme godine;2007
+Imenice;zarez;przecinek
+Imenice Mjesta;tvornica;fabryka
+Konektori;zahvaljujući;dzięki (czemuś)
+Imenice Posao Škola;umijeće;umiejętność, sztuka, kunszt
+Glagoli;smanjuje;zmniejsza
+Glagoli;snižava;zmniejsza
+Brojevi;sto posto;sto procent
+Glagoli;pružati;dawać, oferować
+Osobine Pridjevi;pjegava;piegowata
+Glagoli;osvojiti;zdobyć
+Imenice Mjesta;sajam;targi
+Fraze Mjesta Prostor;na sajmu;na targach
+Imenice;ljepotica;piękność
+Fraze Posao;pod vodstvom izumiteljice;pod przewodnictwem wynalazcy
+Imenice Stvari;uzrok;przyczyna
+Glagoli;uzrokovati;powodować
+Imenice Posao;raskoš;bogactwo
+Hobi Imenice;užitak;przyjemność
+Imenice Tijelo;dlake;włosy (nie na głowie)
+Odjeće Pridjevi;pripijen;przylegający, obcisły
+Imenice Stvari;tržište;rynek
+Glagoli Hrana Trgovina;sadržiti;zawierać
+Biljke Hrana Imenice;brusnica;żurawina
+Fraze;nije ..., nego ...;nie jest ..., ale ...
+Prilozi;kamo;dokąd
+Glagoli Higijena Svakidašnji;tuširati se;brać prysznic
+Imenice Stvari;površina;powierzchnia
+Imenice Odjeće;kućni ogrtač;szlafrok
+Pridjevi;jedinstven;wyjątkowy, jedyny w swoim rodzaju
+Glagoli;šaljem;wysyłam
+Odjeće;vunene čarape;wełniane skarpety
+Odjeće Pridjevi;svilen;jedwabny
+Odjeće;pamučna majica;bawełniana bluzka
+Glagoli;dodati;dodać
+Hrana Imenice Stvari;prstohvat;szczypta
+Imenice Nacije;Latvija;Łotwa
+Imenice Stvari;vrst;typ, gatunek
+Pridjevi;rabljen;używany
+Imenice Odjeće;čizma;kozaki
+Hobi Imenice Odmor;klizaljke;łyżwy
+Hrana Imenice;medenjak;piernik
+Imenice;snjegović;bałwan
+Imenice Vrijeme;Badnjak;Wigilia
+Imenice Stvari;božićni vijenac;wieniec świąteczny
+Stvari;božićna kuglica;bombka
+Imenice Stvari;vrh za jelku;czubek na choince
+Svakidašnji;lampice;lampki choinkowe
+Imenice Kuća;dimnjak;komin
+Imenice Pokret Stvari;saonice;sanie
+Imenice Stvari;šiba;rózga
+Imenice Kuća;dvosjed;kanapa dwuosobowa
+Imenice Kuća;trosjed;kanapa trzyosobowa
+Imenice Posao;kvar;awaria
+Fraze;Pokvarila nam se perilica rublja;Popsuła nam się pralka
+Fraze;Ja ću očistiti / spremiti sobu.;Posprzątam pokój.
+Imenice Stvari;putovnica;paszport
+Svakidašnji;osobna iskaznica;dowdód osobisty
+Glagoli Osobine Raspoloženje;sramiti se;wstydzić się (+Genitiv)
+Glagoli Pokret;osloboditi se;uwolnić się
+Glagoli Pokret Svakidašnji;riješiti se;pozbyć się
+Glagoli Raspoloženje;čuvati se;strzec się
+Fraze;Ne bojim se svih pasa;Nie boję się wszystkich psów
+Fraze;Ne bojim se visine;Nie boję się wysokości
+Fraze;Nemam strah od prostora;Nie mam lęku przestrzeni
+Fraze;Lift se pokvario;Winda się popsuła
+Imenice Škola;predavanje;wykład
+Glagoli;zviždati;gwizdać
+Glagoli Vrijeme;pljuštati;lać (o deszczu)
+Imenice Prostor;prostor;przestrzeń
+Glagoli;ovisiti;zależeć
+Glagoli Posao Trgovina;rasprodati se;wyprzedać się
+Hobi Imenice Posao;redatelj;reżyser
+Imenice;lutak / lutka;lalka
+Imenice Raspoloženje;dojam;wrażenie
+Posao Svakidašnji;susret;spotkanie
+Imenice Stvari;prilika;możliwość
+Imenice Škola;tečaj;kurs
+Imenice Nacije;Srednja Europa;Europa środkowa
+Konektori Čestice;nimalo;ani trochę/wcale
+Prilozi;malo;trochę
+Brojevi Prilozi;premalo;za mało
+Brojevi Svakidašnji;manje;mniej
+Fraze Prilozi;još malo;jeszcze trochę
+Brojevi Svakidašnji;nekoliko;kilka
+Fraze Prilozi;mnogo;dużo
+Prilozi;previše;zbyt
+Hrana Imenice Stvari;žličica;łyżeczka
+Hrana Imenice Stvari;žlica;łyżka
+Hrana Imenice Stvari;čaša;szklanka
+Hrana Imenice Kuća;staklenka;słoik
+Hrana Imenice Piće;boca;butelka
+Imenice Stvari;komad;kawałek
+Hobi Imenice;kocka;kostka
+Imenice Stvari;kutija;pudełko
+Imenice Stvari;limenka;puszka
+Brojevi Hrana Imenice;kriška;cząstka (tortu, jabłka, pomarańczy)
+Nacije Pridjevi;slavenski;słowiański
+Glagoli Vrijeme;proći;upłynąć, minąć
+Imenice;favorit;faworyt
+Vrijeme;za vikend;w weekend
+Sport;stolni tenis;tenis stołowy
+Imenice;saveznik;sojusznik, sprzymierzeniec
+Imenice Osobine Priroda;lutalica;bezdomne zwierzę, nomad
+Glagoli;lutati;błądzić, szwędać się
+Pridjevi;zaštićen;chroniony
+Imenice Priroda;brodolom;katastrofa morska
+Imenice Životinje;sup;sęp
+Priroda;krš;kras
+Imenice Stvari;kip;rzeźba
+Imenice Priroda;krajoblik;krajobraz
+Pridjevi;izniman;wyjątkowy
+Imenice Stvari;oblik;kształt
+Glagoli;spomenuti;wspominać
+Glagoli;sačuvati;zachować
+Glagoli Raspoloženje;faliti;tęsknić, brakować
+Imenice Tijelo;dah;oddech, tchnienie
+Osobine Pridjevi;izvanredan;fantastyczny, nazdwyczajny, wyjątkowy
+Imenice Tijelo;suze;łzy
+Glagoli;objediniti;zjednoczyć
+Pridjevi;sadržajan;treściwy, doniosły
+Fraze Škola;klesarska škola;szkoła kamieniarska
+Imenice Osobine;obilježje;cecha, atrybut
+Pokret;povratna karta;bilet powrotny
+Fraze Vrijeme;od utorka do petka;od wtorku do piątku
+Imenice Sport Stvari;krplje;rakiety śnieżne
+Glagoli;odabrati;wybrać
+Glagoli Pokret;obići;obejść, objechać
+Pridjevi;iskonski;pierwotny, rdzenny, macierzysty
+Fraze Raspoloženje;Donio sam ludu odluku;Podjąłem szaloną decyzję
+Fraze Priroda Stvari;rezervoar pitke vode;cysterna wody pitnej
+Biljke Imenice;kadulja;szałwia
+Fraze Mjesta Prostor;u Donjem gradu / u Gornjem gradu;w dolnym/górnym mieście
+Fraze;Puno mjesta se renovira / obnavlja se;Wiele miejsc jest odnawianych
+Fraze Prostor;blizu Katedrale;w pobliżu katedry
+Fraze Kuća Mjesta;stambeni dio grada;część miszkalna miasta
+Fraze Stvari;to je taj dio;to jest ta część
+Imenice Stvari;svila;jedwab
+Nacije Pridjevi;kineski;chiński
+Fraze Stvari;ima puno predmeta koji imaju više od sto godina;jest wiele przedmiotów, które mają więcej niż 100 lat
+Imenice Stvari;dokaz;dowód
+Nacije;Šlezija;Śląsk
+Imenice Mjesta;rudnik;kopalnia
+Fraze Posao;medicina rada;medycyna pracy
+Fraze Hrana Konektori;zbog toga što odrasli piju kavu;ponieważ dorośli piją kawę
+Biljke Hrana Imenice;koštica;pestka
+Fraze Obitelj;Ako ne budeš dobar, neki muškarac će te pokupiti / oteti;Jak nie będziesz dobry, to jakiś mężczyzna cię zabierze
+Imenice Vrijeme;kalendar;kalendarz
+Fraze Tijelo;bube u guzici;robaki w tyłku
+Fraze Obitelj;od malih nogu /  od djetinjstva;od dzieciństwa
+Glagoli Higijena Kuća;ispirati;prać, wypłukiwać
+Fraze Raspoloženje;dovesti do suza;doprowadzić do płaczu
+Obitelj Pridjevi;očev;ojcowski, należący do ojca
+Tijelo;upala pluća;zapalenie płuc
+Fraze Stvari;svašta nešto;ogrom, wszystko i nic
+Imenice Kuća Prostor Svakidašnji;ugao;róg, narożnik
+Imenice Piće Svakidašnji;guc;łyczek
+Imenice Stvari;raspored;plan
+Fraze;u navodnicima;w cudzysłowie
+Fraze;bojati se kao vraga;bać się jak diabła
+Fraze Tijelo;usaditi u glavu;wpoić
+Stvari Svakidašnji;ispirati mozak;prać mózg
+Fraze;biti dobre volje;być dobrej myśli
+Glagoli Pokret;mrdnuti;poruszyć się
+Glagoli Svakidašnji;usuditi se;odważyć się
+Posao Pridjevi;stručni;profesjonalny
+Imenice Stvari;praznovjerja;przesądy
+Imenice Stvari;vjerovanja;wierzenia
+Imenice Priroda;propuh;przeciąg
+Konektori Prilozi Čestice;zaista;zaiste, faktycznie, doprawdy
+Glagoli Raspoloženje;nasmijati;rozśmieszać
+Prilozi;slično;podobnie
+Konektori;dakle;więc, zatem
+Imenice Stvari;smisao;sens, znaczenie
+Prilozi;dublje;głębiej
+Imenice Posao Svakidašnji;svađa;kłótnia, spór
+Imenice Pokret Stvari;jurenje;pośpiech
+Glagoli Obitelj;udati se;wychodzić za mąż
+Imenice Stvari;usmjerenje;ukierunkowanie, orientacja
+Prilozi;namjerno;celowo
+Pridjevi;okrugli;okrągły
+Imenice Kuća;kućanstvo;gospodarstwo domowe
+Glagoli;primjećivati;obserwować, zauważyć
+Prilozi Vrijeme;češće;częściej
+Glagoli;pustiti;pozwolić, pozwalać
+Imenice Prostor;prekoračiti;przekroczyć, przejść
+Osobine Pridjevi Svakidašnji;bezobrazan;bezczelny
+Glagoli Tijelo;narasti;urosnąć, dorastać
+Glagoli Posao Škola;shvatiti;pojmować, rozumieć
+Glagoli;poništiti;anulować, cofnąć
+Prilozi Vrijeme;zauvijek;na zawsze
+Fraze;... jel da?;... co nie?
+Glagoli Pokret;vrtjeti;kręcić, wiercić
+Glagoli Hrana;poslužiti;podawać
+Pridjevi;mudar;mądry
+Glagoli Tijelo;taknuti;dotknąć
+Hrana Imenice;tek;apetyt
+Imenice Vrijeme;tren;chwila
+Konektori;makar;choćby, przynajmniej
+Prilozi;valjda;prawdopodobnie, chyba
+Imenice Stvari;tekućina;ciecz, płyn
+Imenice Odjeće;marama;szal, chustka
+Pridjevi Tijelo;pogrbljen;zgarbiony
+Glagoli Pokret;udaljiti se;oddalić się
+Pridjevi Tijelo;nabildan;napakowany
+Glagoli Sport Tijelo;nabildati se;napakować się
+Imenice Osobine;mekušac;słabeusz, cienias
+Odjeće Pridjevi;skockan;odstrzelony, odstawiony
+Prilozi Prostor;interno;wewnętrzne
+Glagoli Raspoloženje;uznemiravati;niepokoić
+Imenice Raspoloženje;briga;zmartwienie, troska
+Obitelj;brale;bracie, brachu
+Glagoli Svakidašnji;buljiti;lampić się
+Tijelo;vidati rane;opatrywać rany
+Fraze;brijati ljubav;mieć coś na myśli, chodzić z kimś, uprawiać seks
+Imenice Priroda;žega;skwar, ukrop
+Imenice Stvari;roba;towar
+Glagoli;štedjeti;oszczędzać
+Imenice Priroda;dina;wydma
+Odjeće;gumene čizme;kalosze
+Fraze Škola;razna školovanje;różne szkolenia
+Fraze;Nitko ne dolazi petkom na posao;Nikt nie przychodzi w piątek do pracy
+Pridjevi;prevelik;za duży
+Pridjevi;premalen;za mały
+Konektori;to ovisi;to zależy
+Brojevi Fraze Odjeće Svakidašnji;koji je broj;jaki jest rozmiar/numer
+Brojevi Imenice Stvari;veličina;wielkość
+Fraze Trgovina;Imate li veći/manji broj?;Macie większy/mniejszy rozmiar?
+Imenice Svakidašnji Trgovina;sniženje;obniżka
+Imenice Stvari;rasprodaja;wyprzedaż
+Imenice Stvari;popust;zniżka
+Imenice Odjeće Svakidašnji;traperice;dżinsy
+Imenice Odjeće Odmor;badić;strój kąpielowy
+Imenice Tijelo;prsa;klatka piersiowa
+Higijena Imenice Kuća Svakidašnji;maramice;chusteczki
+Imenice Odjeće Sport;tenisice;tenisówki
+Imenice Odjeće;gojzerice;traper, buty w góry
+Imenice Odjeće Sport;starke;tenisówki
+Imenice Odjeće;baletanke;baleriny
+Glagoli Odmor Raspoloženje;slaviti;świętować
+Glagoli;praviti;tworzyć, robić
+Glagoli Odjeće;oblačiti;ubierać się
+Glagoli Pokret;letjeti;latać, lecieć
+Fraze Raspoloženje;Ne volim to.;Nie lubię tego.
+Glagoli;staviti;wkładać, nakładać, zakładać, wstawiać, kłaść, nakrywać
+Glagoli Odjeće;razodjenuti se;rozebrać się
+Glagoli Odjeće;razodijevati se;rozbierać się
+Glagoli Odjeće;svući se;rozebrać się
+Glagoli Odjeće;presvući se;przebrać się
+Glagoli Odjeće;skidati;zdejmować
+Odjeće;majica kratkih rukava;bluzka z krótkim rękawem
+Imenice Odjeće Svakidašnji;kožnjak;kurtka skórzana
+Imenice Odjeće;potkošulja;podkoszulek
+Imenice Odjeće;kapuljača;kaptur
+Odjeće;donje rublje;bielizna
+Imenice Odjeće;leptir mašna;muszka
+Imenice Odjeće;naramenice;szelki
+Imenice Odjeće;nakit;biżuteria szlachetna
+Imenice Odjeće;naušnice;kolczyki
+Imenice Odjeće;ogrlica;naszyjnik
+Imenice Odjeće;krzno;futro
+Imenice Odjeće Svakidašnji;dugme;guzik
+Imenice Odjeće;rukav;rękaw
+Odmor;kupaći kostim;kostium kąpielowy
+Fraze Raspoloženje;nema presiju;nie ma presji
+Fraze Posao;Kad sam počeo raditi.;Kiedy zacząłem pracować.
+Fraze Vrijeme;Ima vremena.;Jest czas.
+Fraze;dobili su sedam kipova;otrzymali siedem statuetek
+Fraze Hobi;sporedna muška uloga;męska rola drugoplanowa
+Glagoli;nadoknaditi;nadrobić
+Fraze Imenice;knjige o ratu;książki o wojnie
+Fraze Hobi Imenice;Gospodar prstenova;Władca Pierścieni
+Glagoli;naslijediti;odziedziczyć
+Imenice;Vještac;Wiedźmin
+Imenice Posao;graditelj;budowniczy
+Fraze;Gledam svoju policu.;Patrzę na swoją półkę.
+Glagoli Hobi;glumiti;grać, występować (aktorsko)
+Fraze;Moja cura je poznata po tome što poznaje sve drame.;Moja dziewczyna jest znana z tego, że zna wszystkie dramy.
+Glagoli Obitelj;razvesti;rozwodzić się
+Imenice Posao;vojnik;żołnierz
+Glagoli;boriti;walczyć
+Imenice Obitelj;sprovod;pogrzeb
+Fraze Tijelo;prstenje za nos;kolczyk w nosie
+Vrijeme;srednji vijek;średniowiecze
+Fraze Raspoloženje;Boli ih briga / Baš ih briga;Nie obchodzi ich to
+Fraze Tijelo;Imati takvu ili drugu kosu.;Mieć takie lub inne włosy.
+Glagoli;pratiti;śledzić, podążać
+Fraze Hobi;dodijeliti Oscara;dostać Oscara
+Imenice;uloga;rola
+Glagoli Svakidašnji;upoznati;poznać, dowiedzieć się
+Glagoli Odjeće;oblačiti se;ubierać się, zakładać, nałożyć - (czynność) powoli/psa/kurtkę  ja oblačim, oni oblače
+Glagoli Odjeće;obuti se;zakładać buty, obuwać się - skarpety/buty/dziecko  ja obujem, oni obuju
+Glagoli Odjeće;izuti;ściągać, zdjąć, rozbierać
+Glagoli Odjeće;skinuti se;zdejmować, rozbierać (się) - kapelusz/bluzę/Proszę się rozebrać.
+Fraze;Navalite!;Śmiało!
+Glagoli;posuditi;pożyczyć
+Imenice Vrijeme;obljetnica;rocznica/jubileusz
+Brojevi;oboje;zarówno, obydwoje, oba
+Osobine Pridjevi;darežljiv;hojny
+Odjeće Svakidašnji;način;sposób, fason, elegancja, maniera
+Osobine Pridjevi;iscrpljen;wyczerpany, wycieńczony
+Imenice Pokret;hod;chód, krok
+Mjesta Prilozi Prostor;odavde;stąd
+Fraze Stvari Tijelo;kopča za kosu;spinka do włosów
+Glagoli;predati;przekazać
+Fraze Posao;ugovor o radu;umowa o pracę
+Imenice Stvari;izazov;wyzwanie, próba
+Prilozi;izazovno;wyzywająco
+Glagoli Tijelo;povraćati;wymiotować
+Glagoli Tijelo;rigati;rzygać
+Pokret Svakidašnji;prijevozna sredstva;środki transportu
+Fraze;Vozim se taksijem.;Jeżdżę taksówką.
+Imenice Pokret;let;lot
+Prilozi Trgovina;jeftinije;taniej
+Fraze;Smijem li ući? Jeste li slobodni?;Mogę wejść? Czy jest Pan wolny?
+Gramatyka;zaimki osobowe - instrumental;mnom(e)<br>tobom(e)<br>njim(e)<br>njom(e)<br>njim(e)<br><br>nama<br>vama/Vama<br>njima
+Gramatyka;kondicional;bih, bi, bi, bismo, biste, bi + perfekt glagol<br>ne + bih, bi, bi, bismo, biste, bi + perfekt glagol<br><br>Bi* + li + (zaimek) + ?
+Imenice Obitelj;rođak;krewny, bliski
+Pridjevi Prostor;obližnji;bliski, niedaleki
+Pridjevi;ovaki;taki
+Imenice Mjesta;obala;brzeg, wybrzeże
+Imenice Svakidašnji;zadovoljstvo;zadowolenie, przyjemność, satysfakcja
+Glagoli Odmor Pokret;posjećivati;zwiedzać, odwiedzać
+Pridjevi;netaknut;nienaruszony, nietknięty
+Prilozi Vrijeme;začas;zaraz, natychmiastowo, chwilowo
+Imenice Stvari;šator;namiot
+Pridjevi;logorski;obozowy
+Imenice Sport;planinaranje;chodzenie po górach
+Glagoli Vrijeme;provoditi;spędzać
+Glagoli Pokret;otputovati;odejść, wyruszać
+Imenice Stvari;poslovica;przysłowie
+Osobine Pridjevi;uljudniji;grzeczniejszy
+Glagoli;naznačiti;wskazać
+Glagoli Svakidašnji;izbjegavati;unikać
+Imenice Stvari;tlakomjer;ciśnieniomierz
+Imenice Stvari;tlak;ciśnienie
+Fraze Hobi;nova netflixova serija;nowy serial Netfliksa
+Fraze Stvari;kreiranje / stvaranje svijeta;kreowanie / stwarzanie świata
+Pridjevi;zanimljivije;ciekawsze
+Prilozi;krcato;po brzegi
+Fraze Vrijeme;kad su počeli prikazivati;kiedy zaczęli pokazywać
+Fraze;u prvom dijelu;w pierwszej części
+Imenice;kritičari;krytycy
+Glagoli;ocjenjivati;oceniać
+Pridjevi;najgore;najgorsze
+Imenice Priroda;gorje;wyżyny
+Glagoli;skinuti;pobrać
+Prilozi Vrijeme;tada;wtedy
+Imenice Stvari;nalivpero;pióro wieczne
+Hrana Piće;termosica;termos
+Imenice Pokret Stvari;padobran;spadochron
+Svakidašnji Tijelo;vaditi krv;pobierać krew
+Imenice Sport;golman;bramkarz
+Glagoli Raspoloženje;prilagoditi se;dostosować się
+Glagoli;trošiti;wydawać, zużywać
+Glagoli;odvajati;oddzielać
+Pridjevi;pripiti;nietrzeźwy
+Glagoli Odjeće;motati;łączyć, wiązać
+Pridjevi;zgodan;przystojny, stosowny, ładny
+Glagoli Posao;obrađivati;przetwarzać, obrabiać
+Imenice;osvajač;najeźdźca, podrywacz
+Glagoli Hobi Posao Škola;istraživati;badać, eksplorować, zgłębiać
+Glagoli Škola;prelistavati;przerzucać, kartkować
+Glagoli;pretraživati;wyszukiwać, przeszukiwać
+Imenice Priroda;brežuljak;pagórek, górka
+Pridjevi;korisne;przydatne, użyteczne
+Glagoli;propuštati;opuszczać, pomijać
+Imenice Stvari;škljocanje;trzaskanie, trzeszczenie
+Glagoli Raspoloženje;izluđivati;wkurzać, doprowadzać do szaleństwa
+Pridjevi;neprestan;niezgrabny, niezdarny
+Glagoli;prigovarati;mieć pretensje, krytykować, zarzucić
+Hrana Pridjevi;začinjen;pikantny
+Osobine Pridjevi;neljubazan;nieuprzejmy
+Osobine Pridjevi;neodgojen;niekulturalny, niegrzeczny
+Glagoli;napuštati;opuszczać
+Glagoli;uzrujavati;dokuczać, denerwować, drażnić
+Glagoli Pokret;kružiti;kręcić, krążyć
+Imenice Odmor;odmor;urlop
+Imenice Posao;radoholičari;pracoholicy
+Pridjevi Raspoloženje;mrzovoljan;zrzędliwy
+Fraze Raspoloženje;ovisnici o televizji;uzależnieni od telewizji
+Imenice Mjesta Odmor;hotelski šank;bar hotelowy
+Hobi Imenice;izviđači;harcerze, skauci
+Fraze Vrijeme;od jutra do sutra;od rana do wieczora
+Prostor;u blizini;w pobliżu
+Pridjevi Prostor;blizu;blisko
+Fraze Vrijeme;prije pet godina;przed pięcioma laty
+Imenice Pokret Sport;utrka;wyścig
+Fraze Vrijeme;zauzeti puno vremena;zająć dużo czasu
+Imenice Posao;zastupnik;zastępca
+Glagoli Odmor;opuštati se;relaksować się
+Glagoli;događati se;dziać się
+Glagoli;dogoditi se;wydarzyć się
+Glagoli;derati se;drzeć się, krzyczeć
+Imenice;tuča;bójka
+Fraze Stvari;uključiti TV;włączyć telewizor
+Imenice Stvari;daljinski upravljač;pilot
+Fraze;neka provode odmor kako hoće;niech spędzają urlop jak chcą
+Glagoli Posao;naređivati;rozkazywać
+Fraze Obitelj;sa svojom obitelji;ze swoją rodziną
+Fraze Gramatyka;Ne volim putovati s ljudima KOJE (AKK) ne poznajem;Nie lubię podróżować z ludźmi, których nie znam
+Imenice Odmor;suputnik;towarzysz podróży
+Posao;automatski napravljene;automatycznie wykonane
+Fraze Stvari;na dohvat ruke;w zasięgu ręki
+Fraze Raspoloženje;to je najvažnije za mene;to dla mnie najważniejsze
+Imenice Kuća;klimatizacija;klimatyzacja
+Osobine Pridjevi;izbirljiv;wybredny
+Imenice Priroda;pustinja;pustynia
+Fraze Pokret;kad sam putovao širom Balkana;kiedy podróżowałem przez Bałkany
+Fraze;Ma daj?;No co ty?
+Posao;nešto za raditi;coś do roboty
+Fraze Mjesta Prostor;u raznim gradovima;w różnych miastach
+Imenice;uvod;wstęp, wprowadzenie
+Konektori Vrijeme;prije;przed (czas)
+Imenice Tijelo;ciklus;cykl
+Glagoli Prostor;izaći iz auta;wyjść z samochodu
+Posao;poboljšati;poprawić
+Imenice Pokret;motor;silnik
+Imenice Pokret;hibridni automobil;hybrydowy samochód
+Glagoli;povećavati;powiększać
+Glagoli Posao Svakidašnji;poboljšavati;poprawiać
+Glagoli;povećati;powiększyć
+Svakidašnji Tijelo;modrica;siniak
+Imenice Pokret Svakidašnji;gepek;bagażnik
+Glagoli Svakidašnji;isključiti;wyłączyć
+Brojevi Fraze;jedinica, dvojka, trojka, četvorka, petica, šestica, sedmina, osmica, devetka, desetka;jedynka, dwójka, trójka, czwórka, piątka, szóstka, siódemka, ósemka, dziewiątka, dziesiątka
+Glagoli;zezati;wciskać kit, żartować, robić jaja
+Fraze;Nemoj me zafrkavati;Nie drocz się ze mną
+Fraze;Nemoj me zajebavati;Nie pierdol
+Fraze Raspoloženje;Ne mogu vjerovati!;Nie wierzę!
+Glagoli Pokret;micati;poruszać
+Glagoli;prešutimo;przemilczymy
+Pridjevi;čitav;cały
+Glagoli;popraviti;naprawić
+Fraze;osjećam ljeto;czuję lato
+Imenice Priroda;zaljev;zalew
+Glagoli;produbiti;pogłębić
+Imenice Stvari;zapornica;śluza
+Imenice Stvari;brana;tama
+Imenice Stvari;lukobran;falochron
+Imenice Stvari;svjetionik;latarnia
+Imenice Stvari;jedro;żagiel
+Imenice Stvari;povodac;smycz
+Imenice Životinje;pudl;pudel
+Glagoli;peglati;prasować
+Prilozi Prostor;gore;w górę
+Glagoli Kuća Posao;iznajmljivati;wynajmować (komuś)
+Glagoli Kuća Svakidašnji;unajmljivati;wynająć (od kogoś)
+Glagoli;koristiti;używać
+Fraze Prostor;u svim glavnim gradovima;we wszystkich głównych miastach
+Škola;obrana diplomskog rada;obrona pracy dyplomowej
+Obitelj Svakidašnji;zaruke;zaręczyny
+Glagoli Obitelj;zaručiti se;zaręczyć się
+Fraze Raspoloženje;dobiti na lotu;wygrać w lotka
+Imenice Stvari;srećka;zdrapka
+Prilozi;bar;przynajmniej
+Fraze;Zajebavaš;Robisz sobie jaja? (wulg.)
+Fraze Svakidašnji;Ma daj!;No co ty! / No weź!
+Brojevi;barem;przynajmniej
+Imenice Stvari;vrećica;torebka / reklamówka
+Imenice Stvari;vreća;worek
+Glagoli;potrošiti;wydać, zużyć
+Gramatyka;22 eura 35 centi (centa);22 euro i 35 centów
+Prilozi Vrijeme;konačno;wreszcie, ostatecznie
+Glagoli;pretjerivati;przesadzać
+Čestice;pa da;no tak
+Fraze;skidam kapu;czapki z głów
+Glagoli;rasturati;wymiatać
+Glagoli;rasturiti;wymieść
+Imenice Stvari;veza;zasięg
+Fraze Raspoloženje;Danas ja častim;Dzisiaj ja stawiam
+Fraze Odjeće;raskomotite se;rozbierzcie się
+Fraze Stvari;Veza je jako loša;Zasięg jest bardzo słaby
+Glagoli Raspoloženje;čestitam;gratuluję
+Fraze Raspoloženje;svaka čast;dobra robota
+Glagoli Hrana;počastiti;poczęstować
+Prilozi Vrijeme;stalno;wciąż (ciągle, powtarza się)
+Prilozi Vrijeme;još uvijek;wciąż (długo trwa)
+Imenice Stvari;seansa;seans
+Hobi Pridjevi;snimljen;nakręcony
+Imenice;tjelohranitelj;ochroniarz
+Hobi Imenice;gluma;gra aktorska
+Fraze Stvari;Smrtonosno oružje;Zabójcza broń
+Fraze Hobi Posao;filmski stručnjak;filmoznawca
+Prilozi;amaterski;amatorsko
+Imenice Posao Svakidašnji;para;pieniądze, kasa
+Glagoli Svakidašnji;slutiti;wyobrazić sobie, domyśleć się
+Fraze Tijelo;idem k liječniku;idę do lekarza
+Imenice Stvari;klupa;ławka
+Fraze Kuća Prostor;ispred kuće;przed domem
+Kuća Prostor;nad stolom;nad stołem
+Fraze Vrijeme;u studenom;w listopadzie
+Prostor;iznad zgrada;nad budynkami
+Svakidašnji;protiv nje;przeciw niej
+Obitelj Svakidašnji;otrčati u zagrljaj;pobiec w objęcia
+Imenice Stvari;prigoda;okazja
+Imenice Raspoloženje;ponos;duma
+Imenice Nacije Stvari;zastava;flaga
+Imenice;gradonačelnik;prezydent miasta
+Imenice Stvari;pozornica;scena
+Imenice Raspoloženje;tuga;smutek
+Imenice Raspoloženje;sreća;szczęście
+Imenice Raspoloženje;zagrljaj;uścisk
+Hobi Imenice;nastup;występ
+Glagoli Hrana Trgovina;naručivati;zamawiać
+Glagoli Pokret;bježati;uciekać
+Konektori Čestice;iako;chociaż, mimo że
+Glagoli Pokret;oteti;porwać, wyrwać
+Prilozi Vrijeme;gotovo;prawie
+Glagoli;prirediti;przygotować
+Glagoli;presuditi;przesądzić
+Glagoli Pokret;popeti se;wspiąć się
+Glagoli;otkriti;ujawnić
+Osobine Pridjevi Raspoloženje;samozatajan;skryty
+Imenice Obitelj Svakidašnji;klinac;dzieciak, podlotek
+Pokret Sport;savladati pokrete;opanować ruchy
+Glagoli Raspoloženje;gnjaviti;męczyć, dokuczać komuś
+Svakidašnji;čuti za to;słyszeć o tym
+Imenice;sudac;sędzia
+Prilozi Vrijeme;ujedno;równocześnie
+Imenice Osobine;pomama;szaleństwo, mania
+Hobi Pridjevi;operni;operowy
+Fraze;umaći / umaknuti za dlaku, pobjeći za dlaku;wygrać o włos
+Imenice Stvari;riješenje;rozwiązanie
+Fraze;Bio sam kod liječnika. (genitiv);Byłem u lekarza.
+Fraze;Išao sam (k) liječniku.;Poszedłem do lekarza.
+Tijelo;krvožilni sustav;układ krwionośny
+Imenice Nacije;stranac;obcokrajowiec
+Imenice;stranka;partia
+Imenice Vrijeme;finale;finał
+Higijena Imenice Škola;kemija;chemia
+Imenice Svakidašnji;kaos;chaos
+Imenice Odmor Posao;cjenik;cennik
+Fraze;cjenik za domaće;cennik dla lokalsów
+Fraze;Zaboravio sam KAKO se to kaže na hrvatskom.;Zapomniałem JAK się to mówi po chorwacku.
+Fraze Raspoloženje;On izgleda KAO John Travolta.;On wygląda JAK John Travolta.
+Fraze Sport;Za koga si navijao?;Komu dopingowałeś?
+Imenice Kuća Stvari;tegla;słoik
+Imenice;znanstvenik / znanstvenica;naukowiec / naukowczyni
+Glagoli Sport;utrkivati se;ścigać się
+Imenice;uprava;zarząd
+Fraze Gramatyka;Ne moram raditi stvari KOJE ne volim.;Nie muszę robić rzeczy, których nie lubię.
+Imenice Tijelo;tetovaža;tatuaż
+Hrana Imenice;grožđice;rodzynki
+Glagoli Svakidašnji;usrećiti;uszczęśliwić
+Imenice Stvari;pitance;pytanko
+Prilozi;očito;najwyraźniej
+Fraze Vrijeme;Volim ljetne mjesece.;Lubię letnie miesiące.
+Odjeće Pridjevi;ispeglan;wyprasowany
+Glagoli;ispeglati;wyprasować, polepszyć np. sytuację
+Odjeće Pridjevi;zgužvan;wygnieciony
+Glagoli Tijelo;suziti;łzawić
+Vrijeme;posljednje tri godine;poprzednie trzy lata
+Posao;vladini novac;rządowe pieniądze
+Glagoli;prijaviti;zgłosić
+Brojevi Fraze;tisuću devetsto pedeset treće;1953
+Imenice Vrijeme;razdoblje / period;okres, era
+Hobi Imenice;crtić;kreskówka
+Hobi;crtani film;film animowany
+Imenice Raspoloženje;htijenje;chęć, pragnienie
+Fraze Vrijeme;u pedesetim godinama;w latach pięćdziesiątych
+Fraze Hobi;ovi likovi koji su u ovom filmu;te postaci, które są w tym filmie
+Fraze Raspoloženje;ne ponašaju se kao ljudi;nie zachowują się jak ludzie
+Hobi;Osvetnici;Avengers, Mściciele
+Imenice Stvari;završnica;zakończenie
+Glagoli Posao;objavljivati;publikować
+Fraze Mjesta Prostor;u metrou;w metrze
+Fraze Mjesta Nacije Prostor;u Peruu;w Peru
+Hobi Posao;filmsko poduzeće;wytwórnia filmowa
+Glagoli;osnovati;ufundować
+Glagoli Raspoloženje;obuhvaćati;obejmować
+Fraze Raspoloženje;s današnjeg gledišta;z dzisiejszego punktu widzenia
+Imenice Stvari;baština;dziedzictwo
+Glagoli Posao Škola;zabilježiti;odnotować
+Imenice;došljak / došljakinja;przybysz, przybyszka
+Svakidašnji;budno oko;czujne oko
+Pridjevi;otmjen;wyśmienity
+Fraze;pripremiti dobrodošlicu;zgotować powitanie
+Imenice Posao;smjena;zmiana
+Stvari Svakidašnji;nametnuti porez;nałożyć podatek
+Fraze Posao;preuzeti posao;przyjąć posadę (+genitiv)
+Glagoli;prokrijumčariti;przemycić
+Fraze;ostaviti dobar dojam na koga;pozostawić na kimś dobre wrażenie
+Glagoli;prouzrokovati;spowodować
+Posao;zastoj u proizvodnji;wstrzymanie produkcji
+Fraze;biti izvan sebe;wyjść z siebie
+Fraze Stvari;mnogostruka primjena;wielofunkcyjność
+Mjesta Pridjevi;ovdašnji;lokalny
+Glagoli;pokušati;próbować
+Pridjevi;vezan;związany
+Hrana Imenice;tijesto;ciasto
+Fraze Posao;završetka smjene;koniec zmiany
+Stvari Svakidašnji;bio tko god;ktokolwiek
+Prilozi;čak;nawet
+Osobine Pridjevi;siromašan;biedny
+Imenice Stvari;porez;podatek
+Imenice Stvari;višak;zapas
+Prilozi Vrijeme;povremeno;sporadycznie, cyklicznie, co jakiś czas
+Imenice Raspoloženje;nevolja;kłopot
+Pridjevi;bučan;głośny, hałaśliwy
+Imenice Stvari;kazna;kara, grzywna
+Prilozi Svakidašnji;malko;trochę, nieznacznie
+Glagoli Odmor;odrijemati;odetchnąć, zdrzemnąć
+Pridjevi;odlikovan;odznaczony
+Pridjevi;nenadmašiv;niezrównany, niedościgniony
+Konektori;doduše;jednakże, chociaż, aczkolwiek
+Svakidašnji;ukinuti porez;zlikwidować podatek
+Imenice;pustolovina;przygoda
+Fraze Hobi Škola;predavanje o ovom filmu;wykład o tym filmie
+Imenice Životinje;kuja;suka
+Fraze Raspoloženje;najveće sranje;największe gówno
+Imenice Nacije;Sovjetski Savez;Związek Sowiecki
+Glagoli;obnoviti;odnowić
+Hobi;ambiciozni filmovi;ambitne filmy
+Fraze Hobi;poljski filmovi nisu dobri;polskie filmy nie są dobre
+Fraze Raspoloženje;to se mijenja;to się zmienia
+Fraze Odjeće;skockati se;odstrzelić się
+Imenice Stvari;branik;zderzak
+Glagoli;udariti;uderzyć
+Fraze Tijelo;Sve me je peklo.;Wszystko mnie piekło.
+Brojevi Fraze;deset kilometara;10 kilometrów
+Fraze Pokret;biciklistička staza;ścieżka rowerowa
+Fraze Pokret;Žena je vozila auto.;Kobieta jeździła autem.
+Fraze;Ništa mi se nije desilo;Nic mi się nie działo
+Glagoli;istući;pobić
+Imenice Stvari;odbojnik;zderzak
+Osobine Pridjevi;siguran;bezpieczny
+Higijena Tijelo;popiti tabletu;wziąć tabletkę
+Hrana Piće;energetski napitak;energol
+Imenice;Paško Patak;Kaczor Donald
+Imenice Stvari;sanitarna inspekcija;sanepid
+Imenice Stvari;domet;zakres, zasięg
+Fraze Vrijeme;tri zadnje godine;ostatnie trzy lata
+Svakidašnji Vrijeme;svake godine;każdego roku
+Svakidašnji Vrijeme;svaki tjedan;każdego tygodnia
+Fraze;nazovi me;zadzwoń do mnie
+Fraze;Javi mi se;Odezwij się do mnie
+Fraze Stvari;Baci smeće!;Wyrzuć śmieci!
+Glagoli Raspoloženje;zagrliti;przytulić
+Fraze Hrana;Svrati na kavu!;Wpadnij na kawę!
+Fraze Odmor;lumpovati / lumpati;imprezować
+Imenice Stvari;alkotest;test alkomatem
+Pridjevi;napušen;zjarany
+Pridjevi;drogiran;naćpany
+Osobine Pridjevi;trijezan;trzeźwy
+Imenice Stvari;uzvik;okrzyk
+Imenice Priroda;plamen;płomień
+Imenice Priroda;vatra;ogień
+Fraze Raspoloženje;osjećali smo;czuliśmy
+Fraze Mjesta Prostor;u prvom redu;w pierwszym rzędzie
+Imenice Stvari;izvedba;wykonanie
+Fraze Hobi;limena glazba;orkiestra dęta
+Imenice Priroda;stijena;skała
+Fraze Priroda;snažan / jak vjetar;silny wiatr
+Fraze Vrijeme;u proljeće;wiosną
+Fraze Vrijeme;u jesen;jesienią
+Fraze Vrijeme;zimi;zimą
+Fraze;Spreman sam;Jestem gotowy
+Fraze;Gotov sam;Jestem gotowy, ale uwaga na drugie znaczenie: <br>gotov - skończony (Gotov si!)
+Fraze Raspoloženje;Gotovo je!;skończone, gotowe
+Imenice Priroda;nevera;nagła burza i ulewa na wybrzeżu Adriatyku
+Glagoli Tijelo Životinje;pariti se;rozmnażać, parzyć się
+Fraze Raspoloženje;nema puno smisla;nie ma wiele sensu
+Imenice Nacije;Mongol;Mongoł
+Imenice Osobine;nasljednik;dziedzic
+Boje;bronca;brąz
+Fraze Raspoloženje;to nije uobičajeno;to nie jest powszechne
+Fraze;kako se to zove?;jak to się nazywa?
+Glagoli Tijelo;trljati;pocierać, rozmasowywać
+Imenice Tijelo;palac;duży palec, kciuk
+Brojevi Svakidašnji Vrijeme;četiri sata;4 godziny
+Fraze Prostor Svakidašnji;blizu nje;blisko niej
+Glagoli;vladati;rządzić, władać
+Glagoli;ispariti;wyparować
+Imenice Mjesta Odmor;toplice;termy
+Hrana Imenice;sladokusac;smakosz
+Hobi Imenice;ribič;wędkarz
+Imenice Životinje;odojak;młode prosię
+Glagoli Hobi Sport;pecati;wędkować
+Imenice;jantar;bursztyn
+Hrana Imenice Svakidašnji;iznutrice;podroby
+Imenice Pridjevi;mladi;młodzi
+Imenice Obitelj;mladoženja;pan młody
+Imenice Obitelj;mladenka;panna młoda
+Imenice Obitelj;mladenci;para młoda
+Imenice Stvari;mogućnost;możliwość
+Pridjevi;moguće;możliwe
+Pridjevi;zahtjevan;wymagający
+Stvari;bojni otrovi;gazy bojowe
+Fraze Stvari;postoji mogućnost;istnieje możliwość
+Imenice Stvari;supstanca;substancja
+Glagoli;zakopati;zakopać
+Glagoli Pokret Tijelo;ritati se;wierzgać, fikać
+Glagoli Pokret;skitati se;tułać się
+Imenice Obitelj;buraz;przyjaciel
+Glagoli;urlati;drzeć się
+Biljke Imenice Priroda;smrča;świerk
+Imenice Stvari;pero;pióro
+Imenice Stvari;krpa;ścierka
+Glagoli Higijena Kuća;brisati;wycierać, ścierać, wymazać
+Imenice Pokret Stvari;kombi;minibus
+Imenice Pokret Stvari;karavan;samochód kombi
+Imenice Pokret;kamion;ciężarówka
+Imenice Stvari;kupe;przedział w wagonie
+Imenice Pokret Stvari;trajekt;prom
+Imenice Sport;prvak;czempion
+Imenice Sport;prvenstvo;mistrzostwo
+Fraze Raspoloženje;To nije moj đir;to nie moja bajka
+Imenice Priroda Životinje;morski pas;rekin
+Imenice Priroda Životinje;orao;orzeł
+Imenice Životinje;pilić;kurczątko
+Glagoli Posao Škola;truditi se;starać się
+Hrana Imenice;ishrana;sposób żywienia, dieta
+Imenice Stvari;iskustvo;doświadczenie
+Imenice;osobni trener;trener personalny
+Fraze Raspoloženje;uzrujavati se / nervirati se / živcirati / sekirati se;denerwować się
+Hrana Imenice;tartufi;trufle
+Hrana Imenice Životinje;kamenica;ostryga
+Hrana Imenice;bučino ulje;olej dyniowy
+Hrana Imenice;repičino ulje;olej rzepakowy
+Hrana Imenice;laneno ulje;olej lniany
+Fraze Pokret Vrijeme;Let je kasnio 40 minuta.;Lot opóźnił się o 40 minut.
+Imenice Mjesta Pokret;pista;pas startowy
+Glagoli;napraviti;zrobić
+Fraze Pokret;na kraj reda;na koniec kolejki
+Glagoli;otkazati;anulować, odwołać
+Glagoli Pokret;odvesti;odwieźć do
+Pridjevi;planiran;planowany
+Glagoli Raspoloženje;svađati se;kłócić się
+Glagoli Pokret;ukrcati;załadować
+Fraze;Cijene su previsoke / astronomske / bezobrazne;Ceny są zbyt duże / astronomiczne / niewyobrażalne
+Hrana Imenice;obrok;posiłek
+Imenice;kapetan;kapitan
+Gramatyka;1 stupanj // 2, 3, 4 stupnja // 5, 6, 7 stupnjeva;1 stopień / 2, 3, 4 stopnie / 5, 6, 7 stopni
+Fraze Pokret;Kad su nas doveli na aerodrom;Kiedy dowieźli nas na lotnisko
+Nacije;Turčin;Turek
+Imenice Tijelo;pazuh;pacha
+Hobi Imenice;sapunica;telenowela
+Glagoli;sretati;spotykać
+Glagoli;biti;być
+Glagoli Svakidašnji;imati;mieć
+Glagoli Posao;raditi;pracować
+Glagoli;govoriti;mówić
+Glagoli Pokret;ići;iść (nieregularny: ja idem, ti ideš, on/ona/ono ide, mi idemo, vi idete, oni/one/ona idu)
+Glagoli Hrana;jesti;jeść (nieregularny: ja jedem, ti jedeš, on/ona/ono jede, mi jedemo, vi jedete, oni/one/ona jedu)
+Glagoli Hrana Piće;piti;pić (nieregularny: ja pijem, ti piješ, on/ona/ono pije, mi pijemo, vi pijete, oni/one/ona piju)
+Glagoli;htjeti;chcieć
+Glagoli Posao Škola;znati;wiedzieć
+Glagoli;moći;móc (nieregularny: ja mogu, ti možeš, on/ona/ono može, mi možemo, vi možete, oni/one/ona mogu)
+Glagoli;čitati;czytać
+Glagoli;nositi;nosić
+Glagoli Hrana;kuhati;gotować
+Glagoli;živjeti;żyć
+Glagoli Odmor;spavati;spać
+Glagoli Pokret Sport;hodati;chodzić
+Glagoli Hobi;pjevati;śpiewać (nieregularny: ja pjevam, ti pjevaš, on/ona/ono pjeva, mi pjevamo, vi pjevate, oni/one/ona pjevaju)
+Glagoli Raspoloženje Svakidašnji;smijati se;śmiać się (nieregularny: ja se smijem, ti se smiješ, on/ona/ono se smije, mi se smijemo, vi se smijete, oni/one/ona se smiju)
+Glagoli Škola;sjećati se;pamiętać
+Glagoli;razmišljati;myśleć
+Glagoli Raspoloženje;grliti;przytulać (nieregularny: ja grlim, ti grliš, on/ona/ono grli, mi grlimo, vi grlite, oni/one/ona grle)
+Glagoli Škola;naučiti;nauczyć się
+Glagoli Odmor Pokret;putovati;podróżować
+Glagoli Hobi Sport Tijelo;vježbati;ćwiczyć
+Glagoli Posao Svakidašnji Škola;pomoći;pomóc (nieregularny: ja pomognem, ti pomogneš, on/ona/ono pomogne, mi pomognemo, vi pomognete, oni/one/ona pomognu)
+Glagoli;ostati;zostać (nieregularny: ja ostanem, ti ostaneš, on/ona/ono ostane, mi ostanemo, vi ostanete, oni/one/ona ostanu)
+Glagoli;odgovoriti;odpowiedzieć
+Glagoli;zvati;dzwonić, nazywać (nieregularny: ja zovem, ti zoveš, on/ona/ono zove, mi zovemo, vi zovete, oni/one/ona zovu)
+Glagoli Posao Svakidašnji Škola;pomagati;pomagać (nieregularny: ja pomažem, ti pomažeš, on/ona/ono pomaže, mi pomažemo, vi pomažete, oni/one/ona pomažu)
+Glagoli Pokret;voziti se;jechać
+Glagoli Svakidašnji;sanjati;śnić (nieregularny: ja sanjam, ti sanjaš, on/ona/ono sanja, mi sanjamo, vi sanjate, oni/one/ona sanjaju)
+Glagoli;željeti;życzyć (nieregularny: ja želim, ti želiš, on/ona/ono želi, mi želimo, vi želite, oni/one/ona žele)
+Glagoli;pokazati;pokazać
+Glagoli;učiniti;uczynić (nieregularny: ja učinim, ti učiniš, on/ona/ono učini, mi učinimo, vi učinite, oni/one/ona učine)
+Glagoli;početi;zacząć (nieregularny: ja počnem, ti počneš, on/ona/ono počne, mi počnemo, vi počnete, oni/one/ona počnu)
+Glagoli;završiti;zakończyć
+Glagoli Pokret;dolaziti;przychodzić (nieregularny: ja dolazim, ti dolaziš, on/ona/ono dolazi, mi dolazimo, vi dolazite, oni/one/ona dolaze)
+Glagoli Kuća;pripremiti;przygotować
+Glagoli Škola;pamtiti;pamiętać
+Glagoli Pokret;donijeti;przynieść (nieregularny: ja donesem, ti doneseš, on/ona/ono donese, mi donesemo, vi donesete, oni/one/ona donesu)
+Glagoli Svakidašnji;izgubiti;zgubić
+Glagoli Škola;učiti;uczyć się
+Glagoli Hobi;slušati;słuchać
+Glagoli Hobi;igrati;grać, bawić się
+Glagoli Raspoloženje;šutjeti;milczeć
+Glagoli Škola;razumjeti;rozumieć
+Glagoli Posao Škola;pisati;pisać
+Glagoli Raspoloženje;voljeti;kochać, lubić
+Glagoli Hobi;plesti;robić na drutach
+Glagoli Raspoloženje Svakidašnji;brinuti se;martwić się
+Glagoli Svakidašnji Trgovina;kupovati;kupować
+Glagoli;gledati;patrzeć, oglądać
+Prilozi;dobro;dobrze
+Prilozi;loše;źle
+Prilozi Vrijeme;često;często
+Prilozi Vrijeme;rijetko;rzadko
+Prilozi Vrijeme;uvijek;zawsze
+Prilozi Vrijeme;nikada;nigdy
+Prilozi;daleko;daleko
+Prilozi;tamo;tam
+Mjesta Prostor;ovdje;tutaj
+Prilozi Prostor;dolje;w dół
+Prilozi;naprijed;do przodu
+Prilozi;natrag;do tyłu
+Prilozi Prostor;unutra;wewnątrz
+Prilozi Vrijeme;danas;dzisiaj
+Prilozi Vrijeme;sutra;jutro
+Prilozi Vrijeme;juče;wczoraj
+Prilozi;puno;dużo
+Prilozi;dovoljno;wystarczająco
+Prilozi;lako;łatwo
+Prilozi;teško;trudno
+Prilozi;točno;dokładnie
+Prilozi;netočno;niedokładnie
+Prilozi;komplicirano;skomplikowanie
+Prilozi;glatko;gładko
+Prilozi;grubo;szorstko
+Prilozi;ugodno;przyjemnie
+Prilozi;neugodno;nieprzyjemnie
+Brojevi Konektori;potpuno;całkowicie
+Prilozi;djelomično;częściowo
+Prilozi;tiho;cicho
+Prilozi;glasno;głośno
+Osobine Prilozi;ljubazno;uprzejmie
+Prilozi;hrabro;odważnie
+Prilozi;strašno;strasznie
+Prilozi Raspoloženje;veselo;wesoło
+Prilozi Raspoloženje;tužno;smutno
+Prilozi Vrijeme;naglaska;nagle
+Pokret Prilozi;polako;powoli
+Prilozi;nježno;delikatnie
+Prilozi;pametno;mądrze
+Prilozi;glupo;głupio
+Prilozi;iskreno;szczerze
+Prilozi;lažno;fałszywie
+Prilozi;neuspješno;bez sukcesu
+Prilozi Prostor;doma;w domu
+Fraze Prilozi;u gostima;w gościach
+Prilozi;svakodnevno;codziennie
+Prilozi Vrijeme;tjedno;tygodniowo
+Prilozi;mjesečno;miesięcznie
+Vrijeme;godišnje;rocznie
+Prilozi;umjetno;sztucznie
+Prilozi Vrijeme;obično;zazwyczaj
+Prilozi Vrijeme;privremeno;tymczasowo
+Prilozi Vrijeme;trajno;trwale
+Prilozi;tajno;potajemnie
+Prilozi;javnost;publicznie
+Prilozi Raspoloženje;mirno;spokojnie
+Prilozi;uznemireno;nerwowo
+Prilozi;oprezno;ostrożnie
+Prilozi;neoprezno;nieostrożnie
+Prilozi;postepeno;stopniowo
+Pokret Prilozi;sporo;powoli
+Pokret Prilozi Vrijeme;brzo;szybko
+Prilozi;stručno;fachowo
+Prilozi;prirodno;naturalnie
+Prilozi;kulturalno;kulturalnie
+Prilozi;zanimljivo;ciekawie
+Prilozi;odlučno;zdecydowanie
+Prilozi;neodlučno;niezdecydowanie
+Prilozi;uspješno;pomyślnie
+Prilozi;bezuspješno;bezskutecznie
+Prilozi;korektno;poprawnie
+Prilozi;nekorektno;niepoprawnie
+Prilozi;pristojno;przyzwoicie
+Prilozi;nepristojno;nieprzyzwoicie
+Prilozi;jasno;jasno
+Prilozi;nejasno;niejasno
+Imenice Kuća;kuća;dom
+Imenice Mjesta;grad;miasto
+Imenice Vrijeme;vrijeme;czas, pogoda
+Imenice;čovjek;człowiek
+Imenice;dijete;dziecko
+Imenice Obitelj;prijatelj;przyjaciel
+Imenice Stvari;auto;samochód
+Imenice Stvari;stol;stół
+Imenice;knjiga;książka
+Imenice Životinje;pas;pies
+Imenice Životinje;mačka;kot
+Imenice Kuća;kuhinja;kuchnia
+Imenice Priroda;zrak;powietrze
+Imenice Priroda;sunce;słońce
+Imenice Priroda;more;morze
+Imenice Pokret Stvari;bicikl;rower
+Imenice Vrijeme;noć;noc
+Imenice Vrijeme;dan;dzień
+Imenice Vrijeme;godina;rok
+Imenice Mjesta;mjesto;miejsce
+Imenice Obitelj;obitelj;rodzina
+Imenice Stvari;novac;pieniądze
+Imenice Posao;posao;praca
+Imenice Odmor Pokret;putovanje;podróż
+Hrana Imenice;hrana;jedzenie
+Hrana Imenice;piće;picie
+Imenice Stvari;vrijednost;wartość
+Imenice Trgovina;trgovina;sklep
+Imenice Škola;učenik;uczeń
+Imenice Škola;učitelj;nauczyciel
+Imenice Mjesta;knjižnica;biblioteka
+Imenice Posao;rad;praca
+Imenice Stvari;zadatak;zadanie
+Imenice;razgovor;rozmowa
+Imenice Raspoloženje;smijeh;śmiech
+Hobi Imenice;emisija;program (telewizyjny)
+Imenice Kuća;soba;pokój
+Imenice Pokret Stvari;zrakoplov;samolot
+Imenice Pokret Stvari;vlak;pociąg
+Imenice Pokret Stvari;brod;statek
+Imenice Kuća;stan;mieszkanie
+Imenice Kuća Mjesta Priroda;vrt;ogród
+Imenice Mjesta Škola;škola;szkoła
+Imenice Mjesta;ulica;ulica
+Imenice Stvari;most;most
+Imenice Priroda;rijeka;rzeka
+Imenice Priroda;jezero;jezioro
+Imenice;osoba;osoba
+Imenice;žena;kobieta
+Imenice;muškarac;mężczyzna
+Imenice Obitelj;prijateljica;przyjaciółka
+Imenice;susjed;sąsiad
+Imenice Škola;učiteljica;nauczycielka
+Imenice Škola;student;student
+Imenice;časopis;czasopismo
+Imenice Stvari;računalo;komputer
+Imenice Stvari;telefon;telefon
+Imenice Stvari;televizija;telewizja
+Imenice Stvari;radio;radio
+Imenice Stvari;slika;obraz
+Hobi Imenice;film;film
+Hobi Imenice Stvari;video;wideo
+Hobi Imenice;igra;gra
+Imenice Sport;sport;sport
+Imenice Sport;nogomet;piłka nożna
+Imenice Sport;rukomet;piłka ręczna
+Imenice Sport;plivanje;pływanie
+Hobi Imenice Sport;trčanje;bieganie
+Imenice Sport;biciklizam;kolarstwo
+Imenice Sport;planinarenje;wędrówka górska
+Hobi Imenice Sport;ribolov;wędkarstwo
+Imenice Sport;lov;polowanie
+Hobi Imenice;muzika;muzyka
+Hobi Imenice;ples;taniec
+Hobi Imenice;fotografija;fotografia
+Hobi Imenice;umjetnost;sztuka
+Hobi Imenice;kultura;kultura
+Imenice;jezik;język
+Imenice;literatura;literatura
+Imenice;poezija;poezja
+Imenice;proza;proza
+Imenice;priča;opowieść, historia
+Imenice;novela;nowela
+Imenice;romantika;romans
+Imenice;drama;dramat
+Pridjevi;dobar;dobry
+Pridjevi;loš;zły
+Pridjevi;velik;duży
+Pridjevi;mali;mały
+Pridjevi;nov;nowy
+Pridjevi;lijep;piękny
+Pridjevi;pametan;mądry
+Osobine Pridjevi;glup;głupi
+Pridjevi;brz;szybki
+Pridjevi;slab;słaby
+Pridjevi;topao;ciepły
+Pridjevi;hladan;zimny
+Pridjevi;mokar;mokry
+Hrana Pridjevi Priroda;suh;suchy
+Pridjevi;tvrd;twardy
+Pridjevi;mekan;miękki
+Pridjevi;svijetao;jasny
+Prilozi;taman;dosyć, akurat
+Pridjevi;težak;ciężki
+Pridjevi;lagan;lekki
+Pridjevi;dug;długi
+Pridjevi;kratak;krótki
+Pridjevi;širok;szeroki
+Pridjevi;uzak;wąski
+Osobine Pridjevi;bogat;bogaty
+Pridjevi Tijelo;zdrav;zdrowy
+Pridjevi Tijelo;bolestan;chory
+Higijena Pridjevi;čist;czysty
+Higijena Pridjevi;prljav;brudny
+Osobine Pridjevi Raspoloženje;tužan;smutny
+Pridjevi;mlad;młody
+Pridjevi Tijelo;star;stary
+Osobine Pridjevi Raspoloženje;strašljiv;tchórzliwy
+Pridjevi;mirisan;pachnący
+Higijena Pridjevi;smrdljiv;śmierdzący
+Hrana Pridjevi;sladak;słodki
+Hrana Pridjevi;gorki;gorzki
+Hrana Pridjevi;kiseo;kwaśny
+Hrana Pridjevi;slani;słony
+Osobine Pridjevi;tih;cichy
+Pridjevi;glasan;głośny
+Pridjevi;složen;skomplikowany
+Pridjevi;važan;ważny
+Pridjevi;nevažan;nieważny
+Pridjevi;udoban;wygodny
+Pridjevi;neugodan;niewygodny
+Pridjevi;prijateljski;przyjazny
+Pridjevi;neprijateljski;wrogi
+Osobine Pridjevi;stran;obcy
+Pridjevi;poznat;znany
+Pridjevi;nepoznat;nieznany
+Osobine Pridjevi Raspoloženje;sretan;szczęśliwy
+Pridjevi Raspoloženje;nesretan;nieszczęśliwy
+Osobine Pridjevi Raspoloženje;smiren;spokojny
+Osobine Pridjevi Raspoloženje;uznemiren;zdenerwowany
+Osobine Pridjevi;zanimljiv;ciekawy
+Hrana Pridjevi;svježi;świeży
+Hrana Pridjevi;truo;zgniły
+Pridjevi;opasan;niebezpieczny
+Osobine Pridjevi;točan;dokładny
+Pridjevi;netočan;niedokładny
+Pridjevi Trgovina;skup;drogi
+Pridjevi;jeftin;tani
+Pridjevi;pravi;prawdziwy
+Pridjevi;lažan;fałszywy
+Pridjevi;otvoren;otwarty
+Pridjevi;zatvoren;zamknięty
+Pridjevi;pun;pełny
+Osobine Pridjevi;dobroćudan;życzliwy
+Osobine;zloban;złośliwy
+Osobine;nestrpljiv;niecierpliwy
+Osobine;zadovoljan;zadowolony
+Osobine;nezadovoljan;niezadowolony
+Osobine;osjećajan;uczuciowy
+Osobine;neosjećajan;nieczuły
+Osobine Pridjevi;pogrešan;błędny
+Osobine Pridjevi;ispravan;prawidłowy
+Fraze Mjesta;Bili smo u Budimpešti;Byliśmy w Budapeszcie
+Fraze;Kakvi su tvoji dojmovi?;Jakie są twoje wrażenia?
+Mjesta Odmor;stari grad;stare miasto
+Fraze Mjesta Odmor;Bili smo na stonskim zidinama;Byliśmy na stońskich murach
+Fraze;Malo sam se bojao;Trochę się bałem
+Fraze;mnogo turista iz Turske, arapskih država;dużo turystów z Turcji, arabskich krajów
+Fraze;Muzej opsade Sarajeva;muzeum oblężenia Sarajewa
+Mjesta;ratni muzej;muzeum wojny
+Glagoli Pokret;skrenuti;skręcić
+Fraze;lagano ljetno štivo;lekka letnia lektura
+Hobi Mjesta;filmski festival;festiwal filmowy
+Imenice Stvari;članak;artykuł
+Imenice;član;członek
+Fraze;Po zanimanju je pravnik;Z zawodu jest prawnikiem
+Imenice Posao;zanimanje;zawód
+Imenice Mjesta Škola;gimnazija;liceum
+Imenice Škola;odgojitelj;wychowawca
+Mjesta;stambena zgrada;budynek mieszkalny
+Imenice Obitelj;odgoj;wychowanie
+Imenice Priroda Životinje;plamenac;flaming
+Imenice Škola;bilježnica;zeszyt
+Sport Škola;tjelesni odgoj;wychowanie fizyczne
+Brojevi Glagoli Posao Škola;izračunati;wyliczyć
+Škola;srednja škola;szkoła średnia
+Imenice;prosjek;średnia, przeciętnie
+Škola;vježbenica;zeszyt ćwiczeń
+Imenice Škola;prvašić;pierwszak
+Posao;prema podacima;według danych
+Imenice Posao Škola;podaci;dane
+Konektori;odnosno;to jest
+Imenice Odjeće Sport;sportske cipele;tenisówki
+Glagoli Svakidašnji;složiti se;zgodzić się
+Škola;oprema za tjelesni;wyposażenie na WF
+Imenice;usporedba;porównanie
+Imenice Posao;struka;zawód
+Glagoli Vrijeme;zaustavljati;zatrzymać, zapauzować
+Imenice Priroda;glinamol;glina
+Imenice Škola;plastelin;plastelina
+Stvari;u prosjeku;średnio
+Fraze Hrana;na jelovniku;w menu
+Imenice Škola;bojice;kredki
+Imenice Škola;olovka;ołówek
+Imenice Škola;kemijska olovka;długopis
+Imenice Škola;ljepilo;klej
+Imenice Škola;škare;nożyczki
+Imenice Škola;šiljilo;temperówka
+Imenice Škola;ravnalo;linijka
+Imenice Posao Škola;fascikl;skoroszyt
+Imenice Škola;gumica;gumka
+Imenice Posao Škola;mapa;folder
+Konektori;poput;taki jak
+Imenice Škola;pernica;piórnik
+Imenice Škola;kutomjer;kątomierz
+Imenice Škola;šestar;cyrkiel
+Imenice Priroda;ugljen;węgiel
+Imenice Škola;kut;kąt
+Prostor Svakidašnji;nigdje;nigdzie
+Brojevi Svakidašnji;ispod nule;poniżej zera
+Fraze Vrijeme;za vrijeme Uskrs;na Wielkanoc
+Fraze;napiši mi;napisz mi
+Imenice Nacije Osobine Svakidašnji;podrijetlo;pochodzenie
+Fraze Nacije;On je porijeklom iz Poljske;On pochodzi z Polski
+Svakidašnji Tijelo;krvna grupa;grupa krwi
+Imenice Osobine Svakidašnji;cimer;współlokator
+Pridjevi Svakidašnji;drukčije;inne
+Imenice Osobine;karakter;charakter
+Imenice Nacije;domoljublje;patriotyzm
+Imenice Stvari;barjaktar;nosiciel flagi
+Nacije Osobine Pridjevi Svakidašnji;domoljubiv;patriotyczny
+Fraze;kad kreće s početne stanice;kiedy rusza z początkowego przystanku
+Pridjevi Svakidašnji Vrijeme;prethodna;poprzednie
+Fraze;prošla dva filma;poprzednie dwa filmy
+Piće Trgovina;unučić;małpka
+Fraze Piće Svakidašnji Trgovina;žestoka alkoholna pića;mocny alkohol
+Prilozi;kontroverzno;kontrowersyjnie
+Prilozi Svakidašnji;uzalud;na marne
+Imenice Osobine;infišan;przekonany o czymś, opętany
+Imenice Svakidašnji Vrijeme;preša;pośpiech
+Imenice Osobine;šempjan;lekkomyślny, nieodpowiedzialny
+Prilozi Svakidašnji;mukte;bezpłatnie
+Imenice Svakidašnji;šoldi;pieniądze
+Mjesta Svakidašnji Trgovina;benzinska postaja;stacja benzynowa
+Svakidašnji Vrijeme;najgore vrijeme;najgorszy czas
+Fraze Priroda;Sva su stabla žuta.;Wszystkie drzewa są żółte
+Fraze Priroda;Pada lišće.;Spadają liście.
+Odmor Sport;ići na bazen;iść na basen
+Nacije;kašupski jezik;kaszubski język
+Mjesta Nacije;Velikopoljska;Wielkopolska
+Stvari;materinski jezik;język ojczysty
+Stvari;strani jezik;obcy język
+Osobine;izvorni govornik;native speaker
+Osobine;neizvorni govornik;nie native speaker
+Osobine Pridjevi;dvojezični;dwujęzyczny
+Fraze Posao;tečno govoriti jezik;mówić płynnie w języku
+Glagoli Posao Škola;prevoditi;tłumaczyć
+Glagoli Posao Škola;prevesti;przetłumaczyć
+Imenice Posao;prevoditelj;tłumacz
+Imenice Posao;prijevod;tłumaczenie (dokument)
+Imenice Posao;prevođenje;tłumaczenie (proces)
+Škola;stupanj učenja;stopień nauki
+Glagoli Posao Škola;napredovati;postępować
+Imenice;poliglot;poliglota
+Fraze;govoriti bez dlake na jeziku;mówić bez owijania w bawełnę
+Fraze;ne govoriti isti jezik;nie mieć wspólnego języka
+Nacije;Indijac;Indyjczyk
+Fraze;Ne znam jesu li još uvijek dostupni;Nie wiem czy są jeszcze dostępne
+Fraze Škola;u osnovnoj školi;w szkole podstawowej
+Imenice Mjesta Škola;planetarij;planetarium
+Hobi Imenice Mjesta;zvjezdarnica;obserwatorium astronomiczne
+Fraze;poznat je po oštrom jeziku;znany jest z ostrego języka
+Fraze;Kad(a) si počeo učiti kineski jezik?;Kiedy zacząłeś uczyć się chińskiego?
+Fraze;Moj bratić prevodi s hrvatskog na finski.;Mój kuzyn tłumaczy z chorwackiego na fiński.
+Fraze;imati nešto na vrhu jezika;mieć coś na końcu języka
+Fraze Tijelo;dugačak jezik;długi język
+Osobine Stvari;zajednički jezik;wspólny język
+Posao;službeni jezik;język urzędowy
+Fraze;jezikova juha;językowa zupa / wiązanka
+Glagoli Tijelo;pljuvati;pluć
+Glagoli;frfljati;bełkotać
+Glagoli Posao Vrijeme;sastančiti;spędzać czas na spotkaniach
+Prilozi;urnebesno;przezabawnie
+Glagoli;iskeširati;płacić
+Fraze Raspoloženje;Snašao sam se!;Dałem radę!
+Pridjevi;očuvan;zachowany
+Imenice Obitelj Svakidašnji Tijelo;pusa;buziak
+Imenice Stvari;temelj;podstawa, fundament
+Imenice Stvari;sumpor;siarka
+Imenice Mjesta;pećina;jaskinia
+Imenice Stvari;plin;gaz
+Imenice Stvari;grijalica;grzejnik
+Fraze Hrana;praviti vino;robić wino
+Fraze;Izašao je treći dio Terrifiera;Wyszła trzecia część Terrifiera
+Pridjevi;kontroverzan;kontrowersyjny
+Fraze;Nema djeteta u parku.;Nie ma dziecka w parku.
+Fraze;čekamo dijete;oczekujemy dziecka
+Fraze;Veselimo se djetetu;Radujemy się dzieckiem
+Fraze;Razgovaramo o djetetu;Rozmawiamy o dziecku
+Fraze;Idemo s djetetom;Idziemy z dzieckiem
+Fraze;Danas nemamo lijepo vrijeme;Nie mamy dziś ładnej pogody
+Imenice Posao Priroda;poljoprivreda;rolnictwo, uprawa ziemi
+Imenice Životinje;vodomar;zimorodek
+Biljke Imenice;lijeska;leszczyna
+Biljke Imenice;joha;olcha
+Imenice Tijelo;bubica;pryszcz, zmiana na skórze
+Imenice Stvari;kapaljka;zakraplacz, pipeta
+Imenice Stvari;kriterij, mjerilo;kryterium, miara
+Biljke Imenice;heljda;gryka
+Imenice Priroda;lokva;kałuża
+Biljke Imenice;berba;zbiór
+Fraze Pokret Životinje;jahati konja, devu, magarca;ujeżdżać konia, wielbłąda, osła
+Imenice Životinje;hipopotam;hipopotam
+Imenice Životinje;šapa;łapa
+Imenice Mjesta Posao;gospodarstvo;gospodarstwo, farma
+Imenice Životinje;kit ubojica;orka
+Glagoli Priroda Svakidašnji Životinje;nestati;wyginąć, zniknąć
+Imenice Mjesta;kej;nadbrzeże
+Hrana Imenice Životinje;sleđ;śledź
+Glagoli Tijelo;izdisati;wydychać
+Glagoli Tijelo;dijagnosticirati;diagnozować
+Imenice Tijelo;hunjavica;nieżyt nosa
+Fraze Tijelo;začepljen nos;zapchany nos
+Glagoli Tijelo;umirati;umierać
+Imenice Stvari;zalihe;zapasy
+Imenice;ljubitelj / obožavatelj;miłośnik
+Fraze Mjesta;među stanovnicima / mještanima;pomiędzy mieszkańcami
+Fraze Obitelj;s koljena na koljeno: s oca na sina, s naraštaja na naraštaj;z pokolenia na pokolenie
+Imenice;pater;ojciec (ksiądz, zakonnik)
+Fraze Osobine Tijelo;rumeno lice;rumiana twarz
+Glagoli;probosti;przebić
+Imenice Raspoloženje;strahovlada;terror
+Imenice Tijelo;utroba;trzewia, wnętrzności
+Imenice Stvari;sjekira;siekiera
+Fraze Priroda;sveta voda;woda święcona
+Imenice Raspoloženje;jeza;groza
+Imenice Tijelo;kostur;kościotrup
+Imenice;ubojica;morderca
+Glagoli Pokret;zaobići;obejść
+Glagoli Pokret;sići;zejść
+Glagoli Pokret;poći;pójść
+Glagoli Pokret;prolaziti;przechodzić
+Glagoli Pokret;obilaziti;obchodzić
+Glagoli Pokret;silaziti;schodzić
+Glagoli Pokret;ulaziti;wchodzić
+Glagoli Pokret;prići;podejść
+Glagoli Pokret;prilaziti;podchodzić
+Imenice Vrijeme;budućnost;przyszłość
+Imenice Vrijeme;sadašnjost;teraźniejszość
+Imenice Vrijeme;prošlost;przeszłość
+Gramatyka;odmiana dijete w l. mn.;Nﾠdjeca<br>Gﾠdjece<br>Dﾠdjeci<br>Aﾠdjecu<br>Vﾠdjeco<br>Lﾠdjeci<br>Iﾠdjecom
+Imenice Stvari;perspektiva;perspektywa
+Imenice Mjesta Pokret Sport;staza;szlak, ścieżka
+Fraze Priroda;netaknuta priroda;nienaruszona przyroda
+Glagoli Životinje;loviti;polować
+Pokret Sport;hodanje na krpljama;chodzenie na rakietach
+Imenice Životinje;šišmiš;nietoperz
+Imenice Tijelo;lubanja;czaszka
+Imenice;duh;duch
+Glagoli;odrubiti;odrąbać
+Imenice Raspoloženje;strava;groza
+Glagoli;pokopati;zakopać
+Glagoli Raspoloženje Tijelo;okameniti se;skamienieć
+Imenice;pokojnik;trup
+Glagoli Raspoloženje;prestraviti se;przerazić się
+Imenice;avet;widmo
+Imenice;utvara;zjawa
+Imenice;štrigun;strzyga
+Imenice;vještica;wiedźma
+Imenice Životinje;vukodlak;wilkołak
+Glagoli;pokucati;zapukać
+Imenice Stvari;biser;perła
+Imenice Obitelj;udovica;wdowa
+Pridjevi;zastrašujući;przerażający
+Pridjevi;nadahnut;natchniony
+Imenice;beštija;bestia
+Imenice Stvari;";ryk
+Imenice Stvari;slučaj;sprawa
+Imenice Tijelo;žeđ;pragnienie
+Imenice Stvari;nit;nić
+Imenice Tijelo;srž;szpik
+Imenice Stvari;peć;piec
+Imenice Tijelo;bedro;udo, biodro
+Brojevi Fraze;nula stupnjeva;zero stopni
+Fraze Tijelo;cijepljenje protiv gripe;szczepienie przeciw grypie
+Imenice Stvari;nuspojava;efekt uboczny
+Tijelo;visoka temperatura;wysoka temperatura, gorączka
+Imenice Stvari;uputnica;skierowanie
+Glagoli;uputiti;skierować
+Glagoli Raspoloženje;prisliti se;zmusić się
+Imenice Stvari;nalazi;wyniki
+Imenice Tijelo;kuga;dżuma
+Prilozi Prostor;straga;z tyłu
+Tijelo;guz;pośladek
+Imenice Tijelo;guzovi;pośladki
+Imenice Tijelo;kvrga;guz
+Imenice Svakidašnji Tijelo;guza;dupa
+Imenice Tijelo;rame;ramię
+Imenice Tijelo;obraz;polik
+Imenice Posao;savjet;rada
+Svakidašnji Tijelo;izmjeriti tlak;zmierzyć ciśnienie
+Imenice Kuća;prijestolje;tron
+Prilozi;naporno;intensywnie
+Glagoli Svakidašnji;nedostaje;brakuje
+Svakidašnji Vrijeme;otkako;od kiedy
+Prilozi Svakidašnji Vrijeme;redovito;regularnie
+Hobi Imenice Odmor;razonoda;rekreacja, rozrywka
+Imenice Posao;manekenstvo;modeling
+Imenice Priroda Životinje;čigra;rybitwa
+Glagoli Hobi Odjeće Posao;vesti;haftować
+Osobine;škrt na riječima;oszczędny w słowach
+Imenice Posao;obrtnik;rzemieślnik
+Imenice Posao Svakidašnji Škola;misao;myśl (i-deklinacja)
+Hobi Posao Stvari;širokokutni objektiv;szerokokątny obiektyw
+Fraze;Smeta li ti?;Przeszkadza ci?
+Fraze Sport;tjelesna kultura, tjelesni odgoj;wychowanie fizyczne
+Osobine Posao Svakidašnji;naporna osoba;pracowita osoba
+Fraze Hobi;lud za rukometom;szaleje za piłką nożną
+Fraze Odmor;Fali mi Hrvatska!;Brakuje mi Chorwacji!
+Fraze Stvari;Idem u teretanu redovito;Chodzę na siłownię regularnie
+Fraze Hobi;Skupljam (poštanske) marke iz cijelog svijeta;Zbieram znaczki (pocztowe) z całego świata
+Fraze Vrijeme;Ona uvijek nađe vremena za svoje prijatelje;Ona zawsze znajdzie czas dla swoich przyjaciół
+Fraze Odmor Pokret;Želim oploviti svijet jahtom;Chcę opłynąć świat jachtem
+Mjesta Pridjevi;atlantski;atlantycki
+Mjesta Priroda;Atlantik;Atlantyk
+Imenice Priroda;ocean;ocean
+Imenice Tijelo;infarkt;zawał serca
+Imenice;gorštak;Góral
+Imenice Odjeće;marte;martensy
+Imenice Odjeće;đon;podeszwa
+Imenice Stvari;crta;kreska
+Fraze;Auti me ne zanimaju;Samochody mnie nie interesują
+Fraze Imenice;lik povijesti;postać historyczna
+Imenice Osobine;katolkinja;katoliczka
+Fraze Obitelj;radi ozbiljne veze;w celu poważnego związku
+Imenice;poduzetnik / poduzetnica;przedsiębiorca / przedsiębiorczyni
+Pridjevi;situiran;sytuowany
+Pridjevi Tijelo;mladolik;młody duchem lub wyglądający na młodszego
+Fraze Pridjevi Tijelo;krupna djevojka;tęga dziewczyna
+Imenice Raspoloženje;zrelost;dojrzałość
+Imenice Stvari;dužnost;dług, powinność, obowiązek, zobowiązaznie
+Imenice Osobine;ličnost;charakter
+Imenice Kuća;stanica;komórka (w domu)
+Glagoli;omogućuje;umożliwia
+Glagoli Svakidašnji;domoći se;uzyskać coś
+Glagoli;štiti;chronić
+Imenice Tijelo;vjeđa;powieka
+Pridjevi;pričvršćeni;przyczepiony
+Imenice;dostavljač;dostawca
+Imenice Stvari;staklenički plin;gaz cieplarniany
+Imenice Stvari;nafta;ropa naftowa
+Fraze Posao;crpiti (crpsti) naftu / vaditi naftu;wydobywać ropę naftową
+Imenice Stvari;podatci;dane
+Imenice Stvari;podatak;informacja, dana
+Fraze Stvari;fuzijska nuklearna elektrana;fuzyjna elektrownia jądrowa
+Imenice Stvari;nuklearka;pot. elektrownia jądrowa
+Imenice;voditelj / voditeljica;prezenter / prezenterka
+Imenice Tijelo;dlan;dłoń
+Tijelo;lakat;łokieć
+Glagoli Tijelo;udahnuti;wziąć wdech
+Imenice Stvari;kisik;tlen
+Glagoli Tijelo;izdahnuti;wziąć wydech
+Tijelo;taban;podeszwa stopy
+Imenice Tijelo;hrskavica;chrząstka
+Tijelo;probava;trawienie
+Glagoli Tijelo;probavljati;trawić
+Glagoli Tijelo;pomicati;poruszać
+Fraze;na primjer / primjerice;na przykład
+Hrana Pridjevi;hrskav;chrupiący
+Glagoli Tijelo;probaviti;strawić
+Imenice Tijelo;bubreg;nerka
+Fraze;(živi) kao bubreg u loju;(żyje) jak pączek w maśle
+Tijelo;dušnik;tchawica
+Tijelo;mjehur;pęcherz
+Tijelo;štitnjača;tarczyca
+Tijelo;gušterača;trzustka
+Imenice Tijelo;timus;grasica
+Imenice Tijelo;pubertet;okres dojrzewania
+Imenice Tijelo;kralježnica;kręgosłup
+Imenice Tijelo;trup;korpus, tułów
+Tijelo;tanko crijevo;jelito cienkie
+Imenice Svakidašnji Tijelo;lice;twarz
+Imenice Tijelo;čelo;czoło
+Tijelo;zjenica;źrenica
+Imenice Svakidašnji Tijelo;uši;uszy
+Tijelo;vrat;szyja, kark, gardło
+Imenice Tijelo;leđa;plecy
+Tijelo;stražnjica;pośladek, tyłek
+Imenice;spolovilo;narząd płciowy
+Imenice Tijelo;trbuh;brzuch
+Imenice Tijelo;šaka;pięść
+Imenice Tijelo;prsti;palce
+Imenice Tijelo;koljeno;kolano
+Imenice Tijelo;peta;pięta
+Imenice Tijelo;stopalo;stopa
+Imenice Tijelo;noga;noga
+Imenice Svakidašnji Tijelo;usta;usta
+Imenice Tijelo;srce;serce
+Tijelo;ošit;przepona
+Tijelo;jetra;wątroba
+Tijelo;žučni mjehur;pęcherzyk żółciowy
+Imenice Tijelo;pluća;płuca
+Tijelo;jednjak;przełyk
+Tijelo;mokraćni mjehur;pęcherz moczowy
+Tijelo;rebro;żebro
+Tijelo;želudac;żołądek
+Imenice Tijelo;krv;krew
+Tijelo;krvne žile;naczynia krwionośne
+Imenice Svakidašnji Tijelo;koža;skóra
+Tijelo;sluznica;śluzówka
+Imenice Tijelo;mošnje;moszna
+Imenice Tijelo;jajnici;jajniki
+Imenice Tijelo;maternica;macica
+Imenice;rodnica;pochwa
+Imenice Tijelo;vrtoglavica;zawroty głowy
+Imenice Tijelo;oticanje;opuchlizna
+Tijelo;proljev;biegunka
+Imenice Tijelo;štucavica;czkawka
+Imenice Tijelo;ospice;odra
+Imenice Tijelo;kozice;ospa
+Imenice Tijelo;zaušnjaci;świnka
+Imenice Tijelo;žutica;żółtaczka
+Imenice Tijelo;uganuće;skręcenie
+Imenice Tijelo;nagnječenje;stłuczenie
+Imenice Tijelo;istegnuće;naciągnięcie
+Imenice Tijelo;plave mrlje;sińce
+Imenice Tijelo;ogrebotina;zadrapanie
+Imenice Tijelo;porezotine;rozcięcie
+Glagoli Tijelo;onesvijestiti se;zemdleć
+Priroda Svakidašnji;barometar;barometr
+Fraze Tijelo;cijepiti se protiv gripe;szczepić się przeciwko grypie
+Imenice Tijelo;hripavac;krztusiec
+Glagoli Raspoloženje;podnositi;radzić sobie z czymś
+Fraze;The Apprentice je biografski film o životu Donalda Trumpa;The Apprentice jest biograficznym filmem o życiu Donalda Trumpa
+Imenice Posao;Pripravnik;praktykant
+Fraze Tijelo;izraz lica;wyraz twarzy
+Imenice Tijelo;gestikulacija;gestykulacja
+Fraze Osobine;zli / loši ljudi;źli ludzie
+Fraze Hobi;radnja filma;fabuła filmu
+Fraze;s tim;z tym
+Imenice;pravnik, odvjetnik;prawnik
+Fraze Posao;on se bavio nekretninama;zajmował się nieruchomościami
+Imenice Mjesta;neboder;wieżowiec
+Fraze;utjecaj na izbore;wpływ na wybory
+Imenice;politolog / politolozi;politolog / politolodzy
+Imenice;izlaznost;frekwencja
+Fraze Raspoloženje Tijelo;koljena nekome klecaju;komuś trzęsą się kolana (ze strachu)
+Fraze;biti na ratnoj nozi;być na wojennej stopie
+Fraze;živjeti na visokoj nozi;żyć na wysokiej stopie
+Imenice Mjesta;vukojebina;zadupie
+Fraze;fali mu daska u glavi - nije sasvim normalan;spadło mu coś na łeb - nie jest całkiiem normalny
+Konektori Čestice;sasvim;całkiem
+Fraze Tijelo;slegnuti ramenima;wzruszyć ramionami
+Imenice Životinje;noj;struś
+Fraze Hobi;vic s bradom;żart z brodą
+Imenice Tijelo;šupak;odbyt
+Imenice Tijelo;ud;kończyna
+Imenice Tijelo;opeklina;oparzenia
+Fraze Pokret;otpratiti nekoga;odprowadzić kogoś
+Fraze Mjesta;tamo nikoga nema;tam nikogo nie ma
+Posao;biti dostupan;być dostępny
+Imenice Stvari;procedura;procedura
+Glagoli Svakidašnji;potvrditi;potwierdzić
+Fraze Posao;vlastita djelatnost / poduzeće;własna działalność / przedsiębiorstwo
+Mjesta Posao;porezna uprava;urząd podatkowy
+Glagoli;poskupjeti;podrożeć
+Fraze Raspoloženje;priuštiti sebi;pozwolić sobie
+Glagoli Raspoloženje;oprostiti se;pożegnać się
+Fraze Raspoloženje;oproštajna zabava;zabawa pożegnalna
+Imenice Raspoloženje;oproštaj;pożegnanie
+Glagoli Raspoloženje;ispraćati;żegnać, odprowadzać
+Glagoli Raspoloženje;ispratiti;pożegnać, odprowadzić
+Glagoli;vikati;krzyczeć
+Imenice Priroda Životinje;maca;kotek
+Imenice Obitelj;ujo;wujek
+Imenice Osobine;budala;głupek
+Imenice Priroda Životinje;stoka;bydło
+Imenice Kuća Stvari Svakidašnji;garancija;gwarancja
+Glagoli;izdubiti;wydrążyć
+Imenice Kuća;žbuka;tynk
+Imenice Kuća Mjesta;kabinet;gabinet
+Fraze Higijena Kuća;koristio sam kupaonicu;korzystałem z łazienki
+Imenice Tijelo Životinje;rep;ogon
+Životinje;malen miš;mała mysz
+Fraze Svakidašnji Tijelo;spriječiti razvoj bolesti;przeciw rozwojowi choroby
+Fraze Svakidašnji Tijelo;recept za antibiotik;recepta na antybiotyk
+Konektori Čestice;premda;chociaż, mimo że
+Biljke Imenice Priroda;bor;sosna
+Biljke Imenice Priroda;jela;jodła
+Biljke Imenice Priroda;smreka;świerk
+Imenice Priroda Životinje;jarac;kozioł
+Imenice Sport;sanjke;sanki
+Imenice Odmor Sport;sanjkanje;saneczkarstwo
+Imenice Odmor Sport;bob;bobslej
+Odmor Sport;staza bob;tor saneczkowy
+Odmor Sport;skijaški skokovi;skoki narciarskie
+Fraze Odmor Pokret Sport;daskanje na snijegu;snowboard
+Glagoli Odmor;grudati se;rzucać się śnieżkami
+Prilozi;radoznalo;z ciekawością
+Glagoli;viriti;podglądać
+Imenice Priroda Životinje;morž;mors
+Imenice Priroda Životinje;tuljan;foka
+Priroda Životinje;polarni medvjed;niedźwiedź polarny
+Glagoli Pokret;kidati;uciekać
+Glagoli Odjeće;prerušiti se;przebrać się
+Glagoli;cvokotati;szczękać, drżeć
+Pokret Prostor;uzbrdo;pod górkę
+Pokret Prostor;nizbrdo;z górki
+Glagoli Odmor;obilježavati;świętować
+Imenice Priroda Stvari;biće;istota
+Imenice Posao;pomorac;marynarz
+Glagoli;buniti;buntować
+Imenice;progon;prześladowanie
+Imenice Posao;zaštitnik;patron
+Glagoli;pridržavati se;przestrzegać czegoś
+Glagoli Svakidašnji Trgovina;cjenkati se;targować się
+Hrana Imenice;gušt;smak
+Imenice Obitelj Posao;podrška;wsparcie
+Glagoli;širiti se;roznosić się
+Glagoli Kuća;uvesti;wprowadzić
+Biljke Pridjevi Priroda;zimzelen;zimozielony
+Glagoli;uvrijediti;obrazić
+Imenice Svakidašnji;ajme;jeny, westchnięcie
+Fraze Svakidašnji;Ajme meni!;Biedny ja!
+Fraze Svakidašnji;smatram da;uważam, że
+Imenice Odjeće;duksa;bluza
+Osobine Prilozi Svakidašnji;gadno;paskudne
+Imenice Odjeće;vesta;zapinany sweter
+Higijena Imenice Kuća Stvari;fen;suszarka
+Glagoli Hobi;fulati;spudłować
+Prilozi Svakidašnji;prilično;dość
+Glagoli Svakidašnji;uspostavilo se;okazało się
+Glagoli Odjeće Svakidašnji;zamrljati;poplamić
+Osobine Pridjevi;opskrbljena;wyposażona
+Imenice Kuća;generalka;remont generalny
+Fraze Odmor Pokret Svakidašnji;Putovao sam u Prag / za Prag;podróżowałem do Pragi
+Fraze;Pretpostavljam da;Przypuszczam, że
+Fraze;Mislim / Smatram / Vjerujem da...;myślę/uważam/wierzę, że...
+Imenice Svakidašnji;mrlja;plama
+Svakidašnji Tijelo;nizak tlak;niskie ciśnienie
+Imenice Tijelo;puls;puls
+Imenice Priroda;magla;mgła
+Glagoli Posao Svakidašnji Škola;ispraviti;poprawić
+Imenice;rima;rym
+Glagoli Hobi;rimovati;rymować
+Imenice Stvari;ralica;odśnieżarka
+Imenice Odjeće;bunda;futro
+Imenice Odjeće;šubara;ruska czapa
+Imenice Priroda;ledenica;sopel
+Stvari;licitarsko srce;liticarskie serce
+Imenice Odjeće;mašna;kokarda
+Imenice Odmor;maska za ronjenje;maska do nurkowania
+Imenice Odmor;disalica;rurka do oddychania
+Imenice Priroda Životinje;zeko;zajączek
+Imenice Priroda Životinje;zec;zając
+Glagoli;crknuti;zdechnąć
+Konektori;pa;więc, zatem, a
+Konektori;te;i, a także, oraz
+Konektori;ni;ani
+Konektori;niti;ani, nawet
+Konektori;a;a, ale
+Konektori;ali;ale
+Konektori;nego;lecz, ale, tylko
+Konektori;no;jednak, ale, no ale
+Konektori;ili;lub, albo
+Konektori;da;że, aby
+Konektori;dok;podczas gdy, dopóki
+Konektori;jer;ponieważ, bo
+Konektori;ako;jeśli, jeżeli
+Konektori;kao;jak, niczym
+Fraze Konektori;ni ... ni;ani ... ani
+Fraze Konektori;ne samo ... nego/već i...;nie tylko..., ale/tylko ...
+Konektori;zato;dlatego
+Konektori Čestice;međutim;jednak, tymczasem
+Konektori Prilozi;svakako;z pewnością, oczywiście
+Konektori;prvo;najpierw, po pierwsze
+Konektori;zasigurno;na pewno, z pewnością
+Konektori;također;także, również
+Konektori;u nastavku;w dalszej części, poniżej
+Konektori;uostalom;zresztą, w końcu
+Fraze Konektori;u svakom slučaju;w każdym razie
+Konektori;da zaključimo;podsumowując, aby zakończyć
+Konektori;osim toga;oprócz tego
+Konektori;naime;mianowicie
+Fraze Konektori;što se toga tiče;jeśli chodzi o to
+Konektori;nasuprot tome;w przeciwieństwie do tego
+Fraze Konektori;za razliku od toga;w odróżnieniu od tego, w przeciwieństwie do tego
+Hrana;kroštule;faworki
+Nacije;Engleska;Anglia
+Fraze Svakidašnji;porezi nisu visoki;podatki nie są wysokie
+Glagoli Posao Svakidašnji Škola;pobrkati;pomylić
+Glagoli Svakidašnji;pokvariti;popsuć
+Fraze Svakidašnji;Onda je do mene, ne do tebe;To moja wina, nie twoja
+Glagoli Svakidašnji;priuštiti;pozwolić sobie na coś (finansowo)
+Mjesta Odmor Prostor;u inozemstvu;zagranicą
+Fraze Konektori;em... em;i... i, jedno što je... drugo što je [em glup, em lijen]
+Imenice Obitelj;muž;mąż
+Fraze;bolje išta nego ništa;lepiej coś niż nic
+Posao;financijske rezultate;wyniki finansowe
+Posao;dobrotvorna organizacija;organizacja charytatywna
+Osobine Posao Svakidašnji;lider;lider, przywódca
+Imenice Svakidašnji;hrpa;kupa czegoś
+Glagoli Hrana Svakidašnji;hraniti;karmić
+Glagoli Odjeće;ukrašavati;ozdabiać
+Imenice Odjeće Svakidašnji;vrpca;wstążka
+Glagoli Hobi;slikati;malować
+Glagoli;iščupati;wyrwać, wyciągnąć
+Imenice;banket;bankiet
+Hobi;novogodišnja zabava;bal noworoczny
+Svakidašnji;radi zezancije;dla żartu
+Svakidašnji;radi zajebancije;dla beki (wulg.)
+Hobi Imenice Mjesta;spektakl;występ, przedstawienie
+Osobine Prilozi;egzaltirano;wyegzaltowanie
+Hrana Imenice Kuća;trpeza;suto zastawiony stół, bufet
+Imenice Svakidašnji;obilje;bogactwo, mnogość
+Osobine Pridjevi;obilan;obfity
+Hrana Životinje;puran;indyk
+Glagoli;ušuljati se;wkraść się
+Hrana;junetina;cielęcina
+Hrana Životinje;govedina;wołowina
+Svakidašnji;ova potonja;ta ostatnia
+Hobi Imenice Mjesta;svirka;koncert
+Imenice Svakidašnji;snovi;sny
+Hobi;kovanica;moneta
+Nacije;Turci;Turcy
+Nacije;Turkinja;Turczynka
+Biljke Hrana;nar;granat
+Hrana Imenice;prezla;bułka tarta
+Prostor;nadesno;na prawo
+Svakidašnji;rasvjetni lanac;łańcuch z lampkami
+Glagoli Svakidašnji;pospremiti;przygotować
+Imenice Osobine Svakidašnji;vrlina;zaleta
+Glagoli Svakidašnji;uključiti;włączyć
+Odjeće Svakidašnji;trapke;dżinsy
+Odjeće Svakidašnji;farmerice;dżinsy
+Odjeće Svakidašnji;farmerke;dżinsy
+Svakidašnji;ova posljednja;ta ostatnia
+Hrana Životinje;purica;indyczka
+Osobine Pridjevi;plodan;płodny
+Glagoli Hobi;crtati;rysować
+Odjeće Svakidašnji;traka;wstążka
+Imenice Osobine Posao;vođa;przywódca
+Imenice Mjesta Prostor;vanka;zagranica (pot.)
+Svakidašnji Vrijeme;naposljetku;w końcu
+Glagoli;zaviriti;zajrzeć
+Prilozi;prosječno;przeciętnie
+Osobine Pridjevi;srednji;średni
+Osobine Pridjevi;početni;początkujący
+Osobine Pridjevi;napredni;zaawansowany
+Imenice Posao;prevoditeljica;tłumaczka
+Svakidašnji Vrijeme;prošla;poprzednie
+Pridjevi Svakidašnji;drugačije;inne
+Imenice Nacije Osobine Svakidašnji;porijeklo;pochodzenie
+Glagoli Vrijeme;pauzirati;zapauzować
+Imenice Sport;patike;trampki
+Škola;tjelesna kultura;wychowanie fizyczne
+Imenice Škola;odgojiteljica;wychowawczyni
+Mjesta Odmor;povijesna jezgra;historyczne jądro
+Tijelo;debelo crijevo;jelito grube
+Imenice Tijelo;kičma;kręgosłup
+Imenice Tijelo;vene;żyły
+Imenice Tijelo;arterije;tętnice
+Imenice Tijelo;kapilare;naczynia włosowate
+Glagoli Tijelo;izdahnite;weź wydech
+Imenice Tijelo;kosa;włosy
+Glagoli;uloviti;upolować
+Imenice Pokret Svakidašnji;prtljažnik;bagażnik
+Imenice Odjeće;balerinke;baleriny
+Imenice Odjeće;bižuterija;tania biżuteria
+Fraze;biti loše volje;być złej myśli
+Brojevi Prilozi;totalno;całkowicie, zupełnie
+Glagoli Osobine Raspoloženje;stidjeti se;wstydzić się (+Genitiv)
+Biljke Hrana Imenice;zelje;kapusta
+Imenice;favoritkinja;faworytka
+Imenice Priroda Životinje;orlovi;orły
+Imenice Priroda Životinje;ajkula;rekin
+Imenice Posao;režiser;reżyser
+Tijelo;uzeti tabletu;wziąć tabletkę
+Glagoli Pokret;sresti se;spotkać się
+Imenice Posao;suradnik;współpracownik
+Imenice Raspoloženje;samopouzdanje;pewność siebie
+Imenice Stvari;bilješke;notatki
+Imenice Raspoloženje;izoliranost;izolacja, odosobnienie
+Glagoli Pokret;raširiti se;rozszerzać się
+Imenice Odjeće Svakidašnji;suknja;spódnica
+Imenice Odjeće;haljina;sukienka
+Imenice Odjeće;džemper;sweter (przez głowę)
+Imenice Odjeće Sport;trenirka;dres
+Imenice Odjeće Sport;dres;koszulka sportowa
+Imenice Odjeće;tangice;stringi
+Imenice Odjeće Sport;tajice;legginsy
+Imenice Odjeće;hulahopke;rajstopy
+Imenice Odjeće;remen;pasek
+Imenice Odjeće;salonke;eleganckie buty damskie
+Imenice Odjeće;gležnjače;wysokie skórzane buty (nad kostkę), glany
+Imenice Odjeće;japanke;japonki
+Imenice Odjeće;kabanica;płaszcz przeciwdeszczowy
+Imenice Odjeće;majica na bretele;koszulka na ramiączka
+Glagoli;trzati;szarpać
+Imenice Stvari;urlik;ryk
+Glagoli Pokret;naći se;spotkać się
+Tijelo;kardiovaskularni sustav;układ krwionośny
+Imenice Nacije;strankinja;kobieta z zagranicy
+Imenice Odjeće;kaput;płaszcz
+Imenice;avantura;przygoda
+Imenice Posao;nadzor;dyżur
+Glagoli Odjeće;izuti se;rozbierać się
+Osobine Posao Svakidašnji;stručnjak;znawca, ekspert
+Osobine Pridjevi;sramežljiv;nieśmiały
+Prilozi Vrijeme Čestice;katkad;czasami
+Osobine Pridjevi;naivan;naiwny
+Imenice Priroda Svakidašnji Tijelo;groznica;gorączka
+Imenice Posao Priroda;ratarstvo;rolnictwo
+Glagoli Posao;objaviti;opublikować
+Glagoli Pokret;polaziti;odchodzić
+Hrana Imenice;gurman;smakosz
+Hrana Imenice;haringa;śledź
+Imenice Kuća;jorgan;kołdra
+Prostor;nad zgradama;nad budynkami
+Prostor;iznad stola;nad stołem
+Imenice Tijelo;guzica;dupa
+Imenice Svakidašnji Tijelo;dupe;dupa
+Imenice Svakidašnji;klinka;dzieciak, podlotek
+Imenice Odjeće Svakidašnji;gumb;guzik
+Priroda Životinje;vodeni konj;hipopotam
+Hobi Imenice;pecaroš;wędkarz
+Imenice Stvari;grebalica;zdrapka
+Imenice Piće Svakidašnji;gutljaj;łyczek
+Imenice Posao;vojnikinja;żolnierka
+Konektori;tako da;zatem, więc
+Imenice Nacije;Mongoli;Mongołowie
+Imenice Odjeće;papuče;kapcie
+Pokret;udarati nogama;fikać
+Tijelo;spolni organ;narząd płciowy
+Imenice Tijelo;razderotine;rozcięcie
+Tijelo;srčani udar;zawał serca
+Imenice Životinje;pudla;pudel
+Glagoli Hobi Pokret Životinje;jahati;ujeżdżać
+Kuća Prostor;cijeli stan;całe mieszkanie
+Nacije Imenice;nacionalnost;narodowość
+Nacije Imenice;državljanstvo;obywatelstwo
+Nacije;etnička pripadnost;przynależność etniczna
+Nacije;rodom iz;pochodzący z
+Nacije Pridjevi;domaći;rodzimy
+Nacije Imenice;došljak;przybysz
+Nacije Imenice;manjina;mniejszość
+Nacije Imenice;većina;większość
+Nacije Imenice;državljanin;obywatel
+Nacije Osobine;nacionalni identitet;tożsamość narodowa
+Nacije Stvari;ponosan na podrijetlo;dumny ze swojego pochodzenia
+Nacije;pripadnik naroda;członek narodu
+Nacije Imenice;autohton;rdzenny
+Nacije Osobine;mješano podrijetlo;mieszane pochodzenie
+Nacije Osobine;imigrantsko podrijetlo;pochodzenie imigranckie
+Nacije;porijeklom iz Poljske;pochodzenia polskiego
+Nacije Osobine;strano podrijetlo;obce pochodzenie
+Nacije;nacionalna manjina;mniejszość narodowa
+Nacije Pridjevi;nacionalistički;nacjonalistyczny
+Nacije Mjesta;Njemačka;Niemcy
+Nacije Mjesta;Francuska;Francja
+Nacije Mjesta;Španjolska;Hiszpania
+Nacije Mjesta;Mađarska;Węgry
+Nacije Mjesta;Grčka;Grecja
+Nacije Mjesta;Poljska;Polska
+Nacije Mjesta;Finska;Finlandia
+Nacije Mjesta;Turska;Turcja
+Nacije Mjesta;Egipat;Egipt
+Nacije Mjesta;Indija;Indie
+Nacije Mjesta;Kina;Chiny
+Nacije Mjesta;Japan;Japonia
+Nacije Mjesta;Sjedinjene Američke Države;Stany Zjednoczone
+Nacije Mjesta;Ujedinjeno Kraljevstvo;Zjednoczone Królestwo
+Nacije Mjesta;Rusija;Rosja
+Nacije Mjesta;Ukrajina;Ukraina
+Nacije Mjesta;Češka;Czechy
+Nacije Mjesta;Slovačka;Słowacja
+Nacije Mjesta;Švicarska;Szwajcaria
+Nacije Osobine Imenice;Nijemac;Niemiec
+Nacije Osobine Imenice;Njemica;Niemka
+Nacije Osobine Imenice;Francuz;Francuz
+Nacije Osobine Imenice;Francuskinja;Francuzka
+Nacije Osobine Imenice;Španjolac;Hiszpan
+Nacije Osobine Imenice;Španjolka;Hiszpanka
+Nacije Osobine Imenice;Grk;Grek
+Nacije Osobine Imenice;Grkinja;Greczynka
+Nacije Osobine Imenice;Kinez;Chińczyk
+Nacije Osobine Imenice;Kineskinja;Chinka
+Nacije Osobine Imenice;Japanac;Japończyk
+Nacije Osobine Imenice;Japanka;Japonka
+Nacije Osobine Imenice;Rus;Rosjanin
+Nacije Osobine Imenice;Ruskinja;Rosjanka
+Nacije Osobine Imenice;Ukrajinac;Ukrainiec
+Nacije Osobine Imenice;Ukrajinka;Ukrainka
+Nacije Osobine Pridjevi;nizozemski;holenderski
+Nacije Osobine Pridjevi;malteški;maltański
+Nacije Osobine Pridjevi;gruzijski;gruziński
+Nacije Osobine Pridjevi;estonski;estoński
+Nacije Osobine Pridjevi;japanski;japoński
+Nacije Osobine Pridjevi;arapski;arabski
+Nacije Osobine Pridjevi;turski;turecki
+Nacije Osobine Pridjevi;bugarski;bułgarski
+Nacije Osobine Pridjevi;češki;czeski
+Nacije Osobine Pridjevi;mađarski;węgierski
+Nacije Osobine Pridjevi;finski;fiński
+Nacije Osobine Pridjevi;švedski;szwedzki
+Nacije Mjesta;Portugal;Portugalia
+Nacije Mjesta;Norveška;Norwegia
+Nacije Mjesta;Danska;Dania
+Nacije Mjesta;Litva;Litwa
+Nacije Mjesta;Island;Islandia
+Nacije Mjesta;Irska;Irlandia
+Nacije Mjesta;Belgija;Belgia
+Nacije Mjesta;Austrija;Austria
+Nacije Mjesta;Andora;Andora
+Nacije Mjesta;Lihtenštajn;Liechtenstein
+Nacije Osobine Imenice;Portugalac;Portugalczyk
+Nacije Osobine Imenice;Portugalka;Portugalka
+Nacije Osobine Imenice;Norvežanin;Norweg
+Nacije Osobine Imenice;Norvežanka;Norweżka
+Nacije Osobine Imenice;Danac;Duńczyk
+Nacije Osobine Imenice;Danka;Dunka
+Nacije Osobine Imenice;Litavac;Litwin
+Nacije Osobine Imenice;Litvanka;Litwinka
+Nacije Osobine Imenice;Latvijac;Łotysz
+Nacije Osobine Imenice;Latvijka;Łotyszka
+Nacije Osobine Imenice;Islanđanin;Islandczyk
+Nacije Osobine Imenice;Islanđanka;Islandka
+Nacije Mjesta;Nigerija;Nigeria
+Nacije Mjesta;Kenija;Kenia
+Nacije Mjesta;Južnoafrička Republika;Republika Południowej Afryki
+Nacije Mjesta;Etiopija;Etiopia
+Nacije Mjesta;Maroko;Maroko
+Nacije Mjesta;Alžir;Algieria
+Nacije Mjesta;Tunis;Tunezja
+Nacije Mjesta;Senegal;Senegal
+Nacije Osobine Imenice;Nigerijac;Nigeryjczyk
+Nacije Osobine Imenice;Nigerijka;Nigeryjka
+Nacije Osobine Imenice;Kenijac;Kenyjczyk
+Nacije Osobine Imenice;Kenijka;Kenyjka
+Nacije Osobine Imenice;Južnoafrikanac;Południowoafrykańczyk
+Nacije Osobine Imenice;Južnoafrikanka;Południowoafrykanka
+Nacije Osobine Imenice;Etiopljanin;Etiopczyk
+Nacije Osobine Imenice;Etiopljanka;Etiopka
+Nacije Mjesta;Tajland;Tajlandia
+Nacije Mjesta;Vijetnam;Wietnam
+Nacije Mjesta;Indonezija;Indonezja
+Nacije Mjesta;Malezija;Malezja
+Nacije Mjesta;Kazahstan;Kazachstan
+Nacije Mjesta;Izrael;Izrael
+Nacije Mjesta;Saudijska Arabija;Arabia Saudyjska
+Nacije Mjesta;Iran;Iran
+Nacije Osobine Imenice;Tajlanđanin;Taj
+Nacije Osobine Imenice;Tajlanđanka;Tajka
+Nacije Osobine Imenice;Vijetnamac;Wietnamczyk
+Nacije Osobine Imenice;Vijetnamka;Wietnamka
+Nacije Osobine Imenice;Indonežanin;Indonezyjczyk
+Nacije Osobine Imenice;Indonežanka;Indonezyjka
+Nacije Osobine Imenice;Kazahstanac;Kazach
+Nacije Osobine Imenice;Kazahstanka;Kazaszka
+Nacije Osobine Imenice;Izraelac;Izraelczyk
+Nacije Osobine Imenice;Izraelka;Izraelka
+Nacije Mjesta;Brazil;Brazylia
+Nacije Mjesta;Argentina;Argentyna
+Nacije Mjesta;Meksiko;Meksyk
+Nacije Mjesta;Kolumbija;Kolumbia
+Nacije Mjesta;Čile;Chile
+Nacije Mjesta;Peru;Peru
+Nacije Mjesta;Kuba;Kuba
+Nacije Mjesta;Kanada;Kanada
+Nacije Osobine Imenice;Brazilac;Brazylijczyk
+Nacije Osobine Imenice;Brazilka;Brazylijka
+Nacije Osobine Imenice;Argentinac;Argentyńczyk
+Nacije Osobine Imenice;Argentinka;Argentynka
+Nacije Osobine Imenice;Meksikanac;Meksykanin
+Nacije Osobine Imenice;Meksikanka;Meksykanka
+Nacije Osobine Imenice;Kolumbijac;Kolumbijczyk
+Nacije Osobine Imenice;Kolumbijka;Kolumbijka
+Nacije Osobine Pridjevi;hebrejski;hebrajski
+Nacije Osobine Pridjevi;malajski;malajski
+Nacije Osobine Pridjevi;tagalog;tagalski
+Nacije Osobine Pridjevi;suahili;suahili
+Nacije Osobine Pridjevi;amharski;amharski
+Nacije Osobine Pridjevi;persijski;perski
+Nacije Osobine Pridjevi;indonezijski;indonezyjski
+Nacije Osobine Pridjevi;vietnamski;wietnamski
+Nacije Osobine Pridjevi;thailandksi;tajski

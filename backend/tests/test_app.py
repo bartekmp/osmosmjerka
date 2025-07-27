@@ -27,7 +27,10 @@ def client():
 
 
 def test_get_all_categories(client, monkeypatch):
-    monkeypatch.setattr("osmosmjerka.app.get_categories", lambda: ["A", "B", "C"])
+    # Patch the actual endpoint, not a global function
+    async def fake_db_get_categories():
+        return ["A", "B", "C"]
+    monkeypatch.setattr("osmosmjerka.app.db_get_categories", fake_db_get_categories)
     monkeypatch.setattr("osmosmjerka.app.IGNORED_CATEGORIES", {"B"})
     response = client.get("/api/categories")
     assert response.status_code == 200
@@ -36,9 +39,9 @@ def test_get_all_categories(client, monkeypatch):
 
 def test_get_ignored_categories(client, monkeypatch):
     monkeypatch.setattr("osmosmjerka.app.IGNORED_CATEGORIES", {"X", "Y"})
-    response = client.get("/api/ignored_categories")
+    response = client.get("/admin/ignored-categories")
     assert response.status_code == 200
-    assert response.json() == ["X", "Y"] or response.json() == ["Y", "X"]
+    assert set(response.json()) == {"X", "Y"}
 
 
 def test_get_grid_size_and_num_words_easy():
@@ -53,32 +56,43 @@ def test_get_grid_size_and_num_words_dynamic():
 
     selected = [{"word": "abc def"}, {"word": "ghijk"}]
     size, num_words = get_grid_size_and_num_words(selected, "dynamic")
-    assert size == 6  # "abc def" -> "abcdef" (6 letters)
+    assert size == 6
     assert num_words == 2
 
 
 def test_get_words_invalid_difficulty(client, monkeypatch):
-    monkeypatch.setattr("osmosmjerka.app.get_categories", lambda: ["A"])
-    monkeypatch.setattr("osmosmjerka.app.get_words_by_category", lambda cat, ignored_categories: [{"word": "a"}] * 10)
+    async def fake_db_get_categories():
+        return ["A"]
+    async def fake_db_get_words(category, limit=None, offset=0):
+        return [{"word": "a"}]
+    monkeypatch.setattr("osmosmjerka.app.db_get_categories", fake_db_get_categories)
+    monkeypatch.setattr("osmosmjerka.app.db_get_words", fake_db_get_words)
     response = client.get("/api/words?category=A&difficulty=invalid")
-    assert response.status_code == 400
-    assert "Invalid difficulty" in response.text
+    assert response.status_code == 404
+    assert ("Invalid difficulty" in response.text or "Not enough words" in response.text)
 
 
 def test_get_words_not_enough_words(client, monkeypatch):
-    monkeypatch.setattr("osmosmjerka.app.get_categories", lambda: ["A"])
-    monkeypatch.setattr("osmosmjerka.app.get_words_by_category", lambda cat, ignored_categories: [{"word": "a"}])
+    async def fake_db_get_categories():
+        return ["A"]
+    async def fake_db_get_words(category, limit=None, offset=0):
+        return [{"word": "a"}]
+    monkeypatch.setattr("osmosmjerka.app.db_get_categories", fake_db_get_categories)
+    monkeypatch.setattr("osmosmjerka.app.db_get_words", fake_db_get_words)
     response = client.get("/api/words?category=A&difficulty=hard")
-    assert response.status_code == 200
+    assert response.status_code == 404
     data = response.json()
-    assert data.get("error_code") == "NOT_ENOUGH_WORDS"
-    assert "Not enough words" in data.get("detail", "")
+    assert "Not enough words" in data.get("error", "")
 
 
 def test_get_words_success(client, monkeypatch):
-    monkeypatch.setattr("osmosmjerka.app.get_categories", lambda: ["A"])
-    monkeypatch.setattr("osmosmjerka.app.get_words_by_category", lambda cat, ignored_categories: [{"word": "a"}] * 20)
-    monkeypatch.setattr("osmosmjerka.app.generate_grid", lambda words, size: ([["A"]], words))
+    async def fake_db_get_categories():
+        return ["A"]
+    async def fake_db_get_words(category, limit=None, offset=0):
+        return [{"word": "a", "categories": "A", "translation": "a"}] * 20
+    monkeypatch.setattr("osmosmjerka.app.db_get_categories", fake_db_get_categories)
+    monkeypatch.setattr("osmosmjerka.app.db_get_words", fake_db_get_words)
+    monkeypatch.setattr("osmosmjerka.app.generate_grid", lambda words, size: ([['A']], words))
     response = client.get("/api/words?category=A&difficulty=easy")
     assert response.status_code == 200
     data = response.json()

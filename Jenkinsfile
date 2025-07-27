@@ -18,6 +18,11 @@ pipeline {
         ADMIN_USERNAME = credentials('osmosmjerka-admin-username')
         ADMIN_PASSWORD_HASH = credentials('osmosmjerka-admin-password-hash')
         ADMIN_SECRET_KEY = credentials('osmosmjerka-admin-secret-key')
+        POSTGRES_DATABASE = "${env.OSMOSMJERKA_POSTGRES_DATABASE}"
+        POSTGRES_HOST = "${env.OSMOSMJERKA_POSTGRES_HOST}"
+        POSTGRES_PORT = "${env.OSMOSMJERKA_POSTGRES_PORT}"
+        POSTGRES_USER = credentials('osmosmjerka-db-user')
+        POSTGRES_PASSWORD = credentials('osmosmjerka-db-password')
 
         DEPLOY_TO_ARGOCD_PARAM = "${params.DEPLOY_TO_ARGOCD.toString()}"
         SKIP_IMAGE_PUSH_PARAM = "${params.SKIP_IMAGE_PUSH.toString()}"
@@ -236,6 +241,11 @@ ADMIN_USERNAME=${env.ADMIN_USERNAME}
 ADMIN_PASSWORD_HASH=${env.ADMIN_PASSWORD_HASH}
 ADMIN_SECRET_KEY=${env.ADMIN_SECRET_KEY}
 IGNORED_CATEGORIES=${env.IGNORED_CATEGORIES}
+POSTGRES_HOST=${env.POSTGRES_HOST}
+POSTGRES_PORT=${env.POSTGRES_PORT}
+POSTGRES_USER=${env.POSTGRES_USER}
+POSTGRES_PASSWORD=${env.POSTGRES_PASSWORD}
+POSTGRES_DATABASE=${env.POSTGRES_DATABASE}
 """.stripIndent()
                 }
             }
