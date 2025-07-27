@@ -13,7 +13,7 @@ RUN npm install && npm run build
 
 FROM python:3.13-slim
 LABEL maintainer="bartekmp"
-LABEL description="Dockerfile for a Python backend with a Node.js frontend wordsearch game app called Osmosmjerka."
+LABEL description="Dockerfile for a Python backend with a Node.js frontend wordsearch game app called Osmosmjerka with PostgreSQL."
 
 WORKDIR /app
 COPY --from=backend /app/backend /app/backend/

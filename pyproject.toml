@@ -13,6 +13,12 @@ dependencies = [
     "python-jose[cryptography]",
     "python-multipart",
     "uvicorn",
+    "reportlab",
+    "pillow",
+    "asyncpg",
+    "databases[postgresql]",
+    "sqlalchemy",
+    "psycopg2-binary"
 ]
 
 [project.optional-dependencies]

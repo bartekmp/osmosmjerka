@@ -13,11 +13,11 @@ Each word includes translation into another language, making it an excellent too
 ![Osmosmjerka game](docs/assets/osmosmjerka-game.gif)
 
 ## How it works
-Osmosmjerka consists of three layers - a frontend app in [React](https://react.dev/), a [FastAPI](https://fastapi.tiangolo.com/)-based HTTP server and a [SQLite](https://sqlite.org/) database.
+Osmosmjerka consists of three layers - a frontend app in [React](https://react.dev/), a [Flask](https://flask.palletsprojects.com/en/stable/)-based HTTP server and a [PostgreSQL](https://www.postgresql.org/) database.
 The web app communicates with the server, which pulls data from the database and returns it via HTTP requests to the frontend.
-The database consists of a single table called `words`, with three columns: `categories`, `word`, and `translation`.
-You can provide your own sets of words either by inserting them directly to the database (under `db/words.db` path) or using the *Upload Words* functionality on the admin page. The supported file formats are `.txt` and `.csv`, with the expected format: `<categories>;<word>;<translation>`.
-Words should have at least 3 characters to ensure playability - shorter words are automatically filtered out by the API.
+The database so far is expected to have a single table called `words`, which consists of three self-explaining columns `categories`, `word` and `translation`.
+You need to provide your own sets of words, either by inserting them directly to the database or use the *Upload Words* functionality on the admin page. The supported file formats are `.txt` and `.csv`, and the expected single-line format is `<categories>;<word>;<translation>`.
+The words should have at least 3 characters, since less is going to make the hell of a game to find in a grid, however, the API will filter them out automatically.
 
 ## The game
 The player needs to find a words shown on the word list in the displayed grid. The words can be found vertically, horizontally, diagonally and with the reversed order of letters.
@@ -44,7 +44,7 @@ Your progress is automatically saved and restored when you return to the game. T
 Click on the Osmosmjerka logo to cycle through different bright colors - a fun easter egg that adds visual variety to the interface.
 
 **Export Functionality**
-Export the current puzzle to `.docx` format using the Export button. This allows you to print or share puzzles offline.
+Export the current puzzle to `.docx`, `.pdf` or `.png` format using the Export button. This allows you to print or share puzzles offline.
 
 **Enhanced Word Finding**
 - Click on words in the word list to highlight them briefly in the grid
@@ -101,21 +101,20 @@ python3 -c "import bcrypt; import getpass; pwd=getpass.getpass('Password: ').enc
 cp .env.example .env
 ```
 3. Set the variables in the `.env` file. 
-The `ADMIN_` variables are used as the credentials to the administrator's page (the hash must be made with [bcrypt](https://github.com/pyca/bcrypt) `hashpw` and the secret is any string of your choice).
-The ignored categories allows you to filter out entries of certain categories from your database you don't want to be used in the game.
-1. Create the `db` directory, for the purpose of mounting it to the container.
-2. Build the Docker image using:
+The `ADMIN_` variables are used as the credentials to the administrator's page (the hash must be made with [bcrypt](https://github.com/pyca/bcrypt) `hashpw` and the secret is any string of your choice). The ignored categories allows you to filter out entries of certain categories from your database you don't want to be used in the game.
+4. Deploy your PostgreSQL in K8s using the [example](/helpers/k8s-postgres.yaml) YAML or use your own existing instance. Create the database and user account, then fill the `POSTGRES_` variables in the `.env` file. The table will be created upon the first connection.
+5. Build the Docker image using:
 ```bash
 docker build -t osmosmjerka --build-arg VERSION=v1.0.0 .
 ```
-1. Start the app, exposing the `8085` port and mounting the `db` directory:
+6. Start the app, exposing the `8085` port:
 ```bash
-docker run --rm -d -p 8085:8085 --name osmosmjerka -v ./db/:/app/db/ osmosmjerka
+docker run --rm -d -p 8085:8085 --name osmosmjerka osmosmjerka
 ```
-1. Access the app in your browser at `http://<the host ip>:8085`.
+7. Access the app in your browser at `http://<the host ip>:8085`.
 
 ## Example words database
-You might use my Croatian-Polish word database as an example placed in the `example` folder.
+You might use my Croatian-Polish word database as an example placed in the `example` folder. Import it in the admin dashboard using "Upload words" button.
 
 ## HTTPS
 The API server ([`uvicorn`](https://www.uvicorn.org/)) supports SSL. If you're not using Nginx or other tech, you might continue using `uvicorn` with HTTPS, making use of self-signed certificate or issued by [Let's Encrypt](https://letsencrypt.org/). 
@@ -140,10 +139,10 @@ As this is self-signed, the browser will show you dreadful warnings when accessi
 ## Planned features and fixes
 - Multi-language support for the interface
 - Enhanced visual effects and animations
-- Integration with [Anki](https://apps.ankiweb.net/) for vocabulary learning
-- Move to PostgreSQL for better performance and scaling
+- Add support for multiple words tables for more than one language
+- Robust visual effects and responsiveness across various devices
+- Integration with [Anki](https://apps.ankiweb.net/)
 - API optimization and potential load balancing
-- Additional export formats (PDF, image)
 - Code quality improvements and testing coverage
 
 # License
