@@ -2,6 +2,15 @@
 
 <!-- version list -->
 
+## v1.5.0 (2025-07-28)
+
+### Feature
+
+- Move to postgresql, add new export formats - pdf and png
+  ([#34](https://github.com/bartekmp/osmosmjerka/pull/34),
+  [`888912c`](https://github.com/bartekmp/osmosmjerka/commit/888912c823c956b16b2942f62f8ad5c9c9acc9d2))
+
+
 ## v1.4.1 (2025-07-26)
 
 ### Bug Fixes
