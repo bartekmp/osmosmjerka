@@ -3,25 +3,23 @@ import random
 from contextlib import asynccontextmanager
 
 import bcrypt
-from fastapi import Body, Depends, FastAPI, File, Query, Request, UploadFile, status, HTTPException
+from fastapi import Body, Depends, FastAPI, File, HTTPException, Query, Request, UploadFile, status
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import FileResponse, JSONResponse, StreamingResponse
 from fastapi.staticfiles import StaticFiles
+from starlette.concurrency import run_in_threadpool
 
 from osmosmjerka.auth import PASSWORD_HASH, USERNAME, create_access_token, get_current_user
-from osmosmjerka.database import (
-    connect_db,
-    disconnect_db,
-    create_tables,
-    get_words as db_get_words,
-    get_word_count,
-    add_word as db_add_word,
-    update_word as db_update_word,
-    delete_word as db_delete_word,
-    clear_all_words,
-    get_categories as db_get_categories,
-    IGNORED_CATEGORIES,
-)
+from osmosmjerka.database import IGNORED_CATEGORIES
+from osmosmjerka.database import add_word as db_add_word
+from osmosmjerka.database import clear_all_words, connect_db, create_tables
+from osmosmjerka.database import delete_word as db_delete_word
+from osmosmjerka.database import disconnect_db
+from osmosmjerka.database import fast_bulk_insert_words
+from osmosmjerka.database import get_categories as db_get_categories
+from osmosmjerka.database import get_word_count
+from osmosmjerka.database import get_words as db_get_words
+from osmosmjerka.database import update_word as db_update_word
 from osmosmjerka.grid_generator import generate_grid
 from osmosmjerka.utils import export_to_docx, export_to_pdf, export_to_png
 
@@ -112,12 +110,11 @@ async def upload(file: UploadFile = File(...), user=Depends(get_current_user)) -
             )
 
     if words_data:
-        from osmosmjerka.database import bulk_insert_words
-
-        await bulk_insert_words(words_data)
+        # Use fast bulk insert for large uploads
+        await run_in_threadpool(fast_bulk_insert_words, words_data)
         return JSONResponse({"message": f"Uploaded {len(words_data)} words"}, status_code=status.HTTP_201_CREATED)
     else:
-        return JSONResponse({"message": "No valid data found"}, status_code=status.HTTP_400_BAD_REQUEST)
+        return JSONResponse({"message": "Upload failed"}, status_code=status.HTTP_400_BAD_REQUEST)
 
 
 @app.get("/api/categories")
@@ -236,6 +233,7 @@ async def login(username: str = Body(...), password: str = Body(...)) -> JSONRes
 
 
 @app.get("/admin/ignored-categories")
+@app.get("/api/ignored-categories")
 def get_ignored_categories() -> JSONResponse:
     return JSONResponse(sorted(list(IGNORED_CATEGORIES)))
 

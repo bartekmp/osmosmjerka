@@ -99,7 +99,7 @@ function AppContent() {
     }, []);
 
     useEffect(() => {
-        axios.get('/api/ignored_categories').then(res => {
+        axios.get('/api/ignored-categories').then(res => {
             setIgnoredCategories(res.data);
         }).catch(err => {
             console.error('Error loading ignored categories:', err);

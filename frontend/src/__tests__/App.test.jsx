@@ -12,7 +12,7 @@ afterEach(() => {
 
 test('renders admin link', async () => {
     axios.get.mockImplementation((url) => {
-        if (url.startsWith('/api/ignored_categories')) {
+        if (url.startsWith('/api/ignored-categories')) {
             return Promise.resolve({ data: [] });
         }
         if (url.startsWith('/api/categories')) {
@@ -69,7 +69,7 @@ test('renders category selector', async () => {
 
 test('renders reload button', async () => {
     axios.get.mockImplementation((url) => {
-        if (url.startsWith('/api/ignored_categories')) {
+        if (url.startsWith('/api/ignored-categories')) {
             return Promise.resolve({ data: [] });
         }
         if (url.startsWith('/api/categories')) {
