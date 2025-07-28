@@ -2,6 +2,14 @@
 
 <!-- version list -->
 
+## v1.5.1 (2025-07-28)
+
+### Enhancement
+
+- Freeze requirements
+  ([`9dd3ca1`](https://github.com/bartekmp/osmosmjerka/commit/9dd3ca12d16cad4d6d2d0a578bac613b0e9955af))
+
+
 ## v1.5.0 (2025-07-28)
 
 ### Feature
