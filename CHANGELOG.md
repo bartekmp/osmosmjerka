@@ -2,6 +2,14 @@
 
 <!-- version list -->
 
+## v1.7.0 (2025-07-28)
+
+### Feature
+
+- Add user profile management and login ([#38](https://github.com/bartekmp/osmosmjerka/pull/38),
+  [`de84f25`](https://github.com/bartekmp/osmosmjerka/commit/de84f25483e8d5fb53da46a9132a60d5e8a99d61))
+
+
 ## v1.6.2 (2025-07-28)
 
 ### Bug Fixes
