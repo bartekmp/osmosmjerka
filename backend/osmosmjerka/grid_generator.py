@@ -58,7 +58,8 @@ def generate_grid(words: list, size: int | None = None) -> tuple[list, list]:
 
     for orig_word, trans in word_pairs:
         word_nospaces = orig_word.replace(" ", "").upper()
-        word_len = len(word_nospaces)
+        word_normalized = normalize_word(word_nospaces)
+        word_len = len(word_normalized)
         # Skip words that are longer than the grid size
         if word_len > size:
             continue
@@ -81,10 +82,10 @@ def generate_grid(words: list, size: int | None = None) -> tuple[list, list]:
                     # Generate the coordinates for the word
                     coords = [(row + dr * i, col + dc * i) for i in range(word_len)]
                     # Check if the word can be placed (no conflicts)
-                    if all(grid[r][c] in ("", word_nospaces[i]) for i, (r, c) in enumerate(coords)):
+                    if all(grid[r][c] in ("", word_normalized[i]) for i, (r, c) in enumerate(coords)):
                         # Place the word in the grid
                         for i, (r, c) in enumerate(coords):
-                            grid[r][c] = word_nospaces[i]
+                            grid[r][c] = word_normalized[i]
                         # Add the word and its translation to the placed words list
                         placed_words.append({"word": orig_word, "translation": trans, "coords": coords})
                         placed_word = True
