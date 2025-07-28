@@ -73,3 +73,60 @@ def test_export_to_docx_words_with_special_characters(tmp_path):
     assert "Ö" in doc.tables[0].cell(0, 1).text
     assert "Ü" in doc.tables[0].cell(1, 0).text
     assert "ß" in doc.tables[0].cell(1, 1).text
+
+
+def test_export_to_png_valid_input(tmp_path):
+    from osmosmjerka.utils import export_to_png
+
+    category = "Animals"
+    grid = [["C", "A", "T"], ["D", "O", "G"], ["F", "O", "X"]]
+    words = [
+        {"word": "cat", "translation": "kot"},
+        {"word": "dog", "translation": "pies"},
+        {"word": "fox", "translation": "lis"},
+    ]
+    png_bytes = export_to_png(category, grid, words)
+    assert isinstance(png_bytes, bytes)
+    png_file = tmp_path / "test.png"
+    png_file.write_bytes(png_bytes)
+    from PIL import Image
+
+    img = Image.open(str(png_file))
+    assert img.format == "PNG"
+
+
+def test_export_to_png_empty_words():
+    from osmosmjerka.utils import export_to_png
+
+    category = "Test"
+    grid = [["A"]]
+    with pytest.raises(ValueError):
+        export_to_png(category, grid, [])
+
+
+def test_export_to_pdf_valid_input(tmp_path):
+    from osmosmjerka.utils import export_to_pdf
+
+    category = "Animals"
+    grid = [["C", "A", "T"], ["D", "O", "G"], ["F", "O", "X"]]
+    words = [
+        {"word": "cat", "translation": "kot"},
+        {"word": "dog", "translation": "pies"},
+        {"word": "fox", "translation": "lis"},
+    ]
+    pdf_bytes = export_to_pdf(category, grid, words)
+    assert isinstance(pdf_bytes, bytes)
+    pdf_file = tmp_path / "test.pdf"
+    pdf_file.write_bytes(pdf_bytes)
+    with open(str(pdf_file), "rb") as f:
+        header = f.read(4)
+    assert header == b"%PDF"
+
+
+def test_export_to_pdf_empty_words():
+    from osmosmjerka.utils import export_to_pdf
+
+    category = "Test"
+    grid = [["A"]]
+    with pytest.raises(ValueError):
+        export_to_pdf(category, grid, [])
