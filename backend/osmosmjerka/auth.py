@@ -7,7 +7,7 @@ from dotenv import load_dotenv
 from fastapi import Depends, HTTPException, Request
 from jose import JWTError, jwt
 
-from osmosmjerka.database import get_account_by_username, update_last_login
+from osmosmjerka.database import db_manager
 
 load_dotenv()
 
@@ -49,10 +49,10 @@ async def authenticate_user(username: str, password: str) -> dict | None:
             }
     
     # Check database users
-    account = await get_account_by_username(username)
+    account = await db_manager.get_account_by_username(username)
     if account and account.get("is_active", False):
         if bcrypt.checkpw(password.encode("utf-8"), account["password_hash"].encode("utf-8")):
-            await update_last_login(username)
+            await db_manager.update_last_login(username)
             return {
                 "username": account["username"],
                 "role": account["role"],

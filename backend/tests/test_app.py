@@ -27,10 +27,10 @@ def client():
 
 
 def test_get_all_categories(client, monkeypatch):
-    # Patch the actual endpoint, not a global function
-    async def fake_db_get_categories():
+    # Patch the db_manager method, not a global function
+    async def fake_get_categories(*args, **kwargs):
         return ["A", "B", "C"]
-    monkeypatch.setattr("osmosmjerka.app.db_get_categories", fake_db_get_categories)
+    monkeypatch.setattr("osmosmjerka.database.db_manager.get_categories", fake_get_categories)
     monkeypatch.setattr("osmosmjerka.app.IGNORED_CATEGORIES", {"B"})
     response = client.get("/api/categories")
     assert response.status_code == 200
@@ -65,8 +65,8 @@ def test_get_words_invalid_difficulty(client, monkeypatch):
         return ["A"]
     async def fake_db_get_words(category, limit=None, offset=0):
         return [{"word": "a"}]
-    monkeypatch.setattr("osmosmjerka.app.db_get_categories", fake_db_get_categories)
-    monkeypatch.setattr("osmosmjerka.app.db_get_words", fake_db_get_words)
+    monkeypatch.setattr("osmosmjerka.database.db_manager.get_categories", fake_db_get_categories)
+    monkeypatch.setattr("osmosmjerka.database.db_manager.get_words", fake_db_get_words)
     response = client.get("/api/words?category=A&difficulty=invalid")
     assert response.status_code == 404
     assert ("Invalid difficulty" in response.text or "Not enough words" in response.text)
@@ -77,8 +77,8 @@ def test_get_words_not_enough_words(client, monkeypatch):
         return ["A"]
     async def fake_db_get_words(category, limit=None, offset=0):
         return [{"word": "a"}]
-    monkeypatch.setattr("osmosmjerka.app.db_get_categories", fake_db_get_categories)
-    monkeypatch.setattr("osmosmjerka.app.db_get_words", fake_db_get_words)
+    monkeypatch.setattr("osmosmjerka.database.db_manager.get_categories", fake_db_get_categories)
+    monkeypatch.setattr("osmosmjerka.database.db_manager.get_words", fake_db_get_words)
     response = client.get("/api/words?category=A&difficulty=hard")
     assert response.status_code == 404
     data = response.json()
@@ -90,9 +90,9 @@ def test_get_words_success(client, monkeypatch):
         return ["A"]
     async def fake_db_get_words(category, limit=None, offset=0):
         return [{"word": "a", "categories": "A", "translation": "a"}] * 20
-    monkeypatch.setattr("osmosmjerka.app.db_get_categories", fake_db_get_categories)
-    monkeypatch.setattr("osmosmjerka.app.db_get_words", fake_db_get_words)
-    monkeypatch.setattr("osmosmjerka.app.generate_grid", lambda words, size: ([['A']], words))
+    monkeypatch.setattr("osmosmjerka.database.db_manager.get_categories", fake_db_get_categories)
+    monkeypatch.setattr("osmosmjerka.database.db_manager.get_words", fake_db_get_words)
+    monkeypatch.setattr("osmosmjerka.app.generate_grid", lambda words, size: ([["A"]], words))
     response = client.get("/api/words?category=A&difficulty=easy")
     assert response.status_code == 200
     data = response.json()
