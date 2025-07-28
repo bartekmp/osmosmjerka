@@ -2,6 +2,14 @@
 
 <!-- version list -->
 
+## v1.7.3 (2025-07-29)
+
+### Bug Fixes
+
+- Root admin account verification
+  ([`21686cb`](https://github.com/bartekmp/osmosmjerka/commit/21686cb0032deb2c1fcd935cb753aee38eca15fc))
+
+
 ## v1.7.2 (2025-07-29)
 
 ### Bug Fixes
