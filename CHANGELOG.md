@@ -2,6 +2,14 @@
 
 <!-- version list -->
 
+## v1.5.2 (2025-07-28)
+
+### Enhancement
+
+- Add unit tests for pdf and png exports
+  ([`b938018`](https://github.com/bartekmp/osmosmjerka/commit/b9380186db65db08c8c3b4cc919c63772ad218c8))
+
+
 ## v1.5.1 (2025-07-28)
 
 ### Enhancement
