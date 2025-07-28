@@ -2,6 +2,16 @@
 
 <!-- version list -->
 
+## v1.6.0 (2025-07-28)
+
+### Feature
+
+- Display progress circles for uploading and clearing database, improve file upload performance,
+  resolve minor issues with category filtering and index reset
+  ([#35](https://github.com/bartekmp/osmosmjerka/pull/35),
+  [`447e027`](https://github.com/bartekmp/osmosmjerka/commit/447e0277f7b19f51b93b58b5b0956e85f4718b7c))
+
+
 ## v1.5.2 (2025-07-28)
 
 ### Enhancement
