@@ -2,6 +2,14 @@
 
 <!-- version list -->
 
+## v1.6.1 (2025-07-28)
+
+### Bug Fixes
+
+- Normalize words before generating grids ([#36](https://github.com/bartekmp/osmosmjerka/pull/36),
+  [`0f53abb`](https://github.com/bartekmp/osmosmjerka/commit/0f53abbbb5b0ad6d42a4d9f4c1f492135a858f19))
+
+
 ## v1.6.0 (2025-07-28)
 
 ### Feature
