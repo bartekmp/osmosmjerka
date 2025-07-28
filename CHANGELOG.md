@@ -2,6 +2,14 @@
 
 <!-- version list -->
 
+## v1.7.2 (2025-07-29)
+
+### Bug Fixes
+
+- Ensure the root admin account exists ([#40](https://github.com/bartekmp/osmosmjerka/pull/40),
+  [`7d2a9ad`](https://github.com/bartekmp/osmosmjerka/commit/7d2a9ad7014e2cdb3f934ec1cbd3325009b0ce7c))
+
+
 ## v1.7.1 (2025-07-29)
 
 ### Enhancement
