@@ -61,7 +61,7 @@ def create_tables():
 
 
 # Database operations
-async def get_words(category: Optional[str] = None, limit: Optional[int] = None, offset: int = 0):
+async def get_words(category: Optional[str] = None, limit: Optional[int] = None, offset: int = 0) -> list[dict]:
     """Get words from database with optional filtering"""
     query = select(words_table)
     if category:
@@ -69,10 +69,26 @@ async def get_words(category: Optional[str] = None, limit: Optional[int] = None,
     if limit:
         query = query.limit(limit).offset(offset)
     result = await database.fetch_all(query)
-    return [dict(row) for row in result]
+    row_list = []
+    for row in result:
+        # Convert row to dict for easier access
+        row = dict(row)
+        # Skip words shorter than 3 characters
+        if len(str(row["word"]).strip()) < 3:
+            continue
+        # Remove ignored categories
+        cats_set = set(row["categories"].split())
+        cats_set = cats_set.difference(IGNORED_CATEGORIES)
+        # Skip if no valid categories left
+        if not cats_set:
+            continue
+
+        row["categories"] = " ".join(sorted(cats_set))
+        row_list.append(row)
+    return row_list
 
 
-async def get_word_count(category: Optional[str] = None):
+async def get_word_count(category: Optional[str] = None) -> int:
     """Get total count of words"""
     from sqlalchemy import func
 
@@ -109,27 +125,29 @@ async def delete_word(word_id: int):
 
 
 async def clear_all_words():
-    """Clear all words from the database"""
+    """Clear all words from the database and reset id sequence"""
     query = delete(words_table)
-    result = await database.execute(query)
-    return result
+    await database.execute(query)
+    # Reset the id sequence so new rows start from 1
+    await database.execute("ALTER SEQUENCE words_id_seq RESTART WITH 1;")
 
 
-async def get_categories():
+async def get_categories() -> list[str]:
     """Get all unique categories"""
     query = select(words_table.c.categories)
     result = await database.fetch_all(query)
     categories = set()
     for row in result:
-        cats = row["categories"].split(",")
+        cats = row["categories"].split()
         for cat in cats:
-            categories.add(cat.strip())
+            if cat not in IGNORED_CATEGORIES:
+                categories.add(cat.strip())
     return sorted(list(categories))
 
 
-async def bulk_insert_words(words_data):
-    """Bulk insert words for migration"""
+def fast_bulk_insert_words(words_data):
+    """Fast bulk insert using SQLAlchemy engine (synchronous, for large uploads)"""
     if not words_data:
         return
-    query = insert(words_table)
-    await database.execute_many(query, words_data)
+    with engine.begin() as conn:
+        conn.execute(insert(words_table), words_data)

@@ -12,8 +12,13 @@ import {
     MenuItem,
     TextField,
     Paper,
-    Stack
+    Stack,
+    CircularProgress,
+    Snackbar,
+    Alert,
+    IconButton
 } from '@mui/material';
+import CloseIcon from '@mui/icons-material/Close';
 import UploadForm from '../UploadForm';
 import './AdminPanel.css';
 import AdminTable from './AdminTable';
@@ -36,6 +41,13 @@ export default function AdminPanel() {
     const [totalRows, setTotalRows] = useState(0);
     const [offsetInput, setOffsetInput] = useState(0);
     const [token, setToken] = useState(localStorage.getItem('adminToken') || '');
+    const [clearLoading, setClearLoading] = useState(false);
+    const [clearNotification, setClearNotification] = useState({
+        open: false,
+        message: '',
+        severity: 'success',
+        autoHideDuration: 3000,
+    });
 
     const {
         fetchRows,
@@ -117,12 +129,46 @@ export default function AdminPanel() {
         handleDelete(id, () => fetchRows(offset, limit, filterCategory));
     };
 
-    // Handle clear database with confirmation
+    // Handle clear database with confirmation and notification
     const handleClearDb = () => {
         if (window.confirm("Are you sure you want to delete ALL data? This action cannot be undone!")) {
-            clearDb(() => fetchRows(offset, limit, filterCategory));
+            setClearLoading(true);
+            setClearNotification((n) => ({ ...n, open: false }));
+            const token = localStorage.getItem('adminToken');
+            const headers = token ? { Authorization: 'Bearer ' + token } : {};
+            fetch('/admin/clear', { method: 'DELETE', headers })
+                .then(async res => {
+                    const data = await res.json();
+                    if (res.ok) {
+                        setClearNotification({
+                            open: true,
+                            message: data.message || 'Database cleared',
+                            severity: 'success',
+                            autoHideDuration: 3000,
+                        });
+                        fetchRows(offset, limit, filterCategory);
+                    } else {
+                        setClearNotification({
+                            open: true,
+                            message: data.message || 'Failed to clear database',
+                            severity: 'error',
+                            autoHideDuration: null,
+                        });
+                    }
+                })
+                .catch(() => {
+                    setClearNotification({
+                        open: true,
+                        message: 'Failed to clear database',
+                        severity: 'error',
+                        autoHideDuration: null,
+                    });
+                })
+                .finally(() => setClearLoading(false));
         }
     };
+
+    const handleClearClose = () => setClearNotification((n) => ({ ...n, open: false }));
 
     // Logout handler
     const handleLogout = () => {
@@ -323,6 +369,8 @@ export default function AdminPanel() {
                                     bgcolor: 'error.dark',
                                 }
                             }}
+                            disabled={clearLoading}
+                            startIcon={clearLoading ? <CircularProgress size={20} color="inherit" /> : null}
                         >
                             <span style={{ marginRight: '4px' }}>🗑️</span>
                             <Box component="span" sx={{ display: { xs: 'none', sm: 'inline' } }}>
@@ -332,6 +380,24 @@ export default function AdminPanel() {
                                 Clear
                             </Box>
                         </Button>
+                        <Snackbar
+                            open={clearNotification.open}
+                            autoHideDuration={clearNotification.severity === 'success' ? clearNotification.autoHideDuration : null}
+                            onClose={handleClearClose}
+                            anchorOrigin={{ vertical: 'top', horizontal: 'center' }}
+                        >
+                            <Alert
+                                severity={clearNotification.severity}
+                                action={
+                                    <IconButton size="small" color="inherit" onClick={handleClearClose}>
+                                        <CloseIcon fontSize="small" />
+                                    </IconButton>
+                                }
+                                onClose={handleClearClose}
+                            >
+                                {clearNotification.message}
+                            </Alert>
+                        </Snackbar>
                     </Grid>
                 </Grid>
             </Paper>
