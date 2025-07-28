@@ -2,6 +2,15 @@
 
 <!-- version list -->
 
+## v1.6.2 (2025-07-28)
+
+### Bug Fixes
+
+- Words normalization is now performed in the right place
+  ([#37](https://github.com/bartekmp/osmosmjerka/pull/37),
+  [`898770e`](https://github.com/bartekmp/osmosmjerka/commit/898770e86756a38d74f2c988ad86fe8319c037a1))
+
+
 ## v1.6.1 (2025-07-28)
 
 ### Bug Fixes
