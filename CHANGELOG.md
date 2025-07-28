@@ -2,6 +2,15 @@
 
 <!-- version list -->
 
+## v1.7.1 (2025-07-29)
+
+### Enhancement
+
+- Create db manager for easier maintenance, use github actions to run unit tests
+  ([#39](https://github.com/bartekmp/osmosmjerka/pull/39),
+  [`13b8596`](https://github.com/bartekmp/osmosmjerka/commit/13b85968667b40b7066c1dbaf8efaa84d9449925))
+
+
 ## v1.7.0 (2025-07-28)
 
 ### Feature
