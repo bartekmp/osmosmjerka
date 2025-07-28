@@ -1,6 +1,6 @@
 import pytest
 
-from osmosmjerka.grid_generator import generate_grid
+from osmosmjerka.grid_generator import generate_grid, normalize_word
 
 
 def test_empty_words():
@@ -89,3 +89,27 @@ def test_translation_is_preserved():
     words = [{"word": "APPLE", "translation": "JABŁKO"}]
     _, placed = generate_grid(words)
     assert placed[0]["translation"] == "JABŁKO"
+
+
+def test_normalize_word_basic():
+    assert normalize_word("hello") == "HELLO"
+    assert normalize_word("Hello World") == "HELLOWORLD"
+    assert normalize_word("Hello-World") == "HELLO-WORLD"
+    assert normalize_word("Hello, World!") == "HELLOWORLD"
+    assert normalize_word("-Hello-") == "HELLO"
+    assert normalize_word("--Hello--") == "HELLO"
+
+
+def test_normalize_word_croatian():
+    assert normalize_word("čćžšđ") == "ČĆŽŠĐ"
+    assert normalize_word("Čaša-Đak!") == "ČAŠA-ĐAK"
+    assert normalize_word("prijatelj!") == "PRIJATELJ"
+    assert normalize_word("životinja, pas!") == "ŽIVOTINJAPAS"
+    assert normalize_word("-čćžšđ-") == "ČĆŽŠĐ"
+
+
+def test_normalize_word_mixed():
+    assert normalize_word("A-b_c!č") == "A-BCČ"
+    assert normalize_word("123-abc-ČĆ") == "ABC-ČĆ"
+    assert normalize_word("!@#-čćž-") == "ČĆŽ"
+    assert normalize_word("") == ""

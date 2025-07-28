@@ -61,7 +61,7 @@ def create_tables():
 
 
 # Database operations
-async def get_words(category: Optional[str] = None, limit: Optional[int] = None, offset: int = 0) -> list[dict]:
+async def get_words(category: Optional[str] = None, limit: Optional[int] = None, offset: int = 0) -> list[dict[str, str]]:
     """Get words from database with optional filtering"""
     query = select(words_table)
     if category:

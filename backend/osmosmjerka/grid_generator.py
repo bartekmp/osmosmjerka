@@ -1,6 +1,23 @@
 import random
 
 
+def normalize_word(word: str) -> str:
+    """
+    Normalize a word by removing spaces, punctuation, and converting to uppercase.
+    Only alphabetic characters (any language) and hyphens are kept, but the result cannot begin or end with a hyphen.
+    Args:
+        word (str): The word to normalize.
+    Returns:
+        str: The normalized word.
+    """
+    # Keep only alphabetic (any language) and hyphens
+    result = ''.join(
+        c.upper() for c in word if c.isalpha() or c == '-'
+    )
+    # Remove leading/trailing hyphens
+    return result.strip('-')
+
+
 def generate_grid(words: list, size: int | None = None) -> tuple[list, list]:
     """
     Generate a word search grid with the given words and size.

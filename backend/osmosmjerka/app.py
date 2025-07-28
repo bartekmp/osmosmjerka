@@ -14,13 +14,12 @@ from osmosmjerka.database import IGNORED_CATEGORIES
 from osmosmjerka.database import add_word as db_add_word
 from osmosmjerka.database import clear_all_words, connect_db, create_tables
 from osmosmjerka.database import delete_word as db_delete_word
-from osmosmjerka.database import disconnect_db
-from osmosmjerka.database import fast_bulk_insert_words
+from osmosmjerka.database import disconnect_db, fast_bulk_insert_words
 from osmosmjerka.database import get_categories as db_get_categories
 from osmosmjerka.database import get_word_count
 from osmosmjerka.database import get_words as db_get_words
 from osmosmjerka.database import update_word as db_update_word
-from osmosmjerka.grid_generator import generate_grid
+from osmosmjerka.grid_generator import generate_grid, normalize_word
 from osmosmjerka.utils import export_to_docx, export_to_pdf, export_to_png
 
 # List of API endpoints that should be ignored for the SPA routing
@@ -126,8 +125,6 @@ async def get_all_categories() -> JSONResponse:
 
 def get_grid_size_and_num_words(selected: list, difficulty: str) -> tuple:
     """Get grid size and number of words based on difficulty and available words."""
-    available_words = len(selected)
-
     if difficulty == "easy":
         grid_size = 10
         num_words = 7
@@ -184,7 +181,10 @@ async def get_words(category: str | None = None, difficulty: str = "medium") -> 
     else:
         random.shuffle(selected)
 
-    grid, placed_words = generate_grid(selected, grid_size)
+    # Normalize words before generating the grid
+    normalized_selected = [{**w, "word": normalize_word(w["word"])} for w in selected]
+
+    grid, placed_words = generate_grid(normalized_selected, grid_size)
 
     return JSONResponse({"grid": grid, "words": placed_words, "category": category})
 
