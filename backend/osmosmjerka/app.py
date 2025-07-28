@@ -1,5 +1,7 @@
 import io
+import logging
 import random
+import re
 from contextlib import asynccontextmanager
 
 import bcrypt
@@ -9,7 +11,15 @@ from fastapi.responses import FileResponse, JSONResponse, StreamingResponse
 from fastapi.staticfiles import StaticFiles
 from starlette.concurrency import run_in_threadpool
 
-from osmosmjerka.auth import authenticate_user, create_access_token, get_current_user, require_admin_access, require_root_admin
+from osmosmjerka.auth import (
+    ROOT_ADMIN_PASSWORD_HASH,
+    ROOT_ADMIN_USERNAME,
+    authenticate_user,
+    create_access_token,
+    get_current_user,
+    require_admin_access,
+    require_root_admin,
+)
 from osmosmjerka.database import IGNORED_CATEGORIES, db_manager
 from osmosmjerka.grid_generator import generate_grid, normalize_word
 from osmosmjerka.utils import export_to_docx, export_to_pdf, export_to_png
@@ -17,13 +27,36 @@ from osmosmjerka.utils import export_to_docx, export_to_pdf, export_to_png
 # List of API endpoints that should be ignored for the SPA routing
 API_ENDPOINTS = ["api/", "admin/"]
 
+
 # Initialize the FastAPI application
+def ensure_root_admin_account():
+    async def _ensure():
+        if ROOT_ADMIN_USERNAME and ROOT_ADMIN_PASSWORD_HASH:
+            existing = await db_manager.get_account_by_username(ROOT_ADMIN_USERNAME)
+            if not existing:
+                await db_manager.create_account(
+                    username=ROOT_ADMIN_USERNAME,
+                    password_hash=ROOT_ADMIN_PASSWORD_HASH,
+                    role="root_admin",
+                    self_description="Root admin account",
+                )
+            elif existing["password_hash"] != ROOT_ADMIN_PASSWORD_HASH:
+                logging.warning(
+                    "Root admin password hash in DB differs from ADMIN_PASSWORD_HASH env var. Updating password hash for root admin!"
+                )
+                await db_manager.update_account(existing["id"], password_hash=ROOT_ADMIN_PASSWORD_HASH)
+
+    return _ensure
+
+
 @asynccontextmanager
 async def lifespan(_: FastAPI):
     await db_manager.connect()
     db_manager.create_tables()
+    await ensure_root_admin_account()()
     yield
     await db_manager.disconnect()
+
 
 app = FastAPI(lifespan=lifespan)
 
@@ -39,9 +72,11 @@ app.add_middleware(
 # Serve static files at /static
 app.mount("/static", StaticFiles(directory="static", html=True), name="static")
 
+
 @app.get("/admin/status")
 def admin_status(user=Depends(require_admin_access)) -> JSONResponse:
     return JSONResponse({"status": "ok", "user": user}, status_code=status.HTTP_200_OK)
+
 
 @app.get("/admin/rows")
 async def get_all_rows(
@@ -54,25 +89,30 @@ async def get_all_rows(
     total = await db_manager.get_word_count(category)
     return {"rows": rows, "total": total}
 
+
 @app.post("/admin/row")
 async def add_row(row: dict, user=Depends(require_admin_access)) -> JSONResponse:
     await db_manager.add_word(row["categories"], row["word"], row["translation"])
     return JSONResponse({"message": "Row added"}, status_code=status.HTTP_201_CREATED)
+
 
 @app.put("/admin/row/{id}")
 async def update_row(id: int, row: dict, user=Depends(require_admin_access)) -> JSONResponse:
     await db_manager.update_word(id, row["categories"], row["word"], row["translation"])
     return JSONResponse({"message": "Row updated"}, status_code=status.HTTP_200_OK)
 
+
 @app.delete("/admin/row/{id}")
 async def delete_row(id: int, user=Depends(require_admin_access)) -> JSONResponse:
     await db_manager.delete_word(id)
     return JSONResponse({"message": "Row deleted"}, status_code=status.HTTP_200_OK)
 
+
 @app.delete("/admin/clear")
 async def clear_db(user=Depends(require_admin_access)) -> JSONResponse:
     await db_manager.clear_all_words()
     return JSONResponse({"message": "Database cleared"}, status_code=status.HTTP_200_OK)
+
 
 @app.post("/admin/upload")
 async def upload(file: UploadFile = File(...), user=Depends(require_admin_access)) -> JSONResponse:
@@ -91,6 +131,7 @@ async def upload(file: UploadFile = File(...), user=Depends(require_admin_access
         return JSONResponse({"message": f"Uploaded {len(words_data)} words"}, status_code=status.HTTP_201_CREATED)
     else:
         return JSONResponse({"message": "Upload failed"}, status_code=status.HTTP_400_BAD_REQUEST)
+
 
 @app.get("/api/categories")
 async def get_all_categories() -> JSONResponse:
@@ -181,8 +222,6 @@ async def export_puzzle(
             media_type = "application/vnd.openxmlformats-officedocument.wordprocessingml.document"
             extension = "docx"
 
-        import re
-
         safe_category = re.sub(r"[^a-z0-9]+", "_", (category or "wordsearch").lower())
         filename = f"wordsearch-{safe_category}.{extension}"
 
@@ -199,19 +238,14 @@ async def export_puzzle(
 async def login(username: str = Body(...), password: str = Body(...)) -> JSONResponse:
     user = await authenticate_user(username, password)
     if user:
-        token = create_access_token(data={
-            "sub": user["username"],
-            "role": user["role"],
-            "user_id": user["id"]
-        })
-        return JSONResponse({
-            "access_token": token,
-            "token_type": "bearer",
-            "user": {
-                "username": user["username"],
-                "role": user["role"]
+        token = create_access_token(data={"sub": user["username"], "role": user["role"], "user_id": user["id"]})
+        return JSONResponse(
+            {
+                "access_token": token,
+                "token_type": "bearer",
+                "user": {"username": user["username"], "role": user["role"]},
             }
-        })
+        )
     return JSONResponse({"error": "Invalid credentials"}, status_code=status.HTTP_401_UNAUTHORIZED)
 
 
@@ -241,14 +275,11 @@ async def export_data(category: str = Query(None), user=Depends(require_admin_ac
 
 # User Management Endpoints (Root Admin Only)
 @app.get("/admin/users")
-async def get_users(
-    offset: int = 0,
-    limit: int = 20,
-    user=Depends(require_root_admin)
-) -> dict:
+async def get_users(offset: int = 0, limit: int = 20, user=Depends(require_root_admin)) -> dict:
     accounts = await db_manager.get_accounts(offset, limit)
     total = await db_manager.get_account_count()
     return {"users": accounts, "total": total}
+
 
 @app.get("/admin/users/{user_id}")
 async def get_user(user_id: int, user=Depends(require_root_admin)) -> JSONResponse:
@@ -257,15 +288,16 @@ async def get_user(user_id: int, user=Depends(require_root_admin)) -> JSONRespon
         return JSONResponse({"error": "User not found"}, status_code=status.HTTP_404_NOT_FOUND)
     return JSONResponse(account)
 
+
 @app.post("/admin/users")
 async def create_user(
     username: str = Body(...),
     password: str = Body(...),
     role: str = Body("regular"),
     self_description: str = Body(""),
-    user=Depends(require_root_admin)
+    user=Depends(require_root_admin),
 ) -> JSONResponse:
-    import bcrypt
+
     if role not in ["regular", "administrative"]:
         return JSONResponse({"error": "Invalid role"}, status_code=status.HTTP_400_BAD_REQUEST)
     existing_user = await db_manager.get_account_by_username(username)
@@ -275,13 +307,14 @@ async def create_user(
     user_id = await db_manager.create_account(username, password_hash, role, self_description)
     return JSONResponse({"message": "User created", "user_id": user_id}, status_code=status.HTTP_201_CREATED)
 
+
 @app.put("/admin/users/{user_id}")
 async def update_user(
     user_id: int,
     role: str = Body(None),
     self_description: str = Body(None),
     is_active: bool = Body(None),
-    user=Depends(require_root_admin)
+    user=Depends(require_root_admin),
 ) -> JSONResponse:
     if role and role not in ["regular", "administrative"]:
         return JSONResponse({"error": "Invalid role"}, status_code=status.HTTP_400_BAD_REQUEST)
@@ -299,6 +332,7 @@ async def update_user(
         await db_manager.update_account(user_id, **update_data)
     return JSONResponse({"message": "User updated"}, status_code=status.HTTP_200_OK)
 
+
 @app.delete("/admin/users/{user_id}")
 async def delete_user(user_id: int, user=Depends(require_root_admin)) -> JSONResponse:
     existing_user = await db_manager.get_account_by_id(user_id)
@@ -307,13 +341,11 @@ async def delete_user(user_id: int, user=Depends(require_root_admin)) -> JSONRes
     await db_manager.delete_account(user_id)
     return JSONResponse({"message": "User deleted"}, status_code=status.HTTP_200_OK)
 
+
 @app.post("/admin/users/{user_id}/reset-password")
 async def reset_user_password(
-    user_id: int,
-    new_password: str = Body(...),
-    user=Depends(require_root_admin)
+    user_id: int, new_password: str = Body(...), user=Depends(require_root_admin)
 ) -> JSONResponse:
-    import bcrypt
     existing_user = await db_manager.get_account_by_id(user_id)
     if not existing_user:
         return JSONResponse({"error": "User not found"}, status_code=status.HTTP_404_NOT_FOUND)
@@ -328,66 +360,60 @@ async def get_profile(user=Depends(get_current_user)) -> JSONResponse:
     """Get current user's profile"""
     if user["role"] == "root_admin":
         # Root admin doesn't have a database record
-        return JSONResponse({
-            "username": user["username"],
-            "role": user["role"],
-            "self_description": "Root Administrator"
-        })
-    
+        return JSONResponse(
+            {"username": user["username"], "role": user["role"], "self_description": "Root Administrator"}
+        )
+
     account = await db_manager.get_account_by_id(user["id"])
     if not account:
         return JSONResponse({"error": "User not found"}, status_code=status.HTTP_404_NOT_FOUND)
-    
+
     return JSONResponse(account)
 
 
 @app.put("/admin/profile")
-async def update_profile(
-    self_description: str = Body(None),
-    user=Depends(get_current_user)
-) -> JSONResponse:
+async def update_profile(self_description: str = Body(None), user=Depends(get_current_user)) -> JSONResponse:
     """Update current user's profile"""
     if user["role"] == "root_admin":
         return JSONResponse({"error": "Root admin profile cannot be updated"}, status_code=status.HTTP_400_BAD_REQUEST)
-    
+
     update_data = {}
     if self_description is not None:
         update_data["self_description"] = self_description
-    
+
     if update_data:
         await db_manager.update_account(user["id"], **update_data)
-    
+
     return JSONResponse({"message": "Profile updated"}, status_code=status.HTTP_200_OK)
 
 
 @app.post("/admin/change-password")
 async def change_password(
-    current_password: str = Body(...),
-    new_password: str = Body(...),
-    user=Depends(get_current_user)
+    current_password: str = Body(...), new_password: str = Body(...), user=Depends(get_current_user)
 ) -> JSONResponse:
     """Change current user's password"""
-    import bcrypt
-    
     if user["role"] == "root_admin":
-        return JSONResponse({"error": "Root admin password cannot be changed via API"}, status_code=status.HTTP_400_BAD_REQUEST)
-    
+        return JSONResponse(
+            {"error": "Root admin password cannot be changed via API"}, status_code=status.HTTP_400_BAD_REQUEST
+        )
+
     # Get current user account
     account = await db_manager.get_account_by_username(user["username"])
     if not account:
         return JSONResponse({"error": "User not found"}, status_code=status.HTTP_404_NOT_FOUND)
-    
+
     # Verify current password
     if not bcrypt.checkpw(current_password.encode("utf-8"), account["password_hash"].encode("utf-8")):
         return JSONResponse({"error": "Current password is incorrect"}, status_code=status.HTTP_400_BAD_REQUEST)
-    
+
     # Hash new password
     new_password_hash = bcrypt.hashpw(new_password.encode("utf-8"), bcrypt.gensalt()).decode("utf-8")
-    
+
     # Update password
     await db_manager.update_account(user["id"], password_hash=new_password_hash)
-    
+
     return JSONResponse({"message": "Password changed successfully"}, status_code=status.HTTP_200_OK)
+
 
 # Serve the SPA for all non-API routes
 @app.get("/{path:path}")
