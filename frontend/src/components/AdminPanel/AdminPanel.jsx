@@ -23,6 +23,8 @@ import UploadForm from '../UploadForm';
 import './AdminPanel.css';
 import AdminTable from './AdminTable';
 import EditRowForm from './EditRowForm';
+import UserManagement from './UserManagement';
+import UserProfile from './UserProfile';
 import { isTokenExpired } from './helpers';
 import PaginationControls from './PaginationControls';
 import { useAdminApi } from './useAdminApi';
@@ -36,6 +38,9 @@ export default function AdminPanel() {
     const [error, setError] = useState("");
     const [isLogged, setIsLogged] = useState(false);
     const [dashboard, setDashboard] = useState(true);
+    const [userManagement, setUserManagement] = useState(false);
+    const [userProfile, setUserProfile] = useState(false);
+    const [currentUser, setCurrentUser] = useState(null);
     const [categories, setCategories] = useState([]);
     const [filterCategory, setFilterCategory] = useState('');
     const [totalRows, setTotalRows] = useState(0);
@@ -108,7 +113,11 @@ export default function AdminPanel() {
             })
                 .then(res => {
                     if (!res.ok) throw new Error("Unauthorized or server error");
+                    return res.json();
+                })
+                .then(data => {
                     setIsLogged(true);
+                    setCurrentUser(data.user);
                 })
                 .catch(() => {
                     setIsLogged(false);
@@ -175,6 +184,10 @@ export default function AdminPanel() {
         setToken('');
         localStorage.removeItem('adminToken');
         setIsLogged(false);
+        setCurrentUser(null);
+        setDashboard(true);
+        setUserManagement(false);
+        setUserProfile(false);
     };
 
     if (!isLogged) {
@@ -191,7 +204,7 @@ export default function AdminPanel() {
                     </Typography>
                     <Box 
                         component="form" 
-                        onSubmit={e => { e.preventDefault(); handleLogin(auth, setError); }}
+                        onSubmit={e => { e.preventDefault(); handleLogin(auth, setError, setCurrentUser); }}
                         sx={{ mt: 3 }}
                     >
                         <Stack spacing={3}>
@@ -247,12 +260,37 @@ export default function AdminPanel() {
                     <Typography variant="h4" component="h2" gutterBottom align="center">
                         Admin Dashboard
                     </Typography>
+                    <Typography variant="body1" align="center" sx={{ mb: 3 }}>
+                        Welcome, {currentUser?.username} ({currentUser?.role})
+                    </Typography>
                     <Box sx={{ display: 'flex', gap: 2, justifyContent: 'center', flexWrap: 'wrap', mt: 3 }}>
                         <Button 
-                            onClick={() => fetchRows(offset, limit, filterCategory)} 
+                            onClick={() => setDashboard(false)} 
                             variant="contained"
                         >
                             Load Data
+                        </Button>
+                        {currentUser?.role === 'root_admin' && (
+                            <Button 
+                                onClick={() => {
+                                    setDashboard(false);
+                                    setUserManagement(true);
+                                }} 
+                                variant="contained"
+                                color="secondary"
+                            >
+                                User Management
+                            </Button>
+                        )}
+                        <Button 
+                            onClick={() => {
+                                setDashboard(false);
+                                setUserProfile(true);
+                            }} 
+                            variant="contained"
+                            color="info"
+                        >
+                            Profile
                         </Button>
                     </Box>
                     {error && (
@@ -260,6 +298,68 @@ export default function AdminPanel() {
                             <Typography color="error.contrastText">{error}</Typography>
                         </Box>
                     )}
+                </Paper>
+            </Container>
+        );
+    }
+
+    // User Management View
+    if (userManagement) {
+        return (
+            <Container maxWidth="xl" sx={{ py: 4 }}>
+                <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 3 }}>
+                    <Button component={Link} to="/" variant="outlined">
+                        ← Back to Game
+                    </Button>
+                    <Box sx={{ display: 'flex', gap: 2 }}>
+                        <Button 
+                            onClick={() => {
+                                setUserManagement(false);
+                                setDashboard(true);
+                            }} 
+                            variant="outlined"
+                        >
+                            ← Dashboard
+                        </Button>
+                        <Button onClick={handleLogout} variant="outlined" color="secondary">
+                            Logout
+                        </Button>
+                    </Box>
+                </Box>
+                
+                <Paper sx={{ p: 3 }}>
+                    <UserManagement currentUser={currentUser} />
+                </Paper>
+            </Container>
+        );
+    }
+
+    // User Profile View
+    if (userProfile) {
+        return (
+            <Container maxWidth="md" sx={{ py: 4 }}>
+                <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 3 }}>
+                    <Button component={Link} to="/" variant="outlined">
+                        ← Back to Game
+                    </Button>
+                    <Box sx={{ display: 'flex', gap: 2 }}>
+                        <Button 
+                            onClick={() => {
+                                setUserProfile(false);
+                                setDashboard(true);
+                            }} 
+                            variant="outlined"
+                        >
+                            ← Dashboard
+                        </Button>
+                        <Button onClick={handleLogout} variant="outlined" color="secondary">
+                            Logout
+                        </Button>
+                    </Box>
+                </Box>
+                
+                <Paper sx={{ p: 3 }}>
+                    <UserProfile currentUser={currentUser} />
                 </Paper>
             </Container>
         );
@@ -399,6 +499,28 @@ export default function AdminPanel() {
                             </Alert>
                         </Snackbar>
                     </Grid>
+                    {currentUser?.role === 'root_admin' && (
+                        <Grid item xs={6} sm={4} md={2}>
+                            <Button 
+                                fullWidth
+                                onClick={() => {
+                                    setUserManagement(true);
+                                    setDashboard(false);
+                                }}
+                                variant="contained"
+                                color="secondary"
+                                size="small"
+                            >
+                                <span style={{ marginRight: '4px' }}>👥</span>
+                                <Box component="span" sx={{ display: { xs: 'none', sm: 'inline' } }}>
+                                    Users
+                                </Box>
+                                <Box component="span" sx={{ display: { xs: 'inline', sm: 'none' } }}>
+                                    Users
+                                </Box>
+                            </Button>
+                        </Grid>
+                    )}
                 </Grid>
             </Paper>
 

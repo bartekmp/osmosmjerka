@@ -25,7 +25,7 @@ export function useAdminApi({ token, setRows, setTotalRows, setDashboard, setErr
             });
     }, [authHeader, setRows, setTotalRows, setDashboard, setError]);
 
-    const handleLogin = useCallback((auth, setError) => {
+    const handleLogin = useCallback((auth, setError, setCurrentUser) => {
         fetch(`/admin/login`, {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
@@ -37,6 +37,7 @@ export function useAdminApi({ token, setRows, setTotalRows, setDashboard, setErr
                     setToken(data.access_token);
                     localStorage.setItem('adminToken', data.access_token);
                     setIsLogged(true);
+                    setCurrentUser(data.user);
                     setError("");
                 } else {
                     setError(data.detail || "Login failed");

@@ -29,8 +29,8 @@ def test_create_access_token_and_verify(monkeypatch):
     data = {"sub": "admin"}
     token = auth_mod.create_access_token(data)
     assert isinstance(token, str)
-    # Should verify and return username
-    assert auth_mod.verify_token(token) == "admin"
+    # Should verify and return user dict
+    assert auth_mod.verify_token(token) == {"id": 0, "role": "", "username": "admin"}
 
 
 def test_create_access_token_missing_secret(monkeypatch):
@@ -67,9 +67,8 @@ def test_verify_token_wrong_user(monkeypatch):
     token = jwt.encode(
         {"sub": "notadmin", "exp": datetime.now(timezone.utc) + timedelta(minutes=5)}, "testsecret", algorithm="HS256"
     )
-    with pytest.raises(HTTPException) as exc:
-        auth_mod.verify_token(token)
-    assert exc.value.status_code == 401
+    # Should return user dict for any username
+    assert auth_mod.verify_token(token) == {"id": 0, "role": "", "username": "notadmin"}
 
 
 def test_get_current_user_success(monkeypatch):
@@ -82,7 +81,7 @@ def test_get_current_user_success(monkeypatch):
     importlib.reload(auth_mod)
     token = auth_mod.create_access_token({"sub": "admin"})
     req = DummyRequest(f"Bearer {token}")
-    assert auth_mod.get_current_user(req) == "admin"
+    assert auth_mod.get_current_user(req) == {"id": 0, "role": "", "username": "admin"}
 
 
 def test_get_current_user_missing_header(monkeypatch):
