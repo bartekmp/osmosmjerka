@@ -181,10 +181,7 @@ async def get_words(category: str | None = None, difficulty: str = "medium") -> 
     else:
         random.shuffle(selected)
 
-    # Normalize words before generating the grid
-    normalized_selected = [{**w, "word": normalize_word(w["word"])} for w in selected]
-
-    grid, placed_words = generate_grid(normalized_selected, grid_size)
+    grid, placed_words = generate_grid(selected, grid_size)
 
     return JSONResponse({"grid": grid, "words": placed_words, "category": category})
 
