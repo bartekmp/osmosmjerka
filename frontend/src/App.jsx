@@ -5,6 +5,8 @@ import { Link, Route, Routes, useLocation } from 'react-router-dom';
 import { ThemeProvider as MUIThemeProvider, CssBaseline, Button } from '@mui/material';
 import { Container, Box, Typography, Stack, FormControl, InputLabel, Select, MenuItem, CircularProgress } from '@mui/material';
 import AdminPanel from './components/AdminPanel/AdminPanel';
+import UserManagement from './components/AdminPanel/UserManagement';
+import UserProfile from './components/AdminPanel/UserProfile';
 import CategorySelector from './components/CategorySelector';
 import ExportButton from './components/ExportButton';
 import ScrabbleGrid from './components/Grid/Grid';
@@ -303,6 +305,8 @@ function AppContent() {
 
                 <Routes>
                     <Route path="/admin" element={<AdminPanel />} />
+                    <Route path="/admin/users" element={<UserManagement />} />
+                    <Route path="/admin/profile" element={<UserProfile />} />
                     <Route path="/" element={
                         <Stack spacing={3} alignItems="center">
                             {/* Header with night mode button positioned at top right on mobile when menu is open */}

@@ -1,8 +1,8 @@
 import os
 from typing import Optional
 from databases import Database
-from sqlalchemy import create_engine, MetaData, Table, Column, Integer, String
-from sqlalchemy.sql import select, insert, update, delete
+from sqlalchemy import create_engine, MetaData, Table, Column, Integer, String, Text, Boolean, DateTime
+from sqlalchemy.sql import select, insert, update, delete, func
 from dotenv import load_dotenv
 import urllib.parse
 
@@ -37,6 +37,21 @@ words_table = Table(
     Column("categories", String, nullable=False),
     Column("word", String, nullable=False),
     Column("translation", String, nullable=False),
+)
+
+# Define the accounts table for user management
+accounts_table = Table(
+    "accounts",
+    metadata,
+    Column("id", Integer, primary_key=True, index=True),
+    Column("username", String, nullable=False, unique=True),
+    Column("password_hash", String, nullable=False),
+    Column("role", String, nullable=False, default="regular"),  # root_admin, administrative, regular
+    Column("self_description", Text),
+    Column("created_at", DateTime, nullable=False, server_default=func.now()),
+    Column("updated_at", DateTime, nullable=False, server_default=func.now()),
+    Column("is_active", Boolean, nullable=False, default=True),
+    Column("last_login", DateTime),
 )
 
 # SQLAlchemy engine for table creation
@@ -90,8 +105,6 @@ async def get_words(category: Optional[str] = None, limit: Optional[int] = None,
 
 async def get_word_count(category: Optional[str] = None) -> int:
     """Get total count of words"""
-    from sqlalchemy import func
-
     query = select(func.count(words_table.c.id))
     if category:
         query = query.where(words_table.c.categories.like(f"%{category}%"))
@@ -151,3 +164,87 @@ def fast_bulk_insert_words(words_data):
         return
     with engine.begin() as conn:
         conn.execute(insert(words_table), words_data)
+
+
+# Account management operations
+async def get_accounts(offset: int = 0, limit: int = 50) -> list[dict]:
+    """Get all user accounts (excluding password hash)"""
+    query = select(
+        accounts_table.c.id,
+        accounts_table.c.username,
+        accounts_table.c.role,
+        accounts_table.c.self_description,
+        accounts_table.c.created_at,
+        accounts_table.c.updated_at,
+        accounts_table.c.is_active,
+        accounts_table.c.last_login
+    ).limit(limit).offset(offset)
+    result = await database.fetch_all(query)
+    return [dict(row) for row in result]
+
+
+async def get_account_by_username(username: str) -> dict | None:
+    """Get account by username (including password hash for authentication)"""
+    query = select(accounts_table).where(accounts_table.c.username == username)
+    result = await database.fetch_one(query)
+    return dict(result) if result else None
+
+
+async def get_account_by_id(account_id: int) -> dict | None:
+    """Get account by ID (excluding password hash)"""
+    query = select(
+        accounts_table.c.id,
+        accounts_table.c.username,
+        accounts_table.c.role,
+        accounts_table.c.self_description,
+        accounts_table.c.created_at,
+        accounts_table.c.updated_at,
+        accounts_table.c.is_active,
+        accounts_table.c.last_login
+    ).where(accounts_table.c.id == account_id)
+    result = await database.fetch_one(query)
+    return dict(result) if result else None
+
+
+async def create_account(username: str, password_hash: str, role: str = "regular", self_description: str = "") -> int:
+    """Create a new user account"""
+    query = insert(accounts_table).values(
+        username=username,
+        password_hash=password_hash,
+        role=role,
+        self_description=self_description,
+        is_active=True
+    )
+    result = await database.execute(query)
+    return result
+
+
+async def update_account(account_id: int, **kwargs) -> int:
+    """Update user account fields"""
+    # Remove None values and ensure updated_at is set
+    update_data = {k: v for k, v in kwargs.items() if v is not None}
+    update_data['updated_at'] = func.now()
+    
+    query = update(accounts_table).where(accounts_table.c.id == account_id).values(**update_data)
+    result = await database.execute(query)
+    return result
+
+
+async def delete_account(account_id: int) -> int:
+    """Delete a user account"""
+    query = delete(accounts_table).where(accounts_table.c.id == account_id)
+    result = await database.execute(query)
+    return result
+
+
+async def update_last_login(username: str) -> None:
+    """Update the last login timestamp for a user"""
+    query = update(accounts_table).where(accounts_table.c.username == username).values(last_login=func.now())
+    await database.execute(query)
+
+
+async def get_account_count() -> int:
+    """Get total count of accounts"""
+    query = select(func.count(accounts_table.c.id))
+    result = await database.fetch_one(query)
+    return result[0] if result else 0
