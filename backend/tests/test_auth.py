@@ -30,7 +30,7 @@ def test_create_access_token_and_verify(monkeypatch):
     token = auth_mod.create_access_token(data)
     assert isinstance(token, str)
     # Should verify and return user dict
-    assert auth_mod.verify_token(token) == {"id": 0, "role": "", "username": "admin"}
+    assert auth_mod.verify_token(token) == {"id": 0, "role": "root_admin", "username": "admin"}
 
 
 def test_create_access_token_missing_secret(monkeypatch):
@@ -63,15 +63,16 @@ def test_verify_token_wrong_user(monkeypatch):
     import osmosmjerka.auth as auth_mod
 
     importlib.reload(auth_mod)
-    # Create token with wrong username
+    # Create token with wrong username and explicit role/user_id
     token = jwt.encode(
-        {"sub": "notadmin", "exp": datetime.now(timezone.utc) + timedelta(minutes=5)}, "testsecret", algorithm="HS256"
+        {"sub": "notadmin", "role": "user", "user_id": 123, "exp": datetime.now(timezone.utc) + timedelta(minutes=5)}, "testsecret", algorithm="HS256"
     )
     # Should return user dict for any username
-    assert auth_mod.verify_token(token) == {"id": 0, "role": "", "username": "notadmin"}
+    assert auth_mod.verify_token(token) == {"id": 123, "role": "user", "username": "notadmin"}
 
 
-def test_get_current_user_success(monkeypatch):
+@pytest.mark.asyncio
+async def test_get_current_user_success(monkeypatch):
     monkeypatch.setenv("ADMIN_SECRET_KEY", "testsecret")
     monkeypatch.setenv("ADMIN_USERNAME", "admin")
     import importlib
@@ -81,10 +82,12 @@ def test_get_current_user_success(monkeypatch):
     importlib.reload(auth_mod)
     token = auth_mod.create_access_token({"sub": "admin"})
     req = DummyRequest(f"Bearer {token}")
-    assert auth_mod.get_current_user(req) == {"id": 0, "role": "", "username": "admin"}
+    result = await auth_mod.get_current_user(req)
+    assert result == {"id": 0, "role": "root_admin", "username": "admin"}
 
 
-def test_get_current_user_missing_header(monkeypatch):
+@pytest.mark.asyncio
+async def test_get_current_user_missing_header(monkeypatch):
     monkeypatch.setenv("ADMIN_SECRET_KEY", "testsecret")
     monkeypatch.setenv("ADMIN_USERNAME", "admin")
     import importlib
@@ -94,11 +97,12 @@ def test_get_current_user_missing_header(monkeypatch):
     importlib.reload(auth_mod)
     req = DummyRequest("")
     with pytest.raises(HTTPException) as exc:
-        auth_mod.get_current_user(req)
+        await auth_mod.get_current_user(req)
     assert exc.value.status_code == 401
 
 
-def test_get_current_user_invalid_prefix(monkeypatch):
+@pytest.mark.asyncio
+async def test_get_current_user_invalid_prefix(monkeypatch):
     monkeypatch.setenv("ADMIN_SECRET_KEY", "testsecret")
     monkeypatch.setenv("ADMIN_USERNAME", "admin")
     import importlib
@@ -109,5 +113,5 @@ def test_get_current_user_invalid_prefix(monkeypatch):
     token = auth_mod.create_access_token({"sub": "admin"})
     req = DummyRequest(f"Token {token}")
     with pytest.raises(HTTPException) as exc:
-        auth_mod.get_current_user(req)
+        await auth_mod.get_current_user(req)
     assert exc.value.status_code == 401

@@ -21,7 +21,7 @@ from osmosmjerka.auth import (
     require_root_admin,
 )
 from osmosmjerka.database import IGNORED_CATEGORIES, db_manager
-from osmosmjerka.grid_generator import generate_grid, normalize_word
+from osmosmjerka.grid_generator import generate_grid
 from osmosmjerka.utils import export_to_docx, export_to_pdf, export_to_png
 
 # List of API endpoints that should be ignored for the SPA routing
@@ -39,6 +39,7 @@ def ensure_root_admin_account():
                     password_hash=ROOT_ADMIN_PASSWORD_HASH,
                     role="root_admin",
                     self_description="Root admin account",
+                    id=0 # Special ID for root admin
                 )
             elif existing["password_hash"] != ROOT_ADMIN_PASSWORD_HASH:
                 logging.warning(

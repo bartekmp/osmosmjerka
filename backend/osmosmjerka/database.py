@@ -206,15 +206,18 @@ class DatabaseManager:
         result = await database.fetch_one(query)
         return dict(result) if result else None
     
-    async def create_account(self, username: str, password_hash: str, role: str = "regular", self_description: str = "") -> int:
+    async def create_account(self, username: str, password_hash: str, role: str = "regular", self_description: str = "", id: Optional[int] = None) -> int:
         database = self._ensure_database()
-        query = insert(accounts_table).values(
-            username=username,
-            password_hash=password_hash,
-            role=role,
-            self_description=self_description,
-            is_active=True
-        )
+        values = {
+            "username": username,
+            "password_hash": password_hash,
+            "role": role,
+            "self_description": self_description,
+            "is_active": True
+        }
+        if id is not None and role == "root_admin":
+            values["id"] = id
+        query = insert(accounts_table).values(**values)
         result = await database.execute(query)
         return result
     
