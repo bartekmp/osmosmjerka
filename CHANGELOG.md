@@ -2,6 +2,18 @@
 
 <!-- version list -->
 
+## v1.8.1 (2025-07-29)
+
+### Bug Fixes
+
+- Frontend semantic version, reformat code, minor fixes
+  ([#42](https://github.com/bartekmp/osmosmjerka/pull/42),
+  [`ca5ca35`](https://github.com/bartekmp/osmosmjerka/commit/ca5ca350f7cc21b1ab6e92a9c5a2e98cb353e2be))
+
+- Missing escape character in jenkinsfile
+  ([`db69595`](https://github.com/bartekmp/osmosmjerka/commit/db69595fba19ff5abd1cbf91398c6fe4869bb558))
+
+
 ## v1.8.0 (2025-07-29)
 
 ### Feature
