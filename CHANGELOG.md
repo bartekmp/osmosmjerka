@@ -2,6 +2,15 @@
 
 <!-- version list -->
 
+## v1.8.0 (2025-07-29)
+
+### Feature
+
+- Root user handling improvements and night mode button uniform placement
+  ([#41](https://github.com/bartekmp/osmosmjerka/pull/41),
+  [`90e4942`](https://github.com/bartekmp/osmosmjerka/commit/90e49422f4d4e90f2dd0f490664459f418dd7b1c))
+
+
 ## v1.7.3 (2025-07-29)
 
 ### Bug Fixes
