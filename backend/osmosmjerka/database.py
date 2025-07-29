@@ -1,10 +1,12 @@
+import datetime
 import os
-from typing import Optional
-from databases import Database
-from sqlalchemy import create_engine, MetaData, Table, Column, Integer, String, Text, Boolean, DateTime
-from sqlalchemy.sql import select, insert, update, delete, func
-from dotenv import load_dotenv
 import urllib.parse
+from typing import Any, Optional
+
+from databases import Database
+from dotenv import load_dotenv
+from sqlalchemy import Boolean, Column, DateTime, Integer, MetaData, String, Table, Text, create_engine
+from sqlalchemy.sql import delete, func, insert, select, update
 
 # Load environment variables
 load_dotenv()
@@ -39,12 +41,23 @@ accounts_table = Table(
 IGNORED_CATEGORIES_STR = os.getenv("IGNORED_CATEGORIES", "")
 IGNORED_CATEGORIES = set(cat.strip() for cat in IGNORED_CATEGORIES_STR.split(",") if cat.strip())
 
+
 class DatabaseManager:
     """Database manager class that encapsulates all database operations"""
+
     def __init__(self, database_url: Optional[str] = None):
         self._database_url = database_url
         self.database = None
         self.engine = None
+
+    def _serialize_datetimes(self, dict_obj) -> dict:
+        serialized_dict = {}
+        for k, v in dict_obj.items():
+            if isinstance(v, datetime.datetime):
+                serialized_dict[k] = v.isoformat()
+            else:
+                serialized_dict[k] = v
+        return serialized_dict
 
     def _ensure_database(self):
         if self.database is None:
@@ -88,7 +101,9 @@ class DatabaseManager:
         if self.engine:
             metadata.create_all(bind=self.engine)
 
-    async def get_words(self, category: Optional[str] = None, limit: Optional[int] = None, offset: int = 0) -> list[dict[str, str]]:
+    async def get_words(
+        self, category: Optional[str] = None, limit: Optional[int] = None, offset: int = 0
+    ) -> list[dict[str, str]]:
         database = self._ensure_database()
         query = select(words_table)
         if category:
@@ -113,7 +128,7 @@ class DatabaseManager:
             row["categories"] = " ".join(sorted(cats_set))
             row_list.append(row)
         return row_list
-    
+
     async def get_word_count(self, category: Optional[str] = None) -> int:
         database = self._ensure_database()
         query = select(func.count(words_table.c.id))
@@ -121,13 +136,13 @@ class DatabaseManager:
             query = query.where(words_table.c.categories.like(f"%{category}%"))
         result = await database.fetch_one(query)
         return result[0] if result else 0
-    
+
     async def add_word(self, categories: str, word: str, translation: str):
         database = self._ensure_database()
         query = insert(words_table).values(categories=categories, word=word, translation=translation)
         result = await database.execute(query)
         return result
-    
+
     async def update_word(self, word_id: int, categories: str, word: str, translation: str):
         database = self._ensure_database()
         query = (
@@ -137,20 +152,20 @@ class DatabaseManager:
         )
         result = await database.execute(query)
         return result
-    
+
     async def delete_word(self, word_id: int):
         database = self._ensure_database()
         query = delete(words_table).where(words_table.c.id == word_id)
         result = await database.execute(query)
         return result
-    
+
     async def clear_all_words(self):
         database = self._ensure_database()
         query = delete(words_table)
         await database.execute(query)
         # Reset the id sequence so new rows start from 1
         await database.execute("ALTER SEQUENCE words_id_seq RESTART WITH 1;")
-    
+
     async def get_categories(self) -> list[str]:
         database = self._ensure_database()
         query = select(words_table.c.categories)
@@ -162,36 +177,40 @@ class DatabaseManager:
                 if cat not in IGNORED_CATEGORIES:
                     categories.add(cat.strip())
         return sorted(list(categories))
-    
+
     def fast_bulk_insert_words(self, words_data):
         engine = self._ensure_engine()
         if not words_data:
             return
         with engine.begin() as conn:
             conn.execute(insert(words_table), words_data)
-    
+
     async def get_accounts(self, offset: int = 0, limit: int = 50) -> list[dict]:
         database = self._ensure_database()
-        query = select(
-            accounts_table.c.id,
-            accounts_table.c.username,
-            accounts_table.c.role,
-            accounts_table.c.self_description,
-            accounts_table.c.created_at,
-            accounts_table.c.updated_at,
-            accounts_table.c.is_active,
-            accounts_table.c.last_login
-        ).limit(limit).offset(offset)
+        query = (
+            select(
+                accounts_table.c.id,
+                accounts_table.c.username,
+                accounts_table.c.role,
+                accounts_table.c.self_description,
+                accounts_table.c.created_at,
+                accounts_table.c.updated_at,
+                accounts_table.c.is_active,
+                accounts_table.c.last_login,
+            )
+            .limit(limit)
+            .offset(offset)
+        )
         result = await database.fetch_all(query)
         return [dict(row) for row in result]
-    
-    async def get_account_by_username(self, username: str) -> dict | None:
+
+    async def get_account_by_username(self, username: str) -> Optional[dict[str, Any]]:
         database = self._ensure_database()
         query = select(accounts_table).where(accounts_table.c.username == username)
         result = await database.fetch_one(query)
-        return dict(result) if result else None
-    
-    async def get_account_by_id(self, account_id: int) -> dict | None:
+        return self._serialize_datetimes(dict(result)) if result else None
+
+    async def get_account_by_id(self, account_id: int) -> Optional[dict[str, Any]]:
         database = self._ensure_database()
         query = select(
             accounts_table.c.id,
@@ -201,47 +220,54 @@ class DatabaseManager:
             accounts_table.c.created_at,
             accounts_table.c.updated_at,
             accounts_table.c.is_active,
-            accounts_table.c.last_login
+            accounts_table.c.last_login,
         ).where(accounts_table.c.id == account_id)
         result = await database.fetch_one(query)
-        return dict(result) if result else None
-    
-    async def create_account(self, username: str, password_hash: str, role: str = "regular", self_description: str = "", id: Optional[int] = None) -> int:
+        return self._serialize_datetimes(dict(result)) if result else None
+
+    async def create_account(
+        self,
+        username: str,
+        password_hash: str,
+        role: str = "regular",
+        self_description: str = "",
+        id: Optional[int] = None,
+    ) -> int:
         database = self._ensure_database()
         values = {
             "username": username,
             "password_hash": password_hash,
             "role": role,
             "self_description": self_description,
-            "is_active": True
+            "is_active": True,
         }
         if id is not None and role == "root_admin":
             values["id"] = id
         query = insert(accounts_table).values(**values)
         result = await database.execute(query)
         return result
-    
+
     async def update_account(self, account_id: int, **kwargs) -> int:
         database = self._ensure_database()
         # Remove None values and ensure updated_at is set
         update_data = {k: v for k, v in kwargs.items() if v is not None}
-        update_data['updated_at'] = func.now()
-        
+        update_data["updated_at"] = func.now()
+
         query = update(accounts_table).where(accounts_table.c.id == account_id).values(**update_data)
         result = await database.execute(query)
         return result
-    
+
     async def delete_account(self, account_id: int) -> int:
         database = self._ensure_database()
         query = delete(accounts_table).where(accounts_table.c.id == account_id)
         result = await database.execute(query)
         return result
-    
+
     async def update_last_login(self, username: str) -> None:
         database = self._ensure_database()
         query = update(accounts_table).where(accounts_table.c.username == username).values(last_login=func.now())
         await database.execute(query)
-    
+
     async def get_account_count(self) -> int:
         database = self._ensure_database()
         query = select(func.count(accounts_table.c.id))

@@ -14,6 +14,7 @@ import WordList from './components/WordList';
 import { ThemeProvider, useThemeMode } from './contexts/ThemeContext';
 import createAppTheme from './theme';
 import './style.css';
+import NightModeButton from './components/NightModeButton';
 
 import { loadPuzzle as loadPuzzleHelper, restoreGameState, saveGameState } from './helpers/appHelpers';
 
@@ -264,24 +265,22 @@ function AppContent() {
                     </Box>
                 )}
                 
-                {/* Night Mode Button - Always visible, top right on desktop */}
-                <Button
-                    onClick={toggleDarkMode}
-                    sx={{
-                        position: 'absolute',
-                        top: 16,
-                        right: 16,
-                        zIndex: 1000,
-                        minWidth: 48,
-                        height: 48,
-                        fontSize: '1.5rem',
-                        p: 0,
-                        display: { xs: 'none', sm: 'flex' },
-                    }}
-                    title={isDarkMode ? 'Switch to light mode' : 'Switch to dark mode'}
-                >
-                    {isDarkMode ? '☀️' : '🌙'}
-                </Button>
+                {/* Night Mode Button - Only visible in main game UI, not on admin routes */}
+                {!isAdminRoute && (
+                    <NightModeButton
+                        sx={{
+                            position: 'absolute',
+                            top: 16,
+                            right: 16,
+                            zIndex: 1000,
+                            minWidth: 48,
+                            height: 48,
+                            fontSize: '1.5rem',
+                            p: 0,
+                            display: { xs: 'none', sm: 'flex' },
+                        }}
+                    />
+                )}
 
                 {/* Admin Button - Top Right on Desktop, Hidden on Mobile and Admin Routes */}
                 {!isAdminRoute && (
@@ -355,8 +354,7 @@ function AppContent() {
                                 
                                 {/* Night mode button on mobile when menu is open - positioned at top right */}
                                 {panelOpen && (
-                                    <Button
-                                        onClick={toggleDarkMode}
+                                    <NightModeButton
                                         sx={{
                                             position: 'absolute',
                                             top: 0,
@@ -368,10 +366,7 @@ function AppContent() {
                                             p: 0,
                                             zIndex: 1000,
                                         }}
-                                        title={isDarkMode ? 'Switch to light mode' : 'Switch to dark mode'}
-                                    >
-                                        {isDarkMode ? '☀️' : '🌙'}
-                                    </Button>
+                                    />
                                 )}
                             </Box>
 
@@ -400,8 +395,7 @@ function AppContent() {
                                     >
                                         Menu ⬇️
                                     </Button>
-                                    <Button
-                                        onClick={toggleDarkMode}
+                                    <NightModeButton
                                         sx={{
                                             minWidth: 40,
                                             height: 40,
@@ -409,10 +403,7 @@ function AppContent() {
                                             p: 0,
                                             ml: 1,
                                         }}
-                                        title={isDarkMode ? 'Switch to light mode' : 'Switch to dark mode'}
-                                    >
-                                        {isDarkMode ? '☀️' : '🌙'}
-                                    </Button>
+                                    />
                                 </Box>
                             )}
 

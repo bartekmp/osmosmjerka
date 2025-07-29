@@ -28,6 +28,8 @@ import UserProfile from './UserProfile';
 import { isTokenExpired } from './helpers';
 import PaginationControls from './PaginationControls';
 import { useAdminApi } from './useAdminApi';
+import { useThemeMode } from '../../contexts/ThemeContext';
+import NightModeButton from '../NightModeButton';
 
 export default function AdminPanel() {
     const [auth, setAuth] = useState({ user: '', pass: '' });
@@ -47,12 +49,14 @@ export default function AdminPanel() {
     const [offsetInput, setOffsetInput] = useState(0);
     const [token, setToken] = useState(localStorage.getItem('adminToken') || '');
     const [clearLoading, setClearLoading] = useState(false);
+    const [reloadLoading, setReloadLoading] = useState(false);
     const [clearNotification, setClearNotification] = useState({
         open: false,
         message: '',
         severity: 'success',
         autoHideDuration: 3000,
     });
+    const { isDarkMode, toggleDarkMode } = useThemeMode();
 
     const {
         fetchRows,
@@ -127,6 +131,17 @@ export default function AdminPanel() {
         }
         // eslint-disable-next-line
     }, [token]);
+
+    // When switching to Browse Words, auto-load first page
+    useEffect(() => {
+        if (!dashboard && !userManagement && !userProfile) {
+            setReloadLoading(true);
+            fetchRows(0, limit, filterCategory);
+            setOffset(0);
+            setReloadLoading(false);
+        }
+        // eslint-disable-next-line
+    }, [dashboard, userManagement, userProfile]);
 
     // Handle inline save from table
     const handleInlineSave = (updatedRow) => {
@@ -252,9 +267,12 @@ export default function AdminPanel() {
                     <Button component={Link} to="/" variant="outlined">
                         ← Back to Game
                     </Button>
-                    <Button onClick={handleLogout} variant="outlined" color="secondary">
-                        Logout
-                    </Button>
+                    <Box sx={{ display: 'flex', gap: 2, alignItems: 'center' }}>
+                        <NightModeButton />
+                        <Button onClick={handleLogout} variant="outlined" color="secondary">
+                            Logout
+                        </Button>
+                    </Box>
                 </Box>
                 <Paper sx={{ p: 4, borderRadius: 2 }}>
                     <Typography variant="h4" component="h2" gutterBottom align="center">
@@ -268,7 +286,7 @@ export default function AdminPanel() {
                             onClick={() => setDashboard(false)} 
                             variant="contained"
                         >
-                            Load Data
+                            Browse Words
                         </Button>
                         {currentUser?.role === 'root_admin' && (
                             <Button 
@@ -307,26 +325,27 @@ export default function AdminPanel() {
     if (userManagement) {
         return (
             <Container maxWidth="xl" sx={{ py: 4 }}>
-                <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 3 }}>
+                <Box sx={{ display: 'flex', alignItems: 'center', mb: 3, gap: 2 }}>
                     <Button component={Link} to="/" variant="outlined">
                         ← Back to Game
                     </Button>
-                    <Box sx={{ display: 'flex', gap: 2 }}>
-                        <Button 
-                            onClick={() => {
-                                setUserManagement(false);
-                                setDashboard(true);
-                            }} 
-                            variant="outlined"
-                        >
-                            ← Dashboard
-                        </Button>
-                        <Button onClick={handleLogout} variant="outlined" color="secondary">
-                            Logout
-                        </Button>
-                    </Box>
+                    <Button 
+                        onClick={() => {
+                            setUserManagement(false);
+                            setDashboard(true);
+                        }} 
+                        variant="outlined"
+                    >
+                        ← Dashboard
+                    </Button>
+                    <Box sx={{ flex: 1 }} />
+                    <NightModeButton
+                        sx={{ minWidth: 40, height: 40, fontSize: '1.5rem', p: 0, height: 40, mr: 1 }}
+                    />
+                    <Button onClick={handleLogout} variant="outlined" color="secondary" sx={{ height: 40 }}>
+                        Logout
+                    </Button>
                 </Box>
-                
                 <Paper sx={{ p: 3 }}>
                     <UserManagement currentUser={currentUser} />
                 </Paper>
@@ -367,11 +386,21 @@ export default function AdminPanel() {
 
     return (
         <Container maxWidth="xl" sx={{ py: 4 }}>
-            <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 3 }}>
+            <Box sx={{ display: 'flex', alignItems: 'center', mb: 3, gap: 2 }}>
                 <Button component={Link} to="/" variant="outlined">
                     ← Back to Game
                 </Button>
-                <Button onClick={handleLogout} variant="outlined" color="secondary">
+                <Button 
+                    onClick={() => setDashboard(true)}
+                    variant="outlined"
+                >
+                    ← Dashboard
+                </Button>
+                <Box sx={{ flex: 1 }} />
+                <NightModeButton
+                    sx={{ minWidth: 40, height: 40, fontSize: '1.5rem', p: 0, mr: 1 }}
+                />
+                <Button onClick={handleLogout} variant="outlined" color="secondary" sx={{ height: 40 }}>
                     Logout
                 </Button>
             </Box>
@@ -382,38 +411,26 @@ export default function AdminPanel() {
 
             {/* Action Buttons */}
             <Paper sx={{ p: 3, mb: 3 }}>
-                {/* Back to Dashboard - Separate on the left */}
-                <Box sx={{ mb: 2 }}>
-                    <Button 
-                        onClick={() => setDashboard(true)}
-                        variant="outlined"
-                        sx={{ width: { xs: '100%', sm: 'auto' } }}
-                    >
-                        <span style={{ marginRight: '8px' }}>🏠</span>
-                        <Box component="span" sx={{ display: { xs: 'none', sm: 'inline' } }}>
-                            Back to Dashboard
-                        </Box>
-                        <Box component="span" sx={{ display: { xs: 'inline', sm: 'none' } }}>
-                            Dashboard
-                        </Box>
-                    </Button>
-                </Box>
-
-                {/* Main Action Buttons */}
                 <Grid container spacing={2} justifyContent="center">
                     <Grid item xs={6} sm={4} md={2}>
                         <Button 
                             fullWidth
-                            onClick={() => fetchRows(offset, limit, filterCategory)}
+                            onClick={() => {
+                                setReloadLoading(true);
+                                fetchRows(offset, limit, filterCategory);
+                                setTimeout(() => setReloadLoading(false), 500); // ensure spinner is visible
+                            }}
                             variant="contained"
                             size="small"
+                            disabled={reloadLoading}
+                            startIcon={reloadLoading ? <CircularProgress size={20} color="inherit" /> : null}
                         >
                             <span style={{ marginRight: '4px' }}>📊</span>
                             <Box component="span" sx={{ display: { xs: 'none', sm: 'inline' } }}>
-                                Load Data
+                                Reload Data
                             </Box>
                             <Box component="span" sx={{ display: { xs: 'inline', sm: 'none' } }}>
-                                Load
+                                Reload
                             </Box>
                         </Button>
                     </Grid>
@@ -449,10 +466,10 @@ export default function AdminPanel() {
                         >
                             <span style={{ marginRight: '4px' }}>💾</span>
                             <Box component="span" sx={{ display: { xs: 'none', sm: 'inline' } }}>
-                                Export
+                                Download Words
                             </Box>
                             <Box component="span" sx={{ display: { xs: 'inline', sm: 'none' } }}>
-                                Export
+                                Download
                             </Box>
                         </Button>
                     </Grid>
@@ -474,7 +491,7 @@ export default function AdminPanel() {
                         >
                             <span style={{ marginRight: '4px' }}>🗑️</span>
                             <Box component="span" sx={{ display: { xs: 'none', sm: 'inline' } }}>
-                                Clear All
+                                Clear Database
                             </Box>
                             <Box component="span" sx={{ display: { xs: 'inline', sm: 'none' } }}>
                                 Clear
@@ -499,28 +516,6 @@ export default function AdminPanel() {
                             </Alert>
                         </Snackbar>
                     </Grid>
-                    {currentUser?.role === 'root_admin' && (
-                        <Grid item xs={6} sm={4} md={2}>
-                            <Button 
-                                fullWidth
-                                onClick={() => {
-                                    setUserManagement(true);
-                                    setDashboard(false);
-                                }}
-                                variant="contained"
-                                color="secondary"
-                                size="small"
-                            >
-                                <span style={{ marginRight: '4px' }}>👥</span>
-                                <Box component="span" sx={{ display: { xs: 'none', sm: 'inline' } }}>
-                                    Users
-                                </Box>
-                                <Box component="span" sx={{ display: { xs: 'inline', sm: 'none' } }}>
-                                    Users
-                                </Box>
-                            </Button>
-                        </Grid>
-                    )}
                 </Grid>
             </Paper>
 

@@ -242,13 +242,15 @@ export default function UserManagement({ currentUser }) {
         <Box>
             <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 3 }}>
                 <Typography variant="h5">User Management</Typography>
-                <Button
-                    variant="contained"
-                    startIcon={<PersonAdd />}
-                    onClick={() => handleOpenDialog('create')}
-                >
-                    Create User
-                </Button>
+                <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
+                    <Button
+                        variant="contained"
+                        startIcon={<PersonAdd />}
+                        onClick={() => handleOpenDialog('create')}
+                    >
+                        Create User
+                    </Button>
+                </Box>
             </Box>
 
             {error && (
@@ -307,6 +309,7 @@ export default function UserManagement({ currentUser }) {
                                         color="error"
                                         onClick={() => handleDeleteUser(user.id)}
                                         title="Delete User"
+                                        disabled={user.id === 0}
                                     >
                                         <Delete />
                                     </IconButton>
