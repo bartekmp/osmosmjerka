@@ -173,7 +173,7 @@ export default function UserProfile({ currentUser }) {
                 <Button 
                     variant="contained" 
                     onClick={updateProfile}
-                    disabled={loading}
+                    disabled={loading || !description.trim()}
                     sx={{ mr: 2 }}
                 >
                     Update Description

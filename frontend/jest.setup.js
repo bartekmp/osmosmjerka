@@ -6,3 +6,17 @@ if (typeof global.TextEncoder === 'undefined') {
 if (typeof global.TextDecoder === 'undefined') {
     global.TextDecoder = TextDecoder;
 }
+if (typeof window !== 'undefined') {
+  window.URL.createObjectURL = jest.fn(() => 'mock-url');
+  window.URL.revokeObjectURL = jest.fn();
+  // Mock navigation methods to suppress jsdom navigation warnings
+  Object.defineProperty(window, 'location', {
+    configurable: true,
+    value: {
+      ...window.location,
+      assign: jest.fn(),
+      replace: jest.fn(),
+      reload: jest.fn(),
+    },
+  });
+}

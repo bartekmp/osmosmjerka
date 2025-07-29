@@ -2,6 +2,7 @@ import io
 import logging
 import random
 import re
+import sys
 from contextlib import asynccontextmanager
 
 import bcrypt
@@ -9,6 +10,7 @@ from fastapi import Body, Depends, FastAPI, File, HTTPException, Query, Request,
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import FileResponse, JSONResponse, StreamingResponse
 from fastapi.staticfiles import StaticFiles
+from pydantic import BaseModel
 from starlette.concurrency import run_in_threadpool
 
 from osmosmjerka.auth import (
@@ -31,21 +33,46 @@ API_ENDPOINTS = ["api/", "admin/"]
 # Initialize the FastAPI application
 def ensure_root_admin_account():
     async def _ensure():
-        if ROOT_ADMIN_USERNAME and ROOT_ADMIN_PASSWORD_HASH:
-            existing = await db_manager.get_account_by_username(ROOT_ADMIN_USERNAME)
-            if not existing:
-                await db_manager.create_account(
-                    username=ROOT_ADMIN_USERNAME,
-                    password_hash=ROOT_ADMIN_PASSWORD_HASH,
-                    role="root_admin",
-                    self_description="Root admin account",
-                    id=0 # Special ID for root admin
-                )
-            elif existing["password_hash"] != ROOT_ADMIN_PASSWORD_HASH:
+        if not (ROOT_ADMIN_USERNAME and ROOT_ADMIN_PASSWORD_HASH):
+            return
+
+        by_username = await db_manager.get_account_by_username(ROOT_ADMIN_USERNAME)
+        by_id = await db_manager.get_account_by_id(0)
+
+        # If there is a conflict, log error and exit
+        if by_id and by_id.get("username") != ROOT_ADMIN_USERNAME:
+            logging.error(
+                f"Fatal: Account with id=0 exists but username is '{by_id.get('username')}', expected '{ROOT_ADMIN_USERNAME}'. Please resolve manually."
+            )
+            sys.exit(1)
+        if by_username and by_username.get("id") != 0:
+            logging.error(
+                f"Fatal: Account with username='{ROOT_ADMIN_USERNAME}' exists but id is {by_username.get('id')}, expected 0. Please resolve manually."
+            )
+            sys.exit(1)
+
+        # If neither exists, create the correct one
+        if not by_id and not by_username:
+            await db_manager.create_account(
+                username=ROOT_ADMIN_USERNAME,
+                password_hash=ROOT_ADMIN_PASSWORD_HASH,
+                role="root_admin",
+                self_description="Root admin account",
+                id=0,
+            )
+            return
+
+        # If the correct one exists, update fields as needed
+        account = by_id or by_username
+        if account:
+            updates = {}
+            if account.get("password_hash") != ROOT_ADMIN_PASSWORD_HASH:
                 logging.warning(
                     "Root admin password hash in DB differs from ADMIN_PASSWORD_HASH env var. Updating password hash for root admin!"
                 )
-                await db_manager.update_account(existing["id"], password_hash=ROOT_ADMIN_PASSWORD_HASH)
+                updates["password_hash"] = ROOT_ADMIN_PASSWORD_HASH
+            if updates:
+                await db_manager.update_account(0, **updates)
 
     return _ensure
 
@@ -317,6 +344,10 @@ async def update_user(
     is_active: bool = Body(None),
     user=Depends(require_root_admin),
 ) -> JSONResponse:
+    if user_id == 0:
+        return JSONResponse(
+            {"error": "Cannot update root admin via this endpoint"}, status_code=status.HTTP_400_BAD_REQUEST
+        )
     if role and role not in ["regular", "administrative"]:
         return JSONResponse({"error": "Invalid role"}, status_code=status.HTTP_400_BAD_REQUEST)
     existing_user = await db_manager.get_account_by_id(user_id)
@@ -326,6 +357,8 @@ async def update_user(
     if role is not None:
         update_data["role"] = role
     if self_description is not None:
+        if not self_description.strip():
+            return JSONResponse({"error": "Description cannot be empty"}, status_code=status.HTTP_400_BAD_REQUEST)
         update_data["self_description"] = self_description
     if is_active is not None:
         update_data["is_active"] = is_active
@@ -336,6 +369,8 @@ async def update_user(
 
 @app.delete("/admin/users/{user_id}")
 async def delete_user(user_id: int, user=Depends(require_root_admin)) -> JSONResponse:
+    if user_id == 0:
+        return JSONResponse({"error": "Cannot delete root admin account"}, status_code=status.HTTP_400_BAD_REQUEST)
     existing_user = await db_manager.get_account_by_id(user_id)
     if not existing_user:
         return JSONResponse({"error": "User not found"}, status_code=status.HTTP_404_NOT_FOUND)
@@ -372,19 +407,20 @@ async def get_profile(user=Depends(get_current_user)) -> JSONResponse:
     return JSONResponse(account)
 
 
+class ProfileUpdateRequest(BaseModel):
+    self_description: str
+
+
 @app.put("/admin/profile")
-async def update_profile(self_description: str = Body(None), user=Depends(get_current_user)) -> JSONResponse:
+async def update_profile(body: ProfileUpdateRequest, user=Depends(get_current_user)) -> JSONResponse:
     """Update current user's profile"""
     if user["role"] == "root_admin":
         return JSONResponse({"error": "Root admin profile cannot be updated"}, status_code=status.HTTP_400_BAD_REQUEST)
 
-    update_data = {}
-    if self_description is not None:
-        update_data["self_description"] = self_description
-
-    if update_data:
-        await db_manager.update_account(user["id"], **update_data)
-
+    self_description = body.self_description
+    if not self_description.strip():
+        return JSONResponse({"error": "Description cannot be empty"}, status_code=status.HTTP_400_BAD_REQUEST)
+    await db_manager.update_account(user["id"], self_description=self_description)
     return JSONResponse({"message": "Profile updated"}, status_code=status.HTTP_200_OK)
 
 
