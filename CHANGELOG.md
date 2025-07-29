@@ -2,6 +2,14 @@
 
 <!-- version list -->
 
+## v1.8.2 (2025-07-29)
+
+### Bug Fixes
+
+- Wrong font path
+  ([`c20268e`](https://github.com/bartekmp/osmosmjerka/commit/c20268ee76292d9169eb99687650d014e0e28d52))
+
+
 ## v1.8.1 (2025-07-29)
 
 ### Bug Fixes
