@@ -187,7 +187,7 @@ def export_to_png(category: str, grid: list, words: list) -> bytes:
         try:
             title_font = ImageFont.truetype("fonts/arialbd.ttf", 24)
             grid_font = ImageFont.truetype("fonts/arialbd.ttf", max(18, cell_size // 2))
-            words_font = ImageFont.truetype("afonts/rialbd.ttf", 16)
+            words_font = ImageFont.truetype("fonts/arialbd.ttf", 16)
         except OSError:
             title_font = ImageFont.load_default()
             grid_font = ImageFont.load_default()
