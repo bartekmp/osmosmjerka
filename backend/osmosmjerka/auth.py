@@ -1,6 +1,5 @@
 import os
 from datetime import datetime, timedelta, timezone
-from typing import Optional
 
 import bcrypt
 from dotenv import load_dotenv
@@ -55,23 +54,15 @@ async def authenticate_user(username: str, password: str) -> dict | None:
     # Check if it's the root admin
     if username == ROOT_ADMIN_USERNAME and ROOT_ADMIN_PASSWORD_HASH:
         if bcrypt.checkpw(password.encode("utf-8"), ROOT_ADMIN_PASSWORD_HASH.encode("utf-8")):
-            return {
-                "username": username,
-                "role": "root_admin",
-                "id": 0  # Special ID for root admin
-            }
-    
+            return {"username": username, "role": "root_admin", "id": 0}  # Special ID for root admin
+
     # Check database users
     account = await db_manager.get_account_by_username(username)
     if account and account.get("is_active", False):
         if bcrypt.checkpw(password.encode("utf-8"), account["password_hash"].encode("utf-8")):
             await db_manager.update_last_login(username)
-            return {
-                "username": account["username"],
-                "role": account["role"],
-                "id": account["id"]
-            }
-    
+            return {"username": account["username"], "role": account["role"], "id": account["id"]}
+
     return None
 
 
@@ -122,12 +113,14 @@ async def get_current_user(request: Request) -> dict:
 
 def require_role(required_role: str):
     """Dependency to require specific role"""
+
     def role_checker(user: dict = Depends(get_current_user)) -> dict:
         if required_role == "root_admin" and user["role"] != "root_admin":
             raise HTTPException(status_code=403, detail="Root admin access required")
         elif required_role == "administrative" and user["role"] not in ["root_admin", "administrative"]:
             raise HTTPException(status_code=403, detail="Administrative access required")
         return user
+
     return role_checker
 
 

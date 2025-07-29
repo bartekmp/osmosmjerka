@@ -30,6 +30,7 @@ def test_get_all_categories(client, monkeypatch):
     # Patch the db_manager method, not a global function
     async def fake_get_categories(*args, **kwargs):
         return ["A", "B", "C"]
+
     monkeypatch.setattr("osmosmjerka.database.db_manager.get_categories", fake_get_categories)
     monkeypatch.setattr("osmosmjerka.app.IGNORED_CATEGORIES", {"B"})
     response = client.get("/api/categories")
@@ -63,20 +64,24 @@ def test_get_grid_size_and_num_words_dynamic():
 def test_get_words_invalid_difficulty(client, monkeypatch):
     async def fake_db_get_categories():
         return ["A"]
+
     async def fake_db_get_words(category, limit=None, offset=0):
         return [{"word": "a"}]
+
     monkeypatch.setattr("osmosmjerka.database.db_manager.get_categories", fake_db_get_categories)
     monkeypatch.setattr("osmosmjerka.database.db_manager.get_words", fake_db_get_words)
     response = client.get("/api/words?category=A&difficulty=invalid")
     assert response.status_code == 404
-    assert ("Invalid difficulty" in response.text or "Not enough words" in response.text)
+    assert "Invalid difficulty" in response.text or "Not enough words" in response.text
 
 
 def test_get_words_not_enough_words(client, monkeypatch):
     async def fake_db_get_categories():
         return ["A"]
+
     async def fake_db_get_words(category, limit=None, offset=0):
         return [{"word": "a"}]
+
     monkeypatch.setattr("osmosmjerka.database.db_manager.get_categories", fake_db_get_categories)
     monkeypatch.setattr("osmosmjerka.database.db_manager.get_words", fake_db_get_words)
     response = client.get("/api/words?category=A&difficulty=hard")
@@ -88,8 +93,10 @@ def test_get_words_not_enough_words(client, monkeypatch):
 def test_get_words_success(client, monkeypatch):
     async def fake_db_get_categories():
         return ["A"]
+
     async def fake_db_get_words(category, limit=None, offset=0):
         return [{"word": "a", "categories": "A", "translation": "a"}] * 20
+
     monkeypatch.setattr("osmosmjerka.database.db_manager.get_categories", fake_db_get_categories)
     monkeypatch.setattr("osmosmjerka.database.db_manager.get_words", fake_db_get_words)
     monkeypatch.setattr("osmosmjerka.app.generate_grid", lambda words, size: ([["A"]], words))

@@ -340,7 +340,7 @@ export default function AdminPanel() {
                     </Button>
                     <Box sx={{ flex: 1 }} />
                     <NightModeButton
-                        sx={{ minWidth: 40, height: 40, fontSize: '1.5rem', p: 0, height: 40, mr: 1 }}
+                        sx={{ minWidth: 40, height: 40, fontSize: '1.5rem', p: 0, mr: 1 }}
                     />
                     <Button onClick={handleLogout} variant="outlined" color="secondary" sx={{ height: 40 }}>
                         Logout

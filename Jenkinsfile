@@ -197,7 +197,7 @@ pipeline {
                     def version = sh(script: "grep '^version' pyproject.toml | head -1 | awk -F '\"' '{print \$2}'", returnStdout: true).trim()
                     dir('frontend') {
                         echo "Setting frontend version: ${version}"
-                        sh "npm version ${version} --no-git-tag-version"
+                        sh "sed -i 's/\"version\": \"[^"]*\"/\"version\": \"${version}\"/' package.json"
                     }
 
                     env.IMAGE_TAG = version
