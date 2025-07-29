@@ -74,7 +74,7 @@ class DatabaseManager:
             return self._database_url
         pg_host = os.getenv("POSTGRES_HOST")
         pg_port = os.getenv("POSTGRES_PORT")
-        pg_user = os.getenv("POSTGRES_USER")
+        pg_user = urllib.parse.quote_plus(os.getenv("POSTGRES_USER", ""))
         pg_password = urllib.parse.quote_plus(os.getenv("POSTGRES_PASSWORD", ""))
         pg_database = os.getenv("POSTGRES_DATABASE")
         if not pg_host or not pg_port or not pg_user or not pg_password or not pg_database:

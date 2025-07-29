@@ -6,15 +6,13 @@ from docx.enum.text import WD_ALIGN_PARAGRAPH
 from docx.shared import Cm, Pt
 
 # PDF and image export dependencies
-from reportlab.lib.pagesizes import letter, A4
+from reportlab.lib.pagesizes import A4
 from reportlab.lib.styles import getSampleStyleSheet
-from reportlab.lib.units import inch
 from reportlab.platypus import SimpleDocTemplate, Table, TableStyle, Paragraph, Spacer
 from reportlab.lib import colors
 from reportlab.lib.enums import TA_CENTER
 
 from PIL import Image, ImageDraw, ImageFont
-import math
 
 
 def export_to_docx(category: str, grid: list, words: list) -> bytes:
@@ -182,14 +180,14 @@ def export_to_png(category: str, grid: list, words: list) -> bytes:
 
     # Try to use a font with UTF-8 support (DejaVuSans)
     try:
-        title_font = ImageFont.truetype("DejaVuSans-Bold.ttf", 24)
-        grid_font = ImageFont.truetype("DejaVuSans-Bold.ttf", max(18, cell_size // 2))
-        words_font = ImageFont.truetype("DejaVuSans-Bold.ttf", 16)
+        title_font = ImageFont.truetype("fonts/DejaVuSans-Bold.ttf", 24)
+        grid_font = ImageFont.truetype("fonts/DejaVuSans-Bold.ttf", max(18, cell_size // 2))
+        words_font = ImageFont.truetype("fonts/DejaVuSans-Bold.ttf", 16)
     except OSError:
         try:
-            title_font = ImageFont.truetype("arialbd.ttf", 24)
-            grid_font = ImageFont.truetype("arialbd.ttf", max(18, cell_size // 2))
-            words_font = ImageFont.truetype("arialbd.ttf", 16)
+            title_font = ImageFont.truetype("fonts/arialbd.ttf", 24)
+            grid_font = ImageFont.truetype("fonts/arialbd.ttf", max(18, cell_size // 2))
+            words_font = ImageFont.truetype("afonts/rialbd.ttf", 16)
         except OSError:
             title_font = ImageFont.load_default()
             grid_font = ImageFont.load_default()

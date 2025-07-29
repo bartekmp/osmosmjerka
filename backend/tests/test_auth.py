@@ -65,7 +65,9 @@ def test_verify_token_wrong_user(monkeypatch):
     importlib.reload(auth_mod)
     # Create token with wrong username and explicit role/user_id
     token = jwt.encode(
-        {"sub": "notadmin", "role": "user", "user_id": 123, "exp": datetime.now(timezone.utc) + timedelta(minutes=5)}, "testsecret", algorithm="HS256"
+        {"sub": "notadmin", "role": "user", "user_id": 123, "exp": datetime.now(timezone.utc) + timedelta(minutes=5)},
+        "testsecret",
+        algorithm="HS256",
     )
     # Should return user dict for any username
     assert auth_mod.verify_token(token) == {"id": 123, "role": "user", "username": "notadmin"}
