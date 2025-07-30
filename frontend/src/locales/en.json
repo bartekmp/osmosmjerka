@@ -85,6 +85,8 @@
     "refresh": "Refresh",
     "reload_puzzle": "Reload puzzle",
     "not_enough_words": "Not enough words to generate a puzzle.",
+    "not_enough_words_detailed": "Not enough words in category '{{category}}'. Need {{needed}}, but only {{available}} available.",
+    "error_loading_puzzle": "Error loading puzzle.",
     "loading_puzzle": "Loading puzzle...",
     "admin_dashboard": "Admin Dashboard",
     "rows_per_page": "Rows per page",

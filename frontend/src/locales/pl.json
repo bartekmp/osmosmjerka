@@ -85,6 +85,8 @@
     "refresh": "Odśwież",
     "reload_puzzle": "Odśwież łamigłówkę",
     "not_enough_words": "Za mało słów, aby wygenerować łamigłówkę.",
+    "not_enough_words_detailed": "Za mało słów w kategorii '{{category}}'. Potrzeba {{needed}}, ale dostępne są tylko {{available}}.",
+    "error_loading_puzzle": "Błąd podczas ładowania łamigłówki.",
     "loading_puzzle": "Ładowanie łamigłówki...",
     "admin_dashboard": "Panel administratora",
     "rows_per_page": "Wierszy na stronę",
