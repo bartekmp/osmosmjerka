@@ -2,6 +2,15 @@
 
 <!-- version list -->
 
+## v1.9.2 (2025-07-31)
+
+### Enhancement
+
+- Introduce lazy loading of frontend modules, improve error messages when not enough words to
+  generate a puzzle ([#44](https://github.com/bartekmp/osmosmjerka/pull/44),
+  [`6a7dde6`](https://github.com/bartekmp/osmosmjerka/commit/6a7dde605ea4691577ced5a1db1ea741fda34ee3))
+
+
 ## v1.9.1 (2025-07-30)
 
 ### Bug Fixes
