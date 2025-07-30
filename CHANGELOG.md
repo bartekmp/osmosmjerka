@@ -2,6 +2,15 @@
 
 <!-- version list -->
 
+## v1.9.0 (2025-07-30)
+
+### Feature
+
+- Implement language switch, add i18n files for en, hr and pl
+  ([#43](https://github.com/bartekmp/osmosmjerka/pull/43),
+  [`d3fd312`](https://github.com/bartekmp/osmosmjerka/commit/d3fd3122ec42bb4191239b743d221002212e8382))
+
+
 ## v1.8.2 (2025-07-29)
 
 ### Bug Fixes
