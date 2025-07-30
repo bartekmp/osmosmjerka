@@ -1,12 +1,9 @@
 import axios from 'axios';
 import confetti from 'canvas-confetti';
-import React, { useEffect, useState, useRef } from 'react';
+import React, { useEffect, useState, useRef, Suspense, lazy } from 'react';
 import { Link, Route, Routes, useLocation } from 'react-router-dom';
 import { ThemeProvider as MUIThemeProvider, CssBaseline, Button } from '@mui/material';
 import { Container, Box, Typography, Stack, FormControl, InputLabel, Select, MenuItem, CircularProgress } from '@mui/material';
-import AdminPanel from './components/AdminPanel/AdminPanel';
-import UserManagement from './components/AdminPanel/UserManagement';
-import UserProfile from './components/AdminPanel/UserProfile';
 import CategorySelector from './components/CategorySelector';
 import ExportButton from './components/ExportButton';
 import ScrabbleGrid from './components/Grid/Grid';
@@ -19,6 +16,11 @@ import LanguageSwitcher from './components/LanguageSwitcher';
 import { useTranslation } from 'react-i18next';
 
 import { loadPuzzle as loadPuzzleHelper, restoreGameState, saveGameState } from './helpers/appHelpers';
+
+// Lazy load admin components
+const AdminPanel = lazy(() => import('./components/AdminPanel/AdminPanel'));
+const UserManagement = lazy(() => import('./components/AdminPanel/UserManagement'));
+const UserProfile = lazy(() => import('./components/AdminPanel/UserProfile'));
 
 function AppContent() {
     const { t } = useTranslation();
@@ -243,7 +245,7 @@ function AppContent() {
                             left: 0,
                             right: 0,
                             bottom: 0,
-                            backgroundColor: 'rgba(0, 0, 0, 0.5)',
+                            backgroundColor: isDarkMode ? 'rgba(30,30,30,0.7)' : 'rgba(0, 0, 0, 0.5)',
                             backdropFilter: 'blur(3px)',
                             display: 'flex',
                             alignItems: 'center',
@@ -253,16 +255,18 @@ function AppContent() {
                     >
                         <Box
                             sx={{
-                                backgroundColor: 'white',
+                                backgroundColor: isDarkMode ? '#222' : 'white',
+                                color: isDarkMode ? '#fff' : 'inherit',
                                 borderRadius: 2,
                                 p: 3,
                                 display: 'flex',
                                 flexDirection: 'column',
                                 alignItems: 'center',
-                                gap: 2
+                                gap: 2,
+                                boxShadow: isDarkMode ? 8 : 2
                             }}
                         >
-                            <CircularProgress size={40} />
+                            <CircularProgress size={40} color={isDarkMode ? 'inherit' : 'primary'} />
                             <Typography variant="body1">{t('loading_puzzle')}</Typography>
                         </Box>
                     </Box>
@@ -303,9 +307,21 @@ function AppContent() {
                 <Box sx={{ height: { xs: 16, sm: 20 } }} />
 
                 <Routes>
-                    <Route path="/admin" element={<AdminPanel />} />
-                    <Route path="/admin/users" element={<UserManagement />} />
-                    <Route path="/admin/profile" element={<UserProfile />} />
+                    <Route path="/admin" element={
+                        <Suspense fallback={<CircularProgress />}>
+                            <AdminPanel />
+                        </Suspense>
+                    } />
+                    <Route path="/admin/users" element={
+                        <Suspense fallback={<CircularProgress />}>
+                            <UserManagement />
+                        </Suspense>
+                    } />
+                    <Route path="/admin/profile" element={
+                        <Suspense fallback={<CircularProgress />}>
+                            <UserProfile />
+                        </Suspense>
+                    } />
                     <Route path="/" element={
                         <Stack spacing={3} alignItems="center">
                             {/* Header with night mode button positioned at top right on mobile when menu is open */}
@@ -562,19 +578,19 @@ function AppContent() {
                                             width: '100%',
                                             height: '100%',
                                             backdropFilter: 'blur(6px)',
-                                            bgcolor: 'rgba(255,255,255,0.7)',
+                                            bgcolor: isDarkMode ? 'rgba(30,30,30,0.7)' : 'rgba(255,255,255,0.7)',
                                             zIndex: 10,
                                             display: 'flex',
                                             alignItems: 'center',
                                             justifyContent: 'center',
                                         }}>
                                             <Box sx={{
-                                                bgcolor: 'rgba(255,255,255,0.95)',
+                                                bgcolor: isDarkMode ? '#222' : 'rgba(255,255,255,0.95)',
+                                                color: isDarkMode ? '#fff' : 'error.main',
                                                 borderRadius: 3,
                                                 p: 3,
-                                                boxShadow: 2,
+                                                boxShadow: isDarkMode ? 8 : 2,
                                                 textAlign: 'center',
-                                                color: 'error.main',
                                                 fontWeight: 'bold'
                                             }}>
                                                 {notEnoughWordsMsg || t('not_enough_words')}

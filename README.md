@@ -4,11 +4,13 @@ It uses words from the internal database, which are divided into separate catego
 Each word includes translation into another language, making it an excellent tool for [flashcard](https://en.wikipedia.org/wiki/Flashcard)-style language training.
 
 **Key Features:**
+- **Multi-language Interface**: Complete i18n support with English, Croatian, and Polish translations, easily extendible
 - **Dark/Light Mode**: Toggle between themes for comfortable viewing
 - **Responsive Design**: Optimized for mobile, tablet, and desktop
 - **Game State Persistence**: Automatic progress saving and restoration
 - **Administrative Tools**: Comprehensive database management with import/export
 - **Touch & Mouse Support**: Seamless interaction across all devices
+- **User Management System**: Role-based access control with root admin capabilities
 
 ![Osmosmjerka game](docs/assets/osmosmjerka-game.gif)
 
@@ -32,10 +34,22 @@ When all words are discovered, the game ends and allows to load a new puzzle.
 
 ### Key Features
 
+**Multi-language Interface**
+The interface now supports multiple languages with complete internationalization (i18n). Switch between English, Croatian, and Polish using the flag-based language selector in the top-right corner. All text, messages, and error notifications are fully translated, providing a native experience for each language.
+
+
 **Dark Mode Support**
-Toggle between light and dark themes using the moon/sun button. The dark mode provides a comfortable viewing experience in low-light environments with carefully adjusted colors for all UI elements.
+Toggle between light and dark themes using the moon/sun button. The dark mode provides a comfortable viewing experience in low-light environments with carefully adjusted colors for all UI elements, including loading overlays and error messages.
 
 ![Night mode](docs/assets/osmosmjerka-nightmode.gif)
+
+**User Management System**
+A comprehensive user management system with role-based access control:
+- **Root Administrator**: Full system access with user creation/deletion capabilities
+- **Administrative Users**: Database management with restricted system access
+- **Regular Users**: Game access only
+- User profiles with customizable descriptions and password management
+- Authentication with JWT tokens and bcrypt password hashing
 
 **Game State Persistence**
 Your progress is automatically saved and restored when you return to the game. The application remembers your selected category, difficulty, found words, and current puzzle state.
@@ -54,6 +68,13 @@ Export the current puzzle to `.docx`, `.pdf` or `.png` format using the Export b
 **Touch and Mouse Support**
 The game works seamlessly on both desktop and mobile devices with optimized touch interactions and responsive design.
 
+## Multi-language Support
+
+Osmosmjerka features complete internationalization (i18n) support with currently three language options: English, Polish and Croatian.
+Adding the support for new language is very simple - create a new language JSON file in `frontend/src/locales`, translate all entries based on other language files, and use it in [`frontend/src/i18n.js](frontend/src/i18n.js) file.
+
+All of the user facing texts are translated, including error messages and admin interface labels.
+
 ## Responsive Design
 
 Osmosmjerka is built with responsive design principles to provide an optimal experience across all device types and screen sizes.
@@ -61,7 +82,14 @@ The responsive design ensures that whether you're playing on a smartphone, table
 On mobile screens, some interface elements are reduced to minimum, to keep as much space for the playing area as possible.
 
 ## The admin page
-The admin page can be accessed via the `/admin` endpoint, which displays a login screen. The login credentials, i.e. admin username and password hash must be provided via `.env` file (check the `.env.example` file) or the respective env variables before the application is started.
+The admin page can be accessed via the `/admin` endpoint, which displays a login screen. The system now supports multiple user roles with different access levels:
+
+### User Roles and Authentication
+- **Root Administrator**: Created automatically on first startup, has full system access including user management
+- **Administrative Users**: Can manage word database but cannot create/delete other users
+- **Regular Users**: Game access only (future feature)
+
+The login credentials for the root admin (username and password hash) must be provided via `.env` file (check the `.env.example` file) or the respective env variables before the application is started. Additional users can be created through the user management interface.
 
 ![Admin page](docs/assets/osmosmjerka-admin.gif)
 
@@ -83,6 +111,9 @@ The admin panel provides comprehensive database management capabilities:
 - **Pagination Controls**: Navigate through large datasets with customizable page sizes
 - **Responsive Interface**: The admin panel adapts to different screen sizes with optimized layouts for mobile use
 - **Search and Navigation**: Quick offset jumping and intuitive pagination controls
+
+### User Management
+The admin panel now includes comprehensive user management capabilities, including creating new accounts, role-based access, resetting passwords, editing user information.
 
 ![Main admin page](docs/assets/osmosmjerka-admin-view.png)
 
@@ -137,10 +168,8 @@ openssl req -x509 -nodes -days 365 -newkey rsa:2048 -keyout privkey.pem -out ful
 As this is self-signed, the browser will show you dreadful warnings when accessing the app.
 
 ## Planned features and fixes
-- Multi-language support for the interface
 - Enhanced visual effects and animations
 - Add support for multiple words tables for more than one language
-- Robust visual effects and responsiveness across various devices
 - Integration with [Anki](https://apps.ankiweb.net/)
 - API optimization and potential load balancing
 - Code quality improvements and testing coverage

@@ -85,6 +85,8 @@
     "refresh": "Osvježi",
     "reload_puzzle": "Ponovno učitaj zagonetku",
     "not_enough_words": "Nema dovoljno riječi za generiranje zagonetke.",
+    "not_enough_words_detailed": "Nema dovoljno riječi u kategoriji '{{category}}'. Potrebno je {{needed}}, a dostupno je samo {{available}}.",
+    "error_loading_puzzle": "Greška pri učitavanju zagonetke.",
     "loading_puzzle": "Čitanje zagonetke...",
     "admin_dashboard": "Administratorska ploča",
     "rows_per_page": "Redaka po stranici",
