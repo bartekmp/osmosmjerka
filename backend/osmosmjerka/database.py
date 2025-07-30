@@ -108,6 +108,7 @@ class DatabaseManager:
         query = select(words_table)
         if category:
             query = query.where(words_table.c.categories.like(f"%{category}%"))
+        query = query.order_by(words_table.c.id)  # Always order by id ascending
         if limit:
             query = query.limit(limit).offset(offset)
         result = await database.fetch_all(query)
