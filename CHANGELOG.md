@@ -2,6 +2,14 @@
 
 <!-- version list -->
 
+## v1.9.1 (2025-07-30)
+
+### Bug Fixes
+
+- Order rows by id when fetching from db
+  ([`3a3000a`](https://github.com/bartekmp/osmosmjerka/commit/3a3000a3a9aee898727d421aa6c3c50aa3aec1d1))
+
+
 ## v1.9.0 (2025-07-30)
 
 ### Feature
