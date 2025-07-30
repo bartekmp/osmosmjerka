@@ -3,8 +3,10 @@ import axios from 'axios';
 import { useRef, useState } from 'react';
 import { Button, Box, Typography, CircularProgress, Snackbar, Alert, IconButton } from '@mui/material';
 import CloseIcon from '@mui/icons-material/Close';
+import { useTranslation } from 'react-i18next';
 
 export default function UploadForm({ onUpload }) {
+    const { t } = useTranslation();
     const fileInputRef = useRef();
     const [loading, setLoading] = useState(false);
     const [notification, setNotification] = useState({
@@ -39,13 +41,13 @@ export default function UploadForm({ onUpload }) {
             const res = await axios.post("/admin/upload", formData, { headers });
             setNotification({
                 open: true,
-                message: res.data.message || 'Upload successful',
+                message: res.data.message || t('upload_successful'),
                 severity: 'success',
                 autoHideDuration: 3000,
             });
             onUpload();
         } catch (err) {
-            let msg = 'Upload failed.';
+            let msg = t('upload_failed');
             if (err.response && err.response.data && (err.response.data.message || err.response.data.detail)) {
                 msg = err.response.data.message || err.response.data.detail;
             }
@@ -81,10 +83,10 @@ export default function UploadForm({ onUpload }) {
             >
                 <span style={{ marginRight: '4px' }}>📁</span>
                 <Box component="span" sx={{ display: { xs: 'none', sm: 'inline' } }}>
-                    Upload Words
+                    {t('upload_words')}
                 </Box>
                 <Box component="span" sx={{ display: { xs: 'inline', sm: 'none' } }}>
-                    Upload
+                    {t('upload')}
                 </Box>
                 {loading && <CircularProgress size={20} sx={{ ml: 1 }} />}
             </Button>

@@ -25,8 +25,10 @@ import {
     Alert
 } from '@mui/material';
 import { Edit, Delete, Add, PersonAdd } from '@mui/icons-material';
+import { useTranslation } from 'react-i18next';
 
 export default function UserManagement({ currentUser }) {
+    const { t } = useTranslation();
     const [users, setUsers] = useState([]);
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState('');
@@ -65,10 +67,10 @@ export default function UserManagement({ currentUser }) {
             if (response.ok) {
                 setUsers(data.users || []);
             } else {
-                setError(data.error || 'Failed to fetch users');
+                setError(data.error || t('failed_to_fetch_users'));
             }
         } catch (err) {
-            setError('Network error: ' + err.message);
+            setError(t('network_error', { message: err.message }));
         } finally {
             setLoading(false);
         }
@@ -86,16 +88,16 @@ export default function UserManagement({ currentUser }) {
             if (response.ok) {
                 setNotification({
                     open: true,
-                    message: 'User created successfully',
+                    message: t('user_created_successfully'),
                     severity: 'success'
                 });
                 fetchUsers();
                 handleCloseDialog();
             } else {
-                setError(data.error || 'Failed to create user');
+                setError(data.error || t('failed_to_create_user'));
             }
         } catch (err) {
-            setError('Network error: ' + err.message);
+            setError(t('network_error', { message: err.message }));
         }
     };
 
@@ -117,21 +119,21 @@ export default function UserManagement({ currentUser }) {
             if (response.ok) {
                 setNotification({
                     open: true,
-                    message: 'User updated successfully',
+                    message: t('user_updated_successfully'),
                     severity: 'success'
                 });
                 fetchUsers();
                 handleCloseDialog();
             } else {
-                setError(data.error || 'Failed to update user');
+                setError(data.error || t('failed_to_update_user'));
             }
         } catch (err) {
-            setError('Network error: ' + err.message);
+            setError(t('network_error', { message: err.message }));
         }
     };
 
     const handleDeleteUser = async (userId) => {
-        if (window.confirm('Are you sure you want to delete this user?')) {
+        if (window.confirm(t('confirm_delete_user'))) {
             try {
                 const response = await fetch(`/admin/users/${userId}`, {
                     method: 'DELETE',
@@ -142,21 +144,21 @@ export default function UserManagement({ currentUser }) {
                 if (response.ok) {
                     setNotification({
                         open: true,
-                        message: 'User deleted successfully',
+                        message: t('user_deleted_successfully'),
                         severity: 'success'
                     });
                     fetchUsers();
                 } else {
-                    setError(data.error || 'Failed to delete user');
+                    setError(data.error || t('failed_to_delete_user'));
                 }
             } catch (err) {
-                setError('Network error: ' + err.message);
+                setError(t('network_error', { message: err.message }));
             }
         }
     };
 
     const handleResetPassword = async (userId) => {
-        const newPassword = prompt('Enter new password for user:');
+        const newPassword = prompt(t('enter_new_password_for_user'));
         if (newPassword) {
             try {
                 const response = await fetch(`/admin/users/${userId}/reset-password`, {
@@ -169,14 +171,14 @@ export default function UserManagement({ currentUser }) {
                 if (response.ok) {
                     setNotification({
                         open: true,
-                        message: 'Password reset successfully',
+                        message: t('password_reset_successfully'),
                         severity: 'success'
                     });
                 } else {
-                    setError(data.error || 'Failed to reset password');
+                    setError(data.error || t('failed_to_reset_password'));
                 }
             } catch (err) {
-                setError('Network error: ' + err.message);
+                setError(t('network_error', { message: err.message }));
             }
         }
     };
@@ -235,20 +237,20 @@ export default function UserManagement({ currentUser }) {
     };
 
     if (loading) {
-        return <Typography>Loading users...</Typography>;
+        return <Typography>{t('loading_users')}</Typography>;
     }
 
     return (
         <Box>
             <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 3 }}>
-                <Typography variant="h5">User Management</Typography>
+                <Typography variant="h5">{t('user_management')}</Typography>
                 <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
                     <Button
                         variant="contained"
                         startIcon={<PersonAdd />}
                         onClick={() => handleOpenDialog('create')}
                     >
-                        Create User
+                        {t('create_user')}
                     </Button>
                 </Box>
             </Box>
@@ -263,12 +265,12 @@ export default function UserManagement({ currentUser }) {
                 <Table>
                     <TableHead>
                         <TableRow>
-                            <TableCell>Username</TableCell>
-                            <TableCell>Role</TableCell>
-                            <TableCell>Description</TableCell>
-                            <TableCell>Created</TableCell>
-                            <TableCell>Last Login</TableCell>
-                            <TableCell>Actions</TableCell>
+                            <TableCell>{t('username')}</TableCell>
+                            <TableCell>{t('role')}</TableCell>
+                            <TableCell>{t('description')}</TableCell>
+                            <TableCell>{t('created')}</TableCell>
+                            <TableCell>{t('last_login')}</TableCell>
+                            <TableCell>{t('actions')}</TableCell>
                         </TableRow>
                     </TableHead>
                     <TableBody>
@@ -293,14 +295,14 @@ export default function UserManagement({ currentUser }) {
                                     <IconButton
                                         size="small"
                                         onClick={() => handleOpenDialog('edit', user)}
-                                        title="Edit User"
+                                        title={t('edit_user')}
                                     >
                                         <Edit />
                                     </IconButton>
                                     <IconButton
                                         size="small"
                                         onClick={() => handleResetPassword(user.id)}
-                                        title="Reset Password"
+                                        title={t('reset_password')}
                                     >
                                         🔑
                                     </IconButton>
@@ -308,7 +310,7 @@ export default function UserManagement({ currentUser }) {
                                         size="small"
                                         color="error"
                                         onClick={() => handleDeleteUser(user.id)}
-                                        title="Delete User"
+                                        title={t('delete_user')}
                                         disabled={user.id === 0}
                                     >
                                         <Delete />
@@ -323,13 +325,13 @@ export default function UserManagement({ currentUser }) {
             {/* Create/Edit User Dialog */}
             <Dialog open={openDialog} onClose={handleCloseDialog} maxWidth="sm" fullWidth>
                 <DialogTitle>
-                    {dialogMode === 'create' ? 'Create New User' : 'Edit User'}
+                    {dialogMode === 'create' ? t('create_new_user') : t('edit_user')}
                 </DialogTitle>
                 <DialogContent>
                     <Box sx={{ pt: 1 }}>
                         <TextField
                             fullWidth
-                            label="Username"
+                            label={t('username')}
                             value={formData.username}
                             onChange={(e) => setFormData({ ...formData, username: e.target.value })}
                             disabled={dialogMode === 'edit'}
@@ -339,7 +341,7 @@ export default function UserManagement({ currentUser }) {
                         {dialogMode === 'create' && (
                             <TextField
                                 fullWidth
-                                label="Password"
+                                label={t('password')}
                                 type="password"
                                 value={formData.password}
                                 onChange={(e) => setFormData({ ...formData, password: e.target.value })}
@@ -348,20 +350,20 @@ export default function UserManagement({ currentUser }) {
                         )}
                         
                         <FormControl fullWidth sx={{ mb: 2 }}>
-                            <InputLabel>Role</InputLabel>
+                            <InputLabel>{t('role')}</InputLabel>
                             <Select
                                 value={formData.role}
-                                label="Role"
+                                label={t('role')}
                                 onChange={(e) => setFormData({ ...formData, role: e.target.value })}
                             >
-                                <MenuItem value="regular">Regular</MenuItem>
-                                <MenuItem value="administrative">Administrative</MenuItem>
+                                <MenuItem value="regular">{t('regular')}</MenuItem>
+                                <MenuItem value="administrative">{t('administrative')}</MenuItem>
                             </Select>
                         </FormControl>
                         
                         <TextField
                             fullWidth
-                            label="Description"
+                            label={t('description')}
                             multiline
                             rows={3}
                             value={formData.self_description}
@@ -370,13 +372,13 @@ export default function UserManagement({ currentUser }) {
                     </Box>
                 </DialogContent>
                 <DialogActions>
-                    <Button onClick={handleCloseDialog}>Cancel</Button>
+                    <Button onClick={handleCloseDialog}>{t('cancel')}</Button>
                     <Button 
                         onClick={handleSubmit}
                         variant="contained"
                         disabled={!formData.username || (dialogMode === 'create' && !formData.password)}
                     >
-                        {dialogMode === 'create' ? 'Create' : 'Update'}
+                        {dialogMode === 'create' ? t('create') : t('update')}
                     </Button>
                 </DialogActions>
             </Dialog>

@@ -15,10 +15,13 @@ import { ThemeProvider, useThemeMode } from './contexts/ThemeContext';
 import createAppTheme from './theme';
 import './style.css';
 import NightModeButton from './components/NightModeButton';
+import LanguageSwitcher from './components/LanguageSwitcher';
+import { useTranslation } from 'react-i18next';
 
 import { loadPuzzle as loadPuzzleHelper, restoreGameState, saveGameState } from './helpers/appHelpers';
 
 function AppContent() {
+    const { t } = useTranslation();
     const location = useLocation();
     const isAdminRoute = location.pathname.startsWith('/admin');
     const gridRef = useRef(null);
@@ -260,47 +263,44 @@ function AppContent() {
                             }}
                         >
                             <CircularProgress size={40} />
-                            <Typography variant="body1">Loading puzzle...</Typography>
+                            <Typography variant="body1">{t('loading_puzzle')}</Typography>
                         </Box>
                     </Box>
                 )}
                 
-                {/* Night Mode Button - Only visible in main game UI, not on admin routes */}
+                {/* Top-right controls row: Language, Profile, Night Mode (all in one horizontal line, with spacing below) */}
                 {!isAdminRoute && (
-                    <NightModeButton
+                    <Box
                         sx={{
                             position: 'absolute',
                             top: 16,
                             right: 16,
                             zIndex: 1000,
-                            minWidth: 48,
-                            height: 48,
-                            fontSize: '1.5rem',
-                            p: 0,
-                            display: { xs: 'none', sm: 'flex' },
-                        }}
-                    />
-                )}
-
-                {/* Admin Button - Top Right on Desktop, Hidden on Mobile and Admin Routes */}
-                {!isAdminRoute && (
-                    <Button
-                        component={Link}
-                        to="/admin"
-                        sx={{
-                            position: 'absolute',
-                            top: 16,
-                            right: 80,
-                            zIndex: 1000,
-                            display: { xs: 'none', md: 'flex' },
-                            minWidth: 48,
-                            height: 48,
-                            fontSize: '1rem',
+                            display: 'flex',
+                            flexDirection: 'row',
+                            alignItems: 'center',
+                            gap: { xs: 1, sm: 2 },
+                            minHeight: 48,
                         }}
                     >
-                        Admin
-                    </Button>
+                        <LanguageSwitcher />
+                        <Button
+                            component={Link}
+                            to="/admin"
+                            sx={{
+                                display: { xs: 'none', md: 'flex' },
+                                minWidth: 48,
+                                height: 48,
+                                fontSize: '1rem',
+                            }}
+                        >
+                            {t('profile')}
+                        </Button>
+                        <NightModeButton />
+                    </Box>
                 )}
+                {/* Add vertical spacing between controls row and logo/title */}
+                <Box sx={{ height: { xs: 16, sm: 20 } }} />
 
                 <Routes>
                     <Route path="/admin" element={<AdminPanel />} />
@@ -319,7 +319,7 @@ function AppContent() {
                                 <Box sx={{
                                     display: 'flex',
                                     alignItems: 'center',
-                                    justifyContent: panelOpen ? { xs: 'flex-start', sm: 'center' } : 'center',
+                                    justifyContent: 'center', // Always center
                                     flexWrap: 'wrap',
                                     gap: 2,
                                     cursor: 'pointer',
@@ -344,30 +344,13 @@ function AppContent() {
                                         variant="h1"
                                         sx={{
                                             fontSize: { xs: '2rem', sm: '3rem', md: '4rem' },
-                                            textAlign: panelOpen ? { xs: 'left', sm: 'center' } : 'center',
+                                            textAlign: 'center',
                                             userSelect: 'none' // Prevent text selection
                                         }}
                                     >
                                         Osmosmjerka
                                     </Typography>
                                 </Box>
-                                
-                                {/* Night mode button on mobile when menu is open - positioned at top right */}
-                                {panelOpen && (
-                                    <NightModeButton
-                                        sx={{
-                                            position: 'absolute',
-                                            top: 0,
-                                            right: 0,
-                                            display: { xs: 'flex', sm: 'none' },
-                                            minWidth: 48,
-                                            height: 48,
-                                            fontSize: '1.5rem',
-                                            p: 0,
-                                            zIndex: 1000,
-                                        }}
-                                    />
-                                )}
                             </Box>
 
                             {/* Toggle button for mobile, only when menu is closed */}
@@ -391,19 +374,10 @@ function AppContent() {
                                             alignItems: 'center',
                                             justifyContent: 'center',
                                         }}
-                                        aria-label="Show controls"
+                                        aria-label={t('show_controls')}
                                     >
-                                        Menu ⬇️
+                                        {t('menu')} ⬇️
                                     </Button>
-                                    <NightModeButton
-                                        sx={{
-                                            minWidth: 40,
-                                            height: 40,
-                                            fontSize: '1.5rem',
-                                            p: 0,
-                                            ml: 1,
-                                        }}
-                                    />
                                 </Box>
                             )}
 
@@ -428,15 +402,15 @@ function AppContent() {
                                         onSelect={cat => setSelectedCategory(cat)}
                                     />
                                     <FormControl fullWidth size="small">
-                                        <InputLabel>Difficulty</InputLabel>
+                                        <InputLabel>{t('difficulty')}</InputLabel>
                                         <Select
                                             value={difficulty}
-                                            label="Difficulty"
+                                            label={t('difficulty')}
                                             onChange={e => setDifficulty(e.target.value)}
                                         >
                                             {availableDifficulties.map(diff => (
                                                 <MenuItem key={diff.value} value={diff.value}>
-                                                    {diff.label}
+                                                    {t(diff.value)}
                                                 </MenuItem>
                                             ))}
                                         </Select>
@@ -454,7 +428,7 @@ function AppContent() {
                                     {/* Refresh button */}
                                     <Button
                                         onClick={() => loadPuzzle(selectedCategory, difficulty)}
-                                        title="Reload puzzle"
+                                        title={t('reload_puzzle')}
                                         sx={{
                                             height: { xs: 48, sm: 96 },
                                             minWidth: { xs: 48, sm: 56 },
@@ -467,7 +441,7 @@ function AppContent() {
                                     >
                                         <span>🔄</span>
                                         <Box component="span" sx={{ display: { xs: 'none', sm: 'inline' }, fontSize: '1rem', mt: 1 }}>
-                                            Refresh
+                                            {t('refresh')}
                                         </Box>
                                     </Button>
 
@@ -477,6 +451,7 @@ function AppContent() {
                                         grid={grid}
                                         words={words}
                                         disabled={isLoading || grid.length === 0 || notEnoughWords}
+                                        t={t}
                                     />
 
                                     {/* Hide menu button for mobile, only when menu is open */}
@@ -493,7 +468,7 @@ function AppContent() {
                                                 fontSize: '1.5rem',
                                                 p: 0
                                             }}
-                                            aria-label="Hide controls"
+                                            aria-label={t('hide_controls')}
                                         >
                                             ⬆️
                                         </Button>
@@ -502,11 +477,6 @@ function AppContent() {
                             </Box>
 
                             {/* All Found Message */}
-                            {!allFound && (
-                                <Box sx={{ minHeight: { xs: 16, sm: 24 }, display: 'flex', alignItems: 'center' }} >
-
-                                </Box>
-                            )}
                             {allFound && (
                                 <Box sx={{
                                     textAlign: 'center',
@@ -530,7 +500,7 @@ function AppContent() {
                                             lineHeight: 1.2
                                         }}
                                     >
-                                        🎉 All words found! 🎊
+                                        🎉 {t('all_words_found')} 🎊
                                     </Typography>
                                     <Button
                                         onClick={() => loadPuzzle(selectedCategory, difficulty)}
@@ -545,7 +515,7 @@ function AppContent() {
                                         }}
                                     >
                                         <Box component="span" sx={{ display: { xs: 'none', sm: 'inline' } }}>
-                                            New game
+                                            {t('new_game')}
                                         </Box>
                                         <Box component="span" sx={{ display: { xs: 'inline', sm: 'none' } }}>
                                             🎮
@@ -607,7 +577,7 @@ function AppContent() {
                                                 color: 'error.main',
                                                 fontWeight: 'bold'
                                             }}>
-                                                {notEnoughWordsMsg || "Not enough words in the selected category to generate a puzzle."}
+                                                {notEnoughWordsMsg || t('not_enough_words')}
                                             </Box>
                                         </Box>
                                     )}
@@ -623,6 +593,7 @@ function AppContent() {
                                         setShowTranslations={setShowTranslations}
                                         disableShowWords={notEnoughWords}
                                         onWordBlink={handleWordBlink}
+                                        t={t}
                                     />
                                 </Box>
                             </Box>

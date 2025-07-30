@@ -4,9 +4,11 @@ import Button from '@mui/material/Button';
 import Box from '@mui/material/Box';
 import ExportModal from './ExportModal';
 import './ExportButton.css';
+import { useTranslation } from 'react-i18next';
 
 export default function ExportButton({ category, grid, words, disabled }) {
     const [modalOpen, setModalOpen] = useState(false);
+    const { t } = useTranslation();
 
     const handleExport = async (format) => {
         try {
@@ -17,7 +19,7 @@ export default function ExportButton({ category, grid, words, disabled }) {
             );
 
             const url = window.URL.createObjectURL(new Blob([response.data]));
-            const safeCategory = (category || "wordsearch").replace(/[^a-z0-9]+/gi, "_").toLowerCase();
+            const safeCategory = (category || t('wordsearch')).replace(/[^a-z0-9]+/gi, "_").toLowerCase();
 
             // Determine file extension based on format
             const extensions = {
@@ -29,13 +31,13 @@ export default function ExportButton({ category, grid, words, disabled }) {
 
             const link = document.createElement('a');
             link.href = url;
-            link.setAttribute('download', `wordsearch-${safeCategory}.${extension}`);
+            link.setAttribute('download', `${t('wordsearch')}-${safeCategory}.${extension}`);
             document.body.appendChild(link);
             link.click();
             link.remove();
             window.URL.revokeObjectURL(url);
         } catch (err) {
-            console.error('Export failed:', err);
+            console.error(t('export_failed'), err);
         }
     };
 
@@ -72,7 +74,7 @@ export default function ExportButton({ category, grid, words, disabled }) {
             >
                 <span>📄</span>
                 <Box component="span" sx={{ display: { xs: 'none', sm: 'inline' } }}>
-                    Export
+                    {t('export')}
                 </Box>
             </Button>
 

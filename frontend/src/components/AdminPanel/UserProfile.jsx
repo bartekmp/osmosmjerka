@@ -12,8 +12,10 @@ import {
     DialogContent,
     DialogActions
 } from '@mui/material';
+import { useTranslation } from 'react-i18next';
 
 export default function UserProfile({ currentUser }) {
+    const { t } = useTranslation();
     const [profile, setProfile] = useState({
         username: '',
         role: '',
@@ -52,10 +54,10 @@ export default function UserProfile({ currentUser }) {
                 setProfile(data);
                 setDescription(data.self_description || '');
             } else {
-                showNotification(data.error || 'Failed to fetch profile', 'error');
+                showNotification(data.error || t('fetch_profile_failed'), 'error');
             }
         } catch (err) {
-            showNotification('Network error: ' + err.message, 'error');
+            showNotification(t('network_error', { message: err.message }), 'error');
         }
     };
 
@@ -72,13 +74,13 @@ export default function UserProfile({ currentUser }) {
             const data = await response.json();
             
             if (response.ok) {
-                showNotification('Profile updated successfully', 'success');
+                showNotification(t('profile_updated'), 'success');
                 setProfile({ ...profile, self_description: description });
             } else {
-                showNotification(data.error || 'Failed to update profile', 'error');
+                showNotification(data.error || t('update_profile_failed'), 'error');
             }
         } catch (err) {
-            showNotification('Network error: ' + err.message, 'error');
+            showNotification(t('network_error', { message: err.message }), 'error');
         } finally {
             setLoading(false);
         }
@@ -86,12 +88,12 @@ export default function UserProfile({ currentUser }) {
 
     const changePassword = async () => {
         if (passwordData.new_password !== passwordData.confirm_password) {
-            showNotification('New passwords do not match', 'error');
+            showNotification(t('passwords_do_not_match'), 'error');
             return;
         }
 
         if (passwordData.new_password.length < 6) {
-            showNotification('New password must be at least 6 characters', 'error');
+            showNotification(t('password_too_short'), 'error');
             return;
         }
 
@@ -108,7 +110,7 @@ export default function UserProfile({ currentUser }) {
             const data = await response.json();
             
             if (response.ok) {
-                showNotification('Password changed successfully', 'success');
+                showNotification(t('password_changed'), 'success');
                 setPasswordDialog(false);
                 setPasswordData({
                     current_password: '',
@@ -116,10 +118,10 @@ export default function UserProfile({ currentUser }) {
                     confirm_password: ''
                 });
             } else {
-                showNotification(data.error || 'Failed to change password', 'error');
+                showNotification(data.error || t('change_password_failed'), 'error');
             }
         } catch (err) {
-            showNotification('Network error: ' + err.message, 'error');
+            showNotification(t('network_error', { message: err.message }), 'error');
         } finally {
             setLoading(false);
         }
@@ -136,15 +138,15 @@ export default function UserProfile({ currentUser }) {
     if (currentUser?.role === 'root_admin') {
         return (
             <Box>
-                <Typography variant="h5" sx={{ mb: 3 }}>User Profile</Typography>
+                <Typography variant="h5" sx={{ mb: 3 }}>{t('user_profile')}</Typography>
                 <Alert severity="info">
-                    Root admin profile cannot be modified through this interface.
+                    {t('root_admin_profile_readonly')}
                 </Alert>
                 <Paper sx={{ p: 3, mt: 2 }}>
-                    <Typography variant="h6" gutterBottom>Account Information</Typography>
-                    <Typography><strong>Username:</strong> {currentUser.username}</Typography>
-                    <Typography><strong>Role:</strong> {currentUser.role}</Typography>
-                    <Typography><strong>Description:</strong> Root Administrator</Typography>
+                    <Typography variant="h6" gutterBottom>{t('account_information')}</Typography>
+                    <Typography><strong>{t('username')}:</strong> {currentUser.username}</Typography>
+                    <Typography><strong>{t('role')}:</strong> {currentUser.role}</Typography>
+                    <Typography><strong>{t('description')}:</strong> {t('root_administrator')}</Typography>
                 </Paper>
             </Box>
         );
@@ -152,49 +154,44 @@ export default function UserProfile({ currentUser }) {
 
     return (
         <Box>
-            <Typography variant="h5" sx={{ mb: 3 }}>User Profile</Typography>
-            
+            <Typography variant="h5" sx={{ mb: 3 }}>{t('user_profile')}</Typography>
             {/* Account Information */}
             <Paper sx={{ p: 3, mb: 3 }}>
-                <Typography variant="h6" gutterBottom>Account Information</Typography>
-                <Typography sx={{ mb: 1 }}><strong>Username:</strong> {profile.username}</Typography>
-                <Typography sx={{ mb: 2 }}><strong>Role:</strong> {profile.role}</Typography>
-                
+                <Typography variant="h6" gutterBottom>{t('account_information')}</Typography>
+                <Typography sx={{ mb: 1 }}><strong>{t('username')}:</strong> {profile.username}</Typography>
+                <Typography sx={{ mb: 2 }}><strong>{t('role')}:</strong> {profile.role}</Typography>
                 <TextField
                     fullWidth
-                    label="Description"
+                    label={t('description')}
                     multiline
                     rows={3}
                     value={description}
                     onChange={(e) => setDescription(e.target.value)}
                     sx={{ mb: 2 }}
                 />
-                
                 <Button 
                     variant="contained" 
                     onClick={updateProfile}
                     disabled={loading || !description.trim()}
                     sx={{ mr: 2 }}
                 >
-                    Update Description
+                    {t('update_description')}
                 </Button>
-                
                 <Button 
                     variant="outlined" 
                     onClick={() => setPasswordDialog(true)}
                 >
-                    Change Password
+                    {t('change_password')}
                 </Button>
             </Paper>
-
             {/* Change Password Dialog */}
             <Dialog open={passwordDialog} onClose={() => setPasswordDialog(false)} maxWidth="sm" fullWidth>
-                <DialogTitle>Change Password</DialogTitle>
+                <DialogTitle>{t('change_password')}</DialogTitle>
                 <DialogContent>
                     <Box sx={{ pt: 1 }}>
                         <TextField
                             fullWidth
-                            label="Current Password"
+                            label={t('current_password')}
                             type="password"
                             value={passwordData.current_password}
                             onChange={(e) => setPasswordData({
@@ -203,10 +200,9 @@ export default function UserProfile({ currentUser }) {
                             })}
                             sx={{ mb: 2 }}
                         />
-                        
                         <TextField
                             fullWidth
-                            label="New Password"
+                            label={t('new_password')}
                             type="password"
                             value={passwordData.new_password}
                             onChange={(e) => setPasswordData({
@@ -215,10 +211,9 @@ export default function UserProfile({ currentUser }) {
                             })}
                             sx={{ mb: 2 }}
                         />
-                        
                         <TextField
                             fullWidth
-                            label="Confirm New Password"
+                            label={t('confirm_new_password')}
                             type="password"
                             value={passwordData.confirm_password}
                             onChange={(e) => setPasswordData({
@@ -229,17 +224,16 @@ export default function UserProfile({ currentUser }) {
                     </Box>
                 </DialogContent>
                 <DialogActions>
-                    <Button onClick={() => setPasswordDialog(false)}>Cancel</Button>
+                    <Button onClick={() => setPasswordDialog(false)}>{t('cancel')}</Button>
                     <Button 
                         onClick={changePassword}
                         variant="contained"
                         disabled={loading || !passwordData.current_password || !passwordData.new_password}
                     >
-                        Change Password
+                        {t('change_password')}
                     </Button>
                 </DialogActions>
             </Dialog>
-
             {/* Notification Snackbar */}
             <Snackbar
                 open={notification.open}

@@ -3,6 +3,7 @@ import { render, screen, waitFor } from '@testing-library/react';
 import axios from 'axios';
 import { BrowserRouter } from 'react-router-dom';
 import App from '../App';
+import { withI18n } from '../testUtils';
 
 jest.mock('axios');
 
@@ -10,7 +11,7 @@ afterEach(() => {
     jest.clearAllMocks();
 });
 
-test('renders admin link', async () => {
+test('renders profile link', async () => {
     axios.get.mockImplementation((url) => {
         if (url.startsWith('/api/ignored-categories')) {
             return Promise.resolve({ data: [] });
@@ -24,8 +25,8 @@ test('renders admin link', async () => {
         return Promise.resolve({ data: [] });
     });
 
-    render(<BrowserRouter><App /></BrowserRouter>);
-    expect(await screen.findByText(/Admin/i)).toBeInTheDocument();
+    render(withI18n(<BrowserRouter><App /></BrowserRouter>));
+    expect(await screen.findByText(/Profile/i)).toBeInTheDocument();
 });
 
 test('shows not enough words overlay', async () => {
@@ -46,8 +47,11 @@ test('shows not enough words overlay', async () => {
         return Promise.resolve({ data: [] });
     });
 
-    render(<BrowserRouter><App /></BrowserRouter>);
-    const overlays = await screen.findAllByText(/Not enough words in the selected category/i);
+    render(withI18n(<BrowserRouter><App /></BrowserRouter>));
+    // Accept either translation or fallback detail
+    const overlays = await screen.findAllByText((content) =>
+        /not enough words/i.test(content)
+    );
     expect(overlays.length).toBeGreaterThan(0);
 });
 
@@ -62,7 +66,7 @@ test('renders category selector', async () => {
         return Promise.resolve({ data: [] });
     });
 
-    render(<BrowserRouter><App /></BrowserRouter>);
+    render(withI18n(<BrowserRouter><App /></BrowserRouter>));
     const combos = await screen.findAllByRole('combobox');
     expect(combos.length).toBeGreaterThan(0);
 });
@@ -81,8 +85,8 @@ test('renders reload button', async () => {
         return Promise.resolve({ data: [] });
     });
 
-    render(<BrowserRouter><App /></BrowserRouter>);
+    render(withI18n(<BrowserRouter><App /></BrowserRouter>));
     await waitFor(() => {
-        expect(screen.getByTitle(/Reload puzzle/i)).toBeInTheDocument();
+        expect(screen.getByTitle(/reload/i)).toBeInTheDocument();
     });
 });

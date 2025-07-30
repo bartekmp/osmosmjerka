@@ -8,8 +8,10 @@ import {
     Fade,
     Backdrop
 } from '@mui/material';
+import { useTranslation } from 'react-i18next';
 
 export default function ExportModal({ open, onClose, onFormatSelect }) {
+    const { t } = useTranslation();
     const modalStyle = {
         position: 'absolute',
         top: '50%',
@@ -27,9 +29,9 @@ export default function ExportModal({ open, onClose, onFormatSelect }) {
     };
 
     const formatButtons = [
-        { format: 'docx', label: 'Word Document', icon: '📄', description: 'Microsoft Word format' },
-        { format: 'pdf', label: 'PDF Document', icon: '📑', description: 'Portable Document Format' },
-        { format: 'png', label: 'PNG Image', icon: '🖼️', description: 'Portable Network Graphics' }
+        { format: 'docx', label: t('word_document'), icon: '📄', description: t('word_document_desc') },
+        { format: 'pdf', label: t('pdf_document'), icon: '📑', description: t('pdf_document_desc') },
+        { format: 'png', label: t('png_image'), icon: '🖼️', description: t('png_image_desc') }
     ];
 
     const handleFormatClick = (format) => {
@@ -61,7 +63,7 @@ export default function ExportModal({ open, onClose, onFormatSelect }) {
                             mb: 3
                         }}
                     >
-                        Choose Export Format
+                        {t('choose_export_format')}
                     </Typography>
 
                     <Stack spacing={2} sx={{ mb: 3 }}>
@@ -126,7 +128,7 @@ export default function ExportModal({ open, onClose, onFormatSelect }) {
                                 }
                             }}
                         >
-                            ❌ Cancel
+                            ❌ {t('cancel')}
                         </Button>
                     </Box>
                 </Box>

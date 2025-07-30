@@ -49,7 +49,7 @@ export function saveGameState(state) {
 }
 
 // Load puzzle from API
-export function loadPuzzle(category, diff, setters) {
+export function loadPuzzle(category, diff, setters, t) {
     const {
         setSelectedCategory,
         setGrid,
@@ -68,7 +68,7 @@ export function loadPuzzle(category, diff, setters) {
         .then(res => {
             if (res.data.error_code === "NOT_ENOUGH_WORDS") {
                 if (setNotEnoughWords) setNotEnoughWords(true);
-                if (setNotEnoughWordsMsg) setNotEnoughWordsMsg(res.data.detail || "Not enough words in the selected category.");
+                if (setNotEnoughWordsMsg) setNotEnoughWordsMsg(res.data.detail || (t ? t('not_enough_words') : "Not enough words in the selected category."));
                 setGrid(Array.from({ length: 10 }, () => Array(10).fill("")));
                 setWords([]);
                 setFound([]);
@@ -86,7 +86,7 @@ export function loadPuzzle(category, diff, setters) {
         .catch(err => {
             // Only handle true network/server errors here
             if (setNotEnoughWords) setNotEnoughWords(true);
-            let msg = "Error loading puzzle.";
+            let msg = t ? t('error_loading_puzzle') : "Error loading puzzle.";
             if (err.response && err.response.data && err.response.data.detail) {
                 msg = err.response.data.detail;
             }

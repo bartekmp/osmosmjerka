@@ -1,6 +1,7 @@
 import React from 'react';
 import { Button } from '@mui/material';
 import { useThemeMode } from '../contexts/ThemeContext';
+import { useTranslation } from 'react-i18next';
 
 /**
  * NightModeButton - a reusable button for toggling dark/light mode.
@@ -11,12 +12,13 @@ import { useThemeMode } from '../contexts/ThemeContext';
  */
 export default function NightModeButton({ sx = {}, className = '', ...rest }) {
     const { isDarkMode, toggleDarkMode } = useThemeMode();
+    const { t } = useTranslation();
     return (
         <Button
             onClick={toggleDarkMode}
             sx={sx}
             className={className}
-            title={isDarkMode ? 'Switch to light mode' : 'Switch to dark mode'}
+            title={isDarkMode ? t('light_mode') : t('dark_mode')}
             {...rest}
         >
             {isDarkMode ? '☀️' : '🌙'}

@@ -1,7 +1,9 @@
 import React from 'react';
 import { Box, Button, TextField, Typography, Paper, Stack } from '@mui/material';
+import { useTranslation } from 'react-i18next';
 
 export default function EditRowForm({ editRow, setEditRow, handleSave }) {
+    const { t } = useTranslation();
     if (!editRow) return null;
     
     return (
@@ -16,25 +18,25 @@ export default function EditRowForm({ editRow, setEditRow, handleSave }) {
             }}
         >
             <Typography variant="h5" component="h3" gutterBottom align="center">
-                {editRow.id ? "Edit Row" : "Add Row"}
+                {editRow.id ? t('edit_row') : t('add_row')}
             </Typography>
             <Stack spacing={2}>
                 <TextField
-                    label="Categories"
+                    label={t('categories')}
                     value={editRow.categories}
                     onChange={e => setEditRow({ ...editRow, categories: e.target.value })}
                     fullWidth
                     variant="outlined"
                 />
                 <TextField
-                    label="Word"
+                    label={t('word')}
                     value={editRow.word}
                     onChange={e => setEditRow({ ...editRow, word: e.target.value })}
                     fullWidth
                     variant="outlined"
                 />
                 <TextField
-                    label="Translation"
+                    label={t('translation')}
                     value={editRow.translation}
                     onChange={e => setEditRow({ ...editRow, translation: e.target.value })}
                     fullWidth
@@ -46,14 +48,14 @@ export default function EditRowForm({ editRow, setEditRow, handleSave }) {
                         onClick={handleSave}
                         color="primary"
                     >
-                        💾 Save
+                        {t('save')}
                     </Button>
                     <Button 
                         variant="outlined" 
                         onClick={() => setEditRow(null)}
                         color="secondary"
                     >
-                        ❌ Cancel
+                        {t('cancel')}
                     </Button>
                 </Box>
             </Stack>
