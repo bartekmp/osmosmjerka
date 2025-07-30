@@ -30,8 +30,11 @@ import PaginationControls from './PaginationControls';
 import { useAdminApi } from './useAdminApi';
 import { useThemeMode } from '../../contexts/ThemeContext';
 import NightModeButton from '../NightModeButton';
+import LanguageSwitcher from '../LanguageSwitcher';
+import { useTranslation } from 'react-i18next';
 
 export default function AdminPanel() {
+    const { t } = useTranslation();
     const [auth, setAuth] = useState({ user: '', pass: '' });
     const [rows, setRows] = useState([]);
     const [offset, setOffset] = useState(0);
@@ -155,7 +158,7 @@ export default function AdminPanel() {
 
     // Handle clear database with confirmation and notification
     const handleClearDb = () => {
-        if (window.confirm("Are you sure you want to delete ALL data? This action cannot be undone!")) {
+        if (window.confirm(t('confirm_clear_db'))) {
             setClearLoading(true);
             setClearNotification((n) => ({ ...n, open: false }));
             const token = localStorage.getItem('adminToken');
@@ -166,7 +169,7 @@ export default function AdminPanel() {
                     if (res.ok) {
                         setClearNotification({
                             open: true,
-                            message: data.message || 'Database cleared',
+                            message: data.message || t('db_cleared'),
                             severity: 'success',
                             autoHideDuration: 3000,
                         });
@@ -174,7 +177,7 @@ export default function AdminPanel() {
                     } else {
                         setClearNotification({
                             open: true,
-                            message: data.message || 'Failed to clear database',
+                            message: data.message || t('clear_db_failed'),
                             severity: 'error',
                             autoHideDuration: null,
                         });
@@ -183,7 +186,7 @@ export default function AdminPanel() {
                 .catch(() => {
                     setClearNotification({
                         open: true,
-                        message: 'Failed to clear database',
+                        message: t('clear_db_failed'),
                         severity: 'error',
                         autoHideDuration: null,
                     });
@@ -209,13 +212,13 @@ export default function AdminPanel() {
         return (
             <Container maxWidth="sm" sx={{ py: 4 }}>
                 <Box sx={{ textAlign: 'right', mb: 2 }}>
-                    <Button component={Link} to="/" variant="outlined">
-                        ← Back to Game
+                    <Button component={Link} to="/" variant="outlined" sx={{ minHeight: 48, minWidth: 72 }}>
+                        ← {t('back_to_game')}
                     </Button>
                 </Box>
                 <Paper sx={{ p: 4, borderRadius: 2 }}>
                     <Typography variant="h4" component="h2" gutterBottom align="center">
-                        Admin Login
+                        {t('admin_login')}
                     </Typography>
                     <Box 
                         component="form" 
@@ -224,14 +227,14 @@ export default function AdminPanel() {
                     >
                         <Stack spacing={3}>
                             <TextField
-                                placeholder="Username"
+                                placeholder={t('username')}
                                 value={auth.user}
                                 onChange={e => setAuth({ ...auth, user: e.target.value })}
                                 fullWidth
                                 variant="outlined"
                             />
                             <TextField
-                                placeholder="Password"
+                                placeholder={t('password')}
                                 type="password"
                                 value={auth.pass}
                                 onChange={e => setAuth({ ...auth, pass: e.target.value })}
@@ -239,7 +242,7 @@ export default function AdminPanel() {
                                 variant="outlined"
                             />
                             <Button type="submit" variant="contained" size="large">
-                                Login
+                                {t('login')}
                             </Button>
                         </Stack>
                     </Box>
@@ -251,7 +254,7 @@ export default function AdminPanel() {
                     {isTokenExpired(token) && (
                         <Box sx={{ mt: 2, p: 2, bgcolor: 'warning.light', borderRadius: 1 }}>
                             <Typography color="warning.contrastText">
-                                Session expired, please log in again.
+                                {t('session_expired')}
                             </Typography>
                         </Box>
                     )}
@@ -260,33 +263,35 @@ export default function AdminPanel() {
         );
     }
 
+    // Dashboard view
     if (dashboard && !editRow) {
         return (
             <Container maxWidth="md" sx={{ py: 4 }}>
                 <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 3 }}>
-                    <Button component={Link} to="/" variant="outlined">
-                        ← Back to Game
+                    <Button component={Link} to="/" variant="outlined" sx={{ minHeight: 48, minWidth: 72 }}>
+                        ← {t('back_to_game')}
                     </Button>
                     <Box sx={{ display: 'flex', gap: 2, alignItems: 'center' }}>
-                        <NightModeButton />
-                        <Button onClick={handleLogout} variant="outlined" color="secondary">
-                            Logout
+                        <LanguageSwitcher sx={{ height: 48, minWidth: 72 }} />
+                        <NightModeButton sx={{ height: 48, minWidth: 72 }} />
+                        <Button onClick={handleLogout} variant="outlined" color="secondary" sx={{ height: 48, minWidth: 48 }}>
+                            {t('logout')}
                         </Button>
                     </Box>
                 </Box>
                 <Paper sx={{ p: 4, borderRadius: 2 }}>
                     <Typography variant="h4" component="h2" gutterBottom align="center">
-                        Admin Dashboard
+                        {t('admin_dashboard')}
                     </Typography>
                     <Typography variant="body1" align="center" sx={{ mb: 3 }}>
-                        Welcome, {currentUser?.username} ({currentUser?.role})
+                        {t('welcome_user', { username: currentUser?.username, role: currentUser?.role })}
                     </Typography>
                     <Box sx={{ display: 'flex', gap: 2, justifyContent: 'center', flexWrap: 'wrap', mt: 3 }}>
                         <Button 
                             onClick={() => setDashboard(false)} 
                             variant="contained"
                         >
-                            Browse Words
+                            {t('browse_words')}
                         </Button>
                         {currentUser?.role === 'root_admin' && (
                             <Button 
@@ -297,7 +302,7 @@ export default function AdminPanel() {
                                 variant="contained"
                                 color="secondary"
                             >
-                                User Management
+                                {t('user_management')}
                             </Button>
                         )}
                         <Button 
@@ -308,7 +313,7 @@ export default function AdminPanel() {
                             variant="contained"
                             color="info"
                         >
-                            Profile
+                            {t('profile')}
                         </Button>
                     </Box>
                     {error && (
@@ -326,24 +331,26 @@ export default function AdminPanel() {
         return (
             <Container maxWidth="xl" sx={{ py: 4 }}>
                 <Box sx={{ display: 'flex', alignItems: 'center', mb: 3, gap: 2 }}>
-                    <Button component={Link} to="/" variant="outlined">
-                        ← Back to Game
+                    <Button component={Link} to="/" variant="outlined" sx={{ minHeight: 48, minWidth: 72 }}>
+                        ← {t('back_to_game')}
                     </Button>
                     <Button 
                         onClick={() => {
                             setUserManagement(false);
                             setDashboard(true);
-                        }} 
+                        }}
+                        sx={{ height: 48, minWidth: 72 }}
                         variant="outlined"
                     >
-                        ← Dashboard
+                        ← {t('dashboard')}
                     </Button>
                     <Box sx={{ flex: 1 }} />
+                    <LanguageSwitcher sx={{ height: 48, minWidth: 72 }} />
                     <NightModeButton
-                        sx={{ minWidth: 40, height: 40, fontSize: '1.5rem', p: 0, mr: 1 }}
+                        sx={{ minWidth: 72, height: 48, fontSize: '1.5rem', p: 0, mr: 1 }}
                     />
-                    <Button onClick={handleLogout} variant="outlined" color="secondary" sx={{ height: 40 }}>
-                        Logout
+                    <Button onClick={handleLogout} variant="outlined" color="secondary" sx={{ height: 48, minWidth: 72 }}>
+                        {t('logout')}
                     </Button>
                 </Box>
                 <Paper sx={{ p: 3 }}>
@@ -358,25 +365,27 @@ export default function AdminPanel() {
         return (
             <Container maxWidth="md" sx={{ py: 4 }}>
                 <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 3 }}>
-                    <Button component={Link} to="/" variant="outlined">
-                        ← Back to Game
+                    <Button component={Link} to="/" variant="outlined" sx={{ minHeight: 48, minWidth: 72 }}>
+                        ← {t('back_to_game')}
                     </Button>
-                    <Box sx={{ display: 'flex', gap: 2 }}>
+                    <Box sx={{ display: 'flex', gap: 2, alignItems: 'center' }}>
                         <Button 
                             onClick={() => {
                                 setUserProfile(false);
                                 setDashboard(true);
-                            }} 
+                            }}
+                            sx={{ height: 48, minWidth: 72 }}
                             variant="outlined"
                         >
-                            ← Dashboard
+                            ← {t('dashboard')}
                         </Button>
-                        <Button onClick={handleLogout} variant="outlined" color="secondary">
-                            Logout
+                        <LanguageSwitcher sx={{ height: 48, minWidth: 72 }} />
+                        <NightModeButton sx={{ height: 48, minWidth: 72 }} />
+                        <Button onClick={handleLogout} variant="outlined" color="secondary" sx={{ height: 48, minWidth: 72 }}>
+                            {t('logout')}
                         </Button>
                     </Box>
                 </Box>
-                
                 <Paper sx={{ p: 3 }}>
                     <UserProfile currentUser={currentUser} />
                 </Paper>
@@ -387,28 +396,28 @@ export default function AdminPanel() {
     return (
         <Container maxWidth="xl" sx={{ py: 4 }}>
             <Box sx={{ display: 'flex', alignItems: 'center', mb: 3, gap: 2 }}>
-                <Button component={Link} to="/" variant="outlined">
-                    ← Back to Game
+                <Button component={Link} to="/" variant="outlined" sx={{ minHeight: 48, minWidth: 72 }}>
+                    ← {t('back_to_game')}
                 </Button>
                 <Button 
                     onClick={() => setDashboard(true)}
                     variant="outlined"
+                    sx={{ minHeight: 48, minWidth: 72 }}
                 >
-                    ← Dashboard
+                    ← {t('dashboard')}
                 </Button>
                 <Box sx={{ flex: 1 }} />
+                <LanguageSwitcher sx={{ height: 48, minWidth: 72 }} />
                 <NightModeButton
-                    sx={{ minWidth: 40, height: 40, fontSize: '1.5rem', p: 0, mr: 1 }}
+                    sx={{ minWidth: 72, height: 48, fontSize: '1.5rem', p: 0, mr: 1 }}
                 />
-                <Button onClick={handleLogout} variant="outlined" color="secondary" sx={{ height: 40 }}>
-                    Logout
+                <Button onClick={handleLogout} variant="outlined" color="secondary" sx={{ height: 48, minWidth: 72 }}>
+                    {t('logout')}
                 </Button>
             </Box>
-
             <Typography variant="h4" component="h2" gutterBottom align="center">
-                Admin Panel
+                {t('admin_panel')}
             </Typography>
-
             {/* Action Buttons */}
             <Paper sx={{ p: 3, mb: 3 }}>
                 <Grid container spacing={2} justifyContent="center">
@@ -427,10 +436,10 @@ export default function AdminPanel() {
                         >
                             <span style={{ marginRight: '4px' }}>📊</span>
                             <Box component="span" sx={{ display: { xs: 'none', sm: 'inline' } }}>
-                                Reload Data
+                                {t('reload_data')}
                             </Box>
                             <Box component="span" sx={{ display: { xs: 'inline', sm: 'none' } }}>
-                                Reload
+                                {t('reload')}
                             </Box>
                         </Button>
                     </Grid>
@@ -444,10 +453,10 @@ export default function AdminPanel() {
                         >
                             <span style={{ marginRight: '4px' }}>➕</span>
                             <Box component="span" sx={{ display: { xs: 'none', sm: 'inline' } }}>
-                                Add Row
+                                {t('add_row')}
                             </Box>
                             <Box component="span" sx={{ display: { xs: 'inline', sm: 'none' } }}>
-                                Add
+                                {t('add')}
                             </Box>
                         </Button>
                     </Grid>
@@ -466,10 +475,10 @@ export default function AdminPanel() {
                         >
                             <span style={{ marginRight: '4px' }}>💾</span>
                             <Box component="span" sx={{ display: { xs: 'none', sm: 'inline' } }}>
-                                Download Words
+                                {t('download_words')}
                             </Box>
                             <Box component="span" sx={{ display: { xs: 'inline', sm: 'none' } }}>
-                                Download
+                                {t('download')}
                             </Box>
                         </Button>
                     </Grid>
@@ -491,10 +500,10 @@ export default function AdminPanel() {
                         >
                             <span style={{ marginRight: '4px' }}>🗑️</span>
                             <Box component="span" sx={{ display: { xs: 'none', sm: 'inline' } }}>
-                                Clear Database
+                                {t('clear_database')}
                             </Box>
                             <Box component="span" sx={{ display: { xs: 'inline', sm: 'none' } }}>
-                                Clear
+                                {t('clear')}
                             </Box>
                         </Button>
                         <Snackbar
@@ -518,26 +527,24 @@ export default function AdminPanel() {
                     </Grid>
                 </Grid>
             </Paper>
-
             {/* Edit Row Form */}
             <EditRowForm 
                 editRow={editRow} 
                 setEditRow={setEditRow} 
                 handleSave={() => handleSave(editRow, () => fetchRows(offset, limit, filterCategory), setEditRow)} 
             />
-
             {/* Filter and Statistics */}
             <Paper sx={{ p: 3, mb: 3 }}>
                 <Grid container spacing={3} alignItems="center">
                     <Grid item xs={12} md={8}>
-                        <FormControl fullWidth sx={{ minWidth: 200 }}>
-                            <InputLabel>Filter by category</InputLabel>
+                        <FormControl fullWidth sx={{ minWidth: 264 }}>
+                            <InputLabel>{t('filter_by_category')}</InputLabel>
                             <Select 
                                 value={filterCategory} 
-                                label="Filter by category"
+                                label={t('filter_by_category')}
                                 onChange={e => { setFilterCategory(e.target.value); setOffset(0); }}
                             >
-                                <MenuItem value="">-- All Categories --</MenuItem>
+                                <MenuItem value="">{`-- ${t('all_categories')} --`}</MenuItem>
                                 {categories.map(cat => (
                                     <MenuItem key={cat} value={cat}>{cat}</MenuItem>
                                 ))}
@@ -546,12 +553,11 @@ export default function AdminPanel() {
                     </Grid>
                     <Grid item xs={12} md={4}>
                         <Typography variant="h6" align="center">
-                            Total rows: {totalRows}
+                            {t('total_rows', { count: totalRows })}
                         </Typography>
                     </Grid>
                 </Grid>
             </Paper>
-
             {/* Data Table */}
             <AdminTable 
                 rows={rows} 
@@ -559,7 +565,6 @@ export default function AdminPanel() {
                 onSaveRow={handleInlineSave}
                 onDeleteRow={handleInlineDelete}
             />
-
             {/* Pagination */}
             <Box sx={{ mt: 3 }}>
                 <PaginationControls
@@ -572,7 +577,6 @@ export default function AdminPanel() {
                     setOffset={setOffset}
                 />
             </Box>
-
             {/* Error Display */}
             {error && (
                 <Box sx={{ mt: 2, p: 2, bgcolor: 'error.light', borderRadius: 1 }}>

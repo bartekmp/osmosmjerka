@@ -3,8 +3,10 @@ import ScrabbleGridCell from './GridCell';
 import { getCellFromTouch, getDirection, isStraightLine } from './helpers';
 import Box from '@mui/material/Box';
 import './Grid.css';
+import { useTranslation } from 'react-i18next';
 
 const ScrabbleGrid = forwardRef(({ grid, words, found, onFound, disabled = false, isDarkMode = false }, ref) => {
+    const { t } = useTranslation();
     const [selected, setSelected] = useState([]);
     const [blinkingCells, setBlinkingCells] = useState([]);
     const [, forceRender] = useState(0); // Force re-render on resize
@@ -263,7 +265,7 @@ const ScrabbleGrid = forwardRef(({ grid, words, found, onFound, disabled = false
         };
     }, [grid]);
 
-    if (grid.length === 0) return <Box sx={{ p: 2, textAlign: 'center' }}>No puzzle available</Box>;
+    if (grid.length === 0) return <Box sx={{ p: 2, textAlign: 'center' }}>{t('no_puzzle_available')}</Box>;
 
     const gridSize = grid.length;
 

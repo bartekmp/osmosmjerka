@@ -221,7 +221,7 @@ pipeline {
 
                     sh '. backend/.venv/bin/activate && semantic-release publish'
                     dir('frontend') {
-                        sh 'npx semantic-release'
+                        sh 'npx semantic-release --publish'
                     }
                 }
             }

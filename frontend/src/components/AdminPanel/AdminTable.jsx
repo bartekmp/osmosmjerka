@@ -11,8 +11,10 @@ import {
     TableContainer,
     Paper
 } from '@mui/material';
+import { useTranslation } from 'react-i18next';
 
 export default function AdminTable({ rows, setEditRow, onSaveRow, onDeleteRow }) {
+    const { t } = useTranslation();
     const [editingId, setEditingId] = useState(null);
     const [editData, setEditData] = useState({});
     const [errors, setErrors] = useState({});
@@ -30,9 +32,9 @@ export default function AdminTable({ rows, setEditRow, onSaveRow, onDeleteRow })
     const handleSave = () => {
         // Validate fields
         const newErrors = {};
-        if (!editData.categories?.trim()) newErrors.categories = 'Categories cannot be empty';
-        if (!editData.word?.trim()) newErrors.word = 'Word cannot be empty';
-        if (!editData.translation?.trim()) newErrors.translation = 'Translation cannot be empty';
+        if (!editData.categories?.trim()) newErrors.categories = t('categories_required');
+        if (!editData.word?.trim()) newErrors.word = t('word_required');
+        if (!editData.translation?.trim()) newErrors.translation = t('translation_required');
 
         if (Object.keys(newErrors).length > 0) {
             setErrors(newErrors);
@@ -60,7 +62,7 @@ export default function AdminTable({ rows, setEditRow, onSaveRow, onDeleteRow })
     };
 
     const handleDelete = (row) => {
-        if (window.confirm(`Are you sure you want to delete the word "${row.word}"?`)) {
+        if (window.confirm(t('confirm_delete_word', { word: row.word }))) {
             onDeleteRow(row.id);
         }
     };
@@ -104,10 +106,10 @@ export default function AdminTable({ rows, setEditRow, onSaveRow, onDeleteRow })
                 <TableHead>
                     <TableRow>
                         <TableCell>ID</TableCell>
-                        <TableCell>Categories</TableCell>
-                        <TableCell>Word</TableCell>
-                        <TableCell>Translation</TableCell>
-                        <TableCell align="center">Actions</TableCell>
+                        <TableCell>{t('categories')}</TableCell>
+                        <TableCell>{t('word')}</TableCell>
+                        <TableCell>{t('translation')}</TableCell>
+                        <TableCell align="center">{t('actions')}</TableCell>
                     </TableRow>
                 </TableHead>
                 <TableBody>
@@ -169,14 +171,14 @@ export default function AdminTable({ rows, setEditRow, onSaveRow, onDeleteRow })
                                             onClick={handleSave}
                                             color="primary"
                                         >
-                                            Save
+                                            {t('save')}
                                         </Button>
                                         <Button 
                                             size="small"
                                             onClick={handleCancel}
                                             color="secondary"
                                         >
-                                            Cancel
+                                            {t('cancel')}
                                         </Button>
                                     </Box>
                                 ) : (
@@ -185,14 +187,14 @@ export default function AdminTable({ rows, setEditRow, onSaveRow, onDeleteRow })
                                             size="small"
                                             onClick={() => handleEdit(row)}
                                         >
-                                            Edit
+                                            {t('edit')}
                                         </Button>
                                         <Button 
                                             size="small"
                                             onClick={() => handleDelete(row)}
                                             color="error"
                                         >
-                                            Delete
+                                            {t('delete')}
                                         </Button>
                                     </Box>
                                 )}

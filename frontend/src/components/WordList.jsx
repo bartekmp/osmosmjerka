@@ -1,7 +1,9 @@
 import React, { useState, useRef } from 'react';
+import { useTranslation } from 'react-i18next';
 import './WordList.css';
 
 export default function WordList({ words, found, hideWords, setHideWords, allFound, showTranslations, setShowTranslations, disableShowWords, onWordBlink }) {
+    const { t } = useTranslation();
     const [blinkingWord, setBlinkingWord] = useState(null);
     const blinkTimeoutRef = useRef(null);
 
@@ -53,8 +55,8 @@ export default function WordList({ words, found, hideWords, setHideWords, allFou
                     style={{ width: buttonWidth, textAlign: 'center', fontSize: '1.1em', display: 'flex', alignItems: 'center', justifyContent: 'center' }}
                 >
                     <span style={{ marginRight: 6 }}>{hideWords ? '👁️' : '🙈'}</span>
-                    <span className="word-list-btn-label" style={{ display: 'none', sm: 'inline' }}>{hideWords ? 'Show words' : 'Hide words'}</span>
-                    <span className="word-list-btn-label" style={{ display: 'inline', sm: 'none' }}>{hideWords ? 'Show' : 'Hide'}</span>
+                    <span className="word-list-btn-label" style={{ display: 'none', sm: 'inline' }}>{hideWords ? t('show_words') : t('hide_words')}</span>
+                    <span className="word-list-btn-label" style={{ display: 'inline', sm: 'none' }}>{hideWords ? t('show') : t('hide')}</span>
                 </button>
                 {/* Only render translation toggle if enabled */}
                 {canToggleTranslations && (
@@ -62,7 +64,7 @@ export default function WordList({ words, found, hideWords, setHideWords, allFou
                         className={`scrabble-btn word-list-toggle-translations`}
                         type="button"
                         onClick={() => setShowTranslations(t => !t)}
-                        aria-label={showTranslations ? "Hide all translations" : "Show all translations"}
+                        aria-label={showTranslations ? t('hide_all_translations') : t('show_all_translations')}
                         style={{ fontSize: '1.1em', display: 'flex', alignItems: 'center', justifyContent: 'center' }}
                     >
                         <span style={{ marginRight: 6 }}>{showTranslations ? '◀' : '▶'}</span>
