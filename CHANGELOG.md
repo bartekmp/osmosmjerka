@@ -2,6 +2,15 @@
 
 <!-- version list -->
 
+## v1.9.3 (2025-07-31)
+
+### Enhancement
+
+- Improved layout details, removed PDF export, reformatted frontend code
+  ([#45](https://github.com/bartekmp/osmosmjerka/pull/45),
+  [`9b7f07f`](https://github.com/bartekmp/osmosmjerka/commit/9b7f07f15809982f1704f7b9615f58e62573b6b9))
+
+
 ## v1.9.2 (2025-07-31)
 
 ### Enhancement
