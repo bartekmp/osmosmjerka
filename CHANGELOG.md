@@ -2,6 +2,15 @@
 
 <!-- version list -->
 
+## v1.10.0 (2025-08-01)
+
+### Feature
+
+- Add resizable columns, add search box for words table
+  ([#46](https://github.com/bartekmp/osmosmjerka/pull/46),
+  [`69cced4`](https://github.com/bartekmp/osmosmjerka/commit/69cced42f51cb92543fbb70b1ae600fa6bd00c2c))
+
+
 ## v1.9.3 (2025-07-31)
 
 ### Enhancement

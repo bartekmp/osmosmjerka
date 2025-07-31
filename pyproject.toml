@@ -1,6 +1,6 @@
 [project]
 name = "osmosmjerka"
-version = "1.9.3"
+version = "1.10.0"
 description = "Web-based word search game for learning foreign languages"
 license = "Apache-2.0"
 requires-python = ">=3.13"
