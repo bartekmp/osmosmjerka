@@ -30,7 +30,7 @@ function AppContent() {
     const { isDarkMode, toggleDarkMode } = useThemeMode();
     const [logoColor, setLogoColor] = useState('#2d2d2d');
     const [logoFilter, setLogoFilter] = useState('none');
-    
+
     const [categories, setCategories] = useState([]);
     const [ignoredCategories, setIgnoredCategories] = useState([]);
     const [selectedCategory, setSelectedCategory] = useState('');
@@ -112,7 +112,7 @@ function AppContent() {
         }).catch(err => {
             console.error('Error loading ignored categories:', err);
         });
-        
+
         axios.get('/api/categories').then(res => {
             setCategories(res.data);
             if (res.data.length > 0 && !selectedCategory && restored && grid.length === 0) {
@@ -271,40 +271,43 @@ function AppContent() {
                         </Box>
                     </Box>
                 )}
-                
-                {/* Top-right controls row: Language, Profile, Night Mode (all in one horizontal line, with spacing below) */}
-                {!isAdminRoute && (
-                    <Box
-                        sx={{
-                            position: 'absolute',
-                            top: 16,
-                            right: 16,
-                            zIndex: 1000,
-                            display: 'flex',
-                            flexDirection: 'row',
-                            alignItems: 'center',
-                            gap: { xs: 1, sm: 2 },
-                            minHeight: 48,
-                        }}
-                    >
-                        <LanguageSwitcher />
-                        <Button
-                            component={Link}
-                            to="/admin"
+
+                {/* Top controls row for admin routes only */}
+                {isAdminRoute && (
+                    <>
+                        <Box
                             sx={{
-                                display: { xs: 'none', md: 'flex' },
-                                minWidth: 48,
-                                height: 48,
-                                fontSize: '1rem',
+                                position: 'absolute',
+                                top: 16,
+                                right: 16,
+                                display: 'flex',
+                                flexDirection: 'row',
+                                alignItems: 'center',
+                                gap: { xs: 1, sm: 1, md: 1 }, // Uniform gaps matching main controls
+                                minHeight: 48,
                             }}
                         >
-                            {t('profile')}
-                        </Button>
-                        <NightModeButton />
-                    </Box>
+                            <LanguageSwitcher
+                                sx={{
+                                    minWidth: { xs: 36, sm: 44, md: 48 },
+                                    height: { xs: 36, sm: 44, md: 48 },
+                                    minHeight: { xs: 36, sm: 44, md: 48 },
+                                    fontSize: '1rem',
+                                }}
+                            />
+                            <NightModeButton
+                                sx={{
+                                    minWidth: { xs: 36, sm: 44, md: 48 },
+                                    height: { xs: 36, sm: 44, md: 48 },
+                                    minHeight: { xs: 36, sm: 44, md: 48 },
+                                    padding: { xs: 0.5, sm: 0.75, md: 1 },
+                                }}
+                            />
+                        </Box>
+                        {/* Add vertical spacing between controls row and content */}
+                        <Box sx={{ height: { xs: 16, sm: 20 } }} />
+                    </>
                 )}
-                {/* Add vertical spacing between controls row and logo/title */}
-                <Box sx={{ height: { xs: 16, sm: 20 } }} />
 
                 <Routes>
                     <Route path="/admin" element={
@@ -324,48 +327,104 @@ function AppContent() {
                     } />
                     <Route path="/" element={
                         <Stack spacing={3} alignItems="center">
-                            {/* Header with night mode button positioned at top right on mobile when menu is open */}
-                            <Box sx={{ 
-                                position: 'relative', 
-                                width: '100%', 
-                                display: 'flex', 
-                                justifyContent: 'center',
-                                mt: 2 
+                            {/* Header with logo, title, and controls in the same row */}
+                            <Box sx={{
+                                position: 'relative',
+                                width: '100%',
+                                display: 'flex',
+                                alignItems: 'center',
+                                mt: 2,
+                                mb: 3, // Add bottom margin to prevent overlap with content below
+                                px: { xs: 1, sm: 2 },
+                                minHeight: { xs: 48, sm: 56, md: 64, lg: 72 } // Ensure minimum height
                             }}>
+                                {/* Logo and title - centered within available space */}
                                 <Box sx={{
+                                    position: 'absolute',
+                                    left: 0,
+                                    right: { xs: '80px', sm: '150px', md: '180px' }, // Adjusted for unified sizing
                                     display: 'flex',
                                     alignItems: 'center',
-                                    justifyContent: 'center', // Always center
-                                    flexWrap: 'wrap',
-                                    gap: 2,
+                                    justifyContent: 'center',
+                                    gap: { xs: 1, sm: 2 },
                                     cursor: 'pointer',
-                                    width: '100%',
+                                    overflow: 'hidden',
+                                    px: { xs: 1, sm: 2 } // Add padding to prevent edge touching
                                 }}
-                                onClick={handleLogoClick}
+                                    onClick={handleLogoClick}
                                 >
                                     <Box
                                         component="img"
                                         src="/static/android-chrome-512x512.png"
                                         alt="Osmosmjerka logo"
                                         sx={{
-                                            height: { xs: 40, sm: 48, md: 64 },
-                                            width: { xs: 40, sm: 48, md: 64 },
+                                            height: { xs: 38, sm: 36, md: 44, lg: 56 }, // Increased xs size
+                                            width: { xs: 38, sm: 36, md: 44, lg: 56 },
                                             filter: logoFilter,
                                             transition: 'filter 0.3s ease',
-                                            userSelect: 'none' // Prevent text selection
+                                            userSelect: 'none',
+                                            flexShrink: 0
                                         }}
                                         onError={e => { e.target.onerror = null; e.target.src = "/static/favicon-32x32.png"; }}
                                     />
                                     <Typography
                                         variant="h1"
                                         sx={{
-                                            fontSize: { xs: '2rem', sm: '3rem', md: '4rem' },
+                                            fontSize: { xs: '1.9rem', sm: '1.8rem', md: '2.5rem', lg: '3.2rem' }, // Increased xs font size
                                             textAlign: 'center',
-                                            userSelect: 'none' // Prevent text selection
+                                            userSelect: 'none',
+                                            whiteSpace: 'nowrap',
+                                            overflow: 'hidden',
+                                            textOverflow: 'ellipsis',
+                                            minWidth: 0,
+                                            maxWidth: '100%'
                                         }}
                                     >
                                         Osmosmjerka
                                     </Typography>
+                                </Box>
+
+                                {/* Controls - positioned absolutely on the right */}
+                                <Box
+                                    sx={{
+                                        position: 'absolute',
+                                        right: 0,
+                                        display: 'flex',
+                                        flexDirection: 'row',
+                                        alignItems: 'center',
+                                        gap: { xs: 1, sm: 1, md: 1 }, // Uniform gaps across all screen sizes
+                                        zIndex: 1
+                                    }}
+                                >
+                                    <LanguageSwitcher
+                                        sx={{
+                                            minWidth: { xs: 36, sm: 44, md: 48 },
+                                            height: { xs: 36, sm: 44, md: 48 },
+                                            minHeight: { xs: 36, sm: 44, md: 48 },
+                                        }}
+                                    />
+                                    <Button
+                                        component={Link}
+                                        to="/admin"
+                                        sx={{
+                                            display: { xs: 'none', sm: 'flex' },
+                                            minWidth: { sm: 44, md: 48 },
+                                            height: { sm: 44, md: 48 },
+                                            minHeight: { sm: 44, md: 48 },
+                                            fontSize: { sm: '0.8rem', md: '0.9rem' },
+                                            px: { sm: 0.75, md: 1 }
+                                        }}
+                                    >
+                                        {t('profile')}
+                                    </Button>
+                                    <NightModeButton
+                                        sx={{
+                                            minWidth: { xs: 36, sm: 44, md: 48 },
+                                            height: { xs: 36, sm: 44, md: 48 },
+                                            minHeight: { xs: 36, sm: 44, md: 48 },
+                                            padding: { xs: 0.5, sm: 0.75, md: 1 },
+                                        }}
+                                    />
                                 </Box>
                             </Box>
 
@@ -552,8 +611,8 @@ function AppContent() {
                                 justifyContent: 'center',
                                 overflow: 'hidden', // Prevent horizontal overflow
                             }}>
-                                <Box sx={{ 
-                                    position: 'relative', 
+                                <Box sx={{
+                                    position: 'relative',
                                     flex: '0 0 auto',
                                     display: 'flex',
                                     justifyContent: 'center',

@@ -16,7 +16,12 @@ export default function NightModeButton({ sx = {}, className = '', ...rest }) {
     return (
         <Button
             onClick={toggleDarkMode}
-            sx={sx}
+            sx={{
+                fontSize: { xs: '1rem', sm: '1.1rem', md: '1.2rem' }, // Unified responsive emoji size
+                minWidth: 48,
+                minHeight: 48,
+                ...sx
+            }}
             className={className}
             title={isDarkMode ? t('light_mode') : t('dark_mode')}
             {...rest}

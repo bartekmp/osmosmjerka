@@ -5,13 +5,13 @@ import { useTranslation } from 'react-i18next';
 export default function EditRowForm({ editRow, setEditRow, handleSave }) {
     const { t } = useTranslation();
     if (!editRow) return null;
-    
+
     return (
-        <Paper 
-            sx={{ 
-                p: 3, 
-                mb: 3, 
-                maxWidth: 500, 
+        <Paper
+            sx={{
+                p: 3,
+                mb: 3,
+                maxWidth: 500,
                 mx: 'auto',
                 borderRadius: 2,
                 boxShadow: 3
@@ -43,15 +43,15 @@ export default function EditRowForm({ editRow, setEditRow, handleSave }) {
                     variant="outlined"
                 />
                 <Box sx={{ display: 'flex', gap: 2, justifyContent: 'center', mt: 2 }}>
-                    <Button 
-                        variant="contained" 
+                    <Button
+                        variant="contained"
                         onClick={handleSave}
                         color="primary"
                     >
                         {t('save')}
                     </Button>
-                    <Button 
-                        variant="outlined" 
+                    <Button
+                        variant="outlined"
                         onClick={() => setEditRow(null)}
                         color="secondary"
                     >

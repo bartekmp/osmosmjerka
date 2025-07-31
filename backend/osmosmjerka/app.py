@@ -24,7 +24,7 @@ from osmosmjerka.auth import (
 )
 from osmosmjerka.database import IGNORED_CATEGORIES, db_manager
 from osmosmjerka.grid_generator import generate_grid
-from osmosmjerka.utils import export_to_docx, export_to_pdf, export_to_png
+from osmosmjerka.utils import export_to_docx, export_to_png
 
 # List of API endpoints that should be ignored for the SPA routing
 API_ENDPOINTS = ["api/", "admin/"]
@@ -235,20 +235,18 @@ async def get_words(category: str | None = None, difficulty: str = "medium") -> 
 async def export_puzzle(
     category: str = Body(...), grid: list = Body(...), words: list = Body(...), format: str = Body("docx")
 ) -> StreamingResponse:
-    """Export puzzle in specified format (docx, pdf, or png)"""
+    """Export puzzle in specified format (docx or png)"""
     try:
-        if format == "pdf":
-            content = export_to_pdf(category, grid, words)
-            media_type = "application/pdf"
-            extension = "pdf"
+        if format == "docx":
+            content = export_to_docx(category, grid, words)
+            media_type = "application/vnd.openxmlformats-officedocument.wordprocessingml.document"
+            extension = "docx"
         elif format == "png":
             content = export_to_png(category, grid, words)
             media_type = "image/png"
             extension = "png"
-        else:  # Default to docx
-            content = export_to_docx(category, grid, words)
-            media_type = "application/vnd.openxmlformats-officedocument.wordprocessingml.document"
-            extension = "docx"
+        else:
+            raise HTTPException(status_code=400, detail="Unsupported export format")
 
         safe_category = re.sub(r"[^a-z0-9]+", "_", (category or "wordsearch").lower())
         filename = f"wordsearch-{safe_category}.{extension}"

@@ -54,9 +54,9 @@ export default function PaginationControls({
                             value={offsetInput}
                             onChange={handleOffsetInput}
                         />
-                        <Button 
-                            variant="outlined" 
-                            onClick={goToOffset} 
+                        <Button
+                            variant="outlined"
+                            onClick={goToOffset}
                             size="small"
                         >
                             {t('go')}
