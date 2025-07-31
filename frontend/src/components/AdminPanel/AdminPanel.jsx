@@ -48,6 +48,7 @@ export default function AdminPanel() {
     const [filterCategory, setFilterCategory] = useState('');
     const [totalRows, setTotalRows] = useState(0);
     const [offsetInput, setOffsetInput] = useState(0);
+    const [searchTerm, setSearchTerm] = useState('');
     const [token, setToken] = useState(localStorage.getItem('adminToken') || '');
     const [clearLoading, setClearLoading] = useState(false);
     const [reloadLoading, setReloadLoading] = useState(false);
@@ -598,11 +599,6 @@ export default function AdminPanel() {
                             </Select>
                         </FormControl>
                     </Grid>
-                    <Grid item xs={12} md={4}>
-                        <Typography variant="h6" align="center">
-                            {t('total_rows', { count: totalRows })}
-                        </Typography>
-                    </Grid>
                 </Grid>
             </Paper>
             {/* Data Table */}
@@ -611,6 +607,9 @@ export default function AdminPanel() {
                 setEditRow={setEditRow}
                 onSaveRow={handleInlineSave}
                 onDeleteRow={handleInlineDelete}
+                totalRows={totalRows}
+                searchTerm={searchTerm}
+                onSearchChange={setSearchTerm}
             />
             {/* Pagination */}
             <Box sx={{ mt: 3 }}>
