@@ -1,14 +1,14 @@
 import { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
-import { 
-    Container, 
-    Box, 
-    Typography, 
-    Button, 
-    Grid, 
-    FormControl, 
-    InputLabel, 
-    Select, 
+import {
+    Container,
+    Box,
+    Typography,
+    Button,
+    Grid,
+    FormControl,
+    InputLabel,
+    Select,
     MenuItem,
     TextField,
     Paper,
@@ -29,8 +29,6 @@ import { isTokenExpired } from './helpers';
 import PaginationControls from './PaginationControls';
 import { useAdminApi } from './useAdminApi';
 import { useThemeMode } from '../../contexts/ThemeContext';
-import NightModeButton from '../NightModeButton';
-import LanguageSwitcher from '../LanguageSwitcher';
 import { useTranslation } from 'react-i18next';
 
 export default function AdminPanel() {
@@ -148,7 +146,7 @@ export default function AdminPanel() {
 
     // Handle inline save from table
     const handleInlineSave = (updatedRow) => {
-        handleSave(updatedRow, () => fetchRows(offset, limit, filterCategory), () => {});
+        handleSave(updatedRow, () => fetchRows(offset, limit, filterCategory), () => { });
     };
 
     // Handle inline delete from table
@@ -212,7 +210,7 @@ export default function AdminPanel() {
         return (
             <Container maxWidth="sm" sx={{ py: 4 }}>
                 <Box sx={{ textAlign: 'right', mb: 2 }}>
-                    <Button component={Link} to="/" variant="outlined" sx={{ minHeight: 48, minWidth: 72 }}>
+                    <Button component={Link} to="/" variant="outlined" sx={{ height: 48, minWidth: 72 }}>
                         ← {t('back_to_game')}
                     </Button>
                 </Box>
@@ -220,8 +218,8 @@ export default function AdminPanel() {
                     <Typography variant="h4" component="h2" gutterBottom align="center">
                         {t('admin_login')}
                     </Typography>
-                    <Box 
-                        component="form" 
+                    <Box
+                        component="form"
                         onSubmit={e => { e.preventDefault(); handleLogin(auth, setError, setCurrentUser); }}
                         sx={{ mt: 3 }}
                     >
@@ -267,17 +265,25 @@ export default function AdminPanel() {
     if (dashboard && !editRow) {
         return (
             <Container maxWidth="md" sx={{ py: 4 }}>
+                {/* Add spacing below top controls */}
+                <Box sx={{ height: { xs: 16, sm: 20 } }} />
                 <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 3 }}>
-                    <Button component={Link} to="/" variant="outlined" sx={{ minHeight: 48, minWidth: 72 }}>
-                        ← {t('back_to_game')}
+                    <Button component={Link} to="/" variant="outlined" sx={{ height: 48, minWidth: 72 }}>
+                        <Box component="span" sx={{ display: { xs: 'none', sm: 'inline' } }}>
+                            ← {t('back_to_game')}
+                        </Box>
+                        <Box component="span" sx={{ display: { xs: 'inline', sm: 'none' } }}>
+                            🏠
+                        </Box>
                     </Button>
-                    <Box sx={{ display: 'flex', gap: 2, alignItems: 'center' }}>
-                        <LanguageSwitcher sx={{ height: 48, minWidth: 72 }} />
-                        <NightModeButton sx={{ height: 48, minWidth: 72 }} />
-                        <Button onClick={handleLogout} variant="outlined" color="secondary" sx={{ height: 48, minWidth: 48 }}>
+                    <Button onClick={handleLogout} variant="outlined" color="secondary" sx={{ height: 48, minWidth: 72 }}>
+                        <Box component="span" sx={{ display: { xs: 'none', sm: 'inline' } }}>
                             {t('logout')}
-                        </Button>
-                    </Box>
+                        </Box>
+                        <Box component="span" sx={{ display: { xs: 'inline', sm: 'none' } }}>
+                            🚪
+                        </Box>
+                    </Button>
                 </Box>
                 <Paper sx={{ p: 4, borderRadius: 2 }}>
                     <Typography variant="h4" component="h2" gutterBottom align="center">
@@ -287,29 +293,29 @@ export default function AdminPanel() {
                         {t('welcome_user', { username: currentUser?.username, role: currentUser?.role })}
                     </Typography>
                     <Box sx={{ display: 'flex', gap: 2, justifyContent: 'center', flexWrap: 'wrap', mt: 3 }}>
-                        <Button 
-                            onClick={() => setDashboard(false)} 
+                        <Button
+                            onClick={() => setDashboard(false)}
                             variant="contained"
                         >
                             {t('browse_words')}
                         </Button>
                         {currentUser?.role === 'root_admin' && (
-                            <Button 
+                            <Button
                                 onClick={() => {
                                     setDashboard(false);
                                     setUserManagement(true);
-                                }} 
+                                }}
                                 variant="contained"
                                 color="secondary"
                             >
                                 {t('user_management')}
                             </Button>
                         )}
-                        <Button 
+                        <Button
                             onClick={() => {
                                 setDashboard(false);
                                 setUserProfile(true);
-                            }} 
+                            }}
                             variant="contained"
                             color="info"
                         >
@@ -330,11 +336,18 @@ export default function AdminPanel() {
     if (userManagement) {
         return (
             <Container maxWidth="xl" sx={{ py: 4 }}>
+                {/* Add spacing below top controls */}
+                <Box sx={{ height: { xs: 16, sm: 20 } }} />
                 <Box sx={{ display: 'flex', alignItems: 'center', mb: 3, gap: 2 }}>
-                    <Button component={Link} to="/" variant="outlined" sx={{ minHeight: 48, minWidth: 72 }}>
-                        ← {t('back_to_game')}
+                    <Button component={Link} to="/" variant="outlined" sx={{ height: 48, minWidth: 72 }}>
+                        <Box component="span" sx={{ display: { xs: 'none', sm: 'inline' } }}>
+                            ← {t('back_to_game')}
+                        </Box>
+                        <Box component="span" sx={{ display: { xs: 'inline', sm: 'none' } }}>
+                            🏠
+                        </Box>
                     </Button>
-                    <Button 
+                    <Button
                         onClick={() => {
                             setUserManagement(false);
                             setDashboard(true);
@@ -342,15 +355,21 @@ export default function AdminPanel() {
                         sx={{ height: 48, minWidth: 72 }}
                         variant="outlined"
                     >
-                        ← {t('dashboard')}
+                        <Box component="span" sx={{ display: { xs: 'none', sm: 'inline' } }}>
+                            ← {t('dashboard')}
+                        </Box>
+                        <Box component="span" sx={{ display: { xs: 'inline', sm: 'none' } }}>
+                            📊
+                        </Box>
                     </Button>
                     <Box sx={{ flex: 1 }} />
-                    <LanguageSwitcher sx={{ height: 48, minWidth: 72 }} />
-                    <NightModeButton
-                        sx={{ minWidth: 72, height: 48, fontSize: '1.5rem', p: 0, mr: 1 }}
-                    />
                     <Button onClick={handleLogout} variant="outlined" color="secondary" sx={{ height: 48, minWidth: 72 }}>
-                        {t('logout')}
+                        <Box component="span" sx={{ display: { xs: 'none', sm: 'inline' } }}>
+                            {t('logout')}
+                        </Box>
+                        <Box component="span" sx={{ display: { xs: 'inline', sm: 'none' } }}>
+                            🚪
+                        </Box>
                     </Button>
                 </Box>
                 <Paper sx={{ p: 3 }}>
@@ -364,12 +383,19 @@ export default function AdminPanel() {
     if (userProfile) {
         return (
             <Container maxWidth="md" sx={{ py: 4 }}>
+                {/* Add spacing below top controls */}
+                <Box sx={{ height: { xs: 16, sm: 20 } }} />
                 <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 3 }}>
-                    <Button component={Link} to="/" variant="outlined" sx={{ minHeight: 48, minWidth: 72 }}>
-                        ← {t('back_to_game')}
-                    </Button>
                     <Box sx={{ display: 'flex', gap: 2, alignItems: 'center' }}>
-                        <Button 
+                        <Button component={Link} to="/" variant="outlined" sx={{ height: 48, minWidth: 72 }}>
+                            <Box component="span" sx={{ display: { xs: 'none', sm: 'inline' } }}>
+                                ← {t('back_to_game')}
+                            </Box>
+                            <Box component="span" sx={{ display: { xs: 'inline', sm: 'none' } }}>
+                                🏠
+                            </Box>
+                        </Button>
+                        <Button
                             onClick={() => {
                                 setUserProfile(false);
                                 setDashboard(true);
@@ -377,14 +403,22 @@ export default function AdminPanel() {
                             sx={{ height: 48, minWidth: 72 }}
                             variant="outlined"
                         >
-                            ← {t('dashboard')}
-                        </Button>
-                        <LanguageSwitcher sx={{ height: 48, minWidth: 72 }} />
-                        <NightModeButton sx={{ height: 48, minWidth: 72 }} />
-                        <Button onClick={handleLogout} variant="outlined" color="secondary" sx={{ height: 48, minWidth: 72 }}>
-                            {t('logout')}
+                            <Box component="span" sx={{ display: { xs: 'none', sm: 'inline' } }}>
+                                ← {t('dashboard')}
+                            </Box>
+                            <Box component="span" sx={{ display: { xs: 'inline', sm: 'none' } }}>
+                                📊
+                            </Box>
                         </Button>
                     </Box>
+                    <Button onClick={handleLogout} variant="outlined" color="secondary" sx={{ height: 48, minWidth: 72 }}>
+                        <Box component="span" sx={{ display: { xs: 'none', sm: 'inline' } }}>
+                            {t('logout')}
+                        </Box>
+                        <Box component="span" sx={{ display: { xs: 'inline', sm: 'none' } }}>
+                            🚪
+                        </Box>
+                    </Button>
                 </Box>
                 <Paper sx={{ p: 3 }}>
                     <UserProfile currentUser={currentUser} />
@@ -395,24 +429,37 @@ export default function AdminPanel() {
 
     return (
         <Container maxWidth="xl" sx={{ py: 4 }}>
+            {/* Add spacing below top controls */}
+            <Box sx={{ height: { xs: 16, sm: 20 } }} />
             <Box sx={{ display: 'flex', alignItems: 'center', mb: 3, gap: 2 }}>
-                <Button component={Link} to="/" variant="outlined" sx={{ minHeight: 48, minWidth: 72 }}>
-                    ← {t('back_to_game')}
+                <Button component={Link} to="/" variant="outlined" sx={{ height: 48, minWidth: 72 }}>
+                    <Box component="span" sx={{ display: { xs: 'none', sm: 'inline' } }}>
+                        ← {t('back_to_game')}
+                    </Box>
+                    <Box component="span" sx={{ display: { xs: 'inline', sm: 'none' } }}>
+                        🏠
+                    </Box>
                 </Button>
-                <Button 
+                <Button
                     onClick={() => setDashboard(true)}
                     variant="outlined"
-                    sx={{ minHeight: 48, minWidth: 72 }}
+                    sx={{ height: 48, minWidth: 72 }}
                 >
-                    ← {t('dashboard')}
+                    <Box component="span" sx={{ display: { xs: 'none', sm: 'inline' } }}>
+                        ← {t('dashboard')}
+                    </Box>
+                    <Box component="span" sx={{ display: { xs: 'inline', sm: 'none' } }}>
+                        📊
+                    </Box>
                 </Button>
                 <Box sx={{ flex: 1 }} />
-                <LanguageSwitcher sx={{ height: 48, minWidth: 72 }} />
-                <NightModeButton
-                    sx={{ minWidth: 72, height: 48, fontSize: '1.5rem', p: 0, mr: 1 }}
-                />
                 <Button onClick={handleLogout} variant="outlined" color="secondary" sx={{ height: 48, minWidth: 72 }}>
-                    {t('logout')}
+                    <Box component="span" sx={{ display: { xs: 'none', sm: 'inline' } }}>
+                        {t('logout')}
+                    </Box>
+                    <Box component="span" sx={{ display: { xs: 'inline', sm: 'none' } }}>
+                        🚪
+                    </Box>
                 </Button>
             </Box>
             <Typography variant="h4" component="h2" gutterBottom align="center">
@@ -422,7 +469,7 @@ export default function AdminPanel() {
             <Paper sx={{ p: 3, mb: 3 }}>
                 <Grid container spacing={2} justifyContent="center">
                     <Grid item xs={6} sm={4} md={2}>
-                        <Button 
+                        <Button
                             fullWidth
                             onClick={() => {
                                 setReloadLoading(true);
@@ -444,7 +491,7 @@ export default function AdminPanel() {
                         </Button>
                     </Grid>
                     <Grid item xs={6} sm={4} md={2}>
-                        <Button 
+                        <Button
                             fullWidth
                             onClick={() => setEditRow({ categories: '', word: '', translation: '' })}
                             variant="contained"
@@ -466,7 +513,7 @@ export default function AdminPanel() {
                         </Box>
                     </Grid>
                     <Grid item xs={6} sm={4} md={2}>
-                        <Button 
+                        <Button
                             fullWidth
                             onClick={() => handleExportTxt(filterCategory)}
                             variant="outlined"
@@ -483,12 +530,12 @@ export default function AdminPanel() {
                         </Button>
                     </Grid>
                     <Grid item xs={12} sm={4} md={2}>
-                        <Button 
+                        <Button
                             fullWidth
                             onClick={handleClearDb}
                             variant="contained"
                             size="small"
-                            sx={{ 
+                            sx={{
                                 bgcolor: 'error.main',
                                 color: 'white',
                                 '&:hover': {
@@ -528,10 +575,10 @@ export default function AdminPanel() {
                 </Grid>
             </Paper>
             {/* Edit Row Form */}
-            <EditRowForm 
-                editRow={editRow} 
-                setEditRow={setEditRow} 
-                handleSave={() => handleSave(editRow, () => fetchRows(offset, limit, filterCategory), setEditRow)} 
+            <EditRowForm
+                editRow={editRow}
+                setEditRow={setEditRow}
+                handleSave={() => handleSave(editRow, () => fetchRows(offset, limit, filterCategory), setEditRow)}
             />
             {/* Filter and Statistics */}
             <Paper sx={{ p: 3, mb: 3 }}>
@@ -539,8 +586,8 @@ export default function AdminPanel() {
                     <Grid item xs={12} md={8}>
                         <FormControl fullWidth sx={{ minWidth: 264 }}>
                             <InputLabel>{t('filter_by_category')}</InputLabel>
-                            <Select 
-                                value={filterCategory} 
+                            <Select
+                                value={filterCategory}
                                 label={t('filter_by_category')}
                                 onChange={e => { setFilterCategory(e.target.value); setOffset(0); }}
                             >
@@ -559,9 +606,9 @@ export default function AdminPanel() {
                 </Grid>
             </Paper>
             {/* Data Table */}
-            <AdminTable 
-                rows={rows} 
-                setEditRow={setEditRow} 
+            <AdminTable
+                rows={rows}
+                setEditRow={setEditRow}
                 onSaveRow={handleInlineSave}
                 onDeleteRow={handleInlineDelete}
             />

@@ -1,12 +1,12 @@
 import React, { useState } from 'react';
-import { 
-    Table, 
-    TableBody, 
-    TableCell, 
-    TableHead, 
-    TableRow, 
-    TextField, 
-    Button, 
+import {
+    Table,
+    TableBody,
+    TableCell,
+    TableHead,
+    TableRow,
+    TextField,
+    Button,
     Box,
     TableContainer,
     Paper
@@ -76,10 +76,10 @@ export default function AdminTable({ rows, setEditRow, onSaveRow, onDeleteRow })
     };
 
     return (
-        <TableContainer 
-            component={Paper} 
-            sx={{ 
-                mt: 2, 
+        <TableContainer
+            component={Paper}
+            sx={{
+                mt: 2,
                 maxWidth: '100%',
                 overflowX: 'auto',
                 '& .MuiTable-root': {
@@ -166,14 +166,14 @@ export default function AdminTable({ rows, setEditRow, onSaveRow, onDeleteRow })
                             <TableCell className="admin-cell" align="center">
                                 {editingId === row.id ? (
                                     <Box sx={{ display: 'flex', gap: 1, flexWrap: 'wrap', justifyContent: 'center' }}>
-                                        <Button 
+                                        <Button
                                             size="small"
                                             onClick={handleSave}
                                             color="primary"
                                         >
                                             {t('save')}
                                         </Button>
-                                        <Button 
+                                        <Button
                                             size="small"
                                             onClick={handleCancel}
                                             color="secondary"
@@ -183,13 +183,13 @@ export default function AdminTable({ rows, setEditRow, onSaveRow, onDeleteRow })
                                     </Box>
                                 ) : (
                                     <Box sx={{ display: 'flex', gap: 1, flexWrap: 'wrap', justifyContent: 'center' }}>
-                                        <Button 
+                                        <Button
                                             size="small"
                                             onClick={() => handleEdit(row)}
                                         >
                                             {t('edit')}
                                         </Button>
-                                        <Button 
+                                        <Button
                                             size="small"
                                             onClick={() => handleDelete(row)}
                                             color="error"

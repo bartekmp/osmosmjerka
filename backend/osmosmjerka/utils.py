@@ -5,13 +5,6 @@ from docx.enum.table import WD_TABLE_ALIGNMENT
 from docx.enum.text import WD_ALIGN_PARAGRAPH
 from docx.shared import Cm, Pt
 
-# PDF and image export dependencies
-from reportlab.lib.pagesizes import A4
-from reportlab.lib.styles import getSampleStyleSheet
-from reportlab.platypus import SimpleDocTemplate, Table, TableStyle, Paragraph, Spacer
-from reportlab.lib import colors
-from reportlab.lib.enums import TA_CENTER
-
 from PIL import Image, ImageDraw, ImageFont
 
 
@@ -74,82 +67,6 @@ def export_to_docx(category: str, grid: list, words: list) -> bytes:
     output = BytesIO()
     doc.save(output)
     return output.getvalue()
-
-
-def export_to_pdf(category: str, grid: list, words: list) -> bytes:
-    """Export the word search grid and words to a PDF file.
-
-    Args:
-        category (str): The category of the word search.
-        grid (list): The word search grid as a list of lists.
-        words (list): A list of dictionaries with "word" and "translation" keys.
-
-    Returns:
-        bytes: The PDF file content as bytes.
-    """
-    if not category or not grid or not words:
-        raise ValueError("Category, grid, and words must be provided.")
-
-    from reportlab.pdfbase.ttfonts import TTFont
-    from reportlab.pdfbase import pdfmetrics
-
-    try:
-        pdfmetrics.registerFont(TTFont("DejaVuSans-Bold", "DejaVuSans-Bold.ttf"))
-        font_name = "DejaVuSans-Bold"
-    except Exception:
-        font_name = "Courier-Bold"
-
-    buffer = BytesIO()
-    doc = SimpleDocTemplate(buffer, pagesize=A4)
-    elements = []
-
-    # Styles
-    styles = getSampleStyleSheet()
-    title_style = styles["Title"]
-    title_style.alignment = TA_CENTER
-
-    # Add title
-    title = Paragraph(category.upper(), title_style)
-    elements.append(title)
-    elements.append(Spacer(1, 20))
-
-    # Create grid table
-    grid_data = [[cell for cell in row] for row in grid]
-
-    # Calculate cell size based on grid size
-    grid_size = len(grid)
-    cell_size = min(20, 400 / grid_size)  # Adjust cell size based on grid size
-
-    table = Table(grid_data, colWidths=[cell_size] * len(grid_data[0]), rowHeights=[cell_size] * len(grid_data))
-    table.setStyle(
-        TableStyle(
-            [
-                ("ALIGN", (0, 0), (-1, -1), "CENTER"),
-                ("VALIGN", (0, 0), (-1, -1), "MIDDLE"),
-                ("FONTNAME", (0, 0), (-1, -1), font_name),
-                ("FONTSIZE", (0, 0), (-1, -1), max(12, cell_size - 4)),
-                ("TEXTCOLOR", (0, 0), (-1, -1), colors.black),
-                ("GRID", (0, 0), (-1, -1), 0.5, colors.black),
-                ("ROWBACKGROUNDS", (0, 0), (-1, -1), [colors.white]),
-                ("LEFTPADDING", (0, 0), (-1, -1), 0),
-                ("RIGHTPADDING", (0, 0), (-1, -1), 0),
-                ("TOPPADDING", (0, 0), (-1, -1), cell_size // 4),
-                ("BOTTOMPADDING", (0, 0), (-1, -1), cell_size // 4),
-            ]
-        )
-    )
-    elements.append(table)
-    elements.append(Spacer(1, 30))
-
-    # Add words list
-    words_text = ", ".join(w["word"].upper() for w in words)
-    normal_style = styles["Normal"]
-    normal_style.alignment = TA_CENTER
-    words_para = Paragraph(words_text, normal_style)
-    elements.append(words_para)
-
-    doc.build(elements)
-    return buffer.getvalue()
 
 
 def export_to_png(category: str, grid: list, words: list) -> bytes:

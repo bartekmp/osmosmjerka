@@ -84,7 +84,7 @@ export default function UserManagement({ currentUser }) {
                 body: JSON.stringify(formData)
             });
             const data = await response.json();
-            
+
             if (response.ok) {
                 setNotification({
                     open: true,
@@ -115,7 +115,7 @@ export default function UserManagement({ currentUser }) {
                 body: JSON.stringify(updateData)
             });
             const data = await response.json();
-            
+
             if (response.ok) {
                 setNotification({
                     open: true,
@@ -140,7 +140,7 @@ export default function UserManagement({ currentUser }) {
                     headers: authHeader
                 });
                 const data = await response.json();
-                
+
                 if (response.ok) {
                     setNotification({
                         open: true,
@@ -167,7 +167,7 @@ export default function UserManagement({ currentUser }) {
                     body: JSON.stringify({ new_password: newPassword })
                 });
                 const data = await response.json();
-                
+
                 if (response.ok) {
                     setNotification({
                         open: true,
@@ -186,7 +186,7 @@ export default function UserManagement({ currentUser }) {
     const handleOpenDialog = (mode, user = null) => {
         setDialogMode(mode);
         setSelectedUser(user);
-        
+
         if (mode === 'create') {
             setFormData({
                 username: '',
@@ -202,7 +202,7 @@ export default function UserManagement({ currentUser }) {
                 self_description: user.self_description || ''
             });
         }
-        
+
         setOpenDialog(true);
     };
 
@@ -278,8 +278,8 @@ export default function UserManagement({ currentUser }) {
                             <TableRow key={user.id}>
                                 <TableCell>{user.username}</TableCell>
                                 <TableCell>
-                                    <Chip 
-                                        label={user.role} 
+                                    <Chip
+                                        label={user.role}
                                         color={getRoleColor(user.role)}
                                         size="small"
                                     />
@@ -337,7 +337,7 @@ export default function UserManagement({ currentUser }) {
                             disabled={dialogMode === 'edit'}
                             sx={{ mb: 2 }}
                         />
-                        
+
                         {dialogMode === 'create' && (
                             <TextField
                                 fullWidth
@@ -348,7 +348,7 @@ export default function UserManagement({ currentUser }) {
                                 sx={{ mb: 2 }}
                             />
                         )}
-                        
+
                         <FormControl fullWidth sx={{ mb: 2 }}>
                             <InputLabel>{t('role')}</InputLabel>
                             <Select
@@ -360,7 +360,7 @@ export default function UserManagement({ currentUser }) {
                                 <MenuItem value="administrative">{t('administrative')}</MenuItem>
                             </Select>
                         </FormControl>
-                        
+
                         <TextField
                             fullWidth
                             label={t('description')}
@@ -373,7 +373,7 @@ export default function UserManagement({ currentUser }) {
                 </DialogContent>
                 <DialogActions>
                     <Button onClick={handleCloseDialog}>{t('cancel')}</Button>
-                    <Button 
+                    <Button
                         onClick={handleSubmit}
                         variant="contained"
                         disabled={!formData.username || (dialogMode === 'create' && !formData.password)}
@@ -389,8 +389,8 @@ export default function UserManagement({ currentUser }) {
                 autoHideDuration={3000}
                 onClose={() => setNotification({ ...notification, open: false })}
             >
-                <Alert 
-                    onClose={() => setNotification({ ...notification, open: false })} 
+                <Alert
+                    onClose={() => setNotification({ ...notification, open: false })}
                     severity={notification.severity}
                 >
                     {notification.message}

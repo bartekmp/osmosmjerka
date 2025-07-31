@@ -72,7 +72,7 @@ export default function UserProfile({ currentUser }) {
                 })
             });
             const data = await response.json();
-            
+
             if (response.ok) {
                 showNotification(t('profile_updated'), 'success');
                 setProfile({ ...profile, self_description: description });
@@ -108,7 +108,7 @@ export default function UserProfile({ currentUser }) {
                 })
             });
             const data = await response.json();
-            
+
             if (response.ok) {
                 showNotification(t('password_changed'), 'success');
                 setPasswordDialog(false);
@@ -169,16 +169,16 @@ export default function UserProfile({ currentUser }) {
                     onChange={(e) => setDescription(e.target.value)}
                     sx={{ mb: 2 }}
                 />
-                <Button 
-                    variant="contained" 
+                <Button
+                    variant="contained"
                     onClick={updateProfile}
                     disabled={loading || !description.trim()}
                     sx={{ mr: 2 }}
                 >
                     {t('update_description')}
                 </Button>
-                <Button 
-                    variant="outlined" 
+                <Button
+                    variant="outlined"
                     onClick={() => setPasswordDialog(true)}
                 >
                     {t('change_password')}
@@ -195,7 +195,7 @@ export default function UserProfile({ currentUser }) {
                             type="password"
                             value={passwordData.current_password}
                             onChange={(e) => setPasswordData({
-                                ...passwordData, 
+                                ...passwordData,
                                 current_password: e.target.value
                             })}
                             sx={{ mb: 2 }}
@@ -206,7 +206,7 @@ export default function UserProfile({ currentUser }) {
                             type="password"
                             value={passwordData.new_password}
                             onChange={(e) => setPasswordData({
-                                ...passwordData, 
+                                ...passwordData,
                                 new_password: e.target.value
                             })}
                             sx={{ mb: 2 }}
@@ -217,7 +217,7 @@ export default function UserProfile({ currentUser }) {
                             type="password"
                             value={passwordData.confirm_password}
                             onChange={(e) => setPasswordData({
-                                ...passwordData, 
+                                ...passwordData,
                                 confirm_password: e.target.value
                             })}
                         />
@@ -225,7 +225,7 @@ export default function UserProfile({ currentUser }) {
                 </DialogContent>
                 <DialogActions>
                     <Button onClick={() => setPasswordDialog(false)}>{t('cancel')}</Button>
-                    <Button 
+                    <Button
                         onClick={changePassword}
                         variant="contained"
                         disabled={loading || !passwordData.current_password || !passwordData.new_password}
@@ -240,8 +240,8 @@ export default function UserProfile({ currentUser }) {
                 autoHideDuration={3000}
                 onClose={() => setNotification({ ...notification, open: false })}
             >
-                <Alert 
-                    onClose={() => setNotification({ ...notification, open: false })} 
+                <Alert
+                    onClose={() => setNotification({ ...notification, open: false })}
                     severity={notification.severity}
                 >
                     {notification.message}

@@ -19,7 +19,6 @@ test('opens modal when export button is clicked', () => {
     // Check if modal is opened (match translation key or English fallback)
     expect(screen.getByText(/choose export format/i)).toBeInTheDocument();
     expect(screen.getByText(/word document/i)).toBeInTheDocument();
-    expect(screen.getByText(/pdf document/i)).toBeInTheDocument();
     expect(screen.getByText(/png image/i)).toBeInTheDocument();
 });
 
@@ -29,13 +28,13 @@ test('handles export with format selection', async () => {
     render(withI18n(<ExportButton category="TestCat" grid={[['A']]} words={[{ word: 'test' }]} />));
     const btn = screen.getByRole('button', { name: /export/i });
     fireEvent.click(btn);
-    // Select PDF format
-    const pdfButton = screen.getByText(/pdf document/i);
-    fireEvent.click(pdfButton);
+    // Select DOCX format
+    const docxButton = screen.getByText(/word document/i);
+    fireEvent.click(docxButton);
     await waitFor(() => {
         expect(axios.post).toHaveBeenCalledWith(
             "/api/export",
-            { category: "TestCat", grid: [['A']], words: [{ word: 'test' }], format: 'pdf' },
+            { category: "TestCat", grid: [['A']], words: [{ word: 'test' }], format: 'docx' },
             { responseType: 'blob' }
         );
     });

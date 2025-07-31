@@ -30,7 +30,6 @@ export default function ExportModal({ open, onClose, onFormatSelect }) {
 
     const formatButtons = [
         { format: 'docx', label: t('word_document'), icon: '📄', description: t('word_document_desc') },
-        { format: 'pdf', label: t('pdf_document'), icon: '📑', description: t('pdf_document_desc') },
         { format: 'png', label: t('png_image'), icon: '🖼️', description: t('png_image_desc') }
     ];
 
