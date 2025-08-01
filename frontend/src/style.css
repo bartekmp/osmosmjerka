@@ -195,26 +195,26 @@ body,
 
 /* Not enough overlay */
 .osmo-notenough-overlay {
-    position: absolute;
-    top: 0;
-    left: 0;
-    width: 100%;
-    height: 100%;
-    backdrop-filter: blur(6px);
-    background: rgba(255,255,255,0.7);
-    z-index: 10;
-    display: flex;
-    align-items: center;
-    justify-content: center;
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  backdrop-filter: blur(6px);
+  background: rgba(255, 255, 255, 0.7);
+  z-index: 10;
+  display: flex;
+  align-items: center;
+  justify-content: center;
 }
 
 .osmo-notenough-message {
-    background: rgba(255,255,255,0.95);
-    border-radius: 12px;
-    padding: 2rem 3rem;
-    box-shadow: 0 2px 16px #0002;
-    font-size: 1.3rem;
-    color: #b00;
-    font-weight: bold;
-    text-align: center;
+  background: rgba(255, 255, 255, 0.95);
+  border-radius: 12px;
+  padding: 2rem 3rem;
+  box-shadow: 0 2px 16px #0002;
+  font-size: 1.3rem;
+  color: #b00;
+  font-weight: bold;
+  text-align: center;
 }
