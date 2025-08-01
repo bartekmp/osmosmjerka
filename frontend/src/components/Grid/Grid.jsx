@@ -5,15 +5,102 @@ import Box from '@mui/material/Box';
 import './Grid.css';
 import { useTranslation } from 'react-i18next';
 
-const ScrabbleGrid = forwardRef(({ grid, words, found, onFound, disabled = false, isDarkMode = false }, ref) => {
+const ScrabbleGrid = forwardRef(({ grid, words, found, onFound, disabled = false, isDarkMode = false, showCelebration = false }, ref) => {
     const { t } = useTranslation();
     const [selected, setSelected] = useState([]);
     const [blinkingCells, setBlinkingCells] = useState([]);
+    const [celebrationCells, setCelebrationCells] = useState([]);
     const [, forceRender] = useState(0); // Force re-render on resize
     const isMouseDown = useRef(false);
     const selectionStart = useRef(null);
     const lastDirection = useRef(null);
     const blinkTimeoutRef = useRef(null);
+    const celebrationTimeoutRef = useRef(null);
+
+    // Function to create mexican wave effect
+    const startMexicanWave = () => {
+        if (grid.length === 0) return;
+
+        // Clear any existing celebration
+        if (celebrationTimeoutRef.current) {
+            clearTimeout(celebrationTimeoutRef.current);
+        }
+        setCelebrationCells([]);
+
+        // Generate random angle between 0 and 360 degrees
+        const angle = Math.random() * 360;
+        const angleRad = (angle * Math.PI) / 180;
+
+        const gridSize = grid.length;
+        const centerX = gridSize / 2;
+        const centerY = gridSize / 2;
+
+        // Calculate the maximum distance from center to ensure we cover the whole grid
+        const maxDistance = Math.sqrt(Math.pow(gridSize, 2) + Math.pow(gridSize, 2));
+
+        // Create array of all grid positions with their distances along the wave direction
+        const cellsWithDistance = [];
+        for (let r = 0; r < gridSize; r++) {
+            for (let c = 0; c < gridSize; c++) {
+                // Calculate position relative to center
+                const relativeX = c - centerX;
+                const relativeY = r - centerY;
+
+                // Project position onto the wave direction vector
+                const distance = relativeX * Math.cos(angleRad) + relativeY * Math.sin(angleRad);
+
+                cellsWithDistance.push({
+                    row: r,
+                    col: c,
+                    distance: distance + maxDistance / 2 // Offset to make all distances positive
+                });
+            }
+        }
+
+        // Sort cells by their distance along the wave direction
+        cellsWithDistance.sort((a, b) => a.distance - b.distance);
+
+        // Animate the wave
+        const waveWidth = 4; // Number of cells highlighted simultaneously
+        const delayBetweenSteps = 40; // ms between wave steps
+
+        let currentStep = 0;
+        const totalSteps = Math.ceil(cellsWithDistance.length / 2) + waveWidth; // Slower progression
+
+        const animateStep = () => {
+            const startIndex = Math.max(0, currentStep * 2 - waveWidth);
+            const endIndex = Math.min(cellsWithDistance.length, currentStep * 2 + waveWidth);
+
+            const activeCells = cellsWithDistance.slice(startIndex, endIndex).map(cell => [cell.row, cell.col]);
+            setCelebrationCells(activeCells);
+
+            currentStep++;
+
+            if (currentStep < totalSteps) {
+                celebrationTimeoutRef.current = setTimeout(animateStep, delayBetweenSteps);
+            } else {
+                // Clear celebration at the end
+                celebrationTimeoutRef.current = setTimeout(() => {
+                    setCelebrationCells([]);
+                }, delayBetweenSteps * 2);
+            }
+        };
+
+        // Start the wave after a small delay (let title wobble first)
+        celebrationTimeoutRef.current = setTimeout(animateStep, 1000);
+    };
+
+    // Trigger mexican wave when celebration starts
+    useEffect(() => {
+        if (showCelebration && grid.length > 0) {
+            startMexicanWave();
+        }
+        return () => {
+            if (celebrationTimeoutRef.current) {
+                clearTimeout(celebrationTimeoutRef.current);
+            }
+        };
+    }, [showCelebration]); // Remove startMexicanWave from dependencies since it's not memoized
 
     // Function to blink cells for a specific word
     const blinkWord = (word) => {
@@ -28,7 +115,7 @@ const ScrabbleGrid = forwardRef(({ grid, words, found, onFound, disabled = false
 
         // Clear any existing blinking first
         setBlinkingCells([]);
-        
+
         // Use a small delay to ensure the DOM updates
         setTimeout(() => {
             // Set the blinking cells
@@ -55,14 +142,22 @@ const ScrabbleGrid = forwardRef(({ grid, words, found, onFound, disabled = false
         };
 
         window.addEventListener('resize', handleResize);
-        
+
         return () => {
             if (blinkTimeoutRef.current) {
                 clearTimeout(blinkTimeoutRef.current);
             }
+            if (celebrationTimeoutRef.current) {
+                clearTimeout(celebrationTimeoutRef.current);
+            }
             window.removeEventListener('resize', handleResize);
         };
     }, []);
+
+    // Function to check if a cell is part of a celebration wave
+    const isCelebrating = (r, c) => {
+        return celebrationCells.some(([cr, cc]) => cr === r && cc === c);
+    };
 
     // Handle mouse and touch events for selecting cells
     const handleMouseDown = (r, c) => {
@@ -76,23 +171,23 @@ const ScrabbleGrid = forwardRef(({ grid, words, found, onFound, disabled = false
     const handleMouseEnter = (r, c) => {
         if (disabled) return;
         if (!isMouseDown.current || !selectionStart.current) return;
-        
+
         const start = selectionStart.current;
         const newDirection = getDirection(start, [r, c]);
-        
+
         // If no valid direction, keep the current selection
         if (!newDirection) return;
-        
+
         // Lock in direction on first valid movement, or continue with established direction
         if (!lastDirection.current) {
             lastDirection.current = newDirection;
         }
-        
+
         // Continue selection in the established direction
         const dr = Math.sign(r - start[0]);
         const dc = Math.sign(c - start[1]);
         const length = Math.max(Math.abs(r - start[0]), Math.abs(c - start[1])) + 1;
-        
+
         // Generate selection path
         const newSelected = Array.from({ length }, (_, i) => [start[0] + dr * i, start[1] + dc * i]);
         setSelected(newSelected);
@@ -101,26 +196,26 @@ const ScrabbleGrid = forwardRef(({ grid, words, found, onFound, disabled = false
     // Global mouse move handler for continuing selection outside grid
     const handleGlobalMouseMove = (e) => {
         if (!isMouseDown.current || !selectionStart.current || !lastDirection.current) return;
-        
+
         // Find the grid container
         const gridContainer = document.querySelector('[data-grid-container="true"]');
         if (!gridContainer) return;
-        
+
         const rect = gridContainer.getBoundingClientRect();
         const cellSize = parseFloat(gridContainer.dataset.cellSize) || 40;
         const gap = 4;
         const padding = 4;
-        
+
         // Calculate grid position from mouse coordinates
         const relativeX = e.clientX - rect.left - padding;
         const relativeY = e.clientY - rect.top - padding;
-        
+
         const col = Math.round(relativeX / (cellSize + gap));
         const row = Math.round(relativeY / (cellSize + gap));
-        
+
         // Continue selection using calculated position
         const start = selectionStart.current;
-        
+
         // Calculate direction based on established direction
         let dr = 0, dc = 0;
         if (lastDirection.current === 'horizontal') {
@@ -133,7 +228,7 @@ const ScrabbleGrid = forwardRef(({ grid, words, found, onFound, disabled = false
             dr = row >= start[0] ? 1 : -1;
             dc = col >= start[1] ? 1 : -1;
         }
-        
+
         // Calculate selection length based on mouse position
         let length;
         if (lastDirection.current === 'horizontal') {
@@ -143,18 +238,18 @@ const ScrabbleGrid = forwardRef(({ grid, words, found, onFound, disabled = false
         } else {
             length = Math.max(Math.abs(row - start[0]), Math.abs(col - start[1])) + 1;
         }
-        
+
         // Generate selection, only including cells within grid bounds
         const newSelected = [];
         for (let i = 0; i < length; i++) {
             const newR = start[0] + dr * i;
             const newC = start[1] + dc * i;
-            
+
             if (newR >= 0 && newR < grid.length && newC >= 0 && newC < grid[0].length) {
                 newSelected.push([newR, newC]);
             }
         }
-        
+
         if (newSelected.length > 0) {
             setSelected(newSelected);
         }
@@ -164,7 +259,7 @@ const ScrabbleGrid = forwardRef(({ grid, words, found, onFound, disabled = false
         isMouseDown.current = false;
         selectionStart.current = null;
         lastDirection.current = null;
-        
+
         if (!isStraightLine(selected)) {
             setSelected([]);
             return;
@@ -193,7 +288,7 @@ const ScrabbleGrid = forwardRef(({ grid, words, found, onFound, disabled = false
     const handleTouchMove = (e) => {
         e.preventDefault(); // Prevent scrolling during selection
         if (!isMouseDown.current || !selectionStart.current) return;
-        
+
         const cell = getCellFromTouch(e);
         if (cell) {
             handleMouseEnter(...cell);
@@ -275,13 +370,13 @@ const ScrabbleGrid = forwardRef(({ grid, words, found, onFound, disabled = false
         const maxSize = 70;  // Increased maximum cell size for wide screens
         const screenWidth = window.innerWidth;
         const screenHeight = window.innerHeight;
-        
+
         // Get more accurate available space
         const padding = 16; // Account for page padding
         const wordListWidth = 320; // Fixed word list width on desktop
-        
+
         let availableWidth, availableHeight;
-        
+
         if (screenWidth < 900) { // Mobile/tablet
             // Be more conservative on mobile - subtract more padding and container margins
             availableWidth = window.innerWidth - (padding * 3); // Extra padding for safety
@@ -292,19 +387,19 @@ const ScrabbleGrid = forwardRef(({ grid, words, found, onFound, disabled = false
             availableWidth = Math.min(baseWidth, 900); // Allow larger grids on wide screens
             availableHeight = Math.min(screenHeight * 0.8, 900);
         }
-        
+
         // On mobile, prioritize width constraint to prevent horizontal overflow
         const availableSize = screenWidth < 900 ? availableWidth : Math.min(availableWidth, availableHeight);
-        
+
         // Calculate cell size with gap consideration - be more conservative
         const totalGap = (gridSize + 1) * 4; // 4px gap between cells
         const cellSize = Math.floor((availableSize - totalGap) / gridSize);
-        
+
         // On very wide screens (>1200px), allow larger cells
         const effectiveMaxSize = screenWidth > 1200 ? maxSize : Math.min(maxSize, 50);
-        
+
         const finalCellSize = Math.max(minSize, Math.min(effectiveMaxSize, cellSize));
-        
+
         // Final safety check for mobile - ensure total grid size doesn't exceed viewport
         if (screenWidth < 900) {
             const totalGridWidth = gridSize * finalCellSize + totalGap;
@@ -314,7 +409,7 @@ const ScrabbleGrid = forwardRef(({ grid, words, found, onFound, disabled = false
                 return Math.max(minSize, safeCellSize);
             }
         }
-        
+
         return finalCellSize;
     };
 
@@ -322,10 +417,10 @@ const ScrabbleGrid = forwardRef(({ grid, words, found, onFound, disabled = false
     const totalGridSize = gridSize * cellSize + (gridSize + 1) * 4;
 
     return (
-        <Box sx={{ 
-            display: 'flex', 
-            justifyContent: 'center', 
-            alignItems: 'center', 
+        <Box sx={{
+            display: 'flex',
+            justifyContent: 'center',
+            alignItems: 'center',
             width: '100%',
             maxWidth: '100%',
             overflow: 'hidden', // Prevent overflow
@@ -372,7 +467,8 @@ const ScrabbleGrid = forwardRef(({ grid, words, found, onFound, disabled = false
                     const c = index % gridSize;
                     const isSelected = selected.some(([sr, sc]) => sr === r && sc === c);
                     const isBlinking = blinkingCells.some(([br, bc]) => br === r && bc === c);
-                    
+                    const isCelebratingCell = isCelebrating(r, c);
+
                     return (
                         <ScrabbleGridCell
                             key={`${r}-${c}`}
@@ -382,6 +478,7 @@ const ScrabbleGrid = forwardRef(({ grid, words, found, onFound, disabled = false
                             isFound={isFound(r, c)}
                             isBlinking={isBlinking}
                             isSelected={isSelected}
+                            isCelebrating={isCelebratingCell}
                             handleMouseDown={handleMouseDown}
                             handleMouseEnter={handleMouseEnter}
                             cellSize={cellSize}

@@ -1,19 +1,32 @@
 import axios from 'axios';
 import confetti from 'canvas-confetti';
 import React, { useEffect, useState, useRef, Suspense, lazy } from 'react';
-import { Link, Route, Routes, useLocation } from 'react-router-dom';
-import { ThemeProvider as MUIThemeProvider, CssBaseline, Button } from '@mui/material';
-import { Container, Box, Typography, Stack, FormControl, InputLabel, Select, MenuItem, CircularProgress } from '@mui/material';
-import CategorySelector from './components/CategorySelector';
-import ExportButton from './components/ExportButton';
+import { Route, Routes, useLocation, Link } from 'react-router-dom';
+import { ThemeProvider as MUIThemeProvider, CssBaseline, Box, Typography } from '@mui/material';
+import { Container, Stack, CircularProgress, FormControl, InputLabel, MenuItem, Select, Button } from '@mui/material';
 import ScrabbleGrid from './components/Grid/Grid';
 import WordList from './components/WordList';
 import { ThemeProvider, useThemeMode } from './contexts/ThemeContext';
 import createAppTheme from './theme';
 import './style.css';
-import NightModeButton from './components/NightModeButton';
-import LanguageSwitcher from './components/LanguageSwitcher';
+import './App.css';
 import { useTranslation } from 'react-i18next';
+
+// Import components
+import GameHeader from './components/GameHeader';
+import GameControls from './components/GameControls';
+import LoadingOverlay from './components/LoadingOverlay';
+import AllFoundMessage from './components/AllFoundMessage';
+import AdminControls from './components/AdminControls';
+import LanguageSwitcher from './components/LanguageSwitcher';
+import NightModeButton from './components/NightModeButton';
+import CategorySelector from './components/CategorySelector';
+import ExportButton from './components/ExportButton';
+
+// Import custom hooks
+import useLogoColor from './hooks/useLogoColor';
+import useCelebration from './hooks/useCelebration';
+import useGameDifficulties from './hooks/useGameDifficulties';
 
 import { loadPuzzle as loadPuzzleHelper, restoreGameState, saveGameState } from './helpers/appHelpers';
 
@@ -27,9 +40,11 @@ function AppContent() {
     const location = useLocation();
     const isAdminRoute = location.pathname.startsWith('/admin');
     const gridRef = useRef(null);
-    const { isDarkMode, toggleDarkMode } = useThemeMode();
-    const [logoColor, setLogoColor] = useState('#2d2d2d');
-    const [logoFilter, setLogoFilter] = useState('none');
+    const { isDarkMode } = useThemeMode();
+
+    // Use custom hooks
+    const { logoFilter, setLogoFilter, handleLogoClick } = useLogoColor();
+    const { availableDifficulties } = useGameDifficulties();
 
     const [categories, setCategories] = useState([]);
     const [ignoredCategories, setIgnoredCategories] = useState([]);
@@ -55,41 +70,14 @@ function AppContent() {
     const [isLoading, setIsLoading] = useState(false);
     const [panelOpen, setPanelOpen] = useState(false);
 
-    // Function to change logo color to random bright color
-    const changeLogoColor = () => {
-        const colorFilters = [
-            'hue-rotate(45deg) saturate(2)', // orange
-            'hue-rotate(120deg) saturate(2)', // green  
-            'hue-rotate(240deg) saturate(2)', // blue
-            'hue-rotate(300deg) saturate(2)', // purple
-            'hue-rotate(0deg) saturate(3)', // red
-            'hue-rotate(60deg) saturate(2)', // yellow
-            'hue-rotate(180deg) saturate(2)', // cyan
-            'hue-rotate(320deg) saturate(2)', // magenta
-        ];
-        const currentFilter = logoFilter;
-        let newFilter;
-        do {
-            newFilter = colorFilters[Math.floor(Math.random() * colorFilters.length)];
-        } while (newFilter === currentFilter);
-        setLogoFilter(newFilter);
-    };
-
-    // Function to navigate to home page
-    const handleLogoClick = () => {
-        changeLogoColor();
-        if (window.location.pathname !== '/') {
-            window.location.href = '/';
-        }
-    };
-
-    // Apply theme data attribute to body
+    // Winning condition: all words found
+    const allFound = words.length > 0 && found.length === words.length;
+    
+    // Use celebration hook
+    const { showCelebration, resetCelebration, celebrationTriggeredRef } = useCelebration(allFound, setLogoFilter);    // Apply theme data attribute to body
     useEffect(() => {
         document.body.setAttribute('data-theme', isDarkMode ? 'dark' : 'light');
     }, [isDarkMode]);
-
-    // Winning condition: all words found
-    const allFound = words.length > 0 && found.length === words.length;
 
     // Restore state from localStorage on mount, but only if not already won
     useEffect(() => {
@@ -158,6 +146,7 @@ function AppContent() {
 
     const loadPuzzle = (category, diff = difficulty) => {
         setIsLoading(true);
+        resetCelebration(); // Reset celebration state using hook
         loadPuzzleHelper(category, diff, {
             setSelectedCategory,
             setGrid,
@@ -191,38 +180,6 @@ function AppContent() {
     }, [allFound]);
 
     const visibleCategories = categories.filter(cat => !ignoredCategories.includes(cat));
-
-    // Calculate which difficulties are suitable for current screen size
-    const getAvailableDifficulties = () => {
-        const screenWidth = window.innerWidth;
-        const screenHeight = window.innerHeight;
-        const maxGridSize = Math.min(screenWidth * 0.9, screenHeight * 0.6);
-
-        const difficulties = [
-            { value: 'easy', label: 'Easy (10x10)', gridSize: 10 },
-            { value: 'medium', label: 'Medium (15x15)', gridSize: 15 },
-            { value: 'hard', label: 'Hard (20x20)', gridSize: 20 },
-            { value: 'dynamic', label: 'Dynamic (longest word)', gridSize: 15 } // Assume medium size for dynamic
-        ];
-
-        return difficulties.filter(diff => {
-            // Calculate minimum space needed: grid size * (min cell size + spacing)
-            const minSpaceNeeded = diff.gridSize * 25; // 20px min cell + 5px spacing
-            return minSpaceNeeded <= maxGridSize;
-        });
-    };
-
-    const [availableDifficulties, setAvailableDifficulties] = React.useState(getAvailableDifficulties());
-
-    // Update available difficulties on window resize
-    React.useEffect(() => {
-        const handleResize = () => {
-            setAvailableDifficulties(getAvailableDifficulties());
-        };
-
-        window.addEventListener('resize', handleResize);
-        return () => window.removeEventListener('resize', handleResize);
-    }, []);
 
     // Auto-adjust difficulty if current one becomes unavailable
     React.useEffect(() => {
@@ -354,19 +311,29 @@ function AppContent() {
                                     onClick={handleLogoClick}
                                 >
                                     <Box
-                                        component="img"
-                                        src="/static/android-chrome-512x512.png"
-                                        alt="Osmosmjerka logo"
                                         sx={{
-                                            height: { xs: 38, sm: 36, md: 44, lg: 56 }, // Increased xs size
+                                            position: 'relative',
+                                            height: { xs: 38, sm: 36, md: 44, lg: 56 },
                                             width: { xs: 38, sm: 36, md: 44, lg: 56 },
-                                            filter: logoFilter,
-                                            transition: 'filter 0.3s ease',
-                                            userSelect: 'none',
-                                            flexShrink: 0
+                                            flexShrink: 0,
                                         }}
-                                        onError={e => { e.target.onerror = null; e.target.src = "/static/favicon-32x32.png"; }}
-                                    />
+                                    >
+                                        <Box
+                                            component="img"
+                                            src="/static/android-chrome-512x512.png"
+                                            alt="Osmosmjerka logo"
+                                            sx={{
+                                                height: '100%',
+                                                width: '100%',
+                                                filter: logoFilter,
+                                                transition: 'filter 0.3s ease',
+                                                userSelect: 'none',
+                                                position: 'relative',
+                                                zIndex: 1,
+                                            }}
+                                            onError={e => { e.target.onerror = null; e.target.src = "/static/favicon-32x32.png"; }}
+                                        />
+                                    </Box>
                                     <Typography
                                         variant="h1"
                                         sx={{
@@ -377,7 +344,23 @@ function AppContent() {
                                             overflow: 'hidden',
                                             textOverflow: 'ellipsis',
                                             minWidth: 0,
-                                            maxWidth: '100%'
+                                            maxWidth: '100%',
+                                            // Add wobble animation when celebrating
+                                            animation: showCelebration ? 'title-wobble 0.5s ease-in-out 6' : 'none',
+                                            '@keyframes title-wobble': {
+                                                '0%, 100%': {
+                                                    transform: 'rotate(0deg) scale(1)',
+                                                },
+                                                '25%': {
+                                                    transform: 'rotate(-3deg) scale(1.05)',
+                                                },
+                                                '50%': {
+                                                    transform: 'rotate(0deg) scale(1.1)',
+                                                },
+                                                '75%': {
+                                                    transform: 'rotate(3deg) scale(1.05)',
+                                                },
+                                            }
                                         }}
                                     >
                                         Osmosmjerka
@@ -628,6 +611,7 @@ function AppContent() {
                                         onFound={markFound}
                                         disabled={allFound}
                                         isDarkMode={isDarkMode}
+                                        showCelebration={showCelebration}
                                     />
                                     {notEnoughWords && (
                                         <Box sx={{

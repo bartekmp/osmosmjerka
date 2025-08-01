@@ -212,7 +212,7 @@ export default function AdminPanel() {
             <Container maxWidth="sm" sx={{ py: 4 }}>
                 <Box sx={{ textAlign: 'right', mb: 2 }}>
                     <Button component={Link} to="/" variant="outlined" sx={{ height: 48, minWidth: 72 }}>
-                        ← {t('back_to_game')}
+                        ⇇ {t('back_to_game')}
                     </Button>
                 </Box>
                 <Paper sx={{ p: 4, borderRadius: 2 }}>
@@ -271,7 +271,7 @@ export default function AdminPanel() {
                 <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 3 }}>
                     <Button component={Link} to="/" variant="outlined" sx={{ height: 48, minWidth: 72 }}>
                         <Box component="span" sx={{ display: { xs: 'none', sm: 'inline' } }}>
-                            ← {t('back_to_game')}
+                            ⇇ {t('back_to_game')}
                         </Box>
                         <Box component="span" sx={{ display: { xs: 'inline', sm: 'none' } }}>
                             🏠
@@ -342,7 +342,7 @@ export default function AdminPanel() {
                 <Box sx={{ display: 'flex', alignItems: 'center', mb: 3, gap: 2 }}>
                     <Button component={Link} to="/" variant="outlined" sx={{ height: 48, minWidth: 72 }}>
                         <Box component="span" sx={{ display: { xs: 'none', sm: 'inline' } }}>
-                            ← {t('back_to_game')}
+                            ⇇ {t('back_to_game')}
                         </Box>
                         <Box component="span" sx={{ display: { xs: 'inline', sm: 'none' } }}>
                             🏠
@@ -360,7 +360,7 @@ export default function AdminPanel() {
                             ← {t('dashboard')}
                         </Box>
                         <Box component="span" sx={{ display: { xs: 'inline', sm: 'none' } }}>
-                            📊
+                            ⬅️
                         </Box>
                     </Button>
                     <Box sx={{ flex: 1 }} />
@@ -390,7 +390,7 @@ export default function AdminPanel() {
                     <Box sx={{ display: 'flex', gap: 2, alignItems: 'center' }}>
                         <Button component={Link} to="/" variant="outlined" sx={{ height: 48, minWidth: 72 }}>
                             <Box component="span" sx={{ display: { xs: 'none', sm: 'inline' } }}>
-                                ← {t('back_to_game')}
+                                ⇇ {t('back_to_game')}
                             </Box>
                             <Box component="span" sx={{ display: { xs: 'inline', sm: 'none' } }}>
                                 🏠
@@ -408,7 +408,7 @@ export default function AdminPanel() {
                                 ← {t('dashboard')}
                             </Box>
                             <Box component="span" sx={{ display: { xs: 'inline', sm: 'none' } }}>
-                                📊
+                                ⬅️
                             </Box>
                         </Button>
                     </Box>
@@ -435,7 +435,7 @@ export default function AdminPanel() {
             <Box sx={{ display: 'flex', alignItems: 'center', mb: 3, gap: 2 }}>
                 <Button component={Link} to="/" variant="outlined" sx={{ height: 48, minWidth: 72 }}>
                     <Box component="span" sx={{ display: { xs: 'none', sm: 'inline' } }}>
-                        ← {t('back_to_game')}
+                        ⇇ {t('back_to_game')}
                     </Box>
                     <Box component="span" sx={{ display: { xs: 'inline', sm: 'none' } }}>
                         🏠
@@ -450,7 +450,7 @@ export default function AdminPanel() {
                         ← {t('dashboard')}
                     </Box>
                     <Box component="span" sx={{ display: { xs: 'inline', sm: 'none' } }}>
-                        📊
+                        ⬅️
                     </Box>
                 </Button>
                 <Box sx={{ flex: 1 }} />
