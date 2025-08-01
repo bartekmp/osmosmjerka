@@ -2,6 +2,14 @@
 
 <!-- version list -->
 
+## v1.11.1 (2025-08-01)
+
+### Enhancement
+
+- Reorganize file structure ([#48](https://github.com/bartekmp/osmosmjerka/pull/48),
+  [`bfad2bd`](https://github.com/bartekmp/osmosmjerka/commit/bfad2bd5b1f3ba6ae7a0f3d08a494e0755a6bdd6))
+
+
 ## v1.11.0 (2025-08-01)
 
 ### Enhancement
