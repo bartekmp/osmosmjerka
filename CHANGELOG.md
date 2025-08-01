@@ -2,6 +2,22 @@
 
 <!-- version list -->
 
+## v1.11.0 (2025-08-01)
+
+### Enhancement
+
+- Reorganize files, split big files ([#47](https://github.com/bartekmp/osmosmjerka/pull/47),
+  [`d71192a`](https://github.com/bartekmp/osmosmjerka/commit/d71192a0879cb19ba5d66ab4e1cc35a12442f089))
+
+### Feature
+
+- Add celebration effects ([#47](https://github.com/bartekmp/osmosmjerka/pull/47),
+  [`d71192a`](https://github.com/bartekmp/osmosmjerka/commit/d71192a0879cb19ba5d66ab4e1cc35a12442f089))
+
+- Celebration effects ([#47](https://github.com/bartekmp/osmosmjerka/pull/47),
+  [`d71192a`](https://github.com/bartekmp/osmosmjerka/commit/d71192a0879cb19ba5d66ab4e1cc35a12442f089))
+
+
 ## v1.10.0 (2025-08-01)
 
 ### Feature
