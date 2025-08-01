@@ -1,7 +1,7 @@
 import React from 'react';
 import { render, screen } from '@testing-library/react';
 import WordList from '../WordList';
-import { withI18n } from '../../testUtils';
+import { withI18n } from '../../../../../testUtils';
 
 const words = [
     { word: 'apple', translation: 'jabuka' },

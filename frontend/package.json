@@ -5,7 +5,8 @@
     "scripts": {
         "build": "vite build",
         "dev": "vite",
-        "preview": "vite preview"
+        "preview": "vite preview",
+        "test": "jest"
     },
     "dependencies": {
         "@emotion/react": "^11.14.0",
@@ -45,6 +46,15 @@
             "./jest.setup.js"
         ],
         "moduleNameMapper": {
+            "^@/(.*)$": "<rootDir>/src/$1",
+            "^@features/(.*)$": "<rootDir>/src/features/$1",
+            "^@features$": "<rootDir>/src/features/index.js",
+            "^@shared/(.*)$": "<rootDir>/src/shared/$1",
+            "^@shared$": "<rootDir>/src/shared/index.js",
+            "^@contexts/(.*)$": "<rootDir>/src/contexts/$1",
+            "^@helpers/(.*)$": "<rootDir>/src/helpers/$1",
+            "^@hooks/(.*)$": "<rootDir>/src/hooks/$1",
+            "^@locales/(.*)$": "<rootDir>/src/locales/$1",
             "\\.(css|less|scss|sass)$": "jest-transform-stub",
             "\\.(jpg|jpeg|png|gif|webp|svg)$": "jest-transform-stub"
         }

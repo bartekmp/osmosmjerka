@@ -2,7 +2,7 @@ import React from 'react';
 import { Box, Button, FormControl, InputLabel, Select, MenuItem } from '@mui/material';
 import { useTranslation } from 'react-i18next';
 import CategorySelector from './CategorySelector';
-import ExportButton from './ExportButton';
+import ExportButton from '../../../export/components/ExportButton';
 
 const GameControls = ({
     panelOpen,

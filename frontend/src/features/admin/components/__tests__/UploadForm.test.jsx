@@ -2,7 +2,7 @@ import React from 'react';
 import { fireEvent, render, screen, waitFor } from '@testing-library/react';
 import axios from 'axios';
 import UploadForm from '../UploadForm';
-import { withI18n } from '../../testUtils';
+import { withI18n } from '../../../../testUtils';
 
 jest.mock('axios');
 
