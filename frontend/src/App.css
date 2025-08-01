@@ -1,0 +1,602 @@
+/* App.jsx specific styles */
+
+/* Main container styles */
+.app-container {
+    min-height: 100vh;
+    padding: 16px 0;
+    position: relative;
+}
+
+/* Loading overlay styles */
+.loading-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    backdrop-filter: blur(3px);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 9999;
+}
+
+.loading-overlay.light {
+    background-color: rgba(0, 0, 0, 0.5);
+}
+
+.loading-overlay.dark {
+    background-color: rgba(30, 30, 30, 0.7);
+}
+
+.loading-content {
+    border-radius: 8px;
+    padding: 24px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 16px;
+}
+
+.loading-content.light {
+    background-color: white;
+    color: inherit;
+    box-shadow: 0px 2px 4px rgba(0, 0, 0, 0.2);
+}
+
+.loading-content.dark {
+    background-color: #222;
+    color: #fff;
+    box-shadow: 0px 8px 16px rgba(0, 0, 0, 0.4);
+}
+
+/* Admin route controls */
+.admin-controls {
+    position: absolute;
+    top: 16px;
+    right: 16px;
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+    gap: 8px;
+    min-height: 48px;
+}
+
+.admin-controls-spacer {
+    height: 16px;
+}
+
+@media (min-width: 600px) {
+    .admin-controls-spacer {
+        height: 20px;
+    }
+}
+
+/* Game header styles */
+.game-header {
+    position: relative;
+    width: 100%;
+    display: flex;
+    align-items: center;
+    margin-top: 16px;
+    margin-bottom: 24px;
+    padding: 0 8px;
+    min-height: 48px;
+}
+
+@media (min-width: 600px) {
+    .game-header {
+        padding: 0 16px;
+        min-height: 56px;
+    }
+}
+
+@media (min-width: 900px) {
+    .game-header {
+        min-height: 64px;
+    }
+}
+
+@media (min-width: 1200px) {
+    .game-header {
+        min-height: 72px;
+    }
+}
+
+/* Logo and title container */
+.logo-title-container {
+    position: absolute;
+    left: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    cursor: pointer;
+    overflow: hidden;
+    padding: 0 8px;
+}
+
+@media (min-width: 600px) {
+    .logo-title-container {
+        gap: 16px;
+        padding: 0 16px;
+        right: 150px;
+    }
+}
+
+@media (min-width: 900px) {
+    .logo-title-container {
+        right: 180px;
+    }
+}
+
+@media (max-width: 599px) {
+    .logo-title-container {
+        right: 80px;
+    }
+}
+
+/* Logo styles */
+.logo-container {
+    position: relative;
+    flex-shrink: 0;
+    height: 38px;
+    width: 38px;
+}
+
+@media (min-width: 600px) {
+    .logo-container {
+        height: 36px;
+        width: 36px;
+    }
+}
+
+@media (min-width: 900px) {
+    .logo-container {
+        height: 44px;
+        width: 44px;
+    }
+}
+
+@media (min-width: 1200px) {
+    .logo-container {
+        height: 56px;
+        width: 56px;
+    }
+}
+
+.logo-image {
+    height: 100%;
+    width: 100%;
+    transition: filter 0.3s ease;
+    user-select: none;
+    position: relative;
+    z-index: 1;
+}
+
+/* Title wobble animation */
+.title-text {
+    text-align: center;
+    user-select: none;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    min-width: 0;
+    max-width: 100%;
+    font-size: 1.9rem;
+}
+
+@media (min-width: 600px) {
+    .title-text {
+        font-size: 1.8rem;
+    }
+}
+
+@media (min-width: 900px) {
+    .title-text {
+        font-size: 2.5rem;
+    }
+}
+
+@media (min-width: 1200px) {
+    .title-text {
+        font-size: 3.2rem;
+    }
+}
+
+.title-text.celebrating {
+    animation: title-wobble 0.5s ease-in-out 6;
+}
+
+@keyframes title-wobble {
+    0%, 100% {
+        transform: rotate(0deg) scale(1);
+    }
+    25% {
+        transform: rotate(-3deg) scale(1.05);
+    }
+    50% {
+        transform: rotate(0deg) scale(1.1);
+    }
+    75% {
+        transform: rotate(3deg) scale(1.05);
+    }
+}
+
+/* Header controls */
+.header-controls {
+    position: absolute;
+    right: 0;
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+    gap: 8px;
+    z-index: 1;
+}
+
+/* Mobile menu toggle */
+.mobile-menu-toggle {
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+    width: 100%;
+    justify-content: center;
+    margin-bottom: 8px;
+}
+
+@media (min-width: 600px) {
+    .mobile-menu-toggle {
+        display: none;
+    }
+}
+
+.mobile-menu-button {
+    min-width: 0;
+    width: 180px;
+    height: 40px;
+    margin-right: 8px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+/* Control panel */
+.control-panel {
+    flex-direction: row;
+    align-items: flex-start;
+    gap: 16px;
+    width: 100%;
+    max-width: 600px;
+    margin-bottom: 8px;
+    transition: all 0.2s;
+}
+
+@media (min-width: 600px) {
+    .control-panel {
+        display: flex !important;
+        margin-bottom: 16px;
+    }
+}
+
+.control-panel.hidden {
+    display: none;
+}
+
+@media (min-width: 600px) {
+    .control-panel.hidden {
+        display: flex !important;
+    }
+}
+
+/* Dropdowns container */
+.dropdowns-container {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+    max-width: 40%;
+}
+
+@media (min-width: 600px) {
+    .dropdowns-container {
+        max-width: 70%;
+    }
+}
+
+/* Buttons container */
+.buttons-container {
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+    gap: 8px;
+    position: relative;
+}
+
+@media (min-width: 600px) {
+    .buttons-container {
+        align-items: flex-start;
+        gap: 16px;
+    }
+}
+
+/* Refresh button */
+.refresh-button {
+    height: 48px;
+    min-width: 48px;
+    font-size: 1.2rem;
+    padding: 0 8px;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+}
+
+@media (min-width: 600px) {
+    .refresh-button {
+        height: 96px;
+        min-width: 56px;
+        font-size: 2rem;
+        padding: 0 16px;
+    }
+}
+
+.refresh-button-text {
+    display: none;
+    font-size: 1rem;
+    margin-top: 8px;
+}
+
+@media (min-width: 600px) {
+    .refresh-button-text {
+        display: inline;
+    }
+}
+
+/* Hide menu button */
+.hide-menu-button {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    min-width: 0;
+    width: 48px;
+    height: 48px;
+    font-size: 1.5rem;
+    padding: 0;
+}
+
+@media (min-width: 600px) {
+    .hide-menu-button {
+        display: none;
+    }
+}
+
+/* All found message */
+.all-found-message {
+    text-align: center;
+    color: var(--success-color);
+    font-weight: bold;
+    font-size: 1rem;
+    min-height: 16px;
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    margin-bottom: 4px;
+}
+
+@media (min-width: 600px) {
+    .all-found-message {
+        font-size: 1.2rem;
+        min-height: 24px;
+        gap: 16px;
+        margin-bottom: 8px;
+    }
+}
+
+.all-found-text {
+    margin-bottom: 0;
+    font-size: 1rem;
+    line-height: 1.2;
+}
+
+@media (min-width: 600px) {
+    .all-found-text {
+        font-size: 1.2rem;
+    }
+}
+
+.new-game-button {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-size: 0.8rem;
+    padding: 1.6px 8px;
+    min-height: 28px;
+}
+
+@media (min-width: 600px) {
+    .new-game-button {
+        font-size: 1rem;
+        padding: 8px 24px;
+        min-height: 36px;
+    }
+}
+
+.new-game-text-desktop {
+    display: none;
+}
+
+@media (min-width: 600px) {
+    .new-game-text-desktop {
+        display: inline;
+    }
+}
+
+.new-game-text-mobile {
+    display: inline;
+}
+
+@media (min-width: 600px) {
+    .new-game-text-mobile {
+        display: none;
+    }
+}
+
+/* Main game area */
+.main-game-area {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    width: 100%;
+    max-width: 100vw;
+    position: relative;
+    gap: 24px;
+    justify-content: center;
+    overflow: hidden;
+}
+
+@media (min-width: 900px) {
+    .main-game-area {
+        flex-direction: row;
+        align-items: flex-start;
+        gap: 48px;
+    }
+}
+
+/* Grid container */
+.grid-container {
+    position: relative;
+    flex: 0 0 auto;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    width: 100%;
+    max-width: 100%;
+}
+
+@media (min-width: 900px) {
+    .grid-container {
+        width: auto;
+    }
+}
+
+/* Not enough words overlay */
+.not-enough-words-overlay {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    backdrop-filter: blur(6px);
+    z-index: 10;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.not-enough-words-overlay.light {
+    background-color: rgba(255, 255, 255, 0.7);
+}
+
+.not-enough-words-overlay.dark {
+    background-color: rgba(30, 30, 30, 0.7);
+}
+
+.not-enough-words-content {
+    border-radius: 12px;
+    padding: 24px;
+    text-align: center;
+    font-weight: bold;
+}
+
+.not-enough-words-content.light {
+    background-color: rgba(255, 255, 255, 0.95);
+    color: var(--error-color);
+    box-shadow: 0px 2px 4px rgba(0, 0, 0, 0.2);
+}
+
+.not-enough-words-content.dark {
+    background-color: #222;
+    color: #fff;
+    box-shadow: 0px 8px 16px rgba(0, 0, 0, 0.4);
+}
+
+/* Word list container */
+.word-list-container {
+    width: 100%;
+    max-width: 400px;
+    align-self: flex-start;
+    position: relative;
+    left: 0;
+    top: 0;
+}
+
+@media (min-width: 900px) {
+    .word-list-container {
+        width: 320px;
+    }
+}
+
+/* Control buttons sizing */
+.control-button {
+    min-width: 36px;
+    height: 36px;
+    min-height: 36px;
+}
+
+@media (min-width: 600px) {
+    .control-button {
+        min-width: 44px;
+        height: 44px;
+        min-height: 44px;
+    }
+}
+
+@media (min-width: 900px) {
+    .control-button {
+        min-width: 48px;
+        height: 48px;
+        min-height: 48px;
+    }
+}
+
+.control-button.language-switcher {
+    font-size: 1rem;
+}
+
+.control-button.night-mode {
+    padding: 4px;
+}
+
+@media (min-width: 600px) {
+    .control-button.night-mode {
+        padding: 6px;
+    }
+}
+
+@media (min-width: 900px) {
+    .control-button.night-mode {
+        padding: 8px;
+    }
+}
+
+.control-button.profile {
+    display: none;
+    font-size: 0.8rem;
+    padding: 0 6px;
+}
+
+@media (min-width: 600px) {
+    .control-button.profile {
+        display: flex;
+        font-size: 0.8rem;
+        padding: 0 6px;
+    }
+}
+
+@media (min-width: 900px) {
+    .control-button.profile {
+        font-size: 0.9rem;
+        padding: 0 8px;
+    }
+}

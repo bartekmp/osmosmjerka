@@ -1,19 +1,32 @@
 import axios from 'axios';
 import confetti from 'canvas-confetti';
-import React, { useEffect, useState, useRef, Suspense, lazy, useCallback } from 'react';
-import { Link, Route, Routes, useLocation } from 'react-router-dom';
-import { ThemeProvider as MUIThemeProvider, CssBaseline, Button } from '@mui/material';
-import { Container, Box, Typography, Stack, FormControl, InputLabel, Select, MenuItem, CircularProgress } from '@mui/material';
-import CategorySelector from './components/CategorySelector';
-import ExportButton from './components/ExportButton';
+import React, { useEffect, useState, useRef, Suspense, lazy } from 'react';
+import { Route, Routes, useLocation, Link } from 'react-router-dom';
+import { ThemeProvider as MUIThemeProvider, CssBaseline, Box, Typography } from '@mui/material';
+import { Container, Stack, CircularProgress, FormControl, InputLabel, MenuItem, Select, Button } from '@mui/material';
 import ScrabbleGrid from './components/Grid/Grid';
 import WordList from './components/WordList';
 import { ThemeProvider, useThemeMode } from './contexts/ThemeContext';
 import createAppTheme from './theme';
 import './style.css';
-import NightModeButton from './components/NightModeButton';
-import LanguageSwitcher from './components/LanguageSwitcher';
+import './App.css';
 import { useTranslation } from 'react-i18next';
+
+// Import components
+import GameHeader from './components/GameHeader';
+import GameControls from './components/GameControls';
+import LoadingOverlay from './components/LoadingOverlay';
+import AllFoundMessage from './components/AllFoundMessage';
+import AdminControls from './components/AdminControls';
+import LanguageSwitcher from './components/LanguageSwitcher';
+import NightModeButton from './components/NightModeButton';
+import CategorySelector from './components/CategorySelector';
+import ExportButton from './components/ExportButton';
+
+// Import custom hooks
+import useLogoColor from './hooks/useLogoColor';
+import useCelebration from './hooks/useCelebration';
+import useGameDifficulties from './hooks/useGameDifficulties';
 
 import { loadPuzzle as loadPuzzleHelper, restoreGameState, saveGameState } from './helpers/appHelpers';
 
@@ -27,9 +40,11 @@ function AppContent() {
     const location = useLocation();
     const isAdminRoute = location.pathname.startsWith('/admin');
     const gridRef = useRef(null);
-    const { isDarkMode, toggleDarkMode } = useThemeMode();
-    const [logoColor, setLogoColor] = useState('#2d2d2d');
-    const [logoFilter, setLogoFilter] = useState('none');
+    const { isDarkMode } = useThemeMode();
+
+    // Use custom hooks
+    const { logoFilter, setLogoFilter, handleLogoClick } = useLogoColor();
+    const { availableDifficulties } = useGameDifficulties();
 
     const [categories, setCategories] = useState([]);
     const [ignoredCategories, setIgnoredCategories] = useState([]);
@@ -54,58 +69,15 @@ function AppContent() {
     const [notEnoughWordsMsg, setNotEnoughWordsMsg] = useState("");
     const [isLoading, setIsLoading] = useState(false);
     const [panelOpen, setPanelOpen] = useState(false);
-    const [showCelebration, setShowCelebration] = useState(false);
-    const celebrationTriggeredRef = useRef(false);
-
-    // Function to change logo color to random bright color
-    const changeLogoColor = useCallback(() => {
-        const colorFilters = [
-            'hue-rotate(45deg) saturate(2)', // orange
-            'hue-rotate(120deg) saturate(2)', // green  
-            'hue-rotate(240deg) saturate(2)', // blue
-            'hue-rotate(300deg) saturate(2)', // purple
-            'hue-rotate(0deg) saturate(3)', // red
-            'hue-rotate(60deg) saturate(2)', // yellow
-            'hue-rotate(180deg) saturate(2)', // cyan
-            'hue-rotate(320deg) saturate(2)', // magenta
-            'hue-rotate(90deg) saturate(2.5)', // lime green
-            'hue-rotate(210deg) saturate(2)', // deep blue
-            'hue-rotate(270deg) saturate(2.5)', // violet
-            'hue-rotate(30deg) saturate(2)', // golden orange
-            'hue-rotate(150deg) saturate(2)', // teal
-            'hue-rotate(330deg) saturate(2)', // pink
-            'hue-rotate(15deg) saturate(3)', // bright orange-red
-            'hue-rotate(75deg) saturate(2)', // yellow-green
-            'hue-rotate(195deg) saturate(2)', // sky blue
-            'hue-rotate(225deg) saturate(2)', // indigo
-            'hue-rotate(285deg) saturate(2)', // orchid
-            'hue-rotate(345deg) saturate(2)', // rose
-        ];
-
-        setLogoFilter(currentFilter => {
-            let newFilter;
-            do {
-                newFilter = colorFilters[Math.floor(Math.random() * colorFilters.length)];
-            } while (newFilter === currentFilter);
-            return newFilter;
-        });
-    }, []);
-
-    // Function to navigate to home page
-    const handleLogoClick = () => {
-        changeLogoColor();
-        if (window.location.pathname !== '/') {
-            window.location.href = '/';
-        }
-    };
-
-    // Apply theme data attribute to body
-    useEffect(() => {
-        document.body.setAttribute('data-theme', isDarkMode ? 'dark' : 'light');
-    }, [isDarkMode]);
 
     // Winning condition: all words found
     const allFound = words.length > 0 && found.length === words.length;
+    
+    // Use celebration hook
+    const { showCelebration, resetCelebration, celebrationTriggeredRef } = useCelebration(allFound, setLogoFilter);    // Apply theme data attribute to body
+    useEffect(() => {
+        document.body.setAttribute('data-theme', isDarkMode ? 'dark' : 'light');
+    }, [isDarkMode]);
 
     // Restore state from localStorage on mount, but only if not already won
     useEffect(() => {
@@ -174,8 +146,7 @@ function AppContent() {
 
     const loadPuzzle = (category, diff = difficulty) => {
         setIsLoading(true);
-        setShowCelebration(false); // Reset celebration state
-        celebrationTriggeredRef.current = false; // Reset celebration ref
+        resetCelebration(); // Reset celebration state using hook
         loadPuzzleHelper(category, diff, {
             setSelectedCategory,
             setGrid,
@@ -208,113 +179,7 @@ function AppContent() {
         if (allFound) setHideWords(false);
     }, [allFound]);
 
-    // Trigger celebration when game is won
-    useEffect(() => {
-        if (allFound && !celebrationTriggeredRef.current) {
-            celebrationTriggeredRef.current = true;
-            setShowCelebration(true);
-            // Hide celebration after 6 seconds
-            setTimeout(() => {
-                setShowCelebration(false);
-            }, 6000);
-        }
-    }, [allFound]);
-
-    // Color cycling effect during celebration
-    useEffect(() => {
-        if (!showCelebration) return;
-
-        let timeouts = [];
-
-        // Color filters array - copied to avoid dependency issues
-        const colorFilters = [
-            'hue-rotate(45deg) saturate(2)', // orange
-            'hue-rotate(120deg) saturate(2)', // green  
-            'hue-rotate(240deg) saturate(2)', // blue
-            'hue-rotate(300deg) saturate(2)', // purple
-            'hue-rotate(0deg) saturate(3)', // red
-            'hue-rotate(60deg) saturate(2)', // yellow
-            'hue-rotate(180deg) saturate(2)', // cyan
-            'hue-rotate(320deg) saturate(2)', // magenta
-            'hue-rotate(90deg) saturate(2.5)', // lime green
-            'hue-rotate(210deg) saturate(2)', // deep blue
-            'hue-rotate(270deg) saturate(2.5)', // violet
-            'hue-rotate(30deg) saturate(2)', // golden orange
-            'hue-rotate(150deg) saturate(2)', // teal
-            'hue-rotate(330deg) saturate(2)', // pink
-            'hue-rotate(15deg) saturate(3)', // bright orange-red
-            'hue-rotate(75deg) saturate(2)', // yellow-green
-            'hue-rotate(195deg) saturate(2)', // sky blue
-            'hue-rotate(225deg) saturate(2)', // indigo
-            'hue-rotate(285deg) saturate(2)', // orchid
-            'hue-rotate(345deg) saturate(2)', // rose
-        ];
-
-        // Function to pick a random color filter
-        const getRandomColor = () => {
-            return colorFilters[Math.floor(Math.random() * colorFilters.length)];
-        };
-
-        // Schedule multiple color changes during the 6-second celebration
-        const scheduleColorChanges = () => {
-            let totalTime = 0;
-            const celebrationDuration = 6000; // 6 seconds
-
-            while (totalTime < celebrationDuration) {
-                const delay = 300 + Math.random() * 500; // 300-800ms
-                totalTime += delay;
-
-                if (totalTime < celebrationDuration) {
-                    const timeout = setTimeout(() => {
-                        setLogoFilter(getRandomColor());
-                    }, totalTime);
-                    timeouts.push(timeout);
-                }
-            }
-        };
-
-        // Start the first color change immediately and schedule the rest
-        setLogoFilter(getRandomColor());
-        scheduleColorChanges();
-
-        return () => {
-            timeouts.forEach(timeout => clearTimeout(timeout));
-        };
-    }, [showCelebration]); // Only depends on showCelebration
-
     const visibleCategories = categories.filter(cat => !ignoredCategories.includes(cat));
-
-    // Calculate which difficulties are suitable for current screen size
-    const getAvailableDifficulties = () => {
-        const screenWidth = window.innerWidth;
-        const screenHeight = window.innerHeight;
-        const maxGridSize = Math.min(screenWidth * 0.9, screenHeight * 0.6);
-
-        const difficulties = [
-            { value: 'easy', label: 'Easy (10x10)', gridSize: 10 },
-            { value: 'medium', label: 'Medium (15x15)', gridSize: 15 },
-            { value: 'hard', label: 'Hard (20x20)', gridSize: 20 },
-            { value: 'dynamic', label: 'Dynamic (longest word)', gridSize: 15 } // Assume medium size for dynamic
-        ];
-
-        return difficulties.filter(diff => {
-            // Calculate minimum space needed: grid size * (min cell size + spacing)
-            const minSpaceNeeded = diff.gridSize * 25; // 20px min cell + 5px spacing
-            return minSpaceNeeded <= maxGridSize;
-        });
-    };
-
-    const [availableDifficulties, setAvailableDifficulties] = React.useState(getAvailableDifficulties());
-
-    // Update available difficulties on window resize
-    React.useEffect(() => {
-        const handleResize = () => {
-            setAvailableDifficulties(getAvailableDifficulties());
-        };
-
-        window.addEventListener('resize', handleResize);
-        return () => window.removeEventListener('resize', handleResize);
-    }, []);
 
     // Auto-adjust difficulty if current one becomes unavailable
     React.useEffect(() => {
