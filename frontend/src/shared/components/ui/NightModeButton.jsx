@@ -1,6 +1,6 @@
 import React from 'react';
 import { Button } from '@mui/material';
-import { useThemeMode } from '../contexts/ThemeContext';
+import { useThemeMode } from '../../../contexts/ThemeContext';
 import { useTranslation } from 'react-i18next';
 
 /**

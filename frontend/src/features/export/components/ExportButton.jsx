@@ -5,7 +5,7 @@ import Box from '@mui/material/Box';
 import ExportModal from './ExportModal';
 import './ExportButton.css';
 import { useTranslation } from 'react-i18next';
-import ResponsiveText from '../shared/components/ui/ResponsiveText';
+import { ResponsiveText } from '../../../shared';
 
 export default function ExportButton({ category, grid, words, disabled }) {
     const [modalOpen, setModalOpen] = useState(false);

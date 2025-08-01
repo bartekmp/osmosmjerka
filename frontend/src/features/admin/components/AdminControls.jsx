@@ -1,7 +1,6 @@
 import React from 'react';
 import { Box } from '@mui/material';
-import LanguageSwitcher from './LanguageSwitcher';
-import NightModeButton from './NightModeButton';
+import { LanguageSwitcher, NightModeButton } from '../../../shared';
 
 const AdminControls = () => {
     return (

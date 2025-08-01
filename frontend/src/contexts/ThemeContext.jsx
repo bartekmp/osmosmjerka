@@ -1,5 +1,6 @@
 import React, { createContext, useContext, useState, useEffect } from 'react';
 import { useTranslation } from 'react-i18next';
+import { STORAGE_KEYS } from '../shared/constants/constants';
 
 const ThemeContext = createContext();
 
@@ -14,12 +15,14 @@ export const useThemeMode = () => {
 export const ThemeProvider = ({ children }) => {
     const { t } = useTranslation(); // For possible future use in theme toggling UI
     const [isDarkMode, setIsDarkMode] = useState(() => {
-        const saved = localStorage.getItem('osmosmjerka-dark-mode');
+        const saved = localStorage.getItem(STORAGE_KEYS.THEME);
         return saved ? JSON.parse(saved) : false;
     });
 
     useEffect(() => {
-        localStorage.setItem('osmosmjerka-dark-mode', JSON.stringify(isDarkMode));
+        localStorage.setItem(STORAGE_KEYS.THEME, JSON.stringify(isDarkMode));
+        // Update body data attribute for CSS theming
+        document.body.setAttribute('data-theme', isDarkMode ? 'dark' : 'light');
     }, [isDarkMode]);
 
     const toggleDarkMode = () => {

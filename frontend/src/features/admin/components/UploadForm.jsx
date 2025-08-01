@@ -4,7 +4,7 @@ import { useRef, useState } from 'react';
 import { Button, Box, Typography, CircularProgress, Snackbar, Alert, IconButton } from '@mui/material';
 import CloseIcon from '@mui/icons-material/Close';
 import { useTranslation } from 'react-i18next';
-import ResponsiveText from '../shared/components/ui/ResponsiveText';
+import { ResponsiveText } from '../../../shared';
 
 export default function UploadForm({ onUpload }) {
     const { t } = useTranslation();

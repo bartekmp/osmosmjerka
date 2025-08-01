@@ -1,8 +1,7 @@
 import React from 'react';
 import { Box, Typography } from '@mui/material';
 import { useTranslation } from 'react-i18next';
-import LanguageSwitcher from './LanguageSwitcher';
-import NightModeButton from './NightModeButton';
+import { LanguageSwitcher, NightModeButton } from '../../../../shared';
 import { Link } from 'react-router-dom';
 import { Button } from '@mui/material';
 

@@ -4,24 +4,25 @@ import React, { useEffect, useState, useRef, Suspense, lazy } from 'react';
 import { Route, Routes, useLocation, Link } from 'react-router-dom';
 import { ThemeProvider as MUIThemeProvider, CssBaseline, Box, Typography } from '@mui/material';
 import { Container, Stack, CircularProgress, FormControl, InputLabel, MenuItem, Select, Button } from '@mui/material';
-import ScrabbleGrid from './components/Grid/Grid';
-import WordList from './components/WordList';
+import {
+    ScrabbleGrid,
+    WordList,
+    GameHeader,
+    GameControls,
+    CategorySelector,
+    ExportButton,
+    LoadingOverlay,
+    AllFoundMessage,
+    AdminControls
+} from './features';
+import { LanguageSwitcher, NightModeButton } from './shared';
 import { ThemeProvider, useThemeMode } from './contexts/ThemeContext';
 import createAppTheme from './theme';
 import './style.css';
 import './App.css';
 import { useTranslation } from 'react-i18next';
-
-// Import components
-import GameHeader from './components/GameHeader';
-import GameControls from './components/GameControls';
-import LoadingOverlay from './components/LoadingOverlay';
-import AllFoundMessage from './components/AllFoundMessage';
-import AdminControls from './components/AdminControls';
-import LanguageSwitcher from './components/LanguageSwitcher';
-import NightModeButton from './components/NightModeButton';
-import CategorySelector from './components/CategorySelector';
-import ExportButton from './components/ExportButton';
+import GameActionButton from './shared/components/ui/GameActionButton';
+import ResponsiveText from './shared/components/ui/ResponsiveText';
 
 // Import custom hooks
 import useLogoColor from './hooks/useLogoColor';
@@ -29,11 +30,12 @@ import useCelebration from './hooks/useCelebration';
 import useGameDifficulties from './hooks/useGameDifficulties';
 
 import { loadPuzzle as loadPuzzleHelper, restoreGameState, saveGameState } from './helpers/appHelpers';
+import { STORAGE_KEYS, API_ENDPOINTS } from './shared/constants/constants';
 
 // Lazy load admin components
-const AdminPanel = lazy(() => import('./components/AdminPanel/AdminPanel'));
-const UserManagement = lazy(() => import('./components/AdminPanel/UserManagement'));
-const UserProfile = lazy(() => import('./components/AdminPanel/UserProfile'));
+const AdminPanel = lazy(() => import('./features').then(module => ({ default: module.AdminPanel })));
+const UserManagement = lazy(() => import('./features').then(module => ({ default: module.UserManagement })));
+const UserProfile = lazy(() => import('./features').then(module => ({ default: module.UserProfile })));
 
 function AppContent() {
     const { t } = useTranslation();
@@ -95,13 +97,13 @@ function AppContent() {
     }, []);
 
     useEffect(() => {
-        axios.get('/api/ignored-categories').then(res => {
+        axios.get(API_ENDPOINTS.IGNORED_CATEGORIES).then(res => {
             setIgnoredCategories(res.data);
         }).catch(err => {
             console.error('Error loading ignored categories:', err);
         });
 
-        axios.get('/api/categories').then(res => {
+        axios.get(API_ENDPOINTS.CATEGORIES).then(res => {
             setCategories(res.data);
             if (res.data.length > 0 && !selectedCategory && restored && grid.length === 0) {
                 const randomIndex = Math.floor(Math.random() * res.data.length);
@@ -115,7 +117,7 @@ function AppContent() {
 
     // Also load categories immediately, not just when restored
     useEffect(() => {
-        axios.get('/api/categories').then(res => {
+        axios.get(API_ENDPOINTS.CATEGORIES).then(res => {
             setCategories(res.data);
         }).catch(err => {
             console.error('Error loading categories on mount:', err);
@@ -484,24 +486,13 @@ function AppContent() {
                                     position: 'relative'
                                 }}>
                                     {/* Refresh button */}
-                                    <Button
+                                    <GameActionButton
+                                        icon="🔄"
+                                        desktopText={t('refresh')}
                                         onClick={() => loadPuzzle(selectedCategory, difficulty)}
                                         title={t('reload_puzzle')}
-                                        sx={{
-                                            height: { xs: 48, sm: 96 },
-                                            minWidth: { xs: 48, sm: 56 },
-                                            fontSize: { xs: '1.2rem', sm: '2rem' },
-                                            px: { xs: 1, sm: 2 },
-                                            display: 'flex',
-                                            flexDirection: 'column',
-                                            justifyContent: 'center',
-                                        }}
-                                    >
-                                        <span>🔄</span>
-                                        <Box component="span" sx={{ display: { xs: 'none', sm: 'inline' }, fontSize: '1rem', mt: 1 }}>
-                                            {t('refresh')}
-                                        </Box>
-                                    </Button>
+                                        sx={{ height: { xs: 48, sm: 96 } }}
+                                    />
 
                                     {/* Export button */}
                                     <ExportButton
@@ -572,12 +563,10 @@ function AppContent() {
                                             minHeight: { xs: 28, sm: 36 }
                                         }}
                                     >
-                                        <Box component="span" sx={{ display: { xs: 'none', sm: 'inline' } }}>
-                                            {t('new_game')}
-                                        </Box>
-                                        <Box component="span" sx={{ display: { xs: 'inline', sm: 'none' } }}>
-                                            🎮
-                                        </Box>
+                                        <ResponsiveText 
+                                            desktop={t('new_game')} 
+                                            mobile="🎮" 
+                                        />
                                     </Button>
                                 </Box>
                             )}

@@ -1,7 +1,7 @@
 import React from 'react';
 import { fireEvent, render, screen } from '@testing-library/react';
 import CategorySelector from '../CategorySelector';
-import { withI18n } from '../../testUtils';
+import { withI18n } from '../../../../../testUtils';
 
 test('renders all categories and selects the correct one', () => {
     const categories = ['A', 'B', 'C'];

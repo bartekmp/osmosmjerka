@@ -3,7 +3,7 @@ import { render, screen } from '@testing-library/react';
 import { ThemeProvider } from '@mui/material/styles';
 import { createTheme } from '@mui/material/styles';
 import Grid from '../Grid';
-import { withI18n } from '../../../testUtils';
+import { withI18n } from '../../../../../testUtils';
 
 // Create a basic theme for testing
 const theme = createTheme();

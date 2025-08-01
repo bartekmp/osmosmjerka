@@ -28,10 +28,10 @@ import UserProfile from './UserProfile';
 import { isTokenExpired } from './helpers';
 import PaginationControls from './PaginationControls';
 import { useAdminApi } from './useAdminApi';
-import { useThemeMode } from '../../contexts/ThemeContext';
+import { useThemeMode } from '@contexts/ThemeContext';
 import { useTranslation } from 'react-i18next';
-import { AdminLayout, AdminButton, ResponsiveActionButton } from '../../shared/components';
-import { STORAGE_KEYS, API_ENDPOINTS } from '../../shared/constants/constants';
+import { AdminLayout, AdminButton, ResponsiveActionButton } from '@shared';
+import { STORAGE_KEYS, API_ENDPOINTS } from '@shared';
 
 export default function AdminPanel() {
     const { t } = useTranslation();
