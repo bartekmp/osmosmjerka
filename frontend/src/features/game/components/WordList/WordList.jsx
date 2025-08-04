@@ -84,9 +84,13 @@ export default function WordList({ words, found, hideWords, setHideWords, allFou
                         </span>
                         <span
                             className={`word-list-translation${found.includes(word) ? ' found' : ''}`}
-                            style={{ minWidth: translationMinWidth }}
+                            style={{ 
+                                minWidth: translationMinWidth,
+                                whiteSpace: 'pre-wrap',
+                                wordBreak: 'break-word'
+                            }}
                         >
-                            {showTranslations ? translation : ''}
+                            {showTranslations ? (translation || '').replace(/<br\s*\/?>/gi, '\n') : ''}
                         </span>
                     </li>
                 ))}

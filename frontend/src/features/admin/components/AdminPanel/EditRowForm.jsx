@@ -41,6 +41,14 @@ export default function EditRowForm({ editRow, setEditRow, handleSave }) {
                     onChange={e => setEditRow({ ...editRow, translation: e.target.value })}
                     fullWidth
                     variant="outlined"
+                    multiline
+                    minRows={2}
+                    maxRows={6}
+                    sx={{
+                        '& .MuiInputBase-root': {
+                            whiteSpace: 'pre-wrap'
+                        }
+                    }}
                 />
                 <Box sx={{ display: 'flex', gap: 2, justifyContent: 'center', mt: 2 }}>
                     <Button

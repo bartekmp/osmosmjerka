@@ -20,7 +20,7 @@ words_table = Table(
     Column("id", Integer, primary_key=True, index=True),
     Column("categories", String, nullable=False),
     Column("word", String, nullable=False),
-    Column("translation", String, nullable=False),
+    Column("translation", Text, nullable=False),
 )
 
 # Define the accounts table for user management

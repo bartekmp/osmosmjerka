@@ -1,3 +1,4 @@
+import csv
 import io
 import logging
 import random
@@ -146,19 +147,49 @@ async def clear_db(user=Depends(require_admin_access)) -> JSONResponse:
 async def upload(file: UploadFile = File(...), user=Depends(require_admin_access)) -> JSONResponse:
     content = await file.read()
     content = content.decode("utf-8")
-    lines = content.strip().split("\n")[1:]  # Skip header
+    
+    # Use CSV reader to properly handle semicolon-separated values and preserve line breaks
+    lines = content.strip().split("\n")
+    
+    # Skip header if present
+    if lines and (lines[0].lower().startswith("categories") or ";" in lines[0]):
+        lines = lines[1:]
+    
     words_data = []
-    for line in lines:
-        parts = line.split(",")
-        if len(parts) >= 3:
-            words_data.append(
-                {"categories": parts[0].strip(), "word": parts[1].strip(), "translation": parts[2].strip()}
-            )
+    for line_num, line in enumerate(lines, start=2):  # Start at 2 to account for header
+        if not line.strip():
+            continue
+            
+        try:
+            # Use CSV reader with semicolon delimiter to properly parse fields
+            csv_reader = csv.reader([line], delimiter=';', quotechar='"')
+            parts = next(csv_reader)
+            
+            if len(parts) >= 3:
+                categories = parts[0].strip()
+                word = parts[1].strip()
+                translation = parts[2].strip()
+                
+                # Preserve line breaks: normalize different line break formats
+                translation = translation.replace('\\n', '\n').replace('<br>', '\n').replace('<br/>', '\n').replace('<br />', '\n')
+                
+                words_data.append({
+                    "categories": categories,
+                    "word": word,
+                    "translation": translation
+                })
+            else:
+                print(f"Warning: Line {line_num} has insufficient columns: {len(parts)}")
+                
+        except csv.Error as e:
+            print(f"Error parsing line {line_num}: {e}")
+            continue
+            
     if words_data:
         await run_in_threadpool(db_manager.fast_bulk_insert_words, words_data)
         return JSONResponse({"message": f"Uploaded {len(words_data)} words"}, status_code=status.HTTP_201_CREATED)
     else:
-        return JSONResponse({"message": "Upload failed"}, status_code=status.HTTP_400_BAD_REQUEST)
+        return JSONResponse({"message": "Upload failed - no valid words found"}, status_code=status.HTTP_400_BAD_REQUEST)
 
 
 @app.get("/api/categories")
@@ -285,16 +316,30 @@ def get_ignored_categories() -> JSONResponse:
 async def export_data(category: str = Query(None), user=Depends(require_admin_access)) -> StreamingResponse:
     rows = await db_manager.get_words(category)
     output = io.StringIO()
-    output.write("categories,word,translation\n")
+    
+    # Use CSV writer to properly handle semicolon delimiter and escape special characters
+    csv_writer = csv.writer(output, delimiter=';', quotechar='"', quoting=csv.QUOTE_MINIMAL)
+    
+    # Write header
+    csv_writer.writerow(["categories", "word", "translation"])
+    
+    # Write data rows
     for row in rows:
-        categories = row["categories"].replace(",", ";")
-        output.write(f"{categories},{row['word']},{row['translation']}\n")
+        categories = row["categories"]
+        word = row["word"]
+        translation = row["translation"]
+        
+        # Normalize line breaks for export (use <br> for HTML compatibility)
+        translation_export = translation.replace('\n', '<br>')
+        
+        csv_writer.writerow([categories, word, translation_export])
+    
     content = output.getvalue()
     output.close()
-    filename = f"export_{category or 'all'}.txt"
+    filename = f"export_{category or 'all'}.csv"
     return StreamingResponse(
         io.StringIO(content),
-        media_type="text/plain",
+        media_type="text/csv",
         headers={"Content-Disposition": f"attachment; filename={filename}"},
     )
 
