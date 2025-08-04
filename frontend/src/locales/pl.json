@@ -24,6 +24,9 @@
     "categories_required": "Kategorie nie mogą być puste",
     "word_required": "Słowo nie może być puste",
     "translation_required": "Tłumaczenie nie może być puste",
+    "html_not_allowed": "Znaczniki HTML nie są dozwolone",
+    "edit_word": "Edytuj słowo",
+    "translation_multiline_help": "Naciśnij Enter dla nowych linii",
     "add_row": "Dodaj wiersz",
     "edit_row": "Edytuj wiersz",
     "update_description": "Aktualizuj opis",
@@ -140,5 +143,10 @@
     "enter_new_password_for_user": "Wprowadź nowe hasło dla użytkownika:",
     "password_reset_successfully": "Hasło zostało zresetowane",
     "failed_to_reset_password": "Nie udało się zresetować hasła",
-    "loading_users": "Ładowanie użytkowników..."
+    "loading_users": "Ładowanie użytkowników...",
+    "no_rows_found": "Nie znaleziono wierszy",
+    "category_empty": "Kategoria pusta",
+    "try_different_search_terms": "Spróbuj użyć innych słów kluczowych lub wyczyść wyszukiwanie, aby zobaczyć wszystkie wyniki.",
+    "no_words_in_selected_category": "Nie ma słów w wybranej kategorii.",
+    "clear_search": "Wyczyść wyszukiwanie"
 }

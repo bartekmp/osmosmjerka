@@ -275,6 +275,55 @@ class DatabaseManager:
         result = await database.fetch_one(query)
         return result[0] if result else 0
 
+    async def get_words_for_admin(
+        self, category: Optional[str] = None, limit: Optional[int] = None, offset: int = 0, search_term: Optional[str] = None
+    ) -> list[dict[str, str]]:
+        """Get words for admin panel - returns all words including ignored categories"""
+        database = self._ensure_database()
+        query = select(words_table)
+        if category:
+            query = query.where(words_table.c.categories.like(f"%{category}%"))
+        if search_term:
+            # Search in word, translation, and categories fields
+            search_filter = (
+                words_table.c.word.ilike(f"%{search_term}%") |
+                words_table.c.translation.ilike(f"%{search_term}%") |
+                words_table.c.categories.ilike(f"%{search_term}%")
+            )
+            query = query.where(search_filter)
+        query = query.order_by(words_table.c.id)  # Always order by id ascending
+        if limit:
+            query = query.limit(limit).offset(offset)
+        result = await database.fetch_all(query)
+        row_list = []
+        for row in result:
+            # Convert row to dict for easier access
+            row = dict(row)
+            # Only skip words shorter than 3 characters - NO category filtering
+            if len(str(row["word"]).strip()) < 3:
+                continue
+            row_list.append(row)
+        return row_list
+
+    async def get_word_count_for_admin(self, category: Optional[str] = None, search_term: Optional[str] = None) -> int:
+        """Get word count for admin panel - counts all words including ignored categories"""
+        database = self._ensure_database()
+        query = select(func.count(words_table.c.id))
+        if category:
+            query = query.where(words_table.c.categories.like(f"%{category}%"))
+        if search_term:
+            # Search in word, translation, and categories fields
+            search_filter = (
+                words_table.c.word.ilike(f"%{search_term}%") |
+                words_table.c.translation.ilike(f"%{search_term}%") |
+                words_table.c.categories.ilike(f"%{search_term}%")
+            )
+            query = query.where(search_filter)
+        # Only filter by minimum word length - NO category filtering
+        query = query.where(func.length(words_table.c.word) >= 3)
+        result = await database.fetch_one(query)
+        return int(result[0]) if result and result[0] is not None else 0
+
 
 # Create global database manager instance
 db_manager = DatabaseManager()

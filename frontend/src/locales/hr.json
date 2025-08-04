@@ -24,6 +24,9 @@
     "categories_required": "Kategorije ne smiju biti prazne",
     "word_required": "Riječ ne smije biti prazna",
     "translation_required": "Prijevod ne smije biti prazan",
+    "html_not_allowed": "HTML oznake nisu dozvoljene",
+    "edit_word": "Uredi riječ",
+    "translation_multiline_help": "Pritisnite Enter za nove redove",
     "add_row": "Dodaj redak",
     "edit_row": "Uredi redak",
     "update_description": "Ažuriraj opis",
@@ -140,5 +143,10 @@
     "enter_new_password_for_user": "Unesite novu lozinku za korisnika:",
     "password_reset_successfully": "Lozinka je resetirana",
     "failed_to_reset_password": "Neuspjelo resetiranje lozinke",
-    "loading_users": "Učitavanje korisnika..."
+    "loading_users": "Učitavanje korisnika...",
+    "no_rows_found": "Nema pronađenih redova",
+    "category_empty": "Kategorija prazna",
+    "try_different_search_terms": "Pokušajte koristiti druge pojmove za pretraživanje ili očistite pretraživanje da vidite sve rezultate.",
+    "no_words_in_selected_category": "Nema riječi u odabranoj kategoriji.",
+    "clear_search": "Očisti pretraživanje"
 }

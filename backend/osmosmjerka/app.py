@@ -112,10 +112,11 @@ async def get_all_rows(
     offset: int = 0,
     limit: int = 20,
     category: str = Query(None),
+    search: str = Query(None),
     user=Depends(require_admin_access),
 ) -> dict:
-    rows = await db_manager.get_words(category, limit, offset)
-    total = await db_manager.get_word_count(category)
+    rows = await db_manager.get_words_for_admin(category, limit, offset, search)
+    total = await db_manager.get_word_count_for_admin(category, search)
     return {"rows": rows, "total": total}
 
 

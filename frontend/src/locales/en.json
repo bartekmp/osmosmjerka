@@ -23,6 +23,9 @@
     "word_required": "Word cannot be empty",
     "translation": "Translation",
     "translation_required": "Translation cannot be empty",
+    "html_not_allowed": "HTML tags are not allowed",
+    "edit_word": "Edit Word",
+    "translation_multiline_help": "Press Enter for new lines",
     "actions": "Actions",
     "add_row": "Add Row",
     "edit_row": "Edit Row",
@@ -140,5 +143,10 @@
     "enter_new_password_for_user": "Enter new password for user:",
     "password_reset_successfully": "Password reset successfully",
     "failed_to_reset_password": "Failed to reset password",
-    "loading_users": "Loading users..."
+    "loading_users": "Loading users...",
+    "no_rows_found": "No rows found",
+    "category_empty": "Category empty",
+    "try_different_search_terms": "Try using different search terms or clear the search to see all results.",
+    "no_words_in_selected_category": "There are no words in the selected category.",
+    "clear_search": "Clear Search"
 }
