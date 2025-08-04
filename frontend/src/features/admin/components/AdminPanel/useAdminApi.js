@@ -1,5 +1,11 @@
 import axios from "axios";
 import { useCallback } from "react";
+import { API_ENDPOINTS } from '../../../../shared/constants/constants';
+
+// Cache for categories to avoid frequent API calls
+let categoriesCache = null;
+let cacheTimestamp = null;
+const CACHE_DURATION = 5 * 60 * 1000; // 5 minutes
 
 export function useAdminApi({ token, setRows, setTotalRows, setDashboard, setError, setToken, setIsLogged }) {
     const authHeader = token
@@ -106,5 +112,39 @@ export function useAdminApi({ token, setRows, setTotalRows, setDashboard, setErr
         });
     }, [authHeader]);
 
-    return { fetchRows, handleLogin, handleSave, handleExportTxt, clearDb, handleDelete };
+    const fetchCategories = useCallback(async () => {
+        // Check if we have valid cached data
+        const now = Date.now();
+        if (categoriesCache && cacheTimestamp && (now - cacheTimestamp < CACHE_DURATION)) {
+            return categoriesCache;
+        }
+
+        try {
+            const response = await axios.get(API_ENDPOINTS.CATEGORIES);
+            categoriesCache = response.data;
+            cacheTimestamp = now;
+            return categoriesCache;
+        } catch (error) {
+            console.error('Error fetching categories:', error);
+            // Return empty array on error, but don't cache it
+            return [];
+        }
+    }, []);
+
+    // Function to invalidate cache (call this when adding/updating words with new categories)
+    const invalidateCategoriesCache = useCallback(() => {
+        categoriesCache = null;
+        cacheTimestamp = null;
+    }, []);
+
+    return { 
+        fetchRows, 
+        handleLogin, 
+        handleSave, 
+        handleExportTxt, 
+        clearDb, 
+        handleDelete, 
+        fetchCategories,
+        invalidateCategoriesCache 
+    };
 }

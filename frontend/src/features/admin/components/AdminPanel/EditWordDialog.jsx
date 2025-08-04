@@ -8,10 +8,13 @@ import {
     TextField,
     Button,
     IconButton,
-    Typography
+    Typography,
+    Autocomplete,
+    Chip
 } from '@mui/material';
 import { Close as CloseIcon } from '@mui/icons-material';
 import { useTranslation } from 'react-i18next';
+import { fetchCategories, invalidateCategoriesCache } from '../../../../utils/categoriesApi';
 
 // Function to check for HTML tags
 const containsHTML = (text) => {
@@ -28,6 +31,24 @@ export default function EditWordDialog({
     const { t } = useTranslation();
     const [editData, setEditData] = useState({});
     const [errors, setErrors] = useState({});
+    const [availableCategories, setAvailableCategories] = useState([]);
+    const [categoriesInputValue, setCategoriesInputValue] = useState('');
+
+    // Fetch available categories from API
+    useEffect(() => {
+        const loadCategories = async () => {
+            try {
+                const categories = await fetchCategories();
+                setAvailableCategories(categories);
+            } catch (error) {
+                console.error('Failed to fetch categories:', error);
+                // Fallback to empty array if API fails
+                setAvailableCategories([]);
+            }
+        };
+
+        loadCategories();
+    }, []);
 
     // Initialize edit data when dialog opens
     useEffect(() => {
@@ -49,6 +70,36 @@ export default function EditWordDialog({
             setErrors(prev => ({ ...prev, [field]: null }));
         }
     };
+
+    // Handle categories changes (for Autocomplete)
+    const handleCategoriesChange = (event, newValue) => {
+        const categoriesString = newValue.join(' ');
+        handleEditChange('categories', categoriesString);
+    };
+
+    // Handle key press for space-separated input
+    const handleCategoriesKeyDown = (event) => {
+        if (event.key === ' ' && categoriesInputValue.trim()) {
+            event.preventDefault();
+            const newCategory = categoriesInputValue.trim();
+            const currentCategories = categoriesArray;
+            
+            // Add the new category if it's not already in the list
+            if (!currentCategories.includes(newCategory)) {
+                const updatedCategories = [...currentCategories, newCategory];
+                const categoriesString = updatedCategories.join(' ');
+                handleEditChange('categories', categoriesString);
+            }
+            
+            // Clear the input
+            setCategoriesInputValue('');
+        }
+    };
+
+    // Convert categories string to array for Autocomplete
+    const categoriesArray = useMemo(() => {
+        return editData.categories ? editData.categories.split(' ').filter(Boolean) : [];
+    }, [editData.categories]);
 
     // Check if form data has changed from original
     const hasChanges = useMemo(() => {
@@ -99,6 +150,11 @@ export default function EditWordDialog({
             translation: editData.translation.trim()
         };
 
+        // Check if categories changed - if so, invalidate cache
+        if (editData.categories !== row.categories) {
+            invalidateCategoriesCache();
+        }
+
         onSave(updatedRow);
     };
 
@@ -138,22 +194,60 @@ export default function EditWordDialog({
             <DialogContent sx={{ pt: 3, pb: 2 }}>
                 <Box sx={{ display: 'flex', flexDirection: 'column', gap: 3, pt: 2 }}>
                     {/* Categories Field */}
-                    <TextField
-                        label={t('categories')}
-                        value={editData.categories || ''}
-                        onChange={(e) => handleEditChange('categories', e.target.value)}
-                        fullWidth
-                        error={!!errors.categories}
-                        helperText={errors.categories || t('categories_help')}
-                        variant="outlined"
+                    <Autocomplete
+                        multiple
+                        freeSolo
+                        options={availableCategories}
+                        value={categoriesArray}
+                        onChange={handleCategoriesChange}
+                        inputValue={categoriesInputValue}
+                        onInputChange={(event, newInputValue) => setCategoriesInputValue(newInputValue)}
+                        renderTags={(value, getTagProps) =>
+                            value.map((option, index) => (
+                                <Chip
+                                    variant="outlined"
+                                    label={option}
+                                    {...getTagProps({ index })}
+                                    sx={{
+                                        backgroundColor: 'rgba(184, 156, 78, 0.1)',
+                                        borderColor: '#b89c4e',
+                                        color: 'text.primary',
+                                        '& .MuiChip-deleteIcon': {
+                                            color: '#b89c4e',
+                                            '&:hover': {
+                                                color: '#8a7429'
+                                            }
+                                        }
+                                    }}
+                                />
+                            ))
+                        }
+                        renderInput={(params) => (
+                            <TextField
+                                {...params}
+                                label={t('categories')}
+                                error={!!errors.categories}
+                                helperText={errors.categories || t('categories_help')}
+                                variant="outlined"
+                                onKeyDown={handleCategoriesKeyDown}
+                                sx={{
+                                    '& .MuiOutlinedInput-root': {
+                                        '&:hover fieldset': {
+                                            borderColor: '#b89c4e',
+                                        },
+                                        '&.Mui-focused fieldset': {
+                                            borderColor: '#b89c4e',
+                                        },
+                                    }
+                                }}
+                            />
+                        )}
                         sx={{
-                            '& .MuiOutlinedInput-root': {
-                                '&:hover fieldset': {
-                                    borderColor: '#b89c4e',
-                                },
-                                '&.Mui-focused fieldset': {
-                                    borderColor: '#b89c4e',
-                                },
+                            '& .MuiAutocomplete-popupIndicator': {
+                                color: '#b89c4e'
+                            },
+                            '& .MuiAutocomplete-clearIndicator': {
+                                color: '#b89c4e'
                             }
                         }}
                     />

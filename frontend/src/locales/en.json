@@ -19,7 +19,7 @@
     "category": "Category",
     "categories": "Categories",
     "categories_required": "Categories cannot be empty",
-    "categories_help": "Separate categories with spaces",
+    "categories_help": "Separate categories with spaces or select from the list",
     "word": "Word",
     "word_required": "Word cannot be empty",
     "translation": "Translation",
