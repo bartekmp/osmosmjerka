@@ -55,6 +55,7 @@ export default function AdminPanel() {
     // Memoize search term handler to prevent unnecessary re-renders
     const handleSearchChange = useCallback((value) => {
         setSearchTerm(value);
+        setOffset(0); // Reset to first page when searching
     }, []);
     const [token, setToken] = useState(localStorage.getItem(STORAGE_KEYS.ADMIN_TOKEN) || '');
     const [clearLoading, setClearLoading] = useState(false);
@@ -106,9 +107,18 @@ export default function AdminPanel() {
 
     // Automatically fetch rows when logged in and dashboard is active
     useEffect(() => {
-        if (isLogged && !dashboard) fetchRows(offset, limit, filterCategory);
+        if (isLogged && !dashboard) fetchRows(offset, limit, filterCategory, searchTerm);
         // eslint-disable-next-line
     }, [offset, filterCategory]);
+
+    // Fetch rows when search term changes
+    useEffect(() => {
+        if (isLogged && !dashboard && searchTerm !== undefined) {
+            fetchRows(0, limit, filterCategory, searchTerm);
+            setOffset(0); // Reset to first page when searching
+        }
+        // eslint-disable-next-line
+    }, [searchTerm, filterCategory, limit]);
 
     // Check token on mount and after login
     useEffect(() => {
@@ -145,7 +155,7 @@ export default function AdminPanel() {
     useEffect(() => {
         if (!dashboard && !userManagement && !userProfile) {
             setReloadLoading(true);
-            fetchRows(0, limit, filterCategory);
+            fetchRows(0, limit, filterCategory, searchTerm);
             setOffset(0);
             setReloadLoading(false);
         }
@@ -177,7 +187,7 @@ export default function AdminPanel() {
         }).catch(err => {
             // If save fails, revert the optimistic update
             console.error('Save failed:', err);
-            fetchRows(offset, limit, filterCategory);
+            fetchRows(offset, limit, filterCategory, searchTerm);
         });
     }, [offset, limit, filterCategory, fetchRows]);
 
@@ -200,7 +210,7 @@ export default function AdminPanel() {
             }).catch(err => {
                 // If delete fails, reload the data
                 console.error('Delete failed:', err);
-                fetchRows(offset, limit, filterCategory);
+                fetchRows(offset, limit, filterCategory, searchTerm);
             });
         }
     }, [offset, limit, filterCategory, fetchRows, t]);
@@ -222,7 +232,7 @@ export default function AdminPanel() {
                             severity: 'success',
                             autoHideDuration: 3000,
                         });
-                        fetchRows(offset, limit, filterCategory);
+                        fetchRows(offset, limit, filterCategory, searchTerm);
                     } else {
                         setClearNotification({
                             open: true,
@@ -429,7 +439,7 @@ export default function AdminPanel() {
                         <ResponsiveActionButton
                             onClick={() => {
                                 setReloadLoading(true);
-                                fetchRows(offset, limit, filterCategory);
+                                fetchRows(offset, limit, filterCategory, searchTerm);
                                 setTimeout(() => setReloadLoading(false), 500);
                             }}
                             loading={reloadLoading}
@@ -449,7 +459,7 @@ export default function AdminPanel() {
                     </Grid>
                     <Grid item xs={6} sm={4} md={2}>
                         <Box sx={{ height: '100%', display: 'flex' }}>
-                            <UploadForm onUpload={() => fetchRows(offset, limit, filterCategory)} />
+                            <UploadForm onUpload={() => fetchRows(offset, limit, filterCategory, searchTerm)} />
                         </Box>
                     </Grid>
                     <Grid item xs={6} sm={4} md={2}>
@@ -502,7 +512,7 @@ export default function AdminPanel() {
             <EditRowForm
                 editRow={editRow}
                 setEditRow={setEditRow}
-                handleSave={() => handleSave(editRow, () => fetchRows(offset, limit, filterCategory), setEditRow)}
+                handleSave={() => handleSave(editRow, () => fetchRows(offset, limit, filterCategory, searchTerm), setEditRow)}
             />
             {/* Filter and Statistics */}
             <Paper sx={{ p: 3, mb: 3 }}>

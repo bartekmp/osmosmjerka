@@ -1,23 +1,16 @@
-import React, { useState, useMemo } from 'react';
+import React, { useState, useMemo, useEffect, useCallback } from 'react';
 import {
     Table,
     TableBody,
     TableCell,
     TableHead,
     TableRow,
-    TextField,
     Button,
     Box,
     TableContainer,
     Paper,
-    Typography,
-    Dialog,
-    DialogTitle,
-    DialogContent,
-    DialogActions,
-    IconButton
+    Typography
 } from '@mui/material';
-import { Close as CloseIcon } from '@mui/icons-material';
 import { useTranslation } from 'react-i18next';
 import {
     useReactTable,
@@ -27,26 +20,31 @@ import {
     createColumnHelper
 } from '@tanstack/react-table';
 import { measureTextWidth, calculateMinColumnWidths } from './adminTableUtils';
+import EditWordDialog from './EditWordDialog';
+import TextViewDialog from './TextViewDialog';
+import SearchBar from './SearchBar';
+import TableRowActions from './TableRowActions';
+import TableNoRowsOverlay from './TableNoRowsOverlay';
+import { renderExpandableText } from './utils/renderHelpers';
+import { containsHTML, stripHTML } from './utils/validationUtils';
 
 export default function AdminTable({ rows, setEditRow, onSaveRow, onDeleteRow, totalRows, searchTerm, onSearchChange }) {
     const { t } = useTranslation();
-    const [editingId, setEditingId] = useState(null);
-    const [editData, setEditData] = useState({});
-    const [errors, setErrors] = useState({});
+    const [editDialog, setEditDialog] = useState({ open: false, row: null });
     const [textDialog, setTextDialog] = useState({ open: false, title: '', content: '' });
+    const [localSearchTerm, setLocalSearchTerm] = useState(searchTerm || '');
 
-    // Filter rows based on search term
-    const filteredRows = useMemo(() => {
-        if (!searchTerm) return rows;
-        const searchLower = searchTerm.toLowerCase();
-        return rows.filter(row =>
-            row.word.toLowerCase().includes(searchLower) ||
-            row.translation.toLowerCase().includes(searchLower)
-        );
-    }, [rows, searchTerm]);
+        // Handle search term changes - delegated to SearchBar component
+    const handleSearchChange = useCallback((value) => {
+        setLocalSearchTerm(value);
+        onSearchChange(value);
+    }, [onSearchChange]);
+
+    // Remove client-side filtering since we're now doing server-side search
+    // The rows prop should already contain the filtered results from the server
 
     // Calculate minimum column widths based on content
-    const minColumnWidths = useMemo(() => calculateMinColumnWidths(filteredRows, t), [filteredRows, t]);
+    const minColumnWidths = useMemo(() => calculateMinColumnWidths(rows, t), [rows, t]);
 
     // Helper function to open text dialog
     const openTextDialog = (title, content) => {
@@ -58,45 +56,20 @@ export default function AdminTable({ rows, setEditRow, onSaveRow, onDeleteRow, t
         setTextDialog({ open: false, title: '', content: '' });
     };
 
-    // Edit handlers
-    const handleEdit = (row) => {
-        setEditingId(row.id);
-        setEditData({
-            categories: row.categories,
-            word: row.word,
-            translation: row.translation
-        });
-        setErrors({});
+
+
+    // Edit dialog handlers
+    const handleOpenEditDialog = (row) => {
+        setEditDialog({ open: true, row });
     };
 
-    const handleSave = () => {
-        const newErrors = {};
-        if (!editData.categories?.trim()) newErrors.categories = t('categories_required');
-        if (!editData.word?.trim()) newErrors.word = t('word_required');
-        if (!editData.translation?.trim()) newErrors.translation = t('translation_required');
+    const handleCloseEditDialog = () => {
+        setEditDialog({ open: false, row: null });
+    };
 
-        if (Object.keys(newErrors).length > 0) {
-            setErrors(newErrors);
-            return;
-        }
-
-        const updatedRow = {
-            id: editingId,
-            categories: editData.categories.trim(),
-            word: editData.word.trim(),
-            translation: editData.translation.trim()
-        };
-
+    const handleSaveEdit = (updatedRow) => {
         onSaveRow(updatedRow);
-        setEditingId(null);
-        setEditData({});
-        setErrors({});
-    };
-
-    const handleCancel = () => {
-        setEditingId(null);
-        setEditData({});
-        setErrors({});
+        handleCloseEditDialog();
     };
 
     const handleDelete = (row) => {
@@ -105,12 +78,7 @@ export default function AdminTable({ rows, setEditRow, onSaveRow, onDeleteRow, t
         }
     };
 
-    const handleChange = (field, value) => {
-        setEditData(prev => ({ ...prev, [field]: value }));
-        if (errors[field]) {
-            setErrors(prev => ({ ...prev, [field]: null }));
-        }
-    };
+
 
     // Function to auto-fit column to content width
     const autoFitColumn = (columnId) => {
@@ -126,30 +94,7 @@ export default function AdminTable({ rows, setEditRow, onSaveRow, onDeleteRow, t
         }
     };
 
-    // Helper function to render text with click-to-expand functionality
-    const renderExpandableText = (text, columnName, t, openTextDialog, maxLength = 50) => {
-        if (!text || text.length <= maxLength) {
-            return text;
-        }
-        const truncated = text.substring(0, maxLength) + '...';
-        return (
-            <Typography
-                component="span"
-                sx={{
-                    cursor: 'pointer',
-                    color: 'primary.main',
-                    textDecoration: 'underline',
-                    '&:hover': {
-                        color: 'primary.dark'
-                    }
-                }}
-                onClick={() => openTextDialog(t(columnName), text)}
-                title={t('click_to_view_full_text')}
-            >
-                {truncated}
-            </Typography>
-        );
-    };
+
 
     // Column helper for creating columns
     const columnHelper = createColumnHelper();
@@ -170,22 +115,7 @@ export default function AdminTable({ rows, setEditRow, onSaveRow, onDeleteRow, t
             minSize: minColumnWidths.categories || 120,
             maxSize: 300,
             enableResizing: true,
-            cell: info => {
-                const row = info.row.original;
-                return editingId === row.id ? (
-                    <TextField
-                        value={editData.categories || ''}
-                        onChange={(e) => handleChange('categories', e.target.value)}
-                        size="small"
-                        fullWidth
-                        error={!!errors.categories}
-                        helperText={errors.categories}
-                        InputProps={{ className: 'admin-input' }}
-                    />
-                ) : (
-                    renderExpandableText(info.getValue(), 'categories', t, openTextDialog)
-                );
-            }
+            cell: info => renderExpandableText(info.getValue(), 'categories', t, openTextDialog)
         }),
         columnHelper.accessor('word', {
             header: t('word'),
@@ -193,22 +123,7 @@ export default function AdminTable({ rows, setEditRow, onSaveRow, onDeleteRow, t
             minSize: minColumnWidths.word || 150,
             maxSize: 350,
             enableResizing: true,
-            cell: info => {
-                const row = info.row.original;
-                return editingId === row.id ? (
-                    <TextField
-                        value={editData.word || ''}
-                        onChange={(e) => handleChange('word', e.target.value)}
-                        size="small"
-                        fullWidth
-                        error={!!errors.word}
-                        helperText={errors.word}
-                        InputProps={{ className: 'admin-input' }}
-                    />
-                ) : (
-                    renderExpandableText(info.getValue(), 'word', t, openTextDialog)
-                );
-            }
+            cell: info => renderExpandableText(info.getValue(), 'word', t, openTextDialog)
         }),
         columnHelper.accessor('translation', {
             header: t('translation'),
@@ -216,22 +131,7 @@ export default function AdminTable({ rows, setEditRow, onSaveRow, onDeleteRow, t
             minSize: minColumnWidths.translation || 180,
             maxSize: 500,
             enableResizing: true,
-            cell: info => {
-                const row = info.row.original;
-                return editingId === row.id ? (
-                    <TextField
-                        value={editData.translation || ''}
-                        onChange={(e) => handleChange('translation', e.target.value)}
-                        size="small"
-                        fullWidth
-                        error={!!errors.translation}
-                        helperText={errors.translation}
-                        InputProps={{ className: 'admin-input' }}
-                    />
-                ) : (
-                    renderExpandableText(info.getValue(), 'translation', t, openTextDialog)
-                );
-            }
+            cell: info => renderExpandableText(info.getValue(), 'translation', t, openTextDialog)
         }),
         columnHelper.display({
             id: 'actions',
@@ -243,54 +143,19 @@ export default function AdminTable({ rows, setEditRow, onSaveRow, onDeleteRow, t
             cell: info => {
                 const row = info.row.original;
                 return (
-                    <Box sx={{ display: 'flex', gap: 0.5, flexWrap: 'wrap', justifyContent: 'center' }}>
-                        {editingId === row.id ? (
-                            <>
-                                <Button
-                                    size="small"
-                                    onClick={handleSave}
-                                    color="primary"
-                                    sx={{ minWidth: '60px', fontSize: '0.75rem' }}
-                                >
-                                    {t('save')}
-                                </Button>
-                                <Button
-                                    size="small"
-                                    onClick={handleCancel}
-                                    color="secondary"
-                                    sx={{ minWidth: '60px', fontSize: '0.75rem' }}
-                                >
-                                    {t('cancel')}
-                                </Button>
-                            </>
-                        ) : (
-                            <>
-                                <Button
-                                    size="small"
-                                    onClick={() => handleEdit(row)}
-                                    sx={{ minWidth: '60px', fontSize: '0.75rem' }}
-                                >
-                                    {t('edit')}
-                                </Button>
-                                <Button
-                                    size="small"
-                                    onClick={() => handleDelete(row)}
-                                    color="error"
-                                    sx={{ minWidth: '60px', fontSize: '0.75rem' }}
-                                >
-                                    {t('delete')}
-                                </Button>
-                            </>
-                        )}
-                    </Box>
+                    <TableRowActions 
+                        row={row}
+                        onEdit={handleOpenEditDialog}
+                        onDelete={handleDelete}
+                    />
                 );
             }
         })
-    ], [t, editingId, editData, errors, minColumnWidths]);
+    ], [t, minColumnWidths]);
 
     // Create table instance
     const table = useReactTable({
-        data: filteredRows,
+        data: rows,
         columns,
         getCoreRowModel: getCoreRowModel(),
         getFilteredRowModel: getFilteredRowModel(),
@@ -306,35 +171,27 @@ export default function AdminTable({ rows, setEditRow, onSaveRow, onDeleteRow, t
                 mt: 2,
                 mb: 2,
                 display: 'flex',
-                alignItems: 'center',
+                alignItems: { xs: 'flex-start', sm: 'center' },
                 gap: 2,
-                flexWrap: 'wrap',
+                flexDirection: { xs: 'column', sm: 'row' },
                 justifyContent: 'space-between'
             }}>
                 <Typography variant="h6">
                     {t('total_rows', { count: totalRows })}
-                    {searchTerm && filteredRows.length !== totalRows && (
+                    {searchTerm && (
                         <Typography component="span" variant="body2" sx={{ ml: 1, color: 'text.secondary' }}>
-                            ({t('filtered_results', { count: filteredRows.length })})
+                            ({t('filtered_results', { count: rows.length })})
                         </Typography>
                     )}
                 </Typography>
-                <TextField
-                    size="small"
+                <SearchBar
+                    value={localSearchTerm}
+                    onChange={handleSearchChange}
                     placeholder={t('search_words_translations')}
-                    value={searchTerm || ''}
-                    onChange={(e) => onSearchChange(e.target.value)}
-                    disabled={!rows || rows.length === 0}
                     sx={{
-                        minWidth: 250,
-                        '& .MuiOutlinedInput-root': {
-                            '&:hover fieldset': {
-                                borderColor: '#b89c4e',
-                            },
-                            '&.Mui-focused fieldset': {
-                                borderColor: '#b89c4e',
-                            },
-                        }
+                        minWidth: { xs: 200, sm: 300, md: 400 },
+                        maxWidth: { xs: '100%', sm: 400 },
+                        flexGrow: { xs: 1, sm: 0 },
                     }}
                 />
             </Box>
@@ -344,12 +201,17 @@ export default function AdminTable({ rows, setEditRow, onSaveRow, onDeleteRow, t
                 sx={{
                     mt: 2,
                     maxWidth: '100%',
+                    maxHeight: 'calc(100vh - 300px)', // Dynamic height based on viewport
+                    minHeight: '400px',
                     overflowX: 'auto',
+                    overflowY: 'auto',
+                    position: 'relative', // For overlay positioning
                     '& .MuiTable-root': {
                         minWidth: { xs: 700, md: 'auto' },
                     },
-                    // Custom scrollbar styling
+                    // Custom scrollbar styling for both horizontal and vertical
                     '&::-webkit-scrollbar': {
+                        width: 8,
                         height: 8,
                     },
                     '&::-webkit-scrollbar-track': {
@@ -362,12 +224,19 @@ export default function AdminTable({ rows, setEditRow, onSaveRow, onDeleteRow, t
                         '&:hover': {
                             backgroundColor: '#8a7429',
                         }
-                    }
+                    },
+                    '&::-webkit-scrollbar-corner': {
+                        backgroundColor: '#f1f1f1',
+                    },
+                    // Firefox scrollbar styling
+                    scrollbarWidth: 'thin',
+                    scrollbarColor: '#b89c4e #f1f1f1',
                 }}
             >
                 <Table
                     className="admin-table"
                     size="small"
+                    stickyHeader
                     sx={{
                         width: '100%',
                         tableLayout: 'fixed',
@@ -377,6 +246,13 @@ export default function AdminTable({ rows, setEditRow, onSaveRow, onDeleteRow, t
                             '&:last-child': {
                                 borderRight: 'none'
                             }
+                        },
+                        '& .MuiTableHead-root .MuiTableCell-root': {
+                            backgroundColor: 'background.paper',
+                            position: 'sticky',
+                            top: 0,
+                            zIndex: 10,
+                            boxShadow: '0 2px 4px rgba(0,0,0,0.1)',
                         }
                     }}
                 >
@@ -436,7 +312,7 @@ export default function AdminTable({ rows, setEditRow, onSaveRow, onDeleteRow, t
                                 {row.getVisibleCells().map(cell => (
                                     <TableCell
                                         key={cell.id}
-                                        className={editingId === row.original.id ? "admin-cell-editable" : "admin-cell"}
+                                        className="admin-cell"
                                         sx={{
                                             width: `${(cell.column.getSize() / table.getCenterTotalSize()) * 100}%`,
                                             overflow: 'hidden'
@@ -449,68 +325,31 @@ export default function AdminTable({ rows, setEditRow, onSaveRow, onDeleteRow, t
                         ))}
                     </TableBody>
                 </Table>
+
+                {/* Empty State Overlay */}
+                <TableNoRowsOverlay
+                    isEmpty={!rows || rows.length === 0}
+                    searchTerm={searchTerm}
+                    onClearSearch={() => handleSearchChange('')}
+                    translationFn={t}
+                />
             </TableContainer>
 
             {/* Text View Dialog */}
-            <Dialog
+            <TextViewDialog
                 open={textDialog.open}
+                title={textDialog.title}
+                content={textDialog.content}
                 onClose={closeTextDialog}
-                maxWidth="md"
-                fullWidth
-                PaperProps={{
-                    sx: {
-                        maxHeight: '80vh',
-                        backgroundColor: 'background.paper'
-                    }
-                }}
-            >
-                <DialogTitle sx={{
-                    display: 'flex',
-                    justifyContent: 'space-between',
-                    alignItems: 'center',
-                    borderBottom: '1px solid',
-                    borderColor: 'divider',
-                    backgroundColor: 'background.paper',
-                    color: 'text.primary'
-                }}>
-                    <Typography variant="h6">{textDialog.title}</Typography>
-                    <IconButton onClick={closeTextDialog} size="small">
-                        <CloseIcon />
-                    </IconButton>
-                </DialogTitle>
-                <DialogContent sx={{ pt: 2 }}>
-                    <Box sx={{
-                        backgroundColor: 'background.default',
-                        borderRadius: 1,
-                        p: 2,
-                        border: '1px solid',
-                        borderColor: 'divider'
-                    }}>
-                        <Typography
-                            variant="body1"
-                            sx={{
-                                whiteSpace: 'pre-wrap',
-                                wordBreak: 'break-word',
-                                fontFamily: 'monospace',
-                                userSelect: 'text',
-                                color: 'text.primary'
-                            }}
-                        >
-                            {textDialog.content}
-                        </Typography>
-                    </Box>
-                </DialogContent>
-                <DialogActions sx={{
-                    p: 2,
-                    backgroundColor: 'background.paper',
-                    borderTop: '1px solid',
-                    borderColor: 'divider'
-                }}>
-                    <Button onClick={closeTextDialog} variant="contained">
-                        {t('close')}
-                    </Button>
-                </DialogActions>
-            </Dialog>
+            />
+
+            {/* Edit Word Dialog */}
+            <EditWordDialog
+                open={editDialog.open}
+                row={editDialog.row}
+                onClose={handleCloseEditDialog}
+                onSave={handleSaveEdit}
+            />
         </>
     );
 }
