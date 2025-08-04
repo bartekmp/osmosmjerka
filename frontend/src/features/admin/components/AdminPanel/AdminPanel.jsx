@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useCallback } from 'react';
 import { Link } from 'react-router-dom';
 import {
     Container,
@@ -51,6 +51,11 @@ export default function AdminPanel() {
     const [totalRows, setTotalRows] = useState(0);
     const [offsetInput, setOffsetInput] = useState(0);
     const [searchTerm, setSearchTerm] = useState('');
+
+    // Memoize search term handler to prevent unnecessary re-renders
+    const handleSearchChange = useCallback((value) => {
+        setSearchTerm(value);
+    }, []);
     const [token, setToken] = useState(localStorage.getItem(STORAGE_KEYS.ADMIN_TOKEN) || '');
     const [clearLoading, setClearLoading] = useState(false);
     const [reloadLoading, setReloadLoading] = useState(false);
@@ -147,15 +152,58 @@ export default function AdminPanel() {
         // eslint-disable-next-line
     }, [dashboard, userManagement, userProfile]);
 
-    // Handle inline save from table
-    const handleInlineSave = (updatedRow) => {
-        handleSave(updatedRow, () => fetchRows(offset, limit, filterCategory), () => { });
-    };
+    // Handle inline save from table with optimistic updates
+    const handleInlineSave = useCallback((updatedRow) => {
+        // Optimistically update the local state first
+        setRows(prevRows => 
+            prevRows.map(row => 
+                row.id === updatedRow.id ? { ...row, ...updatedRow } : row
+            )
+        );
+        
+        // Then save to server
+        // If it's a new row, use POST; otherwise, use PUT to update
+        const method = updatedRow.id ? 'PUT' : 'POST';
+        const url = updatedRow.id ? `/admin/row/${updatedRow.id}` : `/admin/row`;
+        const token = localStorage.getItem(STORAGE_KEYS.ADMIN_TOKEN);
+        const headers = token 
+            ? { Authorization: 'Bearer ' + token, 'Content-Type': 'application/json' }
+            : { 'Content-Type': 'application/json' };
+            
+        fetch(url, {
+            method,
+            headers,
+            body: JSON.stringify(updatedRow)
+        }).catch(err => {
+            // If save fails, revert the optimistic update
+            console.error('Save failed:', err);
+            fetchRows(offset, limit, filterCategory);
+        });
+    }, [offset, limit, filterCategory, fetchRows]);
 
-    // Handle inline delete from table
-    const handleInlineDelete = (id) => {
-        handleDelete(id, () => fetchRows(offset, limit, filterCategory));
-    };
+    // Handle inline delete from table with optimistic updates
+    const handleInlineDelete = useCallback((id) => {
+        if (window.confirm(t('confirm_delete_word'))) {
+            // Optimistically remove from local state first
+            setRows(prevRows => prevRows.filter(row => row.id !== id));
+            setTotalRows(prev => prev - 1);
+            
+            // Then delete from server
+            const token = localStorage.getItem(STORAGE_KEYS.ADMIN_TOKEN);
+            const headers = token 
+                ? { Authorization: 'Bearer ' + token }
+                : {};
+                
+            fetch(`/admin/row/${id}`, {
+                method: 'DELETE',
+                headers
+            }).catch(err => {
+                // If delete fails, reload the data
+                console.error('Delete failed:', err);
+                fetchRows(offset, limit, filterCategory);
+            });
+        }
+    }, [offset, limit, filterCategory, fetchRows, t]);
 
     // Handle clear database with confirmation and notification
     const handleClearDb = () => {
@@ -484,7 +532,7 @@ export default function AdminPanel() {
                 onDeleteRow={handleInlineDelete}
                 totalRows={totalRows}
                 searchTerm={searchTerm}
-                onSearchChange={setSearchTerm}
+                onSearchChange={handleSearchChange}
             />
             {/* Pagination */}
             <Box sx={{ mt: 3 }}>

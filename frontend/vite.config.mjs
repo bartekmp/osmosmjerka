@@ -6,6 +6,13 @@ import path from 'path';
 export default defineConfig({
     root: './',
     plugins: [react()],
+    // Development-specific settings
+    esbuild: {
+        sourcemap: true, // Ensure source maps in dev
+    },
+    css: {
+        devSourcemap: true, // CSS source maps
+    },
     resolve: {
         alias: {
             '@': path.resolve(__dirname, './src'),
@@ -17,6 +24,24 @@ export default defineConfig({
             '@locales': path.resolve(__dirname, './src/locales'),
         }
     },
+    // Development server configuration
+    server: {
+        host: '0.0.0.0', // Allow access from any host
+        port: 3000,
+        strictPort: true,
+        allowedHosts: ['localhost', 'workstation.local'], // Allow these hosts
+        proxy: {
+            '/api': {
+                target: 'http://localhost:8085',
+                changeOrigin: true,
+            },
+            '/admin': {
+                target: 'http://localhost:8085',
+                changeOrigin: true,
+            }
+        }
+    },
+    // Build configuration (only for production builds)
     build: {
         outDir: './build/',
         emptyOutDir: true,
@@ -56,8 +81,8 @@ export default defineConfig({
                 }
             }
         },
-        chunkSizeWarningLimit: 600
     },
     publicDir: 'public',
-    base: '/static/',
+    // Use different base paths for dev vs build
+    base: process.env.NODE_ENV === 'production' ? '/static/' : '/',
 });
