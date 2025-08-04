@@ -2,6 +2,14 @@
 
 <!-- version list -->
 
+## v1.13.1 (2025-08-04)
+
+### Enhancement
+
+- Add a helper text to edit row modal ([#51](https://github.com/bartekmp/osmosmjerka/pull/51),
+  [`dd8bc1d`](https://github.com/bartekmp/osmosmjerka/commit/dd8bc1d45910c4aff73f5973a9e9925dde6166eb))
+
+
 ## v1.13.0 (2025-08-04)
 
 ### Feature
