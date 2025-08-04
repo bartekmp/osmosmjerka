@@ -2,6 +2,15 @@
 
 <!-- version list -->
 
+## v1.12.0 (2025-08-04)
+
+### Feature
+
+- Improved table generation in admin panel, dev env startup script, duplicate files removal
+  ([#49](https://github.com/bartekmp/osmosmjerka/pull/49),
+  [`beeb63d`](https://github.com/bartekmp/osmosmjerka/commit/beeb63d72912d13f3aa60ac3e5abd14c6f670ce1))
+
+
 ## v1.11.1 (2025-08-01)
 
 ### Enhancement
