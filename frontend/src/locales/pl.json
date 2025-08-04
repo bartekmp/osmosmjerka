@@ -22,7 +22,7 @@
     "actions": "Akcje",
     "categories": "Kategorie",
     "categories_required": "Kategorie nie mogą być puste",
-    "categories_help": "Oddziel kategorie spacjami",
+    "categories_help": "Oddziel kategorie spacjami lub wybierz z listy",
     "word_required": "Słowo nie może być puste",
     "translation_required": "Tłumaczenie nie może być puste",
     "html_not_allowed": "Znaczniki HTML nie są dozwolone",
