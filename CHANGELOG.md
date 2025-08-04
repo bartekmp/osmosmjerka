@@ -2,6 +2,15 @@
 
 <!-- version list -->
 
+## v1.13.0 (2025-08-04)
+
+### Feature
+
+- Enrich admin words table with new modal, scrolls, validation, add unit tests
+  ([#50](https://github.com/bartekmp/osmosmjerka/pull/50),
+  [`96a2edd`](https://github.com/bartekmp/osmosmjerka/commit/96a2eddfececdbc517f5d104e27de82d70aa046a))
+
+
 ## v1.12.0 (2025-08-04)
 
 ### Feature
