@@ -22,6 +22,7 @@
     "actions": "Akcije",
     "categories": "Kategorije",
     "categories_required": "Kategorije ne smiju biti prazne",
+    "categories_help": "Odvojite kategorije razmakom",
     "word_required": "Riječ ne smije biti prazna",
     "translation_required": "Prijevod ne smije biti prazan",
     "html_not_allowed": "HTML oznake nisu dozvoljene",

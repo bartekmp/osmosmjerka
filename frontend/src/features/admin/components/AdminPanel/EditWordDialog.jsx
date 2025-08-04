@@ -144,7 +144,7 @@ export default function EditWordDialog({
                         onChange={(e) => handleEditChange('categories', e.target.value)}
                         fullWidth
                         error={!!errors.categories}
-                        helperText={errors.categories}
+                        helperText={errors.categories || t('categories_help')}
                         variant="outlined"
                         sx={{
                             '& .MuiOutlinedInput-root': {
