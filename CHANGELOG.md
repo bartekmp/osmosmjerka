@@ -2,6 +2,15 @@
 
 <!-- version list -->
 
+## v1.14.0 (2025-08-05)
+
+### Feature
+
+- Add tag-like category editing, with autocompletion and suggestions
+  ([#52](https://github.com/bartekmp/osmosmjerka/pull/52),
+  [`40757b4`](https://github.com/bartekmp/osmosmjerka/commit/40757b4a545bffb0761c1f54dda1e7057b5e26c5))
+
+
 ## v1.13.1 (2025-08-04)
 
 ### Enhancement
