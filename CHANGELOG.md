@@ -2,6 +2,14 @@
 
 <!-- version list -->
 
+## v1.14.1 (2025-08-05)
+
+### Enhancement
+
+- Refactor backend, add unit tests ([#53](https://github.com/bartekmp/osmosmjerka/pull/53),
+  [`f2c1e9d`](https://github.com/bartekmp/osmosmjerka/commit/f2c1e9d049b69f1e5b8ae68da3b3bc8b2959b802))
+
+
 ## v1.14.0 (2025-08-05)
 
 ### Feature
