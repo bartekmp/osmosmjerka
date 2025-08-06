@@ -2,6 +2,15 @@
 
 <!-- version list -->
 
+## v1.15.0 (2025-08-06)
+
+### Feature
+
+- Improve grid generation algorithm, change standard grid sized, display ignored categories, tweak
+  locale ([#54](https://github.com/bartekmp/osmosmjerka/pull/54),
+  [`2dda521`](https://github.com/bartekmp/osmosmjerka/commit/2dda52133bfff344fa4f47e7f5118aa77f382c88))
+
+
 ## v1.14.1 (2025-08-05)
 
 ### Enhancement
