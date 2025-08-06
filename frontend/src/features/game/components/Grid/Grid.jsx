@@ -4,7 +4,7 @@ import { useTranslation } from 'react-i18next';
 import './Grid.css';
 import ScrabbleGridCell from './GridCell';
 import './GridContainer.css';
-import { AnimationUtils, GridSelection, WordMatcher } from './gridUtils';
+import { GridSelection, findMatchingWord, generateMexicanWave } from './gridUtils';
 import { getDirection, isStraightLine } from './helpers';
 import { useGridSize, useMouseSelection } from './hooks';
 import { useMovementHandlers } from './movementHandlers';
@@ -47,7 +47,7 @@ const ScrabbleGrid = forwardRef(({
         }
         setCelebrationCells([]);
 
-        const cellsWithDistance = AnimationUtils.generateMexicanWave(gridSize);
+        const cellsWithDistance = generateMexicanWave(gridSize);
         const waveWidth = 4;
         const delayBetweenSteps = 40;
         let currentStep = 0;
@@ -114,7 +114,7 @@ const ScrabbleGrid = forwardRef(({
             return;
         }
 
-        const matchedWord = WordMatcher.findMatchingWord(selected, words);
+        const matchedWord = findMatchingWord(selected, words);
         if (matchedWord) {
             onFound(matchedWord.word);
         }

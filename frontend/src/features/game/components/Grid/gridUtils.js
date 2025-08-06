@@ -1,7 +1,7 @@
 import { getDirection } from './helpers';
 
 /**
- * Grid selection utilities
+ * Grid selection utilities - simplified and consolidated
  */
 export class GridSelection {
     static generateSelectionPath(start, end) {
@@ -24,34 +24,80 @@ export class GridSelection {
         );
     }
 
-    static isValidSelection(selection, gridSize) {
-        return selection.length > 0 &&
-            selection.every(([r, c]) => r >= 0 && r < gridSize && c >= 0 && c < gridSize);
-    }
-
     static createSelectionString(selection) {
         return selection.map(([r, c]) => `${r},${c}`).join('');
+    }
+
+    // Simplified method that combines path generation, validation, and constraint application
+    static createConstrainedSelection(start, target, gridSize, direction = null) {
+        // Apply direction constraints if a direction is established
+        if (direction) {
+            target = this.applyDirectionConstraint(start, target, direction);
+        }
+
+        const selectionPath = this.generateSelectionPath(start, target);
+        return this.filterValidCells(selectionPath, gridSize);
+    }
+
+    // Apply movement constraints based on established direction
+    static applyDirectionConstraint(start, target, direction) {
+        const [startRow, startCol] = start;
+        let [targetRow, targetCol] = target;
+
+        switch (direction) {
+            case 'horizontal':
+                return [startRow, targetCol];
+            case 'vertical':
+                return [targetRow, startCol];
+            case 'diagonal':
+                const deltaR = targetRow - startRow;
+                const deltaC = targetCol - startCol;
+                const maxDelta = Math.max(Math.abs(deltaR), Math.abs(deltaC));
+                return [
+                    startRow + Math.sign(deltaR) * maxDelta,
+                    startCol + Math.sign(deltaC) * maxDelta
+                ];
+            default:
+                return target;
+        }
     }
 }
 
 /**
- * Word matching utilities
+ * Simplified word matching
  */
-export class WordMatcher {
-    static findMatchingWord(selection, words) {
-        const selStr = GridSelection.createSelectionString(selection);
+export const findMatchingWord = (selectedCoords, words) => {
+    const selectionString = GridSelection.createSelectionString(selectedCoords);
+    return words.find(word =>
+        GridSelection.createSelectionString(word.coords) === selectionString ||
+        GridSelection.createSelectionString([...word.coords].reverse()) === selectionString
+    );
+};
 
-        for (const word of words) {
-            const coordsStr = GridSelection.createSelectionString(word.coords);
-            const revCoordsStr = GridSelection.createSelectionString(word.coords.slice().reverse());
+/**
+ * Simplified Mexican wave animation
+ */
+export const generateMexicanWave = (gridSize) => {
+    const cells = [];
+    // Generate cells in spiral pattern from center
+    const center = Math.floor(gridSize / 2);
 
-            if (selStr === coordsStr || selStr === revCoordsStr) {
-                return word;
+    for (let radius = 0; radius <= center; radius++) {
+        for (let row = center - radius; row <= center + radius; row++) {
+            for (let col = center - radius; col <= center + radius; col++) {
+                if (row >= 0 && row < gridSize && col >= 0 && col < gridSize) {
+                    if (Math.abs(row - center) === radius || Math.abs(col - center) === radius) {
+                        cells.push({ row, col });
+                    }
+                }
             }
         }
-        return null;
     }
-}
+
+    return cells;
+};
+
+
 
 /**
  * Touch and mouse coordinate utilities
