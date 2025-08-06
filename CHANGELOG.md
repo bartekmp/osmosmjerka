@@ -2,6 +2,14 @@
 
 <!-- version list -->
 
+## v1.16.1 (2025-08-06)
+
+### Bug Fixes
+
+- Mexican wave success animation not working
+  ([`a3bc168`](https://github.com/bartekmp/osmosmjerka/commit/a3bc16880a65c5aaba25268cfbc7b834c451e920))
+
+
 ## v1.16.0 (2025-08-06)
 
 ### Enhancement
