@@ -65,8 +65,18 @@ def test_get_grid_size_and_num_words_function():
     size, num_words = get_grid_size_and_num_words([{"word": "a"}] * 10, "easy")
     assert size == 10 and num_words == 7
     
-    # Test dynamic difficulty
-    selected = [{"word": "abc def"}, {"word": "ghijk"}]
-    size, num_words = get_grid_size_and_num_words(selected, "dynamic")
-    assert size == 6  # longest word "abc def" without spaces = 6
-    assert num_words == 2
+    # Test medium difficulty (new)
+    size, num_words = get_grid_size_and_num_words([{"word": "a"}] * 10, "medium")
+    assert size == 13 and num_words == 10
+    
+    # Test hard difficulty (previously medium)
+    size, num_words = get_grid_size_and_num_words([{"word": "a"}] * 15, "hard")
+    assert size == 15 and num_words == 12
+    
+    # Test very_hard difficulty (previously hard)
+    size, num_words = get_grid_size_and_num_words([{"word": "a"}] * 20, "very_hard")
+    assert size == 20 and num_words == 16
+    
+    # Test unknown difficulty defaults to easy
+    size, num_words = get_grid_size_and_num_words([{"word": "a"}] * 10, "unknown")
+    assert size == 10 and num_words == 7

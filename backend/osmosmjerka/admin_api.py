@@ -133,6 +133,13 @@ def get_ignored_categories() -> JSONResponse:
     return JSONResponse(sorted(list(IGNORED_CATEGORIES)))
 
 
+@router.get("/all-categories")
+async def get_all_categories(user=Depends(require_admin_access)) -> JSONResponse:
+    """Get all categories including ignored ones - for admin panel"""
+    categories = await db_manager.get_all_categories()
+    return JSONResponse(categories)
+
+
 @router.get("/export")
 async def export_data(category: str = Query(None), user=Depends(require_admin_access)) -> StreamingResponse:
     rows = await db_manager.get_words(category)

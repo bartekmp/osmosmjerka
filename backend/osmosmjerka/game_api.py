@@ -25,15 +25,14 @@ def get_grid_size_and_num_words(selected: list, difficulty: str) -> tuple:
         grid_size = 10
         num_words = 7
     elif difficulty == "medium":
+        grid_size = 13
+        num_words = 10
+    elif difficulty == "hard":
         grid_size = 15
         num_words = 12
-    elif difficulty == "hard":
+    elif difficulty == "very_hard":
         grid_size = 20
         num_words = 16
-    elif difficulty == "dynamic":
-        longest_word = max(len(word["word"].replace(" ", "")) for word in selected) if selected else 10
-        grid_size = longest_word
-        num_words = len(selected)
     else:
         grid_size = 10
         num_words = 7

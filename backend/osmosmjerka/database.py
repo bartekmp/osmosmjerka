@@ -179,6 +179,18 @@ class DatabaseManager:
                     categories.add(cat.strip())
         return sorted(list(categories))
 
+    async def get_all_categories(self) -> list[str]:
+        """Get all categories including ignored ones - used for admin panel"""
+        database = self._ensure_database()
+        query = select(words_table.c.categories)
+        result = await database.fetch_all(query)
+        categories = set()
+        for row in result:
+            cats = row["categories"].split()
+            for cat in cats:
+                categories.add(cat.strip())
+        return sorted(list(categories))
+
     def fast_bulk_insert_words(self, words_data):
         engine = self._ensure_engine()
         if not words_data:
