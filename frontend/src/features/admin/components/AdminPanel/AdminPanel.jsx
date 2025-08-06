@@ -16,9 +16,13 @@ import {
     CircularProgress,
     Snackbar,
     Alert,
-    IconButton
+    IconButton,
+    Chip,
+    Tooltip,
+    Collapse
 } from '@mui/material';
 import CloseIcon from '@mui/icons-material/Close';
+import ExpandMoreIcon from '@mui/icons-material/ExpandMore';
 import UploadForm from '../UploadForm';
 import './AdminPanel.css';
 import AdminTable from './AdminTable';
@@ -47,6 +51,8 @@ export default function AdminPanel() {
     const [userProfile, setUserProfile] = useState(false);
     const [currentUser, setCurrentUser] = useState(null);
     const [categories, setCategories] = useState([]);
+    const [ignoredCategories, setIgnoredCategories] = useState([]);
+    const [showIgnoredCategories, setShowIgnoredCategories] = useState(false);
     const [filterCategory, setFilterCategory] = useState('');
     const [totalRows, setTotalRows] = useState(0);
     const [offsetInput, setOffsetInput] = useState(0);
@@ -86,10 +92,22 @@ export default function AdminPanel() {
     });
 
     useEffect(() => {
-        fetch(API_ENDPOINTS.CATEGORIES)
+        // Load all categories for admin (including ignored ones)
+        fetch(API_ENDPOINTS.ALL_CATEGORIES, {
+            headers: {
+                'Authorization': `Bearer ${token}`
+            }
+        })
             .then(res => res.json())
-            .then(data => setCategories(data));
-    }, []);
+            .then(data => setCategories(data))
+            .catch(err => console.error('Failed to load categories:', err));
+        
+        // Load ignored categories for display
+        fetch(API_ENDPOINTS.IGNORED_CATEGORIES)
+            .then(res => res.json())
+            .then(data => setIgnoredCategories(data))
+            .catch(err => console.error('Failed to load ignored categories:', err));
+    }, [token]);
 
     // Handlers for pagination and offset input, to avoid negative or excessive values
     const handleOffsetInput = (e) => {
@@ -367,7 +385,7 @@ export default function AdminPanel() {
                             variant="contained"
                             color="info"
                         >
-                            {t('profile')}
+                            {t('your_profile')}
                         </Button>
                     </Box>
                     {error && (
@@ -532,6 +550,49 @@ export default function AdminPanel() {
                             </Select>
                         </FormControl>
                     </Grid>
+                    
+                    {/* Ignored Categories Display */}
+                    {ignoredCategories.length > 0 && (
+                        <Grid item xs={12} md={4}>
+                            <Box>
+                                <Button
+                                    variant="outlined"
+                                    size="small"
+                                    onClick={() => setShowIgnoredCategories(!showIgnoredCategories)}
+                                    startIcon={<ExpandMoreIcon 
+                                        style={{ 
+                                            transform: showIgnoredCategories ? 'rotate(180deg)' : 'rotate(0deg)',
+                                            transition: 'transform 0.2s'
+                                        }} 
+                                    />}
+                                    sx={{ mb: showIgnoredCategories ? 1 : 0 }}
+                                >
+                                    {t('ignored_categories')} ({ignoredCategories.length})
+                                </Button>
+                                <Collapse in={showIgnoredCategories}>
+                                    <Box sx={{ mt: 1 }}>
+                                        <Stack direction="row" spacing={0.5} flexWrap="wrap" useFlexGap>
+                                            {ignoredCategories.map(category => (
+                                                <Tooltip key={category} title={t('ignored_category_tooltip')}>
+                                                    <Chip 
+                                                        label={category} 
+                                                        size="small"
+                                                        color="default"
+                                                        variant="outlined"
+                                                        sx={{ 
+                                                            opacity: 0.7,
+                                                            textDecoration: 'line-through',
+                                                            mb: 0.5
+                                                        }}
+                                                    />
+                                                </Tooltip>
+                                            ))}
+                                        </Stack>
+                                    </Box>
+                                </Collapse>
+                            </Box>
+                        </Grid>
+                    )}
                 </Grid>
             </Paper>
             {/* Data Table */}

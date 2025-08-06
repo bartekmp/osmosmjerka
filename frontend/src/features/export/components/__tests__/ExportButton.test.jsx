@@ -7,7 +7,7 @@ import { withI18n } from '../../../../testUtils';
 jest.mock('axios');
 
 test('renders Export button', () => {
-    render(withI18n(<ExportButton foundWords={[]} difficulty={'beginner'} />));
+    render(withI18n(<ExportButton foundWords={[]} />));
     const button = screen.getByRole('button', { name: /export/i });
     expect(button).toBeInTheDocument();
 });

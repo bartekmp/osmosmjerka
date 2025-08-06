@@ -9,9 +9,9 @@ const useGameDifficulties = () => {
 
         const difficulties = [
             { value: 'easy', label: 'Easy (10x10)', gridSize: 10 },
-            { value: 'medium', label: 'Medium (15x15)', gridSize: 15 },
-            { value: 'hard', label: 'Hard (20x20)', gridSize: 20 },
-            { value: 'dynamic', label: 'Dynamic (longest word)', gridSize: 15 } // Assume medium size for dynamic
+            { value: 'medium', label: 'Medium (13x13)', gridSize: 13 },
+            { value: 'hard', label: 'Hard (15x15)', gridSize: 15 },
+            { value: 'very_hard', label: 'Very Hard (20x20)', gridSize: 20 }
         ];
 
         return difficulties.filter(diff => {

@@ -25,6 +25,8 @@ The words should have at least 3 characters, since less is going to make the hel
 The player needs to find a words shown on the word list in the displayed grid. The words can be found vertically, horizontally, diagonally and with the reversed order of letters.
 The puzzle is generated based on the chosen theme and its size (currently there are four levels of difficulty).
 
+The word search grid generation uses an intelligent algorithm that creates challenging puzzles by maximizing word intersections and maintaining directional diversity. For detailed information about the grid generation algorithm, including technical specifications, performance characteristics, and implementation details, see [ALGORITHM.md](ALGORITHM.md).
+
 ![New round](docs/assets/osmosmjerka-new-round.png)
 
 Once the word is found, there's a neat confetti effect displayed and the translation of the word appears on the word list.

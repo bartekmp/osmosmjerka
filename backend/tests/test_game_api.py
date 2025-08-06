@@ -51,19 +51,17 @@ def test_get_grid_size_and_num_words_easy():
 
 def test_get_grid_size_and_num_words_medium():
     size, num_words = get_grid_size_and_num_words([{"word": "a"}] * 15, "medium")
-    assert size == 15 and num_words == 12
+    assert size == 13 and num_words == 10
 
 
 def test_get_grid_size_and_num_words_hard():
     size, num_words = get_grid_size_and_num_words([{"word": "a"}] * 20, "hard")
+    assert size == 15 and num_words == 12
+
+
+def test_get_grid_size_and_num_words_very_hard():
+    size, num_words = get_grid_size_and_num_words([{"word": "a"}] * 20, "very_hard")
     assert size == 20 and num_words == 16
-
-
-def test_get_grid_size_and_num_words_dynamic():
-    selected = [{"word": "abc def"}, {"word": "ghijk"}]
-    size, num_words = get_grid_size_and_num_words(selected, "dynamic")
-    assert size == 6  # longest word "abc def" without spaces = 6
-    assert num_words == 2
 
 
 def test_get_grid_size_and_num_words_invalid():
@@ -81,9 +79,9 @@ def test_get_grid_size_and_num_words_edge_cases():
     size, num_words = get_grid_size_and_num_words([{"word": "test"}], "easy")
     assert size == 10 and num_words == 7
     
-    # Word with only spaces for dynamic - after replacing spaces, empty string has length 0
-    size, num_words = get_grid_size_and_num_words([{"word": "   "}], "dynamic")
-    assert size == 0 and num_words == 1
+    # Test unknown difficulty defaults to easy
+    size, num_words = get_grid_size_and_num_words([{"word": "test"}], "unknown")
+    assert size == 10 and num_words == 7
 
 
 @patch('osmosmjerka.database.db_manager.get_categories')
@@ -138,12 +136,12 @@ def test_get_words_not_enough_words(mock_get_words, mock_get_categories, client)
     mock_get_categories.return_value = ["A"]
     mock_get_words.return_value = [{"word": "a", "categories": "A", "translation": "a"}]  # Only 1 word
     
-    response = client.get("/api/words?category=A&difficulty=hard")  # Needs 16 words
+    response = client.get("/api/words?category=A&difficulty=hard")  # Needs 12 words
     assert response.status_code == 404
     data = response.json()
     assert "Not enough words" in data["error"]
     assert data["available"] == 1
-    assert data["needed"] == 16
+    assert data["needed"] == 12
 
 
 @patch('osmosmjerka.database.db_manager.get_categories')

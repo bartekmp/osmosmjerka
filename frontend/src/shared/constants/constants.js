@@ -7,7 +7,7 @@ export const GAME_DIFFICULTIES = {
   EASY: 'easy',
   MEDIUM: 'medium', 
   HARD: 'hard',
-  DYNAMIC: 'dynamic'
+  VERY_HARD: 'very_hard'
 };
 
 // Grid configuration
@@ -46,6 +46,7 @@ export const STORAGE_KEYS = {
 export const API_ENDPOINTS = {
   CATEGORIES: '/api/categories',
   IGNORED_CATEGORIES: '/api/ignored-categories',
+  ALL_CATEGORIES: '/admin/all-categories',
   WORDS: '/api/words',
   EXPORT: '/api/export',
   ADMIN_STATUS: '/admin/status',
