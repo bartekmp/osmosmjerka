@@ -2,6 +2,24 @@
 
 <!-- version list -->
 
+## v1.16.0 (2025-08-06)
+
+### Enhancement
+
+- Reduce the complexity of movement events ([#55](https://github.com/bartekmp/osmosmjerka/pull/55),
+  [`f820d18`](https://github.com/bartekmp/osmosmjerka/commit/f820d18e5bb5c89dc10afc20d11d1567801ac9b4))
+
+### Feature
+
+- Improved mouse cursor movement recognition, reorganized GridCell code
+  ([#55](https://github.com/bartekmp/osmosmjerka/pull/55),
+  [`f820d18`](https://github.com/bartekmp/osmosmjerka/commit/f820d18e5bb5c89dc10afc20d11d1567801ac9b4))
+
+- Reorganize grid cell selection logic, improve accuracy
+  ([#55](https://github.com/bartekmp/osmosmjerka/pull/55),
+  [`f820d18`](https://github.com/bartekmp/osmosmjerka/commit/f820d18e5bb5c89dc10afc20d11d1567801ac9b4))
+
+
 ## v1.15.0 (2025-08-06)
 
 ### Feature
