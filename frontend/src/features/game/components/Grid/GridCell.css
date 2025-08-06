@@ -1,0 +1,21 @@
+/* Grid Cell Specific Styles */
+.grid-cell {
+    user-select: none;
+    -webkit-user-select: none;
+    -moz-user-select: none;
+    -ms-user-select: none;
+    touch-action: none;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    transition: background 0.2s, box-shadow 0.2s;
+}
+
+.grid-cell:hover {
+    opacity: 0.9;
+}
+
+.grid-cell:active {
+    transform: translateY(1px);
+}

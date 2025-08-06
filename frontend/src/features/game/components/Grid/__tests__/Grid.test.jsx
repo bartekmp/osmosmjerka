@@ -37,8 +37,8 @@ test('renders grid cells', () => {
 test('highlights found word cells', () => {
     const grid = [['A', 'B'], ['C', 'D']];
     const words = [
-        { word: 'AB', coords: [[0,0],[0,1]] },
-        { word: 'CD', coords: [[1,0],[1,1]] }
+        { word: 'AB', coords: [[0, 0], [0, 1]] },
+        { word: 'CD', coords: [[1, 0], [1, 1]] }
     ];
     const found = ['AB'];
     // Render the grid with the found word

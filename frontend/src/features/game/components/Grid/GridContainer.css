@@ -1,0 +1,37 @@
+/* Grid Container Styles */
+.grid-container {
+    touch-action: none;
+    user-select: none;
+    -webkit-user-select: none;
+    -moz-user-select: none;
+    -ms-user-select: none;
+    overflow: hidden;
+    border-radius: 8px;
+}
+
+.grid-container.dark-mode {
+    background-color: #23272e;
+    box-shadow: 0 4px 16px rgba(0, 0, 0, 0.7);
+}
+
+.grid-container.light-mode {
+    background-color: #f5f5f5;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+}
+
+.grid-wrapper {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    width: 100%;
+    max-width: 100%;
+    overflow: hidden;
+    padding: 8px;
+}
+
+/* Responsive grid scaling */
+@media (max-width: 900px) {
+    .grid-wrapper {
+        padding: 4px;
+    }
+}
