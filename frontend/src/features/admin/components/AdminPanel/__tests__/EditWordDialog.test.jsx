@@ -4,6 +4,12 @@ import EditWordDialog from '../EditWordDialog';
 import { withI18n } from '../../../../../testUtils';
 import { ThemeProvider, createTheme } from '@mui/material/styles';
 
+// Mock the categories API
+jest.mock('../../../../../utils/categoriesApi', () => ({
+    fetchCategories: jest.fn(() => Promise.resolve(['Animals', 'Colors', 'Food'])),
+    invalidateCategoriesCache: jest.fn()
+}));
+
 // Create a test theme
 const theme = createTheme({
     palette: {
@@ -20,7 +26,7 @@ const renderWithTheme = (ui) => {
     ));
 };
 
-describe.skip('EditWordDialog component', () => {
+describe('EditWordDialog component', () => {
     const testRow = { 
         id: 1, 
         categories: 'Animals',
@@ -28,7 +34,7 @@ describe.skip('EditWordDialog component', () => {
         translation: 'Pies'
     };
     
-    test('renders dialog with row data when open', () => {
+    test('renders dialog with row data when open', async () => {
         renderWithTheme(
             <EditWordDialog 
                 open={true}
@@ -38,15 +44,17 @@ describe.skip('EditWordDialog component', () => {
             />
         );
         
-        expect(screen.getByText(/edit_word/i)).toBeInTheDocument();
-        // Find inputs by their labels and check their values
-        const categoryInput = screen.getByLabelText(/categories/i);
-        const wordInput = screen.getByLabelText(/word/i); 
-        const translationInput = screen.getByLabelText(/translation/i);
+        // Wait for the dialog to be rendered
+        expect(await screen.findByText(/edit word/i)).toBeInTheDocument();
         
-        expect(categoryInput).toHaveValue('Animals');
-        expect(wordInput).toHaveValue('Dog');
-        expect(translationInput).toHaveValue('Pies');
+        // Wait for the form to be populated with data
+        await waitFor(() => {
+            expect(screen.getByDisplayValue('Dog')).toBeInTheDocument();
+            expect(screen.getByDisplayValue('Pies')).toBeInTheDocument();
+        });
+        
+        // Check that categories are displayed as chips
+        expect(screen.getByText('Animals')).toBeInTheDocument();
     });
     
     test('does not render when open is false', () => {
@@ -59,10 +67,10 @@ describe.skip('EditWordDialog component', () => {
             />
         );
         
-        expect(screen.queryByText(/edit_word/i)).not.toBeInTheDocument();
+        expect(screen.queryByText(/edit word/i)).not.toBeInTheDocument();
     });
     
-    test('calls onClose when cancel button is clicked', () => {
+    test('calls onClose when cancel button is clicked', async () => {
         const mockClose = jest.fn();
         renderWithTheme(
             <EditWordDialog 
@@ -73,11 +81,13 @@ describe.skip('EditWordDialog component', () => {
             />
         );
         
-        fireEvent.click(screen.getByText(/cancel/i));
+        // Wait for dialog to render and click cancel
+        const cancelButton = await screen.findByText(/cancel/i);
+        fireEvent.click(cancelButton);
         expect(mockClose).toHaveBeenCalledTimes(1);
     });
     
-    test('save button is disabled when no changes are made', () => {
+    test('save button is disabled when no changes are made', async () => {
         renderWithTheme(
             <EditWordDialog 
                 open={true}
@@ -87,10 +97,12 @@ describe.skip('EditWordDialog component', () => {
             />
         );
         
-        expect(screen.getByText(/save/i)).toBeDisabled();
+        // Wait for dialog to render and check save button state
+        const saveButton = await screen.findByText(/save/i);
+        expect(saveButton).toBeDisabled();
     });
     
-    test('save button is enabled when changes are made', () => {
+    test('save button is enabled when changes are made', async () => {
         renderWithTheme(
             <EditWordDialog 
                 open={true}
@@ -100,11 +112,15 @@ describe.skip('EditWordDialog component', () => {
             />
         );
         
-        // Make a change
-        fireEvent.change(screen.getByLabelText(/word/i), { target: { value: 'Doggy' } });
+        // Wait for form to be ready and make a change
+        const wordInput = await screen.findByDisplayValue('Dog');
+        fireEvent.change(wordInput, { target: { value: 'Doggy' } });
         
-        // Button should now be enabled
-        expect(screen.getByText(/save/i)).not.toBeDisabled();
+        // Wait for the save button to be enabled
+        await waitFor(() => {
+            const saveButton = screen.getByText(/save/i);
+            expect(saveButton).not.toBeDisabled();
+        });
     });
     
     test('validates required fields on save', async () => {
@@ -117,20 +133,22 @@ describe.skip('EditWordDialog component', () => {
             />
         );
         
-        // Clear a required field
-        const wordInput = screen.getByLabelText(/word/i);
+        // Wait for form to be ready, clear a required field
+        const wordInput = await screen.findByDisplayValue('Dog');
         fireEvent.change(wordInput, { target: { value: '' } });
         
         // Try to save
-        fireEvent.click(screen.getByText(/save/i));
+        const saveButton = await screen.findByText(/save/i);
+        fireEvent.click(saveButton);
         
-        // Should show validation error
+        // Should show validation error - look for any error text
         await waitFor(() => {
-            expect(screen.getByText(/word_required/i)).toBeInTheDocument();
-        });
+            // The component shows validation errors, let's look for error state
+            expect(wordInput).toHaveAttribute('aria-invalid', 'true');
+        }, { timeout: 3000 });
     });
     
-    test('calls onSave with updated data when valid', () => {
+    test('calls onSave with updated data when valid', async () => {
         const mockSave = jest.fn();
         renderWithTheme(
             <EditWordDialog 
@@ -141,17 +159,21 @@ describe.skip('EditWordDialog component', () => {
             />
         );
         
-        // Make a valid change
-        const wordInput = screen.getByLabelText(/word/i);
+        // Wait for form to be ready and make a valid change
+        const wordInput = await screen.findByDisplayValue('Dog');
         fireEvent.change(wordInput, { target: { value: 'Doggy' } });
         
         // Save the changes
-        fireEvent.click(screen.getByText(/save/i));
+        const saveButton = await screen.findByText(/save/i);
+        await waitFor(() => expect(saveButton).not.toBeDisabled());
+        fireEvent.click(saveButton);
         
         // Check if onSave was called with the correct data
-        expect(mockSave).toHaveBeenCalledWith({
-            ...testRow,
-            word: 'Doggy'
+        await waitFor(() => {
+            expect(mockSave).toHaveBeenCalledWith({
+                ...testRow,
+                word: 'Doggy'
+            });
         });
     });
 });

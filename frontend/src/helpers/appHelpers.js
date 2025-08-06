@@ -63,7 +63,7 @@ export function loadPuzzle(category, diff, setters, t) {
     setSelectedCategory(category);
     if (setNotEnoughWords) setNotEnoughWords(false);
     if (setNotEnoughWordsMsg) setNotEnoughWordsMsg("");
-    
+
     return axios.get(`/api/words?category=${category}&difficulty=${diff}`)
         .then(res => {
             if (res.data.error_code === "NOT_ENOUGH_WORDS") {
@@ -87,7 +87,7 @@ export function loadPuzzle(category, diff, setters, t) {
             // Handle server errors with structured response
             if (setNotEnoughWords) setNotEnoughWords(true);
             let msg = t ? t('error_loading_puzzle') : "Error loading puzzle.";
-            
+
             if (err.response && err.response.data) {
                 const errorData = err.response.data;
                 // Check for structured not enough words error
@@ -103,13 +103,12 @@ export function loadPuzzle(category, diff, setters, t) {
                     msg = errorData.error;
                 }
             }
-            
+
             if (setNotEnoughWordsMsg) setNotEnoughWordsMsg(msg);
             setGrid(Array.from({ length: 10 }, () => Array(10).fill("")));
             setWords([]);
             setFound([]);
             setHideWords(true);
             setShowTranslations(false);
-            throw err; // Re-throw to handle loading state
         });
 }

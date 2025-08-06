@@ -17,11 +17,24 @@ export function isStraightLine(path) {
     return true;
 }
 
-// Helper to determine direction
+// Helper to determine direction - only allows perfect horizontal, vertical, and diagonal
 export function getDirection([r0, c0], [r1, c1]) {
-    if (r0 === r1) return 'horizontal';
-    if (c0 === c1) return 'vertical';
-    if (Math.abs(r1 - r0) === Math.abs(c1 - c0)) return 'diagonal';
+    const dr = Math.abs(r1 - r0);
+    const dc = Math.abs(c1 - c0);
+
+    // If exactly the same position, no direction
+    if (dr === 0 && dc === 0) return null;
+
+    // Pure horizontal (only horizontal movement)
+    if (dr === 0 && dc > 0) return 'horizontal';
+
+    // Pure vertical (only vertical movement)
+    if (dc === 0 && dr > 0) return 'vertical';
+
+    // Perfect diagonal (equal horizontal and vertical movement)
+    if (dr === dc && dr > 0) return 'diagonal';
+
+    // Reject any other movement patterns - no direction allowed
     return null;
 }
 
