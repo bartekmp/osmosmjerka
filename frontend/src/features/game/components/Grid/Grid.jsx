@@ -41,10 +41,6 @@ const ScrabbleGrid = forwardRef(({
     const startMexicanWave = useCallback(() => {
         if (gridSize === 0) return;
 
-        // Clear any existing celebration
-        if (celebrationTimeoutRef.current) {
-            clearTimeout(celebrationTimeoutRef.current);
-        }
         setCelebrationCells([]);
 
         const cellsWithDistance = generateMexicanWave(gridSize);
@@ -62,15 +58,15 @@ const ScrabbleGrid = forwardRef(({
             currentStep++;
 
             if (currentStep < totalSteps) {
-                celebrationTimeoutRef.current = setTimeout(animateStep, delayBetweenSteps);
+                setTimeout(animateStep, delayBetweenSteps);
             } else {
-                celebrationTimeoutRef.current = setTimeout(() => {
+                setTimeout(() => {
                     setCelebrationCells([]);
                 }, delayBetweenSteps * 2);
             }
         };
 
-        celebrationTimeoutRef.current = setTimeout(animateStep, 1000);
+        animateStep();
     }, [gridSize]);
 
     const blinkWord = useCallback((word) => {
@@ -163,12 +159,7 @@ const ScrabbleGrid = forwardRef(({
         if (showCelebration && gridSize > 0) {
             startMexicanWave();
         }
-        return () => {
-            if (celebrationTimeoutRef.current) {
-                clearTimeout(celebrationTimeoutRef.current);
-            }
-        };
-    }, [showCelebration, startMexicanWave]);
+    }, [showCelebration, gridSize, startMexicanWave]);
 
     useEffect(() => {
         const handleResize = () => {

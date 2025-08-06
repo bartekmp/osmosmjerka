@@ -78,23 +78,28 @@ export const findMatchingWord = (selectedCoords, words) => {
  * Simplified Mexican wave animation
  */
 export const generateMexicanWave = (gridSize) => {
-    const cells = [];
-    // Generate cells in spiral pattern from center
-    const center = Math.floor(gridSize / 2);
+    const angle = Math.random() * 360;
+    const angleRad = (angle * Math.PI) / 180;
+    const centerX = gridSize / 2;
+    const centerY = gridSize / 2;
+    const maxDistance = Math.sqrt(Math.pow(gridSize, 2) + Math.pow(gridSize, 2));
 
-    for (let radius = 0; radius <= center; radius++) {
-        for (let row = center - radius; row <= center + radius; row++) {
-            for (let col = center - radius; col <= center + radius; col++) {
-                if (row >= 0 && row < gridSize && col >= 0 && col < gridSize) {
-                    if (Math.abs(row - center) === radius || Math.abs(col - center) === radius) {
-                        cells.push({ row, col });
-                    }
-                }
-            }
+    const cellsWithDistance = [];
+    for (let r = 0; r < gridSize; r++) {
+        for (let c = 0; c < gridSize; c++) {
+            const relativeX = c - centerX;
+            const relativeY = r - centerY;
+            const distance = relativeX * Math.cos(angleRad) + relativeY * Math.sin(angleRad);
+
+            cellsWithDistance.push({
+                row: r,
+                col: c,
+                distance: distance + maxDistance / 2
+            });
         }
     }
 
-    return cells;
+    return cellsWithDistance.sort((a, b) => a.distance - b.distance);
 };
 
 
@@ -122,35 +127,5 @@ export class CoordinateUtils {
 
     static isOutsideGrid(row, col, gridSize) {
         return row < 0 || row >= gridSize || col < 0 || col >= gridSize;
-    }
-}
-
-/**
- * Animation and celebration utilities
- */
-export class AnimationUtils {
-    static generateMexicanWave(gridSize) {
-        const angle = Math.random() * 360;
-        const angleRad = (angle * Math.PI) / 180;
-        const centerX = gridSize / 2;
-        const centerY = gridSize / 2;
-        const maxDistance = Math.sqrt(Math.pow(gridSize, 2) + Math.pow(gridSize, 2));
-
-        const cellsWithDistance = [];
-        for (let r = 0; r < gridSize; r++) {
-            for (let c = 0; c < gridSize; c++) {
-                const relativeX = c - centerX;
-                const relativeY = r - centerY;
-                const distance = relativeX * Math.cos(angleRad) + relativeY * Math.sin(angleRad);
-
-                cellsWithDistance.push({
-                    row: r,
-                    col: c,
-                    distance: distance + maxDistance / 2
-                });
-            }
-        }
-
-        return cellsWithDistance.sort((a, b) => a.distance - b.distance);
     }
 }
