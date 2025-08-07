@@ -9,12 +9,14 @@ import TableEmptyState from './TableEmptyState';
  * 
  * @param {Object} props
  * @param {boolean} props.isEmpty - Whether the table is empty
+ * @param {boolean} props.isLoading - Whether data is currently being loaded
  * @param {string} props.searchTerm - Current search term (if any)
  * @param {Function} props.onClearSearch - Function to clear the search
  * @param {Object} props.translationFn - Translation function (i18n)
  */
 export default function TableNoRowsOverlay({
     isEmpty,
+    isLoading = false,
     searchTerm,
     onClearSearch,
     translationFn
@@ -22,7 +24,8 @@ export default function TableNoRowsOverlay({
     const theme = useTheme();
     const t = translationFn;
 
-    if (!isEmpty) return null;
+    // Don't show overlay if loading or if not empty
+    if (isLoading || !isEmpty) return null;
 
     return (
         <Box
@@ -36,39 +39,39 @@ export default function TableNoRowsOverlay({
                 alignItems: 'center',
                 justifyContent: 'center',
                 backdropFilter: 'blur(4px)',
-                backgroundColor: theme.palette.mode === 'dark' 
-                    ? 'rgba(0, 0, 0, 0.2)' 
+                backgroundColor: theme.palette.mode === 'dark'
+                    ? 'rgba(0, 0, 0, 0.2)'
                     : 'rgba(0, 0, 0, 0.05)',
                 zIndex: 20,
                 borderRadius: 1,
             }}
         >
-            <Box 
+            <Box
                 sx={{
                     maxWidth: '400px',
                     width: '100%',
                     textAlign: 'center',
                     backgroundColor: 'background.paper',
                     borderRadius: 2,
-                    boxShadow: theme.palette.mode === 'dark' 
-                        ? '0 4px 12px rgba(0, 0, 0, 0.4)' 
+                    boxShadow: theme.palette.mode === 'dark'
+                        ? '0 4px 12px rgba(0, 0, 0, 0.4)'
                         : '0 4px 12px rgba(0, 0, 0, 0.15)',
                     p: 3
                 }}
             >
-                <TableEmptyState 
+                <TableEmptyState
                     title={searchTerm ? t('no_rows_found') : t('category_empty')}
-                    message={searchTerm 
+                    message={searchTerm
                         ? t('try_different_search_terms')
                         : t('no_phrases_in_selected_category')
                     }
-                    icon={searchTerm 
+                    icon={searchTerm
                         ? <SearchOff sx={{ fontSize: 40 }} />
                         : <Category sx={{ fontSize: 40 }} />
                     }
                     sx={{ boxShadow: 'none', border: 'none' }}
                 />
-                
+
                 {searchTerm && (
                     <Button
                         variant="outlined"

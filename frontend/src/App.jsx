@@ -4,7 +4,6 @@ import React, { useEffect, useState, useRef, Suspense, lazy, useCallback } from 
 import { Route, Routes, useLocation, Link } from 'react-router-dom';
 import { ThemeProvider as MUIThemeProvider, CssBaseline, Box, Typography } from '@mui/material';
 import { Container, Stack, CircularProgress, FormControl, InputLabel, MenuItem, Select, Button } from '@mui/material';
-import { getAssetUrl } from './shared/utils/assets';
 import {
     ScrabbleGrid,
     PhraseList,
@@ -23,7 +22,6 @@ import './style.css';
 import './App.css';
 import { useTranslation } from 'react-i18next';
 import GameActionButton from './shared/components/ui/GameActionButton';
-import ResponsiveText from './shared/components/ui/ResponsiveText';
 
 // Import custom hooks
 import useLogoColor from './hooks/useLogoColor';
@@ -75,7 +73,7 @@ function AppContent() {
     const [restored, setRestored] = useState(false);
     const [notEnoughPhrases, setNotEnoughPhrases] = useState(false);
     const [notEnoughPhrasesMsg, setNotEnoughPhrasesMsg] = useState("");
-    const [isLoading, setIsLoading] = useState(false);
+    const [isGridLoading, setIsGridLoading] = useState(false);
     const [panelOpen, setPanelOpen] = useState(false);
 
     // Refs to prevent duplicate API calls in StrictMode
@@ -133,6 +131,9 @@ function AppContent() {
     }, []);
 
     useEffect(() => {
+        // Only run after game state restoration is complete
+        if (!restored) return;
+
         // Prevent duplicate API calls for the same language set
         if (lastFetchedLanguageSetIdRef.current === selectedLanguageSetId) return;
         lastFetchedLanguageSetIdRef.current = selectedLanguageSetId;
@@ -145,7 +146,8 @@ function AppContent() {
 
         axios.get(categoriesUrl).then(res => {
             setCategories(res.data);
-            if (res.data.length > 0 && !selectedCategory && restored && grid.length === 0) {
+            // Automatically select a random category if none is selected and no game is loaded
+            if (res.data.length > 0 && !selectedCategory && grid.length === 0) {
                 const randomIndex = Math.floor(Math.random() * res.data.length);
                 const randomCategory = res.data[randomIndex];
                 setSelectedCategory(randomCategory);
@@ -183,7 +185,7 @@ function AppContent() {
     }, [restored, selectedCategory, difficulty]);
 
     const loadPuzzle = (category, diff = difficulty) => {
-        setIsLoading(true);
+        setIsGridLoading(true);
         resetCelebration(); // Reset celebration state using hook
         loadPuzzleHelper(category, diff, {
             setSelectedCategory,
@@ -195,7 +197,7 @@ function AppContent() {
             setNotEnoughPhrases,
             setNotEnoughPhrasesMsg
         }, t, selectedLanguageSetId).finally(() => {
-            setIsLoading(false);
+            setIsGridLoading(false);
         });
     };
 
@@ -231,42 +233,6 @@ function AppContent() {
         <MUIThemeProvider theme={createAppTheme(isDarkMode)}>
             <CssBaseline />
             <Container maxWidth="xl" sx={{ minHeight: '100vh', py: 2, position: 'relative' }}>
-                {/* Loading overlay */}
-                {isLoading && (
-                    <Box
-                        sx={{
-                            position: 'fixed',
-                            top: 0,
-                            left: 0,
-                            right: 0,
-                            bottom: 0,
-                            backgroundColor: isDarkMode ? 'rgba(30,30,30,0.7)' : 'rgba(0, 0, 0, 0.5)',
-                            backdropFilter: 'blur(3px)',
-                            display: 'flex',
-                            alignItems: 'center',
-                            justifyContent: 'center',
-                            zIndex: 9999
-                        }}
-                    >
-                        <Box
-                            sx={{
-                                backgroundColor: isDarkMode ? '#222' : 'white',
-                                color: isDarkMode ? '#fff' : 'inherit',
-                                borderRadius: 2,
-                                p: 3,
-                                display: 'flex',
-                                flexDirection: 'column',
-                                alignItems: 'center',
-                                gap: 2,
-                                boxShadow: isDarkMode ? 8 : 2
-                            }}
-                        >
-                            <CircularProgress size={40} color={isDarkMode ? 'inherit' : 'primary'} />
-                            <Typography variant="body1">{t('loading_puzzle')}</Typography>
-                        </Box>
-                    </Box>
-                )}
-
                 {/* Top controls row for admin routes only */}
                 {isAdminRoute && (
                     <>
@@ -322,132 +288,13 @@ function AppContent() {
                     } />
                     <Route path="/" element={
                         <Stack spacing={3} alignItems="center">
-                            {/* Header with logo, title, and controls in the same row */}
-                            <Box sx={{
-                                position: 'relative',
-                                width: '100%',
-                                display: 'flex',
-                                alignItems: 'center',
-                                mt: 2,
-                                mb: 3, // Add bottom margin to prevent overlap with content below
-                                px: { xs: 1, sm: 2 },
-                                minHeight: { xs: 48, sm: 56, md: 64, lg: 72 } // Ensure minimum height
-                            }}>
-                                {/* Logo and title - left aligned on mobile, centered on larger screens */}
-                                <Box sx={{
-                                    position: 'absolute',
-                                    left: 0,
-                                    right: { xs: '70px', sm: '140px', md: '170px' }, // Adjusted for smaller logo and controls
-                                    display: 'flex',
-                                    alignItems: 'center',
-                                    justifyContent: { xs: 'flex-start', sm: 'center' }, // Left align on mobile, center on larger screens
-                                    gap: { xs: 1, sm: 2 },
-                                    cursor: 'pointer',
-                                    overflow: 'hidden',
-                                    px: { xs: 1, sm: 2 } // Add padding to prevent edge touching
-                                }}
-                                    onClick={handleLogoClick}
-                                >
-                                    <Box
-                                        sx={{
-                                            position: 'relative',
-                                            height: { xs: 30, sm: 32, md: 36, lg: 44 },
-                                            width: { xs: 30, sm: 32, md: 36, lg: 44 },
-                                            flexShrink: 0,
-                                        }}
-                                    >
-                                        <Box
-                                            component="img"
-                                            src={getAssetUrl("android-chrome-512x512.png")}
-                                            alt="Osmosmjerka logo"
-                                            sx={{
-                                                height: '100%',
-                                                width: '100%',
-                                                filter: logoFilter,
-                                                transition: 'filter 0.3s ease',
-                                                userSelect: 'none',
-                                                position: 'relative',
-                                                zIndex: 1,
-                                            }}
-                                            onError={e => { e.target.onerror = null; e.target.src = getAssetUrl("favicon-32x32.png"); }}
-                                        />
-                                    </Box>
-                                    <Typography
-                                        variant="h1"
-                                        sx={{
-                                            fontSize: { xs: '1.4rem', sm: '1.5rem', md: '2rem', lg: '2.5rem' }, // Reduced font sizes
-                                            textAlign: 'center',
-                                            userSelect: 'none',
-                                            whiteSpace: 'nowrap',
-                                            overflow: 'hidden',
-                                            textOverflow: 'ellipsis',
-                                            minWidth: 0,
-                                            maxWidth: '100%',
-                                            // Add wobble animation when celebrating
-                                            animation: showCelebration ? 'title-wobble 0.5s ease-in-out 6' : 'none',
-                                            '@keyframes title-wobble': {
-                                                '0%, 100%': {
-                                                    transform: 'rotate(0deg) scale(1)',
-                                                },
-                                                '25%': {
-                                                    transform: 'rotate(-3deg) scale(1.05)',
-                                                },
-                                                '50%': {
-                                                    transform: 'rotate(0deg) scale(1.1)',
-                                                },
-                                                '75%': {
-                                                    transform: 'rotate(3deg) scale(1.05)',
-                                                },
-                                            }
-                                        }}
-                                    >
-                                        Osmosmjerka
-                                    </Typography>
-                                </Box>
-
-                                {/* Controls - positioned absolutely on the right */}
-                                <Box
-                                    sx={{
-                                        position: 'absolute',
-                                        right: 0,
-                                        display: 'flex',
-                                        flexDirection: 'row',
-                                        alignItems: 'center',
-                                        gap: { xs: 1, sm: 1, md: 1 }, // Uniform gaps across all screen sizes
-                                        zIndex: 1
-                                    }}
-                                >
-                                    <LanguageSwitcher
-                                        sx={{
-                                            minWidth: { xs: 36, sm: 44, md: 48 },
-                                            height: { xs: 36, sm: 44, md: 48 },
-                                            minHeight: { xs: 36, sm: 44, md: 48 },
-                                        }}
-                                    />
-                                    <Button
-                                        component={Link}
-                                        to="/admin"
-                                        sx={{
-                                            display: 'flex', // Show on all screen sizes
-                                            minWidth: { xs: 36, sm: 44, md: 48 },
-                                            height: { xs: 36, sm: 44, md: 48 },
-                                            minHeight: { xs: 36, sm: 44, md: 48 },
-                                            fontSize: { sm: '0.8rem', md: '0.9rem' },
-                                            px: { xs: 0.5, sm: 0.75, md: 1 }
-                                        }}
-                                    >
-                                        <ResponsiveText desktop={t('profile')} mobile="👤" />
-                                    </Button>
-                                    <NightModeButton
-                                        sx={{
-                                            minWidth: { xs: 36, sm: 44, md: 48 },
-                                            height: { xs: 36, sm: 44, md: 48 },
-                                            minHeight: { xs: 36, sm: 44, md: 48 },
-                                            padding: { xs: 0.5, sm: 0.75, md: 1 },
-                                        }}
-                                    />
-                                </Box>
-                            </Box>
+                            {/* Use GameHeader component instead of duplicated header code */}
+                            <GameHeader
+                                logoFilter={logoFilter}
+                                handleLogoClick={handleLogoClick}
+                                showCelebration={showCelebration}
+                                isDarkMode={isDarkMode}
+                            />
 
                             {/* Mobile menu toggle button */}
                             <Box sx={{
@@ -462,12 +309,12 @@ function AppContent() {
                                     onClick={() => setPanelOpen(!panelOpen)}
                                     sx={{
                                         minWidth: 0,
-                                        width: 50,
-                                        height: 50,
+                                        width: 250,
+                                        height: 36,
                                         display: 'flex',
                                         alignItems: 'center',
                                         justifyContent: 'center',
-                                        borderRadius: '50%',
+                                        borderRadius: 2,
                                         fontSize: '1.5rem',
                                         backgroundColor: panelOpen ? 'action.selected' : 'background.paper',
                                         '&:hover': {
@@ -486,15 +333,15 @@ function AppContent() {
                                     display: { xs: panelOpen ? 'flex' : 'none', sm: 'flex' },
                                     flexDirection: 'row',
                                     alignItems: 'flex-start',
-                                    gap: 2,
+                                    gap: { xs: 1, sm: 2 },
                                     width: '100%',
-                                    maxWidth: 600,
+                                    maxWidth: 800,
                                     mb: { xs: 1, sm: 2 },
                                     transition: 'all 0.2s'
                                 }}
                             >
                                 {/* Dropdowns container */}
-                                <Box sx={{ flex: 1, display: 'flex', flexDirection: 'column', gap: 2, maxWidth: { xs: '40%', sm: '70%' } }}>
+                                <Box sx={{ flex: 1, display: 'flex', flexDirection: 'column', gap: { xs: 1, sm: 2 }, maxWidth: { xs: '60%', sm: '70%' } }}>
                                     <LanguageSetSelector
                                         selectedLanguageSetId={selectedLanguageSetId}
                                         onLanguageSetChange={handleLanguageSetChange}
@@ -542,57 +389,19 @@ function AppContent() {
                                         category={selectedCategory}
                                         grid={grid}
                                         phrases={phrases}
-                                        disabled={isLoading || grid.length === 0 || notEnoughPhrases}
+                                        disabled={isGridLoading || grid.length === 0 || notEnoughPhrases}
                                         t={t}
                                     />
                                 </Box>
                             </Box>
 
                             {/* All Found Message */}
-                            {allFound && (
-                                <Box sx={{
-                                    textAlign: 'center',
-                                    color: 'success.main',
-                                    fontWeight: 'bold',
-                                    fontSize: { xs: '1rem', sm: '1.2rem' },
-                                    minHeight: { xs: 16, sm: 24 },
-                                    display: 'flex',
-                                    flexDirection: 'row',
-                                    alignItems: 'center',
-                                    justifyContent: 'center',
-                                    gap: { xs: 1, sm: 2 },
-                                    mb: { xs: 0.5, sm: 1 }
-                                }}>
-                                    <Typography
-                                        variant="h6"
-                                        color="success.main"
-                                        sx={{
-                                            mb: 0,
-                                            fontSize: { xs: '1rem', sm: '1.2rem' },
-                                            lineHeight: 1.2
-                                        }}
-                                    >
-                                        🎉 {t('all_phrases_found')} 🎊
-                                    </Typography>
-                                    <Button
-                                        onClick={() => loadPuzzle(selectedCategory, difficulty)}
-                                        sx={{
-                                            display: 'flex',
-                                            alignItems: 'center',
-                                            gap: 1,
-                                            fontSize: { xs: '0.8rem', sm: '1rem' },
-                                            py: { xs: 0.2, sm: 1 },
-                                            px: { xs: 1, sm: 3 },
-                                            minHeight: { xs: 28, sm: 36 }
-                                        }}
-                                    >
-                                        <ResponsiveText
-                                            desktop={t('new_game')}
-                                            mobile="🎮"
-                                        />
-                                    </Button>
-                                </Box>
-                            )}
+                            <AllFoundMessage 
+                                allFound={allFound}
+                                loadPuzzle={loadPuzzle}
+                                selectedCategory={selectedCategory}
+                                difficulty={difficulty}
+                            />
 
                             {/* Main Game Area */}
                             <Box sx={{
@@ -625,6 +434,43 @@ function AppContent() {
                                         isDarkMode={isDarkMode}
                                         showCelebration={showCelebration}
                                     />
+
+                                    {/* Grid loading overlay */}
+                                    {isGridLoading && (
+                                        <Box sx={{
+                                            position: 'absolute',
+                                            top: 0,
+                                            left: 0,
+                                            width: '100%',
+                                            height: '100%',
+                                            backdropFilter: 'blur(3px)',
+                                            bgcolor: isDarkMode ? 'rgba(30,30,30,0.8)' : 'rgba(255,255,255,0.8)',
+                                            zIndex: 15,
+                                            display: 'flex',
+                                            flexDirection: 'column',
+                                            alignItems: 'center',
+                                            justifyContent: 'center',
+                                            gap: 2,
+                                        }}>
+                                            <CircularProgress
+                                                size={48}
+                                                color={isDarkMode ? 'inherit' : 'primary'}
+                                                sx={{ color: isDarkMode ? '#fff' : 'primary.main' }}
+                                            />
+                                            <Typography
+                                                variant="h6"
+                                                sx={{
+                                                    color: isDarkMode ? '#fff' : 'text.primary',
+                                                    fontWeight: 'bold',
+                                                    textAlign: 'center'
+                                                }}
+                                            >
+                                                {t('loading_puzzle')}
+                                            </Typography>
+                                        </Box>
+                                    )}
+
+                                    {/* Not enough phrases overlay */}
                                     {notEnoughPhrases && (
                                         <Box sx={{
                                             position: 'absolute',

@@ -24,7 +24,7 @@ const AllFoundMessage = ({ allFound, loadPuzzle, selectedCategory, difficulty })
                     {t('new_game')}
                 </Box>
                 <Box component="span" className="new-game-text-mobile">
-                    🎮
+                    🆕
                 </Box>
             </Button>
         </Box>

@@ -14,10 +14,29 @@ export function getBaseUrl() {
 
     // In browser environment, check if we're in production
     if (typeof window !== 'undefined') {
-        // Check if we're in production mode by looking for the /static/ path pattern
-        // This matches our Vite config setup
-        const isProduction = window.location.pathname.startsWith('/static/') ||
-            (typeof process !== 'undefined' && process.env && process.env.NODE_ENV === 'production');
+        // First check if VITE_BASE_PATH was injected at build time
+        if (typeof __VITE_BASE_PATH__ !== 'undefined') {
+            console.log('Using build-time VITE_BASE_PATH:', __VITE_BASE_PATH__);
+            return __VITE_BASE_PATH__;
+        }
+
+        // Check if we're in production mode by multiple indicators
+        const isProduction = 
+            // Check if current URL suggests we're being served from /static/
+            window.location.pathname.startsWith('/static/') ||
+            // Check traditional NODE_ENV
+            (typeof process !== 'undefined' && process.env && process.env.NODE_ENV === 'production') ||
+            // Check if we're NOT running on development ports
+            (window.location.port !== '3000' && window.location.port !== '5173' && window.location.hostname !== 'localhost');
+        
+        console.log('getBaseUrl debug:', {
+            pathname: window.location.pathname,
+            hostname: window.location.hostname,
+            port: window.location.port,
+            isProduction,
+            resultingBase: isProduction ? '/static/' : '/'
+        });
+        
         return isProduction ? '/static/' : '/';
     }
 
@@ -29,5 +48,7 @@ export const getAssetUrl = (path) => {
     const baseUrl = getBaseUrl();
     // Remove leading slash from path if present to avoid double slashes
     const cleanPath = path.startsWith('/') ? path.slice(1) : path;
-    return `${baseUrl}${cleanPath}`;
+    const finalUrl = `${baseUrl}${cleanPath}`;
+    console.log(`getAssetUrl: ${path} -> ${finalUrl}`);
+    return finalUrl;
 };

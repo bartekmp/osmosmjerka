@@ -1,7 +1,7 @@
 # osmosmjerka
 [Osmosmjerka](https://hr.wikipedia.org/wiki/Osmosmjerka) (*Croatian word for eight-direction word search puzzle*) is a feature-rich web-based [word search](https://en.wikipedia.org/wiki/Word_search) game with language learning capabilities.
-It uses words from the internal database, which are divided into separate categories, so each puzzle has a certain theme.
-Each word includes translation into another language, making it an excellent tool for [flashcard](https://en.wikipedia.org/wiki/Flashcard)-style language training.
+It uses phrases from the internal database, which are divided into separate categories, so each puzzle has a certain theme.
+Each phrase includes translation into another language, making it an excellent tool for [flashcard](https://en.wikipedia.org/wiki/Flashcard)-style language training.
 
 **Key Features:**
 - **Multi-language Interface**: Complete i18n support with English, Croatian, and Polish translations, easily extendible
@@ -17,20 +17,20 @@ Each word includes translation into another language, making it an excellent too
 ## How it works
 Osmosmjerka consists of three layers - a frontend app in [React](https://react.dev/), a [Flask](https://flask.palletsprojects.com/en/stable/)-based HTTP server and a [PostgreSQL](https://www.postgresql.org/) database.
 The web app communicates with the server, which pulls data from the database and returns it via HTTP requests to the frontend.
-The database so far is expected to have a single table called `words`, which consists of three self-explaining columns `categories`, `word` and `translation`.
-You need to provide your own sets of words, either by inserting them directly to the database or use the *Upload Words* functionality on the admin page. The supported file formats are `.txt` and `.csv`, and the expected single-line format is `<categories>;<word>;<translation>`.
-The words should have at least 3 characters, since less is going to make the hell of a game to find in a grid, however, the API will filter them out automatically.
+The database so far is expected to have a single table called `phrases`, which consists of three self-explaining columns `categories`, `phrase` and `translation`.
+You need to provide your own sets of phrases, either by inserting them directly to the database or use the *Upload Phrases* functionality on the admin page. The supported file formats are `.txt` and `.csv`, and the expected single-line format is `<categories>;<phrase>;<translation>`.
+The phrases should have at least 3 characters, since less is going to make the hell of a game to find in a grid, however, the API will filter them out automatically.
 
 ## The game
-The player needs to find a words shown on the word list in the displayed grid. The words can be found vertically, horizontally, diagonally and with the reversed order of letters.
+The player needs to find phrases shown on the phrase list in the displayed grid. The phrases can be found vertically, horizontally, diagonally and with the reversed order of letters.
 The puzzle is generated based on the chosen theme and its size (currently there are four levels of difficulty).
 
-The word search grid generation uses an intelligent algorithm that creates challenging puzzles by maximizing word intersections and maintaining directional diversity. For detailed information about the grid generation algorithm, including technical specifications, performance characteristics, and implementation details, see [ALGORITHM.md](ALGORITHM.md).
+The word search grid generation uses an intelligent algorithm that creates challenging puzzles by maximizing phrase intersections and maintaining directional diversity. For detailed information about the grid generation algorithm, including technical specifications, performance characteristics, and implementation details, see [ALGORITHM.md](ALGORITHM.md).
 
 ![New round](docs/assets/osmosmjerka-new-round.png)
 
-Once the word is found, there's a neat confetti effect displayed and the translation of the word appears on the word list.
-When all words are discovered, the game ends and allows to load a new puzzle.
+Once the phrase is found, there's a neat confetti effect displayed and the translation of the phrase appears on the phrase list.
+When all phrases are discovered, the game ends and allows to load a new puzzle.
 
 ![Won round](docs/assets/osmosmjerka-won-round.png)
 
@@ -62,10 +62,10 @@ Click on the Osmosmjerka logo to cycle through different bright colors - a fun e
 **Export Functionality**
 Export the current puzzle to `.docx`, `.pdf` or `.png` format using the Export button. This allows you to print or share puzzles offline.
 
-**Enhanced Word Finding**
-- Click on words in the word list to highlight them briefly in the grid
+**Enhanced Phrase Finding**
+- Click on phrases in the phrase list to highlight them briefly in the grid
 - Toggle translation visibility with the dedicated button
-- Words can be selected in any direction: horizontal, vertical, diagonal, and reversed
+- Phrases can be selected in any direction: horizontal, vertical, diagonal, and reversed
 
 **Touch and Mouse Support**
 The game works seamlessly on both desktop and mobile devices with optimized touch interactions and responsive design.
@@ -104,9 +104,9 @@ The admin panel provides comprehensive database management capabilities:
 - **Database Clearing**: Remove all entries with a safety confirmation prompt
 
 ### File Operations
-- **Data Import**: Upload new entries from `.txt` and `.csv` files using the format: `<word>;<translation>;<categories>`
+- **Data Import**: Upload new entries from `.txt` and `.csv` files using the format: `<phrase>;<translation>;<categories>`
 - **Data Export**: Export filtered or complete datasets to `.txt` format for backup or external use
-- **Duplicate Prevention**: The system automatically prevents duplicate entries based on the word field
+- **Duplicate Prevention**: The system automatically prevents duplicate entries based on the phrase field
 
 ### Advanced Features
 - **Category Filtering**: Filter the view by specific categories to manage subsets of data
@@ -119,7 +119,7 @@ The admin panel now includes comprehensive user management capabilities, includi
 
 ![Main admin page](docs/assets/osmosmjerka-admin-view.png)
 
-The admin interface supports multiple categories per word (separated by spaces), making it easy to organize vocabulary by themes like "Toys Sport Nouns". The word field serves as the primary key, ensuring data integrity by preventing duplicates during imports.
+The admin interface supports multiple categories per phrase (separated by spaces), making it easy to organize vocabulary by themes like "Toys Sport Nouns". The phrase field serves as the primary key, ensuring data integrity by preventing duplicates during imports.
 
 ### How to generate admin's password hash
 Use this one-liner to convert your password into a hash, which then you can use to log into admin's page:
@@ -146,8 +146,8 @@ docker run --rm -d -p 8085:8085 --name osmosmjerka osmosmjerka
 ```
 7. Access the app in your browser at `http://<the host ip>:8085`.
 
-## Example words database
-You might use my Croatian-Polish word database as an example placed in the `example` folder. Import it in the admin dashboard using "Upload words" button.
+## Example phrases database
+You might use my Croatian-Polish phrase database as an example placed in the `example` folder. Import it in the admin dashboard using "Upload phrases" button.
 
 ## HTTPS
 The API server ([`uvicorn`](https://www.uvicorn.org/)) supports SSL. If you're not using Nginx or other tech, you might continue using `uvicorn` with HTTPS, making use of self-signed certificate or issued by [Let's Encrypt](https://letsencrypt.org/). 
@@ -171,7 +171,7 @@ As this is self-signed, the browser will show you dreadful warnings when accessi
 
 ## Planned features and fixes
 - Enhanced visual effects and animations
-- Add support for multiple words tables for more than one language
+- Add support for multiple phrases tables for more than one language
 - Integration with [Anki](https://apps.ankiweb.net/)
 - API optimization and potential load balancing
 - Code quality improvements and testing coverage
