@@ -12,7 +12,7 @@ test('renders empty message if grid is empty', () => {
     render(
         withI18n(
             <ThemeProvider theme={theme}>
-                <Grid grid={[]} words={[]} found={[]} onFound={() => { }} />
+                <Grid grid={[]} phrases={[]} found={[]} onFound={() => { }} />
             </ThemeProvider>
         )
     );
@@ -24,7 +24,7 @@ test('renders grid cells', () => {
     render(
         withI18n(
             <ThemeProvider theme={theme}>
-                <Grid grid={grid} words={[]} found={[]} onFound={() => { }} />
+                <Grid grid={grid} phrases={[]} found={[]} onFound={() => { }} />
             </ThemeProvider>
         )
     );
@@ -34,18 +34,18 @@ test('renders grid cells', () => {
     expect(screen.getByText('D')).toBeInTheDocument();
 });
 
-test('highlights found word cells', () => {
+test('highlights found phrase cells', () => {
     const grid = [['A', 'B'], ['C', 'D']];
-    const words = [
-        { word: 'AB', coords: [[0, 0], [0, 1]] },
-        { word: 'CD', coords: [[1, 0], [1, 1]] }
+    const phrases = [
+        { phrase: 'AB', coords: [[0, 0], [0, 1]] },
+        { phrase: 'CD', coords: [[1, 0], [1, 1]] }
     ];
     const found = ['AB'];
-    // Render the grid with the found word
+    // Render the grid with the found phrase
     render(
         withI18n(
             <ThemeProvider theme={theme}>
-                <Grid grid={grid} words={words} found={found} onFound={() => { }} />
+                <Grid grid={grid} phrases={phrases} found={found} onFound={() => { }} />
             </ThemeProvider>
         )
     );

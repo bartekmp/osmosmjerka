@@ -35,7 +35,7 @@ export const useMovementHandlers = ({
     startSelection,
     endSelection,
     updateSelection,
-    handleWordMatch,
+    handlePhraseMatch,
     gridSize,
     selected,
     setSelected
@@ -73,8 +73,8 @@ export const useMovementHandlers = ({
     const handleMouseUp = useCallback(() => {
         if (!isMouseDown.current) return;
         endSelection();
-        handleWordMatch();
-    }, [endSelection, handleWordMatch, isMouseDown]);
+        handlePhraseMatch();
+    }, [endSelection, handlePhraseMatch, isMouseDown]);
 
     // Touch event handlers
     const handleTouchStart = useCallback((e) => {

@@ -17,9 +17,9 @@ const GameControls = ({
     selectedCategoryState,
     difficultyState,
     grid,
-    words,
+    phrases,
     isLoading,
-    notEnoughWords
+    notEnoughPhrases
 }) => {
     const { t } = useTranslation();
 
@@ -81,8 +81,8 @@ const GameControls = ({
                     <ExportButton
                         category={selectedCategoryState}
                         grid={grid}
-                        words={words}
-                        disabled={isLoading || grid.length === 0 || notEnoughWords}
+                        phrases={phrases}
+                        disabled={isLoading || grid.length === 0 || notEnoughPhrases}
                         t={t}
                     />
 

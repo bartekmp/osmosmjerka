@@ -4,14 +4,14 @@ import { useTranslation } from 'react-i18next';
 import './Grid.css';
 import ScrabbleGridCell from './GridCell';
 import './GridContainer.css';
-import { GridSelection, findMatchingWord, generateMexicanWave } from './gridUtils';
+import { GridSelection, findMatchingPhrase, generateMexicanWave } from './gridUtils';
 import { getDirection, isStraightLine } from './helpers';
 import { useGridSize, useMouseSelection } from './hooks';
 import { useMovementHandlers } from './movementHandlers';
 
 const ScrabbleGrid = forwardRef(({
     grid,
-    words,
+    phrases,
     found,
     onFound,
     disabled = false,
@@ -69,22 +69,22 @@ const ScrabbleGrid = forwardRef(({
         animateStep();
     }, [gridSize]);
 
-    const blinkWord = useCallback((word) => {
+    const blinkPhrase = useCallback((phrase) => {
         if (blinkTimeoutRef.current) {
             clearTimeout(blinkTimeoutRef.current);
         }
 
-        const wordData = words.find(w => w.word === word);
-        if (!wordData) return;
+        const phraseData = phrases.find(p => p.phrase === phrase);
+        if (!phraseData) return;
 
         setBlinkingCells([]);
         setTimeout(() => {
-            setBlinkingCells(wordData.coords);
+            setBlinkingCells(phraseData.coords);
             blinkTimeoutRef.current = setTimeout(() => {
                 setBlinkingCells([]);
             }, 1500);
         }, 10);
-    }, [words]);
+    }, [phrases]);
 
     // Selection methods
     const updateSelection = useCallback((targetRow, targetCol) => {
@@ -104,18 +104,18 @@ const ScrabbleGrid = forwardRef(({
         }
     }, [gridSize]);
 
-    const handleWordMatch = useCallback(() => {
+    const handlePhraseMatch = useCallback(() => {
         if (!isStraightLine(selected)) {
             setSelected([]);
             return;
         }
 
-        const matchedWord = findMatchingWord(selected, words);
-        if (matchedWord) {
-            onFound(matchedWord.word);
+        const matchedPhrase = findMatchingPhrase(selected, phrases);
+        if (matchedPhrase) {
+            onFound(matchedPhrase.phrase);
         }
         setSelected([]);
-    }, [selected, words, onFound]);
+    }, [selected, phrases, onFound]);
 
     // Movement handlers
     const movementHandlers = useMovementHandlers({
@@ -126,7 +126,7 @@ const ScrabbleGrid = forwardRef(({
         startSelection,
         endSelection,
         updateSelection,
-        handleWordMatch,
+        handlePhraseMatch,
         gridSize,
         selected,
         setSelected
@@ -148,11 +148,11 @@ const ScrabbleGrid = forwardRef(({
     }, [celebrationCells]);
 
     const isFound = useCallback((r, c) => {
-        return words.some(w =>
-            found.includes(w.word) &&
-            w.coords.some(([wr, wc]) => wr === r && wc === c)
+        return phrases.some(p =>
+            found.includes(p.phrase) &&
+            p.coords.some(([pr, pc]) => pr === r && pc === c)
         );
-    }, [words, found]);
+    }, [phrases, found]);
 
     // Effect hooks
     useEffect(() => {
@@ -188,8 +188,8 @@ const ScrabbleGrid = forwardRef(({
 
     // Expose blink function to parent
     useImperativeHandle(ref, () => ({
-        blinkWord
-    }), [blinkWord]);
+        blinkPhrase
+    }), [blinkPhrase]);
 
     // Early return for empty grid - AFTER all hooks have been called
     if (gridSize === 0) {

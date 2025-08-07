@@ -17,7 +17,7 @@ const mockTranslationFn = (key) => {
         'no_rows_found': 'No rows found',
         'try_different_search_terms': 'Try different search terms',
         'category_empty': 'Category is empty',
-        'no_words_in_selected_category': 'No words in selected category',
+        'no_phrases_in_selected_category': 'No phrases in selected category',
         'clear_search': 'Clear Search'
     };
     return translations[key] || key;
@@ -56,7 +56,7 @@ describe('TableNoRowsOverlay', () => {
         );
         
         expect(screen.getByText('Category is empty')).toBeInTheDocument();
-        expect(screen.getByText('No words in selected category')).toBeInTheDocument();
+        expect(screen.getByText('No phrases in selected category')).toBeInTheDocument();
         // Should not render clear search button
         expect(screen.queryByText('Clear Search')).not.toBeInTheDocument();
     });

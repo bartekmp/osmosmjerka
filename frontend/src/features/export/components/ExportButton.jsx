@@ -7,7 +7,7 @@ import './ExportButton.css';
 import { useTranslation } from 'react-i18next';
 import { ResponsiveText } from '../../../shared';
 
-export default function ExportButton({ category, grid, words, disabled }) {
+export default function ExportButton({ category, grid, phrases, disabled }) {
     const [modalOpen, setModalOpen] = useState(false);
     const { t } = useTranslation();
 
@@ -15,7 +15,7 @@ export default function ExportButton({ category, grid, words, disabled }) {
         try {
             const response = await axios.post(
                 "/api/export",
-                { category, grid, words, format },
+                { category, grid, phrases, format },
                 { responseType: 'blob' }
             );
 
@@ -25,7 +25,6 @@ export default function ExportButton({ category, grid, words, disabled }) {
             // Determine file extension based on format
             const extensions = {
                 'docx': 'docx',
-                'pdf': 'pdf',
                 'png': 'png'
             };
             const extension = extensions[format] || 'docx';
@@ -73,8 +72,7 @@ export default function ExportButton({ category, grid, words, disabled }) {
                     gap: { xs: 0, sm: 1 }
                 }}
             >
-                <span>📄</span>
-                <ResponsiveText desktop={t('export')} />
+                <ResponsiveText desktop={'📄 ' + t('export')} mobile="📄" />
             </Button>
 
             <ExportModal

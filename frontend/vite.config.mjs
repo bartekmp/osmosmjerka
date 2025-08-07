@@ -83,6 +83,6 @@ export default defineConfig({
         },
     },
     publicDir: 'public',
-    // Use different base paths for dev vs build
-    base: process.env.NODE_ENV === 'production' ? '/static/' : '/',
+    // Always use root base path
+    base: '/',
 });

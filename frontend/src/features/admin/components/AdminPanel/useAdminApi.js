@@ -12,10 +12,11 @@ export function useAdminApi({ token, setRows, setTotalRows, setDashboard, setErr
         ? { Authorization: 'Bearer ' + token, 'Content-Type': 'application/json' }
         : {};
 
-    const fetchRows = useCallback((offset, limit, filterCategory, searchTerm) => {
+    const fetchRows = useCallback((offset, limit, filterCategory, searchTerm, languageSetId) => {
         let url = `/admin/rows?offset=${offset}&limit=${limit}`;
         if (filterCategory) url += `&category=${encodeURIComponent(filterCategory)}`;
         if (searchTerm && searchTerm.trim()) url += `&search=${encodeURIComponent(searchTerm.trim())}`;
+        if (languageSetId) url += `&language_set_id=${languageSetId}`;
         
         console.log('Fetching with URL:', url); // Debug log
         
@@ -72,7 +73,7 @@ export function useAdminApi({ token, setRows, setTotalRows, setDashboard, setErr
             if (editRow.id) {
                 setEditRow(null);
             } else {
-                setEditRow({ categories: '', word: '', translation: '' });
+                setEditRow({ categories: '', phrase: '', translation: '' });
             }
         });
     }, [authHeader]);

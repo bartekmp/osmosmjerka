@@ -113,17 +113,17 @@ def test_admin_api_imports():
     assert admin_module.router.prefix == "/admin"
 
 
-# Test word/row management endpoints
-@patch('osmosmjerka.database.db_manager.get_words_for_admin')
-@patch('osmosmjerka.database.db_manager.get_word_count_for_admin')
-def test_get_all_rows(mock_get_count, mock_get_words, client, mock_admin_user):
+# Test phrase/row management endpoints
+@patch('osmosmjerka.database.db_manager.get_phrases_for_admin')
+@patch('osmosmjerka.database.db_manager.get_phrase_count_for_admin')
+def test_get_all_rows(mock_get_count, mock_get_phrases, client, mock_admin_user):
     """Test getting all rows with pagination and filtering"""
     # Override the dependency
     app.dependency_overrides[require_admin_access] = lambda: mock_admin_user
     
-    mock_get_words.return_value = [
-        {"id": 1, "word": "test", "categories": "A", "translation": "test1"},
-        {"id": 2, "word": "example", "categories": "B", "translation": "test2"}
+    mock_get_phrases.return_value = [
+        {"id": 1, "phrase": "test", "categories": "A", "translation": "test1"},
+        {"id": 2, "phrase": "example", "categories": "B", "translation": "test2"}
     ]
     mock_get_count.return_value = 2
     
@@ -136,107 +136,107 @@ def test_get_all_rows(mock_get_count, mock_get_words, client, mock_admin_user):
     assert data["total"] == 2
     assert len(data["rows"]) == 2
     
-    mock_get_words.assert_called_once_with("A", 10, 0, "test")
-    mock_get_count.assert_called_once_with("A", "test")
+    mock_get_phrases.assert_called_once_with(None, "A", 10, 0, "test")
+    mock_get_count.assert_called_once_with(None, "A", "test")
 
 
-@patch('osmosmjerka.database.db_manager.add_word')
-def test_add_row(mock_add_word, client, mock_admin_user):
-    """Test adding a new word/row"""
+@patch('osmosmjerka.database.db_manager.add_phrase')
+def test_add_row(mock_add_phrase, client, mock_admin_user):
+    """Test adding a new phrase/row"""
     # Override the dependency
     app.dependency_overrides[require_admin_access] = lambda: mock_admin_user
-    mock_add_word.return_value = None
+    mock_add_phrase.return_value = None
 
     row_data = {
-        "word": "nuevo",
+        "phrase": "nuevo",
         "categories": "Spanish",
         "translation": "new"
     }
 
-    response = client.post("/admin/row", json=row_data)
+    response = client.post("/admin/row?language_set_id=1", json=row_data)
 
     assert response.status_code == 201
     data = response.json()
-    assert data["message"] == "Row added"
-    mock_add_word.assert_called_once_with("Spanish", "nuevo", "new")
+    assert data["message"] == "Phrase added"
+    mock_add_phrase.assert_called_once_with(1, "Spanish", "nuevo", "new")
 
 
-@patch('osmosmjerka.database.db_manager.update_word')
-def test_update_row(mock_update_word, client, mock_admin_user):
-    """Test updating an existing word/row"""
+@patch('osmosmjerka.database.db_manager.update_phrase')
+def test_update_row(mock_update_phrase, client, mock_admin_user):
+    """Test updating an existing phrase/row"""
     # Override the dependency
     app.dependency_overrides[require_admin_access] = lambda: mock_admin_user
-    mock_update_word.return_value = None
+    mock_update_phrase.return_value = None
 
     row_data = {
-        "word": "updated",
+        "phrase": "updated",
         "categories": "Updated Category",
         "translation": "updated translation"
     }
 
-    response = client.put("/admin/row/1", json=row_data)
+    response = client.put("/admin/row/1?language_set_id=1", json=row_data)
 
     assert response.status_code == 200
     data = response.json()
-    assert data["message"] == "Row updated"
-    mock_update_word.assert_called_once_with(1, "Updated Category", "updated", "updated translation")
+    assert data["message"] == "Phrase updated"
+    mock_update_phrase.assert_called_once_with(1, 1, "Updated Category", "updated", "updated translation")
 
 
-@patch('osmosmjerka.database.db_manager.delete_word')
-def test_delete_row(mock_delete_word, client, mock_admin_user):
-    """Test deleting a word/row"""
+@patch('osmosmjerka.database.db_manager.delete_phrase')
+def test_delete_row(mock_delete_phrase, client, mock_admin_user):
+    """Test deleting a phrase/row"""
     # Override the dependency
     app.dependency_overrides[require_admin_access] = lambda: mock_admin_user
-    mock_delete_word.return_value = None
+    mock_delete_phrase.return_value = None
 
-    response = client.delete("/admin/row/1")
+    response = client.delete("/admin/row/1?language_set_id=1")
 
     assert response.status_code == 200
     data = response.json()
-    assert data["message"] == "Row deleted"
-    mock_delete_word.assert_called_once_with(1)
+    assert data["message"] == "Phrase deleted"
+    mock_delete_phrase.assert_called_once_with(1, 1)
 
 
-@patch('osmosmjerka.database.db_manager.clear_all_words')
+@patch('osmosmjerka.database.db_manager.clear_all_phrases')
 def test_clear_db(mock_clear_all, client, mock_admin_user):
-    """Test clearing all words from database"""
+    """Test clearing all phrases from database"""
     # Override the dependency
     app.dependency_overrides[require_admin_access] = lambda: mock_admin_user
     mock_clear_all.return_value = None
 
-    response = client.delete("/admin/clear")
+    response = client.delete("/admin/clear?language_set_id=1")
 
     assert response.status_code == 200
     data = response.json()
-    assert data["message"] == "Database cleared"
-    mock_clear_all.assert_called_once()
+    assert data["message"] == "Language set phrases cleared"
+    mock_clear_all.assert_called_once_with(1)
 
 
 # Test file upload functionality
-@patch('osmosmjerka.database.db_manager.fast_bulk_insert_words')
+@patch('osmosmjerka.database.db_manager.fast_bulk_insert_phrases')
 @patch('osmosmjerka.admin_api.run_in_threadpool')
 def test_upload_csv_file(mock_threadpool, mock_bulk_insert, client, mock_admin_user):
-    """Test uploading CSV file with words"""
+    """Test uploading CSV file with phrases"""
     # Override the dependency
     app.dependency_overrides[require_admin_access] = lambda: mock_admin_user
     mock_threadpool.return_value = None
     mock_bulk_insert.return_value = None
 
     # Create test CSV content
-    csv_content = "categories;word;translation\nSpanish;hola;hello\nFrench;bonjour;hello"
+    csv_content = "categories;phrase;translation\nSpanish;hola;hello\nFrench;bonjour;hello"
 
     response = client.post(
-        "/admin/upload",
+        "/admin/upload?language_set_id=1",
         files={"file": ("test.csv", csv_content, "text/csv")}
     )
 
     assert response.status_code == 201
     data = response.json()
-    assert data["message"] == "Uploaded 2 words"
+    assert data["message"] == "Uploaded 2 phrases"
     mock_threadpool.assert_called_once()
 
 
-@patch('osmosmjerka.database.db_manager.fast_bulk_insert_words')
+@patch('osmosmjerka.database.db_manager.fast_bulk_insert_phrases')
 @patch('osmosmjerka.admin_api.run_in_threadpool')
 def test_upload_csv_file_with_line_breaks(mock_threadpool, mock_bulk_insert, client, mock_admin_user):
     """Test uploading CSV file with translations containing line breaks"""
@@ -246,16 +246,16 @@ def test_upload_csv_file_with_line_breaks(mock_threadpool, mock_bulk_insert, cli
     mock_bulk_insert.return_value = None
 
     # Create test CSV content with line breaks
-    csv_content = 'categories;word;translation\nSpanish;hola;"hello\\nhi"\nFrench;bonjour;"hello<br>hi"'
+    csv_content = 'categories;phrase;translation\nSpanish;hola;"hello\\nhi"\nFrench;bonjour;"hello<br>hi"'
 
     response = client.post(
-        "/admin/upload",
+        "/admin/upload?language_set_id=1",
         files={"file": ("test.csv", csv_content, "text/csv")}
     )
 
     assert response.status_code == 201
     data = response.json()
-    assert data["message"] == "Uploaded 2 words"
+    assert data["message"] == "Uploaded 2 phrases"
     mock_threadpool.assert_called_once()
 
 
@@ -265,13 +265,13 @@ def test_upload_empty_file(client, mock_admin_user):
     app.dependency_overrides[require_admin_access] = lambda: mock_admin_user
 
     response = client.post(
-        "/admin/upload",
+        "/admin/upload?language_set_id=1",
         files={"file": ("empty.csv", "", "text/csv")}
     )
 
     assert response.status_code == 400
     data = response.json()
-    assert "Upload failed - no valid words found" in data["message"]
+    assert "Upload failed - no valid phrases found" in data["message"]
 
 
 def test_upload_non_csv_file(client, mock_admin_user):
@@ -280,55 +280,55 @@ def test_upload_non_csv_file(client, mock_admin_user):
     app.dependency_overrides[require_admin_access] = lambda: mock_admin_user
 
     response = client.post(
-        "/admin/upload",
+        "/admin/upload?language_set_id=1",
         files={"file": ("test.txt", "not csv content", "text/plain")}
     )
 
     assert response.status_code == 400
     data = response.json()
-    assert "Upload failed - no valid words found" in data["message"]
+    assert "Upload failed - no valid phrases found" in data["message"]
 
 
 # Test export functionality
-@patch('osmosmjerka.database.db_manager.get_words')
-def test_export_data(mock_get_words, client, mock_admin_user):
+@patch('osmosmjerka.database.db_manager.get_phrases')
+def test_export_data(mock_get_phrases, client, mock_admin_user):
     """Test exporting data as CSV"""
     # Override the dependency
     app.dependency_overrides[require_admin_access] = lambda: mock_admin_user
-    mock_get_words.return_value = [
-        {"categories": "Spanish", "word": "hola", "translation": "hello"},
-        {"categories": "French", "word": "bonjour", "translation": "hello\nhi"}
+    mock_get_phrases.return_value = [
+        {"categories": "Spanish", "phrase": "hola", "translation": "hello"},
+        {"categories": "French", "phrase": "bonjour", "translation": "hello\nhi"}
     ]
 
     response = client.get("/admin/export?category=Spanish")
 
     assert response.status_code == 200
     assert response.headers["content-type"] == "text/csv; charset=utf-8"
-    assert "attachment; filename=export_Spanish.csv" in response.headers["content-disposition"]
+    assert "attachment; filename=export_default_Spanish.csv" in response.headers["content-disposition"]
     
     # Check CSV content
     content = response.content.decode("utf-8")
-    assert "categories;word;translation" in content
+    assert "categories;phrase;translation" in content
     assert "Spanish;hola;hello" in content
-    mock_get_words.assert_called_once_with("Spanish")
+    mock_get_phrases.assert_called_once_with(None, "Spanish")
 
 
-@patch('osmosmjerka.database.db_manager.get_words')
-def test_export_data_all_categories(mock_get_words, client, mock_admin_user):
+@patch('osmosmjerka.database.db_manager.get_phrases')
+def test_export_data_all_categories(mock_get_phrases, client, mock_admin_user):
     """Test exporting all categories"""
     # Override the dependency
     app.dependency_overrides[require_admin_access] = lambda: mock_admin_user
-    mock_get_words.return_value = [
-        {"categories": "Spanish", "word": "hola", "translation": "hello"},
-        {"categories": "French", "word": "bonjour", "translation": "hello"}
+    mock_get_phrases.return_value = [
+        {"categories": "Spanish", "phrase": "hola", "translation": "hello"},
+        {"categories": "French", "phrase": "bonjour", "translation": "hello"}
     ]
 
     response = client.get("/admin/export")
 
     assert response.status_code == 200
     assert response.headers["content-type"] == "text/csv; charset=utf-8"
-    assert "attachment; filename=export_all.csv" in response.headers["content-disposition"]
-    mock_get_words.assert_called_once_with(None)
+    assert "attachment; filename=export_default_all.csv" in response.headers["content-disposition"]
+    mock_get_phrases.assert_called_once_with(None, None)
 
 
 # Test user management endpoints (root admin only)

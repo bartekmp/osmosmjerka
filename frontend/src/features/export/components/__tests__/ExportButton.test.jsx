@@ -7,13 +7,13 @@ import { withI18n } from '../../../../testUtils';
 jest.mock('axios');
 
 test('renders Export button', () => {
-    render(withI18n(<ExportButton foundWords={[]} />));
+    render(withI18n(<ExportButton />));
     const button = screen.getByRole('button', { name: /export/i });
     expect(button).toBeInTheDocument();
 });
 
 test('opens modal when export button is clicked', () => {
-    render(withI18n(<ExportButton category="TestCat" grid={[[1]]} words={['word']} />));
+    render(withI18n(<ExportButton category="TestCat" grid={[[1]]} phrases={['phrase']} />));
     const btn = screen.getByRole('button', { name: /export/i });
     fireEvent.click(btn);
     // Check if modal is opened (match translation key or English fallback)
@@ -25,7 +25,7 @@ test('opens modal when export button is clicked', () => {
 test('handles export with format selection', async () => {
     const mockBlob = new Blob(['test data']);
     axios.post.mockResolvedValue({ data: mockBlob });
-    render(withI18n(<ExportButton category="TestCat" grid={[['A']]} words={[{ word: 'test' }]} />));
+    render(withI18n(<ExportButton category="TestCat" grid={[['A']]} phrases={[{ phrase: 'test' }]} />));
     const btn = screen.getByRole('button', { name: /export/i });
     fireEvent.click(btn);
     // Select DOCX format
@@ -34,7 +34,7 @@ test('handles export with format selection', async () => {
     await waitFor(() => {
         expect(axios.post).toHaveBeenCalledWith(
             "/api/export",
-            { category: "TestCat", grid: [['A']], words: [{ word: 'test' }], format: 'docx' },
+            { category: "TestCat", grid: [['A']], phrases: [{ phrase: 'test' }], format: 'docx' },
             { responseType: 'blob' }
         );
     });
@@ -44,7 +44,7 @@ test('handles export failure', async () => {
     const error = new Error('Export failed');
     axios.post.mockRejectedValue(error);
     const consoleErrorSpy = jest.spyOn(console, 'error').mockImplementation(() => { });
-    render(withI18n(<ExportButton category="TestCat" grid={[[1]]} words={['word']} />));
+    render(withI18n(<ExportButton category="TestCat" grid={[[1]]} phrases={['phrase']} />));
     const btn = screen.getByRole('button', { name: /export/i });
     fireEvent.click(btn);
     const docxButton = screen.getByText(/word document/i);

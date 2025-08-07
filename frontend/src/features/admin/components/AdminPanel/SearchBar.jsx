@@ -95,8 +95,8 @@ export default function SearchBar({
                 }
             }}
             sx={{
-                minWidth: { xs: '100%', sm: '250px' },
-                maxWidth: { xs: '100%', sm: '350px' },
+                minWidth: { xs: '100%', sm: '300px' },
+                maxWidth: { xs: '100%', sm: '450px' },
                 '& .MuiOutlinedInput-root': {
                     '&:hover fieldset': {
                         borderColor: '#b89c4e',

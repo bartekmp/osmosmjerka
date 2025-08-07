@@ -14,7 +14,7 @@ const AllFoundMessage = ({ allFound, loadPuzzle, selectedCategory, difficulty })
                 className="all-found-text"
                 color="success.main"
             >
-                🎉 {t('all_words_found')} 🎊
+                🎉 {t('all_phrases_found')} 🎊
             </Typography>
             <Button
                 onClick={() => loadPuzzle(selectedCategory, difficulty)}

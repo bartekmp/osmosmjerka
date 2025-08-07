@@ -20,7 +20,7 @@ import {
     createColumnHelper
 } from '@tanstack/react-table';
 import { measureTextWidth, calculateMinColumnWidths } from './adminTableUtils';
-import EditWordDialog from './EditWordDialog';
+import EditPhraseDialog from './EditPhraseDialog';
 import TextViewDialog from './TextViewDialog';
 import SearchBar from './SearchBar';
 import TableRowActions from './TableRowActions';
@@ -73,7 +73,7 @@ export default function AdminTable({ rows, setEditRow, onSaveRow, onDeleteRow, t
     };
 
     const handleDelete = (row) => {
-        if (window.confirm(t('confirm_delete_word', { word: row.word }))) {
+        if (window.confirm(t('confirm_delete_phrase', { phrase: row.phrase }))) {
             onDeleteRow(row.id);
         }
     };
@@ -117,13 +117,13 @@ export default function AdminTable({ rows, setEditRow, onSaveRow, onDeleteRow, t
             enableResizing: true,
             cell: info => renderExpandableText(info.getValue(), 'categories', t, openTextDialog)
         }),
-        columnHelper.accessor('word', {
-            header: t('word'),
+        columnHelper.accessor('phrase', {
+            header: t('phrase'),
             size: 200,
-            minSize: minColumnWidths.word || 150,
+            minSize: minColumnWidths.phrase || 150,
             maxSize: 350,
             enableResizing: true,
-            cell: info => renderExpandableText(info.getValue(), 'word', t, openTextDialog)
+            cell: info => renderExpandableText(info.getValue(), 'phrase', t, openTextDialog)
         }),
         columnHelper.accessor('translation', {
             header: t('translation'),
@@ -187,7 +187,7 @@ export default function AdminTable({ rows, setEditRow, onSaveRow, onDeleteRow, t
                 <SearchBar
                     value={localSearchTerm}
                     onChange={handleSearchChange}
-                    placeholder={t('search_words_translations')}
+                    placeholder={t('search_phrases_translations')}
                     sx={{
                         minWidth: { xs: 200, sm: 300, md: 400 },
                         maxWidth: { xs: '100%', sm: 400 },
@@ -343,8 +343,8 @@ export default function AdminTable({ rows, setEditRow, onSaveRow, onDeleteRow, t
                 onClose={closeTextDialog}
             />
 
-            {/* Edit Word Dialog */}
-            <EditWordDialog
+            {/* Edit Phrase Dialog */}
+            <EditPhraseDialog
                 open={editDialog.open}
                 row={editDialog.row}
                 onClose={handleCloseEditDialog}

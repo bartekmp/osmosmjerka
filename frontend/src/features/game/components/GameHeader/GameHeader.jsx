@@ -20,13 +20,13 @@ const GameHeader = ({
                 <Box className="logo-container">
                     <Box
                         component="img"
-                        src="/static/android-chrome-512x512.png"
+                        src="/android-chrome-512x512.png"
                         alt="Osmosmjerka logo"
                         className="logo-image"
                         style={{ filter: logoFilter }}
                         onError={e => { 
                             e.target.onerror = null; 
-                            e.target.src = "/static/favicon-32x32.png"; 
+                            e.target.src = "/favicon-32x32.png"; 
                         }}
                     />
                 </Box>

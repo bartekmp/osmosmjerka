@@ -47,7 +47,7 @@ export const API_ENDPOINTS = {
   CATEGORIES: '/api/categories',
   IGNORED_CATEGORIES: '/api/ignored-categories',
   ALL_CATEGORIES: '/admin/all-categories',
-  WORDS: '/api/words',
+  PHRASES: '/api/phrases',
   EXPORT: '/api/export',
   ADMIN_STATUS: '/admin/status',
   ADMIN_CLEAR: '/admin/clear'

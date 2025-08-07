@@ -60,7 +60,7 @@ export default function TableNoRowsOverlay({
                     title={searchTerm ? t('no_rows_found') : t('category_empty')}
                     message={searchTerm 
                         ? t('try_different_search_terms')
-                        : t('no_words_in_selected_category')
+                        : t('no_phrases_in_selected_category')
                     }
                     icon={searchTerm 
                         ? <SearchOff sx={{ fontSize: 40 }} />

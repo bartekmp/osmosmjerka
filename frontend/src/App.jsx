@@ -1,12 +1,12 @@
 import axios from 'axios';
 import confetti from 'canvas-confetti';
-import React, { useEffect, useState, useRef, Suspense, lazy } from 'react';
+import React, { useEffect, useState, useRef, Suspense, lazy, useCallback } from 'react';
 import { Route, Routes, useLocation, Link } from 'react-router-dom';
 import { ThemeProvider as MUIThemeProvider, CssBaseline, Box, Typography } from '@mui/material';
 import { Container, Stack, CircularProgress, FormControl, InputLabel, MenuItem, Select, Button } from '@mui/material';
 import {
     ScrabbleGrid,
-    WordList,
+    PhraseList,
     GameHeader,
     GameControls,
     CategorySelector,
@@ -15,7 +15,7 @@ import {
     AllFoundMessage,
     AdminControls
 } from './features';
-import { LanguageSwitcher, NightModeButton } from './shared';
+import { LanguageSwitcher, NightModeButton, LanguageSetSelector } from './shared';
 import { ThemeProvider, useThemeMode } from './contexts/ThemeContext';
 import createAppTheme from './theme';
 import './style.css';
@@ -51,11 +51,16 @@ function AppContent() {
     const [categories, setCategories] = useState([]);
     const [ignoredCategories, setIgnoredCategories] = useState([]);
     const [selectedCategory, setSelectedCategory] = useState('');
+    const [selectedLanguageSetId, setSelectedLanguageSetId] = useState(() => {
+        // Load from localStorage or default to null
+        const saved = localStorage.getItem(STORAGE_KEYS.SELECTED_LANGUAGE_SET);
+        return saved ? parseInt(saved) : null;
+    });
     const [grid, setGrid] = useState([]);
-    const [words, setWords] = useState([]);
+    const [phrases, setPhrases] = useState([]);
     const [found, setFound] = useState([]);
     const [difficulty, setDifficulty] = useState('easy');
-    const [hideWords, setHideWords] = useState(false);
+    const [hidePhrases, setHidePhrases] = useState(false);
     const [showTranslations, setShowTranslations] = useState(() => {
         const saved = localStorage.getItem('osmosmjerkaGameState');
         if (saved) {
@@ -67,16 +72,33 @@ function AppContent() {
         return false;
     });
     const [restored, setRestored] = useState(false);
-    const [notEnoughWords, setNotEnoughWords] = useState(false);
-    const [notEnoughWordsMsg, setNotEnoughWordsMsg] = useState("");
+    const [notEnoughPhrases, setNotEnoughPhrases] = useState(false);
+    const [notEnoughPhrasesMsg, setNotEnoughPhrasesMsg] = useState("");
     const [isLoading, setIsLoading] = useState(false);
     const [panelOpen, setPanelOpen] = useState(false);
 
-    // Winning condition: all words found
-    const allFound = words.length > 0 && found.length === words.length;
+    // Refs to prevent duplicate API calls in StrictMode
+    const ignoredCategoriesFetchedRef = useRef(false);
+    const lastFetchedLanguageSetIdRef = useRef(null);
+
+    // Winning condition: all phrases found
+    const allFound = phrases.length > 0 && found.length === phrases.length;
     
     // Use celebration hook
-    const { showCelebration, resetCelebration, celebrationTriggeredRef } = useCelebration(allFound, setLogoFilter);    // Apply theme data attribute to body
+    const { showCelebration, resetCelebration, celebrationTriggeredRef } = useCelebration(allFound, setLogoFilter);
+
+    // Memoized callback for language set changes to prevent unnecessary re-renders
+    const handleLanguageSetChange = useCallback((languageSetId) => {
+        setSelectedLanguageSetId(languageSetId);
+        // Save to localStorage
+        localStorage.setItem(STORAGE_KEYS.SELECTED_LANGUAGE_SET, languageSetId?.toString() || '');
+        // Clear current game state when changing language set
+        setGrid([]);
+        setSelected([]);
+        setPhrases([]);
+    }, []);
+
+    // Apply theme data attribute to body
     useEffect(() => {
         document.body.setAttribute('data-theme', isDarkMode ? 'dark' : 'light');
     }, [isDarkMode]);
@@ -85,58 +107,71 @@ function AppContent() {
     useEffect(() => {
         restoreGameState({
             setGrid,
-            setWords,
+            setPhrases,
             setFound,
             setSelectedCategory,
             setDifficulty,
-            setHideWords,
+            setHidePhrases,
             setShowTranslations,
             setRestored
         });
         // eslint-disable-next-line
     }, []);
 
+    // Load ignored categories only once on mount (they're global)
     useEffect(() => {
+        if (ignoredCategoriesFetchedRef.current) return;
+        ignoredCategoriesFetchedRef.current = true;
+        
         axios.get(API_ENDPOINTS.IGNORED_CATEGORIES).then(res => {
             setIgnoredCategories(res.data);
         }).catch(err => {
             console.error('Error loading ignored categories:', err);
-        });
-
-        axios.get(API_ENDPOINTS.CATEGORIES).then(res => {
-            setCategories(res.data);
-            if (res.data.length > 0 && !selectedCategory && restored && grid.length === 0) {
-                const randomIndex = Math.floor(Math.random() * res.data.length);
-                setSelectedCategory(res.data[randomIndex]);
-            }
-        }).catch(err => {
-            console.error('Error loading categories:', err);
-        });
-        // eslint-disable-next-line
-    }, [restored]);
-
-    // Also load categories immediately, not just when restored
-    useEffect(() => {
-        axios.get(API_ENDPOINTS.CATEGORIES).then(res => {
-            setCategories(res.data);
-        }).catch(err => {
-            console.error('Error loading categories on mount:', err);
+            ignoredCategoriesFetchedRef.current = false; // Reset on error to allow retry
         });
     }, []);
 
-    // Save state to localStorage on change, including showTranslations
+    useEffect(() => {
+        // Prevent duplicate API calls for the same language set
+        if (lastFetchedLanguageSetIdRef.current === selectedLanguageSetId) return;
+        lastFetchedLanguageSetIdRef.current = selectedLanguageSetId;
+        
+        // Load categories with language set parameter
+        let categoriesUrl = API_ENDPOINTS.CATEGORIES;
+        if (selectedLanguageSetId) {
+            categoriesUrl += `?language_set_id=${selectedLanguageSetId}`;
+        }
+
+        axios.get(categoriesUrl).then(res => {
+            setCategories(res.data);
+            if (res.data.length > 0 && !selectedCategory && restored && grid.length === 0) {
+                const randomIndex = Math.floor(Math.random() * res.data.length);
+                const randomCategory = res.data[randomIndex];
+                setSelectedCategory(randomCategory);
+                // Automatically load puzzle with the selected category
+                loadPuzzle(randomCategory, difficulty);
+            }
+        }).catch(err => {
+            console.error('Error loading categories:', err);
+            lastFetchedLanguageSetIdRef.current = null; // Reset on error to allow retry
+        });
+        // eslint-disable-next-line
+    }, [restored, selectedLanguageSetId]);
+
+    // Save state to localStorage on change, including showTranslations and selectedLanguageSetId
     useEffect(() => {
         saveGameState({
             grid,
-            words,
+            phrases,
             found,
             selectedCategory,
             difficulty,
-            hideWords,
+            hidePhrases,
             allFound,
             showTranslations,
+            selectedLanguageSetId,
         });
-    }, [grid, words, found, selectedCategory, difficulty, hideWords, allFound, showTranslations]);
+    }, [grid, phrases, found, selectedCategory, difficulty, hidePhrases, allFound, showTranslations, selectedLanguageSetId]);
 
     useEffect(() => {
         if (!restored) return;
@@ -152,33 +187,33 @@ function AppContent() {
         loadPuzzleHelper(category, diff, {
             setSelectedCategory,
             setGrid,
-            setWords,
+            setPhrases,
             setFound,
-            setHideWords,
+            setHidePhrases,
             setShowTranslations,
-            setNotEnoughWords,
-            setNotEnoughWordsMsg
-        }).finally(() => {
+            setNotEnoughPhrases,
+            setNotEnoughPhrasesMsg
+        }, t, selectedLanguageSetId).finally(() => {
             setIsLoading(false);
         });
     };
 
-    const markFound = (word) => {
-        if (!found.includes(word)) {
-            setFound([...found, word]);
+    const markFound = (phrase) => {
+        if (!found.includes(phrase)) {
+            setFound([...found, phrase]);
             confetti();
         }
     };
 
-    const handleWordBlink = (word) => {
+    const handlePhraseClick = (phrase) => {
         if (gridRef.current) {
-            gridRef.current.blinkWord(word);
+            gridRef.current.blinkPhrase(phrase);
         }
     };
 
-    // Automatically reveal words when all are found
+    // Automatically reveal phrases when all are found
     useEffect(() => {
-        if (allFound) setHideWords(false);
+        if (allFound) setHidePhrases(false);
     }, [allFound]);
 
     const visibleCategories = categories.filter(cat => !ignoredCategories.includes(cat));
@@ -297,14 +332,14 @@ function AppContent() {
                                 px: { xs: 1, sm: 2 },
                                 minHeight: { xs: 48, sm: 56, md: 64, lg: 72 } // Ensure minimum height
                             }}>
-                                {/* Logo and title - centered within available space */}
+                                {/* Logo and title - left aligned on mobile, centered on larger screens */}
                                 <Box sx={{
                                     position: 'absolute',
                                     left: 0,
-                                    right: { xs: '80px', sm: '150px', md: '180px' }, // Adjusted for unified sizing
+                                    right: { xs: '70px', sm: '140px', md: '170px' }, // Adjusted for smaller logo and controls
                                     display: 'flex',
                                     alignItems: 'center',
-                                    justifyContent: 'center',
+                                    justifyContent: { xs: 'flex-start', sm: 'center' }, // Left align on mobile, center on larger screens
                                     gap: { xs: 1, sm: 2 },
                                     cursor: 'pointer',
                                     overflow: 'hidden',
@@ -315,14 +350,14 @@ function AppContent() {
                                     <Box
                                         sx={{
                                             position: 'relative',
-                                            height: { xs: 38, sm: 36, md: 44, lg: 56 },
-                                            width: { xs: 38, sm: 36, md: 44, lg: 56 },
+                                            height: { xs: 30, sm: 32, md: 36, lg: 44 },
+                                            width: { xs: 30, sm: 32, md: 36, lg: 44 },
                                             flexShrink: 0,
                                         }}
                                     >
                                         <Box
                                             component="img"
-                                            src="/static/android-chrome-512x512.png"
+                                            src="/android-chrome-512x512.png"
                                             alt="Osmosmjerka logo"
                                             sx={{
                                                 height: '100%',
@@ -333,13 +368,13 @@ function AppContent() {
                                                 position: 'relative',
                                                 zIndex: 1,
                                             }}
-                                            onError={e => { e.target.onerror = null; e.target.src = "/static/favicon-32x32.png"; }}
+                                            onError={e => { e.target.onerror = null; e.target.src = "/favicon-32x32.png"; }}
                                         />
                                     </Box>
                                     <Typography
                                         variant="h1"
                                         sx={{
-                                            fontSize: { xs: '1.9rem', sm: '1.8rem', md: '2.5rem', lg: '3.2rem' }, // Increased xs font size
+                                            fontSize: { xs: '1.4rem', sm: '1.5rem', md: '2rem', lg: '2.5rem' }, // Reduced font sizes
                                             textAlign: 'center',
                                             userSelect: 'none',
                                             whiteSpace: 'nowrap',
@@ -392,15 +427,15 @@ function AppContent() {
                                         component={Link}
                                         to="/admin"
                                         sx={{
-                                            display: { xs: 'none', sm: 'flex' },
-                                            minWidth: { sm: 44, md: 48 },
-                                            height: { sm: 44, md: 48 },
-                                            minHeight: { sm: 44, md: 48 },
+                                            display: 'flex', // Show on all screen sizes
+                                            minWidth: { xs: 36, sm: 44, md: 48 },
+                                            height: { xs: 36, sm: 44, md: 48 },
+                                            minHeight: { xs: 36, sm: 44, md: 48 },
                                             fontSize: { sm: '0.8rem', md: '0.9rem' },
-                                            px: { sm: 0.75, md: 1 }
+                                            px: { xs: 0.5, sm: 0.75, md: 1 }
                                         }}
                                     >
-                                        {t('profile')}
+                                        <ResponsiveText desktop={t('profile')} mobile="👤" />
                                     </Button>
                                     <NightModeButton
                                         sx={{
@@ -413,33 +448,36 @@ function AppContent() {
                                 </Box>
                             </Box>
 
-                            {/* Toggle button for mobile, only when menu is closed */}
-                            {!panelOpen && (
-                                <Box sx={{
-                                    display: { xs: 'flex', sm: 'none' },
-                                    flexDirection: 'row',
-                                    alignItems: 'center',
-                                    width: '100%',
-                                    justifyContent: 'center',
-                                    mb: 1,
-                                }}>
-                                    <Button
-                                        onClick={() => setPanelOpen(true)}
-                                        sx={{
-                                            minWidth: 0,
-                                            width: 180,
-                                            height: 40,
-                                            mr: 1,
-                                            display: 'flex',
-                                            alignItems: 'center',
-                                            justifyContent: 'center',
-                                        }}
-                                        aria-label={t('show_controls')}
-                                    >
-                                        {t('menu')} ⬇️
-                                    </Button>
-                                </Box>
-                            )}
+                            {/* Mobile menu toggle button */}
+                            <Box sx={{
+                                display: { xs: 'flex', sm: 'none' },
+                                flexDirection: 'row',
+                                alignItems: 'center',
+                                width: '100%',
+                                justifyContent: 'center',
+                                mb: 1,
+                            }}>
+                                <Button
+                                    onClick={() => setPanelOpen(!panelOpen)}
+                                    sx={{
+                                        minWidth: 0,
+                                        width: 50,
+                                        height: 50,
+                                        display: 'flex',
+                                        alignItems: 'center',
+                                        justifyContent: 'center',
+                                        borderRadius: '50%',
+                                        fontSize: '1.5rem',
+                                        backgroundColor: panelOpen ? 'action.selected' : 'background.paper',
+                                        '&:hover': {
+                                            backgroundColor: panelOpen ? 'action.hover' : 'action.hover',
+                                        }
+                                    }}
+                                    aria-label={panelOpen ? t('hide_controls') : t('show_controls')}
+                                >
+                                    {panelOpen ? '✕' : '☰'}
+                                </Button>
+                            </Box>
 
                             {/* Control Panel: collapsible on mobile, always visible on desktop */}
                             <Box
@@ -456,6 +494,10 @@ function AppContent() {
                             >
                                 {/* Dropdowns container */}
                                 <Box sx={{ flex: 1, display: 'flex', flexDirection: 'column', gap: 2, maxWidth: { xs: '40%', sm: '70%' } }}>
+                                    <LanguageSetSelector
+                                        selectedLanguageSetId={selectedLanguageSetId}
+                                        onLanguageSetChange={handleLanguageSetChange}
+                                    />
                                     <CategorySelector
                                         categories={visibleCategories}
                                         selected={selectedCategory}
@@ -498,30 +540,10 @@ function AppContent() {
                                     <ExportButton
                                         category={selectedCategory}
                                         grid={grid}
-                                        words={words}
-                                        disabled={isLoading || grid.length === 0 || notEnoughWords}
+                                        phrases={phrases}
+                                        disabled={isLoading || grid.length === 0 || notEnoughPhrases}
                                         t={t}
                                     />
-
-                                    {/* Hide menu button for mobile, only when menu is open */}
-                                    {panelOpen && (
-                                        <Button
-                                            onClick={() => setPanelOpen(false)}
-                                            sx={{
-                                                display: { xs: 'flex', sm: 'none' },
-                                                alignItems: 'center',
-                                                justifyContent: 'center',
-                                                minWidth: 0,
-                                                width: 48,
-                                                height: 48,
-                                                fontSize: '1.5rem',
-                                                p: 0
-                                            }}
-                                            aria-label={t('hide_controls')}
-                                        >
-                                            ⬆️
-                                        </Button>
-                                    )}
                                 </Box>
                             </Box>
 
@@ -549,7 +571,7 @@ function AppContent() {
                                             lineHeight: 1.2
                                         }}
                                     >
-                                        🎉 {t('all_words_found')} 🎊
+                                                                                🎉 {t('all_phrases_found')} 🎊
                                     </Typography>
                                     <Button
                                         onClick={() => loadPuzzle(selectedCategory, difficulty)}
@@ -595,14 +617,14 @@ function AppContent() {
                                     <ScrabbleGrid
                                         ref={gridRef}
                                         grid={grid}
-                                        words={words}
+                                        phrases={phrases}
                                         found={found}
                                         onFound={markFound}
                                         disabled={allFound}
                                         isDarkMode={isDarkMode}
                                         showCelebration={showCelebration}
                                     />
-                                    {notEnoughWords && (
+                                    {notEnoughPhrases && (
                                         <Box sx={{
                                             position: 'absolute',
                                             top: 0,
@@ -625,22 +647,22 @@ function AppContent() {
                                                 textAlign: 'center',
                                                 fontWeight: 'bold'
                                             }}>
-                                                {notEnoughWordsMsg || t('not_enough_words')}
+                                                {notEnoughPhrasesMsg || t('not_enough_phrases')}
                                             </Box>
                                         </Box>
                                     )}
                                 </Box>
                                 <Box sx={{ width: { xs: '100%', md: 320 }, maxWidth: 400, alignSelf: { xs: 'flex-start', md: 'flex-start' }, position: { md: 'relative' }, left: { md: '0' }, top: { md: '0' } }}>
-                                    <WordList
-                                        words={words}
+                                    <PhraseList
+                                        phrases={phrases}
                                         found={found}
-                                        hideWords={hideWords}
-                                        setHideWords={setHideWords}
+                                        hidePhrases={hidePhrases}
+                                        setHidePhrases={setHidePhrases}
                                         allFound={allFound}
                                         showTranslations={showTranslations}
                                         setShowTranslations={setShowTranslations}
-                                        disableShowWords={notEnoughWords}
-                                        onWordBlink={handleWordBlink}
+                                        disableShowPhrases={notEnoughPhrases}
+                                        onPhraseClick={handlePhraseClick}
                                         t={t}
                                     />
                                 </Box>
