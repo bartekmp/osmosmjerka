@@ -40,6 +40,9 @@ start_frontend() {
     echo -e "${CYAN}⚛️  Starting Vite development server...${NC}"
     cd frontend
     
+    # Set development environment
+    export NODE_ENV=development
+    
     # Start Vite dev server in background
     npm run dev -- --host 0.0.0.0 --port $FRONTEND_PORT > /tmp/frontend-dev.log 2>&1 &
     FRONTEND_PID=$!
@@ -133,7 +136,10 @@ echo ""
 echo "============================================================"
 echo -e "${GREEN}🎯 Development servers starting...${NC}"
 echo -e "${GREEN}📍 Frontend (Dev): http://localhost:$FRONTEND_PORT${NC}"
+echo -e "${GREEN}📍 Frontend (Dev): http://workstation.local:$FRONTEND_PORT${NC}"
 echo -e "${GREEN}📍 Backend API: http://localhost:$BACKEND_PORT${NC}"
+echo -e "${YELLOW}💡 Access the app via the Frontend URLs (port $FRONTEND_PORT)${NC}"
+echo -e "${YELLOW}💡 API calls will be proxied to Backend (port $BACKEND_PORT)${NC}"
 echo -e "${YELLOW}💡 Press Ctrl+C to stop both servers${NC}"
 echo "============================================================"
 echo ""
@@ -141,4 +147,5 @@ echo ""
 # Start backend server
 cd backend
 source ../.venv/bin/activate  # Ensure venv is active for uvicorn
+export DEVELOPMENT_MODE=true  # Enable development mode for backend
 uvicorn osmosmjerka.app:app --host 0.0.0.0 --port $BACKEND_PORT --reload --reload-dir .

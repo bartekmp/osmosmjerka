@@ -1,7 +1,7 @@
 import pytest
 from unittest.mock import Mock, AsyncMock, patch
 from fastapi.testclient import TestClient
-from osmosmjerka.game_api import router, get_grid_size_and_num_words
+from osmosmjerka.game_api import router, get_grid_size_and_num_phrases
 from fastapi import FastAPI
 
 app = FastAPI()
@@ -13,6 +13,14 @@ def client():
     return TestClient(app)
 
 
+@pytest.fixture(autouse=True)
+def mock_db_connection():
+    """Automatically mock the database connection for all tests"""
+    with patch('osmosmjerka.database.db_manager._ensure_database'), \
+         patch('osmosmjerka.database.db_manager.database', Mock()):
+        yield
+
+
 def test_game_api_router_structure():
     """Test that the game API router is properly structured"""
     assert router is not None
@@ -22,7 +30,7 @@ def test_game_api_router_structure():
     assert len(router.routes) > 0
 
 
-@patch('osmosmjerka.database.db_manager.get_categories')
+@patch('osmosmjerka.database.db_manager.get_categories_for_language_set')
 @patch('osmosmjerka.game_api.IGNORED_CATEGORIES', {'ignored_cat'})
 def test_get_all_categories(mock_get_categories, client):
     """Test getting all categories with ignored categories filtered out"""
@@ -44,120 +52,120 @@ def test_get_ignored_categories(client):
         assert set(ignored) == {"X", "Y", "Z"}
 
 
-def test_get_grid_size_and_num_words_easy():
-    size, num_words = get_grid_size_and_num_words([{"word": "a"}] * 10, "easy")
-    assert size == 10 and num_words == 7
+def test_get_grid_size_and_num_phrases_easy():
+    size, num_phrases = get_grid_size_and_num_phrases([{"phrase": "a"}] * 10, "easy")
+    assert size == 10 and num_phrases == 7
 
 
-def test_get_grid_size_and_num_words_medium():
-    size, num_words = get_grid_size_and_num_words([{"word": "a"}] * 15, "medium")
-    assert size == 13 and num_words == 10
+def test_get_grid_size_and_num_phrases_medium():
+    size, num_phrases = get_grid_size_and_num_phrases([{"phrase": "a"}] * 15, "medium")
+    assert size == 13 and num_phrases == 10
 
 
-def test_get_grid_size_and_num_words_hard():
-    size, num_words = get_grid_size_and_num_words([{"word": "a"}] * 20, "hard")
-    assert size == 15 and num_words == 12
+def test_get_grid_size_and_num_phrases_hard():
+    size, num_phrases = get_grid_size_and_num_phrases([{"phrase": "a"}] * 20, "hard")
+    assert size == 15 and num_phrases == 12
 
 
-def test_get_grid_size_and_num_words_very_hard():
-    size, num_words = get_grid_size_and_num_words([{"word": "a"}] * 20, "very_hard")
-    assert size == 20 and num_words == 16
+def test_get_grid_size_and_num_phrases_very_hard():
+    size, num_phrases = get_grid_size_and_num_phrases([{"phrase": "a"}] * 20, "very_hard")
+    assert size == 20 and num_phrases == 16
 
 
-def test_get_grid_size_and_num_words_invalid():
-    size, num_words = get_grid_size_and_num_words([{"word": "a"}] * 10, "invalid")
-    assert size == 10 and num_words == 7  # defaults to easy
+def test_get_grid_size_and_num_phrases_invalid():
+    size, num_phrases = get_grid_size_and_num_phrases([{"phrase": "a"}] * 10, "invalid")
+    assert size == 10 and num_phrases == 7  # defaults to easy
 
 
-def test_get_grid_size_and_num_words_edge_cases():
+def test_get_grid_size_and_num_phrases_edge_cases():
     """Test edge cases for grid size calculation"""
-    # Empty word list - defaults to easy difficulty settings
-    size, num_words = get_grid_size_and_num_words([], "easy")
-    assert size == 10 and num_words == 7
+    # Empty phrase list - defaults to easy difficulty settings
+    size, num_phrases = get_grid_size_and_num_phrases([], "easy")
+    assert size == 10 and num_phrases == 7
     
-    # Single word - still uses difficulty settings
-    size, num_words = get_grid_size_and_num_words([{"word": "test"}], "easy")
-    assert size == 10 and num_words == 7
+    # Single phrase - still uses difficulty settings
+    size, num_phrases = get_grid_size_and_num_phrases([{"phrase": "test"}], "easy")
+    assert size == 10 and num_phrases == 7
     
     # Test unknown difficulty defaults to easy
-    size, num_words = get_grid_size_and_num_words([{"word": "test"}], "unknown")
-    assert size == 10 and num_words == 7
+    size, num_phrases = get_grid_size_and_num_phrases([{"phrase": "test"}], "unknown")
+    assert size == 10 and num_phrases == 7
 
 
-@patch('osmosmjerka.database.db_manager.get_categories')
-@patch('osmosmjerka.database.db_manager.get_words')
+@patch('osmosmjerka.database.db_manager.get_categories_for_language_set')
+@patch('osmosmjerka.database.db_manager.get_phrases')
 @patch('osmosmjerka.game_api.generate_grid')
-def test_get_words_no_category_specified(mock_generate_grid, mock_get_words, mock_get_categories, client):
-    """Test getting words when no category is specified"""
+def test_get_phrases_no_category_specified(mock_generate_grid, mock_get_phrases, mock_get_categories, client):
+    """Test getting phrases when no category is specified"""
     mock_get_categories.return_value = ["A", "B"]
-    mock_get_words.return_value = [{"word": "test", "categories": "A", "translation": "test"}] * 20
-    mock_generate_grid.return_value = ([["A"]], [{"word": "test"}])
+    mock_get_phrases.return_value = [{"phrase": "test", "categories": "A", "translation": "test"}] * 20
+    mock_generate_grid.return_value = ([["A"]], [{"phrase": "test"}])
     
-    response = client.get("/api/words")
+    response = client.get("/api/phrases")
     assert response.status_code == 200
     data = response.json()
     assert data["category"] in ["A", "B"]
     assert "grid" in data
-    assert "words" in data
+    assert "phrases" in data
 
 
-@patch('osmosmjerka.database.db_manager.get_categories')
-@patch('osmosmjerka.database.db_manager.get_words')
+@patch('osmosmjerka.database.db_manager.get_categories_for_language_set')
+@patch('osmosmjerka.database.db_manager.get_phrases')
 @patch('osmosmjerka.game_api.generate_grid')
-def test_get_words_invalid_category(mock_generate_grid, mock_get_words, mock_get_categories, client):
-    """Test getting words with invalid category falls back to random"""
+def test_get_phrases_invalid_category(mock_generate_grid, mock_get_phrases, mock_get_categories, client):
+    """Test getting phrases with invalid category falls back to random"""
     mock_get_categories.return_value = ["A", "B"]
-    mock_get_words.return_value = [{"word": "test", "categories": "A", "translation": "test"}] * 20
-    mock_generate_grid.return_value = ([["A"]], [{"word": "test"}])
+    mock_get_phrases.return_value = [{"phrase": "test", "categories": "A", "translation": "test"}] * 20
+    mock_generate_grid.return_value = ([["A"]], [{"phrase": "test"}])
     
-    response = client.get("/api/words?category=INVALID")
+    response = client.get("/api/phrases?category=INVALID")
     assert response.status_code == 200
     data = response.json()
     assert data["category"] in ["A", "B"]  # Should pick a random valid category
 
 
-@patch('osmosmjerka.database.db_manager.get_categories')
-@patch('osmosmjerka.database.db_manager.get_words')
-def test_get_words_no_words_found(mock_get_words, mock_get_categories, client):
-    """Test getting words when no words exist for category"""
+@patch('osmosmjerka.database.db_manager.get_categories_for_language_set')
+@patch('osmosmjerka.database.db_manager.get_phrases')
+def test_get_phrases_no_phrases_found(mock_get_phrases, mock_get_categories, client):
+    """Test getting phrases when no phrases exist for category"""
     mock_get_categories.return_value = ["A"]
-    mock_get_words.return_value = []
+    mock_get_phrases.return_value = []
     
-    response = client.get("/api/words?category=A")
+    response = client.get("/api/phrases?category=A")
     assert response.status_code == 404
     data = response.json()
-    assert "No words found" in data["error"]
+    assert "No phrases found" in data["error"]
 
 
-@patch('osmosmjerka.database.db_manager.get_categories')
-@patch('osmosmjerka.database.db_manager.get_words')
-def test_get_words_not_enough_words(mock_get_words, mock_get_categories, client):
-    """Test getting words when there aren't enough for difficulty"""
+@patch('osmosmjerka.database.db_manager.get_categories_for_language_set')
+@patch('osmosmjerka.database.db_manager.get_phrases')
+def test_get_phrases_not_enough_phrases(mock_get_phrases, mock_get_categories, client):
+    """Test getting phrases when there aren't enough for difficulty"""
     mock_get_categories.return_value = ["A"]
-    mock_get_words.return_value = [{"word": "a", "categories": "A", "translation": "a"}]  # Only 1 word
+    mock_get_phrases.return_value = [{"phrase": "a", "categories": "A", "translation": "a"}]  # Only 1 phrase
     
-    response = client.get("/api/words?category=A&difficulty=hard")  # Needs 12 words
+    response = client.get("/api/phrases?category=A&difficulty=hard")  # Needs 12 phrases
     assert response.status_code == 404
     data = response.json()
-    assert "Not enough words" in data["error"]
+    assert "Not enough phrases" in data["error"]
     assert data["available"] == 1
     assert data["needed"] == 12
 
 
-@patch('osmosmjerka.database.db_manager.get_categories')
-@patch('osmosmjerka.database.db_manager.get_words')
+@patch('osmosmjerka.database.db_manager.get_categories_for_language_set')
+@patch('osmosmjerka.database.db_manager.get_phrases')
 @patch('osmosmjerka.game_api.generate_grid')
-def test_get_words_success(mock_generate_grid, mock_get_words, mock_get_categories, client):
-    """Test successful word retrieval"""
+def test_get_phrases_success(mock_generate_grid, mock_get_phrases, mock_get_categories, client):
+    """Test successful phrase retrieval"""
     mock_get_categories.return_value = ["A"]
-    mock_get_words.return_value = [{"word": "a", "categories": "A", "translation": "a"}] * 20
-    mock_generate_grid.return_value = ([["A"]], [{"word": "a", "translation": "a"}])
+    mock_get_phrases.return_value = [{"phrase": "a", "categories": "A", "translation": "a"}] * 20
+    mock_generate_grid.return_value = ([["A"]], [{"phrase": "a", "translation": "a"}])
     
-    response = client.get("/api/words?category=A&difficulty=easy")
+    response = client.get("/api/phrases?category=A&difficulty=easy")
     assert response.status_code == 200
     data = response.json()
     assert "grid" in data
-    assert "words" in data
+    assert "phrases" in data
     assert "category" in data
     assert data["category"] == "A"
 
@@ -170,7 +178,7 @@ def test_export_puzzle_docx(mock_export_docx, client):
     data = {
         "category": "Test", 
         "grid": [["A"]], 
-        "words": [{"word": "A", "translation": "A"}],
+        "phrases": [{"phrase": "A", "translation": "A"}],
         "format": "docx"
     }
     response = client.post("/api/export", json=data)
@@ -189,7 +197,7 @@ def test_export_puzzle_png(mock_export_png, client):
     data = {
         "category": "Test", 
         "grid": [["A"]], 
-        "words": [{"word": "A", "translation": "A"}],
+        "phrases": [{"phrase": "A", "translation": "A"}],
         "format": "png"
     }
     response = client.post("/api/export", json=data)
@@ -206,7 +214,7 @@ def test_export_puzzle_default_format(client):
         data = {
             "category": "Test",
             "grid": [["A"]],
-            "words": [{"word": "A", "translation": "A"}]
+            "phrases": [{"phrase": "A", "translation": "A"}]
             # No format specified, should default to docx
         }
         response = client.post("/api/export", json=data)
@@ -225,7 +233,7 @@ def test_export_puzzle_invalid_format(client):
         data = {
             "category": "Test", 
             "grid": [["A"]], 
-            "words": [{"word": "A", "translation": "A"}],
+            "phrases": [{"phrase": "A", "translation": "A"}],
             "format": "invalid"
         }
         response = client.post("/api/export", json=data)
@@ -241,7 +249,7 @@ def test_export_puzzle_filename_sanitization(client):
         data = {
             "category": "Test Category with Spaces & Special!",
             "grid": [["A"]],
-            "words": [{"word": "A", "translation": "A"}],
+            "phrases": [{"phrase": "A", "translation": "A"}],
             "format": "docx"
         }
         response = client.post("/api/export", json=data)
@@ -258,7 +266,7 @@ def test_export_puzzle_no_category(client):
         data = {
             "category": "Test", 
             "grid": [["A"]],
-            "words": [{"word": "A", "translation": "A"}],
+            "phrases": [{"phrase": "A", "translation": "A"}],
             "format": "docx"
         }
         response = client.post("/api/export", json=data)
@@ -274,7 +282,7 @@ def test_export_puzzle_exception(client):
         data = {
             "category": "Test", 
             "grid": [["A"]], 
-            "words": [{"word": "A", "translation": "A"}],
+            "phrases": [{"phrase": "A", "translation": "A"}],
             "format": "docx"
         }
         response = client.post("/api/export", json=data)
@@ -288,8 +296,8 @@ def test_api_endpoints_exist():
     assert len(router.routes) > 0
     
     # Check that we can import the functions that should be available
-    from osmosmjerka.game_api import get_grid_size_and_num_words
-    assert callable(get_grid_size_and_num_words)
+    from osmosmjerka.game_api import get_grid_size_and_num_phrases
+    assert callable(get_grid_size_and_num_phrases)
 
 
 def test_imports_work():
@@ -312,7 +320,7 @@ def test_game_api_integration():
     """Test that game API imports all required modules correctly"""
     from osmosmjerka.game_api import (
         router, 
-        get_grid_size_and_num_words,
+        get_grid_size_and_num_phrases,
         generate_grid,
         export_to_docx,
         export_to_png,
@@ -321,7 +329,7 @@ def test_game_api_integration():
     )
     
     assert router is not None
-    assert callable(get_grid_size_and_num_words)
+    assert callable(get_grid_size_and_num_phrases)
     assert callable(generate_grid)
     assert callable(export_to_docx)
     assert callable(export_to_png)
@@ -331,5 +339,5 @@ def test_game_api_integration():
 
 def test_router_has_expected_routes():
     """Test that router has the expected number of routes"""
-    # Should have routes for: categories, words, export, ignored-categories
+    # Should have routes for: categories, phrases, export, ignored-categories
     assert len(router.routes) >= 4

@@ -8,19 +8,19 @@ from docx.shared import Cm, Pt
 from PIL import Image, ImageDraw, ImageFont
 
 
-def export_to_docx(category: str, grid: list, words: list) -> bytes:
-    """Export the word search grid and words to a DOCX file.
+def export_to_docx(category: str, grid: list, phrases: list) -> bytes:
+    """Export the phrase search grid and phrases to a DOCX file.
 
     Args:
-        category (str): The category of the word search.
-        grid (list): The word search grid as a list of lists.
-        words (list): A list of dictionaries with "word" and "translation" keys.
+        category (str): The category of the phrase search.
+        grid (list): The phrase search grid as a list of lists.
+        phrases (list): A list of dictionaries with "phrase" and "translation" keys.
 
     Returns:
         bytes: The DOCX file content as bytes.
     """
-    if not category or not grid or not words:
-        raise ValueError("Category, grid, and words must be provided.")
+    if not category or not grid or not phrases:
+        raise ValueError("Category, grid, and phrases must be provided.")
     doc = Document()
     # Uppercase header with category name, centered
     heading = doc.add_heading(category.upper(), 0)
@@ -55,43 +55,43 @@ def export_to_docx(category: str, grid: list, words: list) -> bytes:
 
     doc.add_paragraph()  # Add a blank line for spacing
 
-    # Convert words to uppercase and join them with commas
-    words_line = ", ".join(w["word"].upper() for w in words)
-    p = doc.add_paragraph(words_line)
+    # Convert phrases to uppercase and join them with commas
+    phrases_line = ", ".join(w["phrase"].upper() for w in phrases)
+    p = doc.add_paragraph(phrases_line)
     p.alignment = WD_ALIGN_PARAGRAPH.CENTER
     for run in p.runs:
         run.font.name = "Arial"
         run.font.size = Pt(11)
-        run.bold = True  # Make words bold
+        run.bold = True  # Make phrases bold
 
     output = BytesIO()
     doc.save(output)
     return output.getvalue()
 
 
-def export_to_png(category: str, grid: list, words: list) -> bytes:
-    """Export the word search grid and words to a PNG image.
+def export_to_png(category: str, grid: list, phrases: list) -> bytes:
+    """Export the phrase search grid and phrases to a PNG image.
 
     Args:
-        category (str): The category of the word search.
-        grid (list): The word search grid as a list of lists.
-        words (list): A list of dictionaries with "word" and "translation" keys.
+        category (str): The category of the phrase search.
+        grid (list): The phrase search grid as a list of lists.
+        phrases (list): A list of dictionaries with "phrase" and "translation" keys.
 
     Returns:
         bytes: The PNG file content as bytes.
     """
-    if not category or not grid or not words:
-        raise ValueError("Category, grid, and words must be provided.")
+    if not category or not grid or not phrases:
+        raise ValueError("Category, grid, and phrases must be provided.")
 
     grid_size = len(grid)
     cell_size = max(30, min(50, 800 // grid_size))  # Adaptive cell size
     margin = 50
     title_height = 60
-    words_height = 100
+    phrases_height = 100
     grid_width = grid_size * cell_size
     grid_height = grid_size * cell_size
     image_width = grid_width + (2 * margin)
-    image_height = grid_height + title_height + words_height + (2 * margin)
+    image_height = grid_height + title_height + phrases_height + (2 * margin)
     img = Image.new("RGB", (image_width, image_height), "white")
     draw = ImageDraw.Draw(img)
 
@@ -99,16 +99,16 @@ def export_to_png(category: str, grid: list, words: list) -> bytes:
     try:
         title_font = ImageFont.truetype("fonts/DejaVuSans-Bold.ttf", 24)
         grid_font = ImageFont.truetype("fonts/DejaVuSans-Bold.ttf", max(18, cell_size // 2))
-        words_font = ImageFont.truetype("fonts/DejaVuSans-Bold.ttf", 16)
+        phrases_font = ImageFont.truetype("fonts/DejaVuSans-Bold.ttf", 16)
     except OSError:
         try:
             title_font = ImageFont.truetype("fonts/arialbd.ttf", 24)
             grid_font = ImageFont.truetype("fonts/arialbd.ttf", max(18, cell_size // 2))
-            words_font = ImageFont.truetype("fonts/arialbd.ttf", 16)
+            phrases_font = ImageFont.truetype("fonts/arialbd.ttf", 16)
         except OSError:
             title_font = ImageFont.load_default()
             grid_font = ImageFont.load_default()
-            words_font = ImageFont.load_default()
+            phrases_font = ImageFont.load_default()
 
     # Draw title
     title_text = category.upper()
@@ -137,37 +137,37 @@ def export_to_png(category: str, grid: list, words: list) -> bytes:
             text_y = y + (cell_size - text_height) // 2
             draw.text((text_x, text_y), cell, fill="black", font=grid_font)
 
-    # Draw words
-    words_text = ", ".join(w["word"].upper() for w in words)
-    words_y = grid_start_y + grid_height + 30
+    # Draw phrases
+    phrases_text = ", ".join(w["phrase"].upper() for w in phrases)
+    phrases_y = grid_start_y + grid_height + 30
 
-    # Split words into multiple lines if too long
+    # Split phrases into multiple lines if too long
     max_width = image_width - (2 * margin)
-    words_lines = []
+    phrases_lines = []
     current_line = ""
 
-    for word in words_text.split(", "):
-        test_line = current_line + (", " if current_line else "") + word
-        test_bbox = draw.textbbox((0, 0), test_line, font=words_font)
+    for phrase in phrases_text.split(", "):
+        test_line = current_line + (", " if current_line else "") + phrase
+        test_bbox = draw.textbbox((0, 0), test_line, font=phrases_font)
         test_width = test_bbox[2] - test_bbox[0]
 
         if test_width <= max_width:
             current_line = test_line
         else:
             if current_line:
-                words_lines.append(current_line)
-            current_line = word
+                phrases_lines.append(current_line)
+            current_line = phrase
 
     if current_line:
-        words_lines.append(current_line)
+        phrases_lines.append(current_line)
 
-    # Draw each line of words
-    for i, line in enumerate(words_lines):
-        line_bbox = draw.textbbox((0, 0), line, font=words_font)
+    # Draw each line of phrases
+    for i, line in enumerate(phrases_lines):
+        line_bbox = draw.textbbox((0, 0), line, font=phrases_font)
         line_width = line_bbox[2] - line_bbox[0]
         line_x = (image_width - line_width) // 2
-        line_y = words_y + (i * 20)
-        draw.text((line_x, line_y), line, fill="black", font=words_font)
+        line_y = phrases_y + (i * 20)
+        draw.text((line_x, line_y), line, fill="black", font=phrases_font)
 
     # Save to BytesIO
     buffer = BytesIO()

@@ -39,16 +39,19 @@ export const STORAGE_KEYS = {
   GAME_STATE: 'osmosmjerkaGameState',
   THEME: 'osmosmjerka-dark-mode',
   LANGUAGE: 'lng',
-  ADMIN_TOKEN: 'adminToken'
+  ADMIN_TOKEN: 'adminToken',
+  SELECTED_LANGUAGE_SET: 'selectedLanguageSet'
 };
 
 // API endpoints
 export const API_ENDPOINTS = {
+  LANGUAGE_SETS: '/api/language-sets',
   CATEGORIES: '/api/categories',
   IGNORED_CATEGORIES: '/api/ignored-categories',
   ALL_CATEGORIES: '/admin/all-categories',
-  WORDS: '/api/words',
+  PHRASES: '/api/phrases',
   EXPORT: '/api/export',
   ADMIN_STATUS: '/admin/status',
-  ADMIN_CLEAR: '/admin/clear'
+  ADMIN_CLEAR: '/admin/clear',
+  ADMIN_LANGUAGE_SETS: '/admin/language-sets'
 };

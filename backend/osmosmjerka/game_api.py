@@ -2,7 +2,7 @@ import io
 import random
 import re
 
-from fastapi import APIRouter, Body, HTTPException, status
+from fastapi import APIRouter, Body, HTTPException, Query, status
 from fastapi.responses import JSONResponse, StreamingResponse
 
 from osmosmjerka.database import IGNORED_CATEGORIES, db_manager
@@ -12,87 +12,108 @@ from osmosmjerka.utils import export_to_docx, export_to_png
 router = APIRouter(prefix="/api")
 
 
+@router.get("/language-sets")
+async def get_language_sets() -> JSONResponse:
+    """Get all active language sets"""
+    language_sets = await db_manager.get_language_sets(active_only=True)
+    return JSONResponse(language_sets)
+
+
 @router.get("/categories")
-async def get_all_categories() -> JSONResponse:
-    all_categories = await db_manager.get_categories()
+async def get_all_categories(language_set_id: int = Query(None)) -> JSONResponse:
+    """Get categories for a specific language set, or default if not specified"""
+    all_categories = await db_manager.get_categories_for_language_set(language_set_id)
     filtered = [cat for cat in all_categories if cat not in IGNORED_CATEGORIES]
     return JSONResponse(sorted(filtered))
 
 
-def get_grid_size_and_num_words(selected: list, difficulty: str) -> tuple:
-    """Get grid size and number of words based on difficulty and available words."""
+def get_grid_size_and_num_phrases(selected: list, difficulty: str) -> tuple:
+    """Get grid size and number of phrases based on difficulty and available phrases."""
     if difficulty == "easy":
         grid_size = 10
-        num_words = 7
+        num_phrases = 7
     elif difficulty == "medium":
         grid_size = 13
-        num_words = 10
+        num_phrases = 10
     elif difficulty == "hard":
         grid_size = 15
-        num_words = 12
+        num_phrases = 12
     elif difficulty == "very_hard":
         grid_size = 20
-        num_words = 16
+        num_phrases = 16
     else:
         grid_size = 10
-        num_words = 7
+        num_phrases = 7
 
-    return grid_size, num_words
+    return grid_size, num_phrases
 
 
-@router.get("/words")
-async def get_words(category: str | None = None, difficulty: str = "medium") -> JSONResponse:
-    categories = await db_manager.get_categories()
+@router.get("/phrases")
+async def get_phrases(
+    category: str | None = None, 
+    difficulty: str = "medium", 
+    language_set_id: int = Query(None)
+) -> JSONResponse:
+    """Get phrases for puzzle generation with language set support"""
+    categories = await db_manager.get_categories_for_language_set(language_set_id)
 
     if not category or category not in categories:
-        category = random.choice(categories)
-
-    # Get all words for the category
-    selected = await db_manager.get_words(category)
-
-    if not selected:
+        category = random.choice(categories) if categories else None
+        
+    if not category:
         return JSONResponse(
-            {"error": "No words found", "category": category},
+            {"error": "No categories available for the selected language set"},
             status_code=status.HTTP_404_NOT_FOUND,
         )
 
-    grid_size, num_words = get_grid_size_and_num_words(selected, difficulty)
+    # Get all phrases for the category from the specified language set
+    selected = await db_manager.get_phrases(language_set_id, category)
 
-    if len(selected) < num_words:
+    if not selected:
+        return JSONResponse(
+            {"error": "No phrases found", "category": category},
+            status_code=status.HTTP_404_NOT_FOUND,
+        )
+
+    grid_size, num_phrases = get_grid_size_and_num_phrases(selected, difficulty)
+
+    if len(selected) < num_phrases:
         return JSONResponse(
             {
                 "error": (
-                    f"Not enough words in category '{category}'. Need {num_words}, but only {len(selected)} available."
+                    f"Not enough phrases in category '{category}'. Need {num_phrases}, but only {len(selected)} available."
                 ),
                 "category": category,
                 "available": len(selected),
-                "needed": num_words,
+                "needed": num_phrases,
             },
             status_code=status.HTTP_404_NOT_FOUND,
         )
 
-    if len(selected) > num_words:
-        selected = random.sample(selected, num_words)
+    if len(selected) > num_phrases:
+        selected = random.sample(selected, num_phrases)
     else:
         random.shuffle(selected)
 
-    grid, placed_words = generate_grid(selected, grid_size)
+    # Generate the grid using selected phrases
+    result = generate_grid(selected, grid_size)
+    grid, placed_phrases = result
 
-    return JSONResponse({"grid": grid, "words": placed_words, "category": category})
+    return JSONResponse({"grid": grid, "phrases": placed_phrases, "category": category})
 
 
 @router.post("/export")
 async def export_puzzle(
-    category: str = Body(...), grid: list = Body(...), words: list = Body(...), format: str = Body("docx")
+    category: str = Body(...), grid: list = Body(...), phrases: list = Body(...), format: str = Body("docx")
 ) -> StreamingResponse:
     """Export puzzle in specified format (docx or png)"""
     try:
         if format == "docx":
-            content = export_to_docx(category, grid, words)
+            content = export_to_docx(category, grid, phrases)
             media_type = "application/vnd.openxmlformats-officedocument.wordprocessingml.document"
             extension = "docx"
         elif format == "png":
-            content = export_to_png(category, grid, words)
+            content = export_to_png(category, grid, phrases)
             media_type = "image/png"
             extension = "png"
         else:

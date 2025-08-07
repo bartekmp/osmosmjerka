@@ -32,8 +32,8 @@ describe('SearchBar', () => {
     });
 
     test('renders with custom placeholder', () => {
-        renderWithTheme(<SearchBar onChange={() => {}} placeholder="Search words" />);
-        const input = screen.getByPlaceholderText('Search words');
+        renderWithTheme(<SearchBar onChange={() => {}} placeholder="Search phrases" />);
+        const input = screen.getByPlaceholderText('Search phrases');
         expect(input).toBeInTheDocument();
     });
 

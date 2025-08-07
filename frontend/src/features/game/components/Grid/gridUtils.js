@@ -64,13 +64,13 @@ export class GridSelection {
 }
 
 /**
- * Simplified word matching
+ * Simplified phrase matching
  */
-export const findMatchingWord = (selectedCoords, words) => {
+export const findMatchingPhrase = (selectedCoords, phrases) => {
     const selectionString = GridSelection.createSelectionString(selectedCoords);
-    return words.find(word =>
-        GridSelection.createSelectionString(word.coords) === selectionString ||
-        GridSelection.createSelectionString([...word.coords].reverse()) === selectionString
+    return phrases.find(phrase =>
+        GridSelection.createSelectionString(phrase.coords) === selectionString ||
+        GridSelection.createSelectionString([...phrase.coords].reverse()) === selectionString
     );
 };
 

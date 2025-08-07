@@ -42,7 +42,7 @@ export default function TextViewDialog({
                 backgroundColor: 'background.paper',
                 color: 'text.primary'
             }}>
-                <Typography variant="h6">{title}</Typography>
+                {title}
                 <IconButton onClick={onClose} size="small">
                     <CloseIcon />
                 </IconButton>

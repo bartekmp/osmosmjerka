@@ -84,7 +84,7 @@ export default function UploadForm({ onUpload }) {
             >
                 <span style={{ marginRight: '4px' }}>📁</span>
                 <ResponsiveText 
-                    desktop={t('upload_words')} 
+                    desktop={t('upload_phrases')} 
                     mobile={t('upload')} 
                 />
                 {loading && <CircularProgress size={20} sx={{ ml: 1 }} />}

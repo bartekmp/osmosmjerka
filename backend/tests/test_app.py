@@ -40,12 +40,12 @@ def test_main_app_structure():
 
 def test_game_api_module_exists():
     """Test that the game_api module can be imported"""
-    from osmosmjerka.game_api import router, get_grid_size_and_num_words
+    from osmosmjerka.game_api import router, get_grid_size_and_num_phrases
     
     assert router is not None
     assert hasattr(router, 'prefix')
     assert router.prefix == "/api"
-    assert callable(get_grid_size_and_num_words)
+    assert callable(get_grid_size_and_num_phrases)
 
 
 def test_admin_api_module_exists():
@@ -57,26 +57,26 @@ def test_admin_api_module_exists():
     assert router.prefix == "/admin"
 
 
-def test_get_grid_size_and_num_words_function():
+def test_get_grid_size_and_num_phrases_function():
     """Test the helper function works correctly"""
-    from osmosmjerka.game_api import get_grid_size_and_num_words
+    from osmosmjerka.game_api import get_grid_size_and_num_phrases
     
     # Test easy difficulty
-    size, num_words = get_grid_size_and_num_words([{"word": "a"}] * 10, "easy")
-    assert size == 10 and num_words == 7
+    size, num_phrases = get_grid_size_and_num_phrases([{"phrase": "a"}] * 10, "easy")
+    assert size == 10 and num_phrases == 7
     
     # Test medium difficulty (new)
-    size, num_words = get_grid_size_and_num_words([{"word": "a"}] * 10, "medium")
-    assert size == 13 and num_words == 10
+    size, num_phrases = get_grid_size_and_num_phrases([{"phrase": "a"}] * 10, "medium")
+    assert size == 13 and num_phrases == 10
     
     # Test hard difficulty (previously medium)
-    size, num_words = get_grid_size_and_num_words([{"word": "a"}] * 15, "hard")
-    assert size == 15 and num_words == 12
+    size, num_phrases = get_grid_size_and_num_phrases([{"phrase": "a"}] * 15, "hard")
+    assert size == 15 and num_phrases == 12
     
     # Test very_hard difficulty (previously hard)
-    size, num_words = get_grid_size_and_num_words([{"word": "a"}] * 20, "very_hard")
-    assert size == 20 and num_words == 16
+    size, num_phrases = get_grid_size_and_num_phrases([{"phrase": "a"}] * 20, "very_hard")
+    assert size == 20 and num_phrases == 16
     
     # Test unknown difficulty defaults to easy
-    size, num_words = get_grid_size_and_num_words([{"word": "a"}] * 10, "unknown")
-    assert size == 10 and num_words == 7
+    size, num_phrases = get_grid_size_and_num_phrases([{"phrase": "a"}] * 10, "unknown")
+    assert size == 10 and num_phrases == 7

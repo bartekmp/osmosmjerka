@@ -1,8 +1,8 @@
 import React, { useState, useRef } from 'react';
 import { useTranslation } from 'react-i18next';
-import './WordList.css';
+import './PhraseList.css';
 
-export default function WordList({ words, found, hideWords, setHideWords, allFound, showTranslations, setShowTranslations, disableShowWords, onPhraseClick }) {
+export default function PhraseList({ phrases, found, hidePhrases, setHidePhrases, allFound, showTranslations, setShowTranslations, disableShowPhrases, onPhraseClick }) {
     const { t } = useTranslation();
     const [blinkingPhrase, setBlinkingPhrase] = useState(null);
     const blinkTimeoutRef = useRef(null);
@@ -11,7 +11,7 @@ export default function WordList({ words, found, hideWords, setHideWords, allFou
     // Instead of dynamic calculation, use a consistent width
     const translationMinWidth = "12em"; // Fixed width for stability
 
-    const canToggleTranslations = found.length > 0 && !hideWords;
+    const canToggleTranslations = found.length > 0 && !hidePhrases;
 
     // For consistent button width
     const buttonWidth = "7.2em";
@@ -50,13 +50,13 @@ export default function WordList({ words, found, hideWords, setHideWords, allFou
                 <button
                     className="scrabble-btn phrase-list-hide-btn"
                     type="button"
-                    onClick={() => setHideWords(h => !h)}
-                    disabled={allFound || disableShowWords}
+                    onClick={() => setHidePhrases(h => !h)}
+                    disabled={allFound || disableShowPhrases}
                     style={{ width: buttonWidth, textAlign: 'center', fontSize: '1.1em', display: 'flex', alignItems: 'center', justifyContent: 'center' }}
                 >
-                    <span style={{ marginRight: 6 }}>{hideWords ? '👁️' : '🙈'}</span>
-                    <span className="phrase-list-btn-label" style={{ display: 'none', sm: 'inline' }}>{hideWords ? t('show_words') : t('hide_words')}</span>
-                    <span className="phrase-list-btn-label" style={{ display: 'inline', sm: 'none' }}>{hideWords ? t('show') : t('hide')}</span>
+                    <span style={{ marginRight: 6 }}>{hidePhrases ? '👁️' : '🙈'}</span>
+                    <span className="phrase-list-btn-label" style={{ display: 'none', sm: 'inline' }}>{hidePhrases ? t('show_phrases') : t('hide_phrases')}</span>
+                    <span className="phrase-list-btn-label" style={{ display: 'inline', sm: 'none' }}>{hidePhrases ? t('show') : t('hide')}</span>
                 </button>
                 {/* Only render translation toggle if enabled */}
                 {canToggleTranslations && (
@@ -71,8 +71,8 @@ export default function WordList({ words, found, hideWords, setHideWords, allFou
                     </button>
                 )}
             </div>
-            <ul className={`phrase-list-ul${hideWords ? ' blurred' : ''}`}>
-                {words.map(({ phrase, translation }, index) => (
+            <ul className={`phrase-list-ul${hidePhrases ? ' blurred' : ''}`}>
+                {phrases.map(({ phrase, translation }, index) => (
                     <li className="phrase-list-li" key={`${phrase}-${index}`}>
                         <span 
                             className={`phrase-list-phrase${found.includes(phrase) ? ' found' : ''}${blinkingPhrase === phrase ? ' blinking' : ''}`}

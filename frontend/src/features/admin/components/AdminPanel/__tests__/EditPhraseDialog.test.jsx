@@ -1,12 +1,12 @@
 import React from 'react';
-import { render, screen, fireEvent, waitFor } from '@testing-library/react';
-import EditWordDialog from '../EditWordDialog';
+import { render, screen, fireEvent, waitFor, act } from '@testing-library/react';
+import EditPhraseDialog from '../EditPhraseDialog';
 import { withI18n } from '../../../../../testUtils';
 import { ThemeProvider, createTheme } from '@mui/material/styles';
 
 // Mock the categories API
 jest.mock('../../../../../utils/categoriesApi', () => ({
-    fetchCategories: jest.fn(() => Promise.resolve(['Animals', 'Colors', 'Food'])),
+    fetchCategories: jest.fn().mockResolvedValue(['Animals', 'Colors', 'Food']),
     invalidateCategoriesCache: jest.fn()
 }));
 
@@ -26,40 +26,40 @@ const renderWithTheme = (ui) => {
     ));
 };
 
-describe('EditWordDialog component', () => {
+describe('EditPhraseDialog component', () => {
     const testRow = {
         id: 1,
         categories: 'Animals',
-        word: 'Dog',
+        phrase: 'Dog',
         translation: 'Pies'
     };
 
     test('renders dialog with row data when open', async () => {
-        renderWithTheme(
-            <EditWordDialog
-                open={true}
-                row={testRow}
-                onClose={() => { }}
-                onSave={() => { }}
-            />
-        );
+        await act(async () => {
+            renderWithTheme(
+                <EditPhraseDialog
+                    open={true}
+                    row={testRow}
+                    onClose={() => { }}
+                    onSave={() => { }}
+                />
+            );
+        });
 
         // Wait for the dialog to be rendered
-        expect(await screen.findByText(/edit word/i)).toBeInTheDocument();
+        expect(await screen.findByText(/edit phrase/i)).toBeInTheDocument();
 
         // Wait for the form to be populated with data
         await waitFor(() => {
             expect(screen.getByDisplayValue('Dog')).toBeInTheDocument();
             expect(screen.getByDisplayValue('Pies')).toBeInTheDocument();
+            expect(screen.getByText('Animals')).toBeInTheDocument();
         });
-
-        // Check that categories are displayed as chips
-        expect(screen.getByText('Animals')).toBeInTheDocument();
     });
 
     test('does not render when open is false', () => {
         renderWithTheme(
-            <EditWordDialog
+            <EditPhraseDialog
                 open={false}
                 row={testRow}
                 onClose={() => { }}
@@ -67,19 +67,21 @@ describe('EditWordDialog component', () => {
             />
         );
 
-        expect(screen.queryByText(/edit word/i)).not.toBeInTheDocument();
+        expect(screen.queryByText(/edit phrase/i)).not.toBeInTheDocument();
     });
 
     test('calls onClose when cancel button is clicked', async () => {
         const mockClose = jest.fn();
-        renderWithTheme(
-            <EditWordDialog
-                open={true}
-                row={testRow}
-                onClose={mockClose}
-                onSave={() => { }}
-            />
-        );
+        await act(async () => {
+            renderWithTheme(
+                <EditPhraseDialog
+                    open={true}
+                    row={testRow}
+                    onClose={mockClose}
+                    onSave={() => { }}
+                />
+            );
+        });
 
         // Wait for dialog to render and click cancel
         const cancelButton = await screen.findByText(/cancel/i);
@@ -88,14 +90,16 @@ describe('EditWordDialog component', () => {
     });
 
     test('save button is disabled when no changes are made', async () => {
-        renderWithTheme(
-            <EditWordDialog
-                open={true}
-                row={testRow}
-                onClose={() => { }}
-                onSave={() => { }}
-            />
-        );
+        await act(async () => {
+            renderWithTheme(
+                <EditPhraseDialog
+                    open={true}
+                    row={testRow}
+                    onClose={() => { }}
+                    onSave={() => { }}
+                />
+            );
+        });
 
         // Wait for dialog to render and check save button state
         const saveButton = await screen.findByText(/save/i);
@@ -103,18 +107,20 @@ describe('EditWordDialog component', () => {
     });
 
     test('save button is enabled when changes are made', async () => {
-        renderWithTheme(
-            <EditWordDialog
-                open={true}
-                row={testRow}
-                onClose={() => { }}
-                onSave={() => { }}
-            />
-        );
+        await act(async () => {
+            renderWithTheme(
+                <EditPhraseDialog
+                    open={true}
+                    row={testRow}
+                    onClose={() => { }}
+                    onSave={() => { }}
+                />
+            );
+        });
 
         // Wait for form to be ready and make a change
-        const wordInput = await screen.findByDisplayValue('Dog');
-        fireEvent.change(wordInput, { target: { value: 'Doggy' } });
+        const phraseInput = await screen.findByDisplayValue('Dog');
+        fireEvent.change(phraseInput, { target: { value: 'Doggy' } });
 
         // Wait for the save button to be enabled
         await waitFor(() => {
@@ -124,18 +130,20 @@ describe('EditWordDialog component', () => {
     });
 
     test('validates required fields on save', async () => {
-        renderWithTheme(
-            <EditWordDialog
-                open={true}
-                row={testRow}
-                onClose={() => { }}
-                onSave={() => { }}
-            />
-        );
+        await act(async () => {
+            renderWithTheme(
+                <EditPhraseDialog
+                    open={true}
+                    row={testRow}
+                    onClose={() => { }}
+                    onSave={() => { }}
+                />
+            );
+        });
 
         // Wait for form to be ready, clear a required field
-        const wordInput = await screen.findByDisplayValue('Dog');
-        fireEvent.change(wordInput, { target: { value: '' } });
+        const phraseInput = await screen.findByDisplayValue('Dog');
+        fireEvent.change(phraseInput, { target: { value: '' } });
 
         // Try to save
         const saveButton = await screen.findByText(/save/i);
@@ -144,24 +152,26 @@ describe('EditWordDialog component', () => {
         // Should show validation error - look for any error text
         await waitFor(() => {
             // The component shows validation errors, let's look for error state
-            expect(wordInput).toHaveAttribute('aria-invalid', 'true');
+            expect(phraseInput).toHaveAttribute('aria-invalid', 'true');
         }, { timeout: 3000 });
     });
 
     test('calls onSave with updated data when valid', async () => {
         const mockSave = jest.fn();
-        renderWithTheme(
-            <EditWordDialog
-                open={true}
-                row={testRow}
-                onClose={() => { }}
-                onSave={mockSave}
-            />
-        );
+        await act(async () => {
+            renderWithTheme(
+                <EditPhraseDialog
+                    open={true}
+                    row={testRow}
+                    onClose={() => { }}
+                    onSave={mockSave}
+                />
+            );
+        });
 
         // Wait for form to be ready and make a valid change
-        const wordInput = await screen.findByDisplayValue('Dog');
-        fireEvent.change(wordInput, { target: { value: 'Doggy' } });
+        const phraseInput = await screen.findByDisplayValue('Dog');
+        fireEvent.change(phraseInput, { target: { value: 'Doggy' } });
 
         // Save the changes
         const saveButton = await screen.findByText(/save/i);
@@ -172,7 +182,7 @@ describe('EditWordDialog component', () => {
         await waitFor(() => {
             expect(mockSave).toHaveBeenCalledWith({
                 ...testRow,
-                word: 'Doggy'
+                phrase: 'Doggy'
             });
         });
     });

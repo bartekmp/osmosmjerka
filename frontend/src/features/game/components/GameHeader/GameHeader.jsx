@@ -4,12 +4,13 @@ import { useTranslation } from 'react-i18next';
 import { LanguageSwitcher, NightModeButton } from '../../../../shared';
 import { Link } from 'react-router-dom';
 import { Button } from '@mui/material';
+import { getAssetUrl } from '../../../../shared/utils/assets';
 
-const GameHeader = ({ 
-    logoFilter, 
-    handleLogoClick, 
+const GameHeader = ({
+    logoFilter,
+    handleLogoClick,
     showCelebration,
-    isDarkMode 
+    isDarkMode
 }) => {
     const { t } = useTranslation();
 
@@ -20,13 +21,13 @@ const GameHeader = ({
                 <Box className="logo-container">
                     <Box
                         component="img"
-                        src="/static/android-chrome-512x512.png"
+                        src={getAssetUrl("android-chrome-512x512.png")}
                         alt="Osmosmjerka logo"
                         className="logo-image"
                         style={{ filter: logoFilter }}
-                        onError={e => { 
-                            e.target.onerror = null; 
-                            e.target.src = "/static/favicon-32x32.png"; 
+                        onError={e => {
+                            e.target.onerror = null;
+                            e.target.src = getAssetUrl("favicon-32x32.png");
                         }}
                     />
                 </Box>

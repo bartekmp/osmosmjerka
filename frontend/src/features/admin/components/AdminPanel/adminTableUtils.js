@@ -12,7 +12,7 @@ export function calculateMinColumnWidths(filteredRows, t) {
     
     const minWidths = {};
     const cellMargin = 24; // 12px margin on each side for consistency
-    const columnKeys = ['id', 'categories', 'word', 'translation'];
+    const columnKeys = ['id', 'categories', 'phrase', 'translation'];
     
     columnKeys.forEach(key => {
         let maxWidth = 0;

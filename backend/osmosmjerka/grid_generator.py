@@ -2,38 +2,38 @@ import random
 from typing import List, Tuple, Dict, Optional
 
 
-def normalize_word(word: str) -> str:
+def normalize_phrase(phrase: str) -> str:
     """
-    Normalize a word by removing spaces, punctuation, and converting to uppercase.
+    Normalize a phrase by removing spaces, punctuation, and converting to uppercase.
     Only alphabetic characters (any language) and hyphens are kept, but the result cannot begin or end with a hyphen.
     
     Args:
-        word (str): The word to normalize.
+        phrase (str): The phrase to normalize.
     Returns:
-        str: The normalized word.
+        str: The normalized phrase.
     """
     # Keep only alphabetic (any language) and hyphens
     result = ''.join(
-        c.upper() for c in word if c.isalpha() or c == '-'
+        c.upper() for c in phrase if c.isalpha() or c == '-'
     )
     # Remove leading/trailing hyphens
     return result.strip('-')
 
 
-def find_intersections(word1: str, word2: str) -> List[Tuple[int, int]]:
+def find_intersections(phrase1: str, phrase2: str) -> List[Tuple[int, int]]:
     """
-    Find all possible intersection points between two words.
+    Find all possible intersection points between two phrases.
     
     Args:
-        word1 (str): First word to check for intersections
-        word2 (str): Second word to check for intersections
+        phrase1 (str): First phrase to check for intersections
+        phrase2 (str): Second phrase to check for intersections
         
     Returns:
-        List[Tuple[int, int]]: List of (pos1, pos2) tuples where word1[pos1] == word2[pos2]
+        List[Tuple[int, int]]: List of (pos1, pos2) tuples where phrase1[pos1] == phrase2[pos2]
     """
     intersections = []
-    for i, char1 in enumerate(word1):
-        for j, char2 in enumerate(word2):
+    for i, char1 in enumerate(phrase1):
+        for j, char2 in enumerate(phrase2):
             if char1 == char2:
                 intersections.append((i, j))
     return intersections
@@ -42,7 +42,7 @@ def find_intersections(word1: str, word2: str) -> List[Tuple[int, int]]:
 def calculate_density_around_position(grid: List[List[str]], coords: List[Tuple[int, int]], radius: int = 2) -> float:
     """
     Calculate the density of placed letters around the given coordinates.
-    This helps avoid placing words in already crowded areas.
+    This helps avoid placing phrases in already crowded areas.
     
     Args:
         grid: The current grid state
@@ -69,23 +69,23 @@ def calculate_density_around_position(grid: List[List[str]], coords: List[Tuple[
     return filled_cells / total_cells if total_cells > 0 else 0
 
 
-def score_word_placement(grid: List[List[str]], word: str, coords: List[Tuple[int, int]], 
-                        placed_words: List[Dict], direction: Tuple[int, int]) -> float:
+def score_phrase_placement(grid: List[List[str]], phrase: str, coords: List[Tuple[int, int]], 
+                        placed_phrases: List[Dict], direction: Tuple[int, int]) -> float:
     """
-    Score a potential word placement to determine if it's a good fit.
+    Score a potential phrase placement to determine if it's a good fit.
     Higher scores indicate better placements.
     
     Scoring factors:
-    - Intersections with existing words (heavily favored)
+    - Intersections with existing phrases (heavily favored)
     - Density of surrounding area (slightly penalized if too crowded)
     - Direction diversity (bonus for less-used directions)
-    - Basic placement bonus (encourages placing more words)
+    - Basic placement bonus (encourages placing more phrases)
     
     Args:
         grid: Current grid state
-        word: Word being placed
-        coords: Proposed coordinates for the word
-        placed_words: List of already placed words
+        phrase: Phrase being placed
+        coords: Proposed coordinates for the phrase
+        placed_phrase: List of already placed phrases
         direction: Direction vector (dr, dc) for the placement
         
     Returns:
@@ -93,11 +93,11 @@ def score_word_placement(grid: List[List[str]], word: str, coords: List[Tuple[in
     """
     score = 0
     
-    # Count intersections with existing words
+    # Count intersections with existing phrases
     intersections = sum(1 for i, (r, c) in enumerate(coords) 
-                       if grid[r][c] != "" and grid[r][c] == word[i])
+                       if grid[r][c] != "" and grid[r][c] == phrase[i])
     
-    # Strong bonus for intersections (encourages crossing words)
+    # Strong bonus for intersections (encourages crossing phrases)
     score += intersections * 15
     
     # Small penalty for placing in crowded areas (allows density but prevents extreme clustering)
@@ -105,23 +105,23 @@ def score_word_placement(grid: List[List[str]], word: str, coords: List[Tuple[in
     score -= density * 2
     
     # Calculate direction diversity bonus
-    direction_usage = _count_direction_usage(placed_words)
+    direction_usage = _count_direction_usage(placed_phrases)
     current_dir_count = direction_usage.get(direction, 0)
     score += max(0, 2 - current_dir_count)  # Bonus for less-used directions
     
-    # Small bonus for any valid placement (encourages placing more words)
+    # Small bonus for any valid placement (encourages placing more phrases)
     score += 1
     
     return score
 
 
-def _count_direction_usage(placed_words: List[Dict]) -> Dict[Tuple[int, int], int]:
+def _count_direction_usage(placed_phrases: List[Dict]) -> Dict[Tuple[int, int], int]:
     """
     Count how many times each direction has been used.
-    Helper function for score_word_placement.
+    Helper function for score_phrase_placement.
     """
     direction_counts = {}
-    for placed in placed_words:
+    for placed in placed_phrases:
         coords = placed["coords"]
         if len(coords) >= 2:
             # Calculate direction vector
@@ -137,15 +137,15 @@ def _count_direction_usage(placed_words: List[Dict]) -> Dict[Tuple[int, int], in
     return direction_counts
 
 
-def try_place_word_with_intersections(grid: List[List[str]], word: str, placed_words: List[Dict]) -> Optional[Tuple[List[Tuple[int, int]], Tuple[int, int]]]:
+def try_place_phrase_with_intersections(grid: List[List[str]], phrase: str, placed_phrases: List[Dict]) -> Optional[Tuple[List[Tuple[int, int]], Tuple[int, int]]]:
     """
-    Attempt to place a word by finding intersections with already placed words.
-    This is the primary placement strategy that creates interconnected word networks.
+    Attempt to place a phrase by finding intersections with already placed phrases.
+    This is the primary placement strategy that creates interconnected phrase networks.
     
     Args:
         grid: Current grid state
-        word: Normalized word to place
-        placed_words: List of already placed words with their coordinates
+        phrase: Normalized phrase to place
+        placed_phrases: List of already placed phrases with their coordinates
         
     Returns:
         Tuple of (coordinates, direction) if successful placement found, None otherwise
@@ -154,34 +154,34 @@ def try_place_word_with_intersections(grid: List[List[str]], word: str, placed_w
     best_placement = None
     best_score = -1
     
-    # All possible directions for word placement
+    # All possible directions for phrase placement
     directions = [(-1, -1), (-1, 0), (-1, 1), (0, -1), (0, 1), (1, -1), (1, 0), (1, 1)]
     
-    # Try to intersect with each already placed word
-    for placed_word_info in placed_words:
-        placed_word = normalize_word(placed_word_info["word"].replace(" ", "").upper())
-        placed_coords = placed_word_info["coords"]
+    # Try to intersect with each already placed phrase
+    for placed_phrase_info in placed_phrases:
+        placed_phrase = normalize_phrase(placed_phrase_info["phrase"].replace(" ", "").upper())
+        placed_coords = placed_phrase_info["coords"]
         
-        # Find all possible intersection points between the two words
-        intersections = find_intersections(word, placed_word)
+        # Find all possible intersection points between the two phrases
+        intersections = find_intersections(phrase, placed_phrase)
         
         # Try each intersection point
-        for word_pos, placed_pos in intersections:
+        for phrase_pos, placed_pos in intersections:
             placed_r, placed_c = placed_coords[placed_pos]
             
-            # Try placing the word in each direction from this intersection point
+            # Try placing the phrase in each direction from this intersection point
             for dr, dc in directions:
-                # Calculate where the word would start
-                start_r = placed_r - dr * word_pos
-                start_c = placed_c - dc * word_pos
+                # Calculate where the phrase would start
+                start_r = placed_r - dr * phrase_pos
+                start_c = placed_c - dc * phrase_pos
                 
-                # Generate all coordinates the word would occupy
-                coords = [(start_r + dr * i, start_c + dc * i) for i in range(len(word))]
+                # Generate all coordinates the phrase would occupy
+                coords = [(start_r + dr * i, start_c + dc * i) for i in range(len(phrase))]
                 
                 # Check if this placement is valid
-                if _is_valid_placement(grid, word, coords, size):
+                if _is_valid_placement(grid, phrase, coords, size):
                     # Score this placement opportunity
-                    score = score_word_placement(grid, word, coords, placed_words, (dr, dc))
+                    score = score_phrase_placement(grid, phrase, coords, placed_phrases, (dr, dc))
                     if score > best_score:
                         best_score = score
                         best_placement = (coords, (dr, dc))
@@ -189,146 +189,146 @@ def try_place_word_with_intersections(grid: List[List[str]], word: str, placed_w
     return best_placement
 
 
-def _is_valid_placement(grid: List[List[str]], word: str, coords: List[Tuple[int, int]], size: int) -> bool:
+def _is_valid_placement(grid: List[List[str]], phrase: str, coords: List[Tuple[int, int]], size: int) -> bool:
     """
-    Check if a word can be placed at the given coordinates.
+    Check if a phrase can be placed at the given coordinates.
     Helper function for placement validation.
     """
     # Check bounds
     if not all(0 <= r < size and 0 <= c < size for r, c in coords):
         return False
     
-    # Check conflicts (each position must be empty or match the word letter)
-    return all(grid[r][c] in ("", word[i]) for i, (r, c) in enumerate(coords))
+    # Check conflicts (each position must be empty or match the phrase letter)
+    return all(grid[r][c] in ("", phrase[i]) for i, (r, c) in enumerate(coords))
 
 
-def try_systematic_placement(grid: List[List[str]], word: str, size: int, directions: List[Tuple[int, int]]) -> Optional[Tuple[List[Tuple[int, int]], Tuple[int, int]]]:
+def try_systematic_placement(grid: List[List[str]], phrase: str, size: int, directions: List[Tuple[int, int]]) -> Optional[Tuple[List[Tuple[int, int]], Tuple[int, int]]]:
     """
     Try systematic placement by checking all positions methodically.
     This is a fallback strategy when intersection-based placement fails.
     
     Args:
         grid: Current grid state
-        word: Normalized word to place
+        phrase: Normalized phrase to place
         size: Grid size
         directions: List of direction vectors to try
         
     Returns:
         Tuple of (coordinates, direction) if successful placement found, None otherwise
     """
-    word_len = len(word)
+    phrase_len = len(phrase)
     
     # Try every position and direction systematically
     for row in range(size):
         for col in range(size):
             for dr, dc in directions:
                 # Calculate end position
-                end_r = row + dr * (word_len - 1)
-                end_c = col + dc * (word_len - 1)
+                end_r = row + dr * (phrase_len - 1)
+                end_c = col + dc * (phrase_len - 1)
                 
-                # Check if word fits in bounds
+                # Check if phrase fits in bounds
                 if 0 <= end_r < size and 0 <= end_c < size:
-                    coords = [(row + dr * i, col + dc * i) for i in range(word_len)]
+                    coords = [(row + dr * i, col + dc * i) for i in range(phrase_len)]
                     
                     # Check if placement is valid (no conflicts)
-                    if all(grid[r][c] in ("", word[i]) for i, (r, c) in enumerate(coords)):
+                    if all(grid[r][c] in ("", phrase[i]) for i, (r, c) in enumerate(coords)):
                         return (coords, (dr, dc))
     
     return None
 
 
-def calculate_optimal_grid_size(word_pairs: List[Tuple[str, str]]) -> int:
+def calculate_optimal_grid_size(phrase_pairs: List[Tuple[str, str]]) -> int:
     """
-    Calculate the optimal grid size based on word characteristics.
-    Balances between fitting all words and maintaining reasonable density.
+    Calculate the optimal grid size based on phrase characteristics.
+    Balances between fitting all phrases and maintaining reasonable density.
     
     Args:
-        word_pairs: List of (word, translation) tuples
+        phrase_pairs: List of (phrase, translation) tuples
         
     Returns:
         int: Optimal grid size (creates square grid)
     """
-    normalized_words = [normalize_word(word.replace(" ", "").upper()) for word, _ in word_pairs]
-    max_word_len = max(len(w) for w in normalized_words)
-    avg_word_len = sum(len(w) for w in normalized_words) / len(normalized_words)
-    word_count = len(normalized_words)
+    normalized_phrases = [normalize_phrase(phrase.replace(" ", "").upper()) for phrase, _ in phrase_pairs]
+    max_phrase_len = max(len(w) for w in normalized_phrases)
+    avg_phrase_len = sum(len(w) for w in normalized_phrases) / len(normalized_phrases)
+    phrase_count = len(normalized_phrases)
     
-    # Base size ensures longest word fits
-    base_size = max_word_len + 1
+    # Base size ensures longest phrase fits
+    base_size = max_phrase_len + 1
     
-    # Scale based on word count and average length for better density
-    if word_count <= 5:
-        size = max(base_size, int(avg_word_len * 1.5))
-    elif word_count <= 10:
-        size = max(base_size, int(avg_word_len * 1.8))
+    # Scale based on phrase count and average length for better density
+    if phrase_count <= 5:
+        size = max(base_size, int(avg_phrase_len * 1.5))
+    elif phrase_count <= 10:
+        size = max(base_size, int(avg_phrase_len * 1.8))
     else:
-        size = max(base_size, int(avg_word_len * 2.0))
+        size = max(base_size, int(avg_phrase_len * 2.0))
     
     # Cap maximum size to prevent excessively large grids
-    return min(size, max_word_len + 5)
+    return min(size, max_phrase_len + 5)
 
 
-def place_single_word(grid: List[List[str]], word_data: Tuple[str, str], placed_words: List[Dict]) -> bool:
+def place_single_phrase(grid: List[List[str]], phrase_data: Tuple[str, str], placed_phrases: List[Dict]) -> bool:
     """
-    Attempt to place a single word in the grid using the best available strategy.
+    Attempt to place a single phrase in the grid using the best available strategy.
     
     Placement strategy priority:
-    1. Intersection with existing words (creates connected network)
+    1. Intersection with existing phrases (creates connected network)
     2. Random placement with scoring (finds good spots)
     3. Systematic placement (fallback to ensure placement)
     
     Args:
         grid: Current grid state (modified in place)
-        word_data: Tuple of (original_word, translation)
-        placed_words: List of already placed words (modified in place)
+        phrase_data: Tuple of (original_phrase, translation)
+        placed_phrases: List of already placed phrases (modified in place)
         
     Returns:
-        bool: True if word was successfully placed, False otherwise
+        bool: True if phrase was successfully placed, False otherwise
     """
-    orig_word, translation = word_data
-    word_normalized = normalize_word(orig_word.replace(" ", "").upper())
+    orig_phrase, translation = phrase_data
+    phrase_normalized = normalize_phrase(orig_phrase.replace(" ", "").upper())
     size = len(grid)
     
-    # Skip words that are too long for the grid
-    if len(word_normalized) > size:
+    # Skip phrases that are too long for the grid
+    if len(phrase_normalized) > size:
         return False
     
-    # Strategy 1: Try intersection-based placement if we have existing words
-    if placed_words:
-        result = try_place_word_with_intersections(grid, word_normalized, placed_words)
+    # Strategy 1: Try intersection-based placement if we have existing phrases
+    if placed_phrases:
+        result = try_place_phrase_with_intersections(grid, phrase_normalized, placed_phrases)
         if result:
             coords, direction = result
-            _place_word_on_grid(grid, word_normalized, coords)
-            placed_words.append({"word": orig_word, "translation": translation, "coords": coords})
+            _place_phrase_on_grid(grid, phrase_normalized, coords)
+            placed_phrases.append({"phrase": orig_phrase, "translation": translation, "coords": coords})
             return True
     
     # Strategy 2: Try random placement with scoring
-    result = _try_random_placement_with_scoring(grid, word_normalized, placed_words)
+    result = _try_random_placement_with_scoring(grid, phrase_normalized, placed_phrases)
     if result:
         coords, direction = result
-        _place_word_on_grid(grid, word_normalized, coords)
-        placed_words.append({"word": orig_word, "translation": translation, "coords": coords})
+        _place_phrase_on_grid(grid, phrase_normalized, coords)
+        placed_phrases.append({"phrase": orig_phrase, "translation": translation, "coords": coords})
         return True
     
     # Strategy 3: Fallback to systematic placement
     directions = [(-1, -1), (-1, 0), (-1, 1), (0, -1), (0, 1), (1, -1), (1, 0), (1, 1)]
-    result = try_systematic_placement(grid, word_normalized, size, directions)
+    result = try_systematic_placement(grid, phrase_normalized, size, directions)
     if result:
         coords, direction = result
-        _place_word_on_grid(grid, word_normalized, coords)
-        placed_words.append({"word": orig_word, "translation": translation, "coords": coords})
+        _place_phrase_on_grid(grid, phrase_normalized, coords)
+        placed_phrases.append({"phrase": orig_phrase, "translation": translation, "coords": coords})
         return True
     
     return False
 
 
-def _try_random_placement_with_scoring(grid: List[List[str]], word: str, placed_words: List[Dict]) -> Optional[Tuple[List[Tuple[int, int]], Tuple[int, int]]]:
+def _try_random_placement_with_scoring(grid: List[List[str]], phrase: str, placed_phrases: List[Dict]) -> Optional[Tuple[List[Tuple[int, int]], Tuple[int, int]]]:
     """
     Try random placement with intelligent scoring.
     This balances randomness with strategic placement decisions.
     """
     size = len(grid)
-    word_len = len(word)
+    phrase_len = len(phrase)
     directions = [(-1, -1), (-1, 0), (-1, 1), (0, -1), (0, 1), (1, -1), (1, 0), (1, 1)]
     
     best_placement = None
@@ -342,16 +342,16 @@ def _try_random_placement_with_scoring(grid: List[List[str]], word: str, placed_
         
         random.shuffle(directions)  # Try directions in random order
         for dr, dc in directions:
-            # Check if word fits in this direction
-            end_r = row + dr * (word_len - 1)
-            end_c = col + dc * (word_len - 1)
+            # Check if phrase fits in this direction
+            end_r = row + dr * (phrase_len - 1)
+            end_c = col + dc * (phrase_len - 1)
             
             if 0 <= end_r < size and 0 <= end_c < size:
-                coords = [(row + dr * i, col + dc * i) for i in range(word_len)]
+                coords = [(row + dr * i, col + dc * i) for i in range(phrase_len)]
                 
                 # Check if placement is valid
-                if all(grid[r][c] in ("", word[i]) for i, (r, c) in enumerate(coords)):
-                    score = score_word_placement(grid, word, coords, placed_words, (dr, dc))
+                if all(grid[r][c] in ("", phrase[i]) for i, (r, c) in enumerate(coords)):
+                    score = score_phrase_placement(grid, phrase, coords, placed_phrases, (dr, dc))
                     if score > best_score:
                         best_score = score
                         best_placement = (coords, (dr, dc))
@@ -364,19 +364,19 @@ def _try_random_placement_with_scoring(grid: List[List[str]], word: str, placed_
     return best_placement
 
 
-def _place_word_on_grid(grid: List[List[str]], word: str, coords: List[Tuple[int, int]]) -> None:
+def _place_phrase_on_grid(grid: List[List[str]], phrase: str, coords: List[Tuple[int, int]]) -> None:
     """
-    Place a word on the grid at the specified coordinates.
+    Place a phrase on the grid at the specified coordinates.
     Helper function that modifies the grid in place.
     """
     for i, (r, c) in enumerate(coords):
-        grid[r][c] = word[i]
+        grid[r][c] = phrase[i]
 
 
 def _fill_empty_cells_with_random_letters(grid: List[List[str]]) -> None:
     """
     Fill all empty cells in the grid with random letters.
-    This makes the word search puzzle complete and challenging.
+    This makes the phrase search puzzle complete and challenging.
     """
     size = len(grid)
     for r in range(size):
@@ -385,54 +385,54 @@ def _fill_empty_cells_with_random_letters(grid: List[List[str]]) -> None:
                 grid[r][c] = random.choice("ABCDEFGHIJKLMNOPQRSTUVWXYZ")
 
 
-def generate_grid(words: list, size: int | None = None) -> tuple[list, list]:
+def generate_grid(phrases: list, size: int | None = None) -> tuple[list, list]:
     """
-    Generate a word search grid with the given words and size.
+    Generate a phrase search grid with the given phrases and size.
     
     This is the main entry point for grid generation. The algorithm uses an intelligent
-    placement strategy that prioritizes word intersections to create dense, interconnected
-    word networks while maintaining good visual diversity.
+    placement strategy that prioritizes phrase intersections to create dense, interconnected
+    phrase networks while maintaining good visual diversity.
     
     Algorithm Overview:
-    1. Filter and prepare words (minimum 3 characters)
-    2. Sort words by length (longest first for better foundation)
+    1. Filter and prepare phrases (minimum 3 characters)
+    2. Sort phrases by length (longest first for better foundation)
     3. Calculate optimal grid size if not provided
-    4. Place each word using multi-strategy approach:
+    4. Place each phrase using multi-strategy approach:
        - Intersection-based placement (preferred)
        - Random placement with scoring
        - Systematic placement (fallback)
     5. Fill remaining cells with random letters
     
     Args:
-        words (list): List of dictionaries with "word" and "translation" keys
+        phrases (list): List of dictionaries with "phrase" and "translation" keys
         size (int | None): Grid size. If None, calculated automatically for optimal density
         
     Returns:
-        tuple: (grid, placed_words) where:
-            - grid: 2D list of characters representing the word search grid
-            - placed_words: List of dictionaries with word info and coordinates
+        tuple: (grid, placed_phrases) where:
+            - grid: 2D list of characters representing the phrase search grid
+            - placed_phrases: List of dictionaries with phrase info and coordinates
     """
-    # Step 1: Filter words (minimum 3 characters) and handle edge cases
-    valid_words = [w for w in words if len(w["word"].strip()) >= 3]
-    if not valid_words:
+    # Step 1: Filter phrases (minimum 3 characters) and handle edge cases
+    valid_phrases = [w for w in phrases if len(w["phrase"].strip()) >= 3]
+    if not valid_phrases:
         return [], []
     
-    # Step 2: Prepare and sort words (longest first for better placement foundation)
-    word_pairs = [(w["word"], w["translation"]) for w in valid_words]
-    word_pairs.sort(key=lambda x: len(normalize_word(x[0].replace(" ", "").upper())), reverse=True)
+    # Step 2: Prepare and sort phrases (longest first for better placement foundation)
+    phrase_pairs = [(w["phrase"], w["translation"]) for w in valid_phrases]
+    phrase_pairs.sort(key=lambda x: len(normalize_phrase(x[0].replace(" ", "").upper())), reverse=True)
     
     # Step 3: Calculate optimal grid size
-    grid_size = size if size is not None else calculate_optimal_grid_size(word_pairs)
+    grid_size = size if size is not None else calculate_optimal_grid_size(phrase_pairs)
     
     # Step 4: Initialize empty grid and placement tracking
     grid = [["" for _ in range(grid_size)] for _ in range(grid_size)]
-    placed_words = []
+    placed_phrases = []
     
-    # Step 5: Place each word using intelligent multi-strategy approach
-    for word_data in word_pairs:
-        place_single_word(grid, word_data, placed_words)
+    # Step 5: Place each phrase using intelligent multi-strategy approach
+    for phrase_data in phrase_pairs:
+        place_single_phrase(grid, phrase_data, placed_phrases)
     
     # Step 6: Fill empty cells with random letters to complete the puzzle
     _fill_empty_cells_with_random_letters(grid)
     
-    return grid, placed_words
+    return grid, placed_phrases

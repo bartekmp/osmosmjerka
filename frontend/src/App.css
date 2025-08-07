@@ -480,8 +480,8 @@
     }
 }
 
-/* Not enough words overlay */
-.not-enough-words-overlay {
+/* Not enough phrases overlay */
+.not-enough-phrases-overlay {
     position: absolute;
     top: 0;
     left: 0;
@@ -494,35 +494,35 @@
     justify-content: center;
 }
 
-.not-enough-words-overlay.light {
+.not-enough-phrases-overlay.light {
     background-color: rgba(255, 255, 255, 0.7);
 }
 
-.not-enough-words-overlay.dark {
+.not-enough-phrases-overlay.dark {
     background-color: rgba(30, 30, 30, 0.7);
 }
 
-.not-enough-words-content {
+.not-enough-phrases-content {
     border-radius: 12px;
     padding: 24px;
     text-align: center;
     font-weight: bold;
 }
 
-.not-enough-words-content.light {
+.not-enough-phrases-content.light {
     background-color: rgba(255, 255, 255, 0.95);
     color: var(--error-color);
     box-shadow: 0px 2px 4px rgba(0, 0, 0, 0.2);
 }
 
-.not-enough-words-content.dark {
+.not-enough-phrases-content.dark {
     background-color: #222;
     color: #fff;
     box-shadow: 0px 8px 16px rgba(0, 0, 0, 0.4);
 }
 
-/* Word list container */
-.word-list-container {
+/* Phrase list container */
+.phrase-list-container {
     width: 100%;
     max-width: 400px;
     align-self: flex-start;
@@ -532,7 +532,7 @@
 }
 
 @media (min-width: 900px) {
-    .word-list-container {
+    .phrase-list-container {
         width: 320px;
     }
 }

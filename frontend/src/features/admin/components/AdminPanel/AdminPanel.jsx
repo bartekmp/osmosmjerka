@@ -29,6 +29,7 @@ import AdminTable from './AdminTable';
 import EditRowForm from './EditRowForm';
 import UserManagement from './UserManagement';
 import UserProfile from './UserProfile';
+import LanguageSetManagement from './LanguageSetManagement';
 import { isTokenExpired } from './helpers';
 import PaginationControls from './PaginationControls';
 import { useAdminApi } from './useAdminApi';
@@ -49,11 +50,18 @@ export default function AdminPanel() {
     const [dashboard, setDashboard] = useState(true);
     const [userManagement, setUserManagement] = useState(false);
     const [userProfile, setUserProfile] = useState(false);
+    const [languageSetManagement, setLanguageSetManagement] = useState(false);
     const [currentUser, setCurrentUser] = useState(null);
     const [categories, setCategories] = useState([]);
+    const [languageSets, setLanguageSets] = useState([]);
     const [ignoredCategories, setIgnoredCategories] = useState([]);
     const [showIgnoredCategories, setShowIgnoredCategories] = useState(false);
     const [filterCategory, setFilterCategory] = useState('');
+    const [selectedLanguageSetId, setSelectedLanguageSetId] = useState(() => {
+        // Load from localStorage or default to null (will be set when language sets load)
+        const saved = localStorage.getItem(STORAGE_KEYS.SELECTED_LANGUAGE_SET);
+        return saved ? parseInt(saved) : null;
+    });
     const [totalRows, setTotalRows] = useState(0);
     const [offsetInput, setOffsetInput] = useState(0);
     const [searchTerm, setSearchTerm] = useState('');
@@ -107,6 +115,28 @@ export default function AdminPanel() {
             .then(res => res.json())
             .then(data => setIgnoredCategories(data))
             .catch(err => console.error('Failed to load ignored categories:', err));
+
+        // Load language sets for filtering
+        fetch(API_ENDPOINTS.ADMIN_LANGUAGE_SETS, {
+            headers: {
+                'Authorization': `Bearer ${token}`
+            }
+        })
+            .then(res => res.json())
+            .then(data => {
+                setLanguageSets(data);
+                // Auto-select first language set if none is selected
+                if (data.length > 0 && !selectedLanguageSetId) {
+                    const firstSetId = data[0].id;
+                    setSelectedLanguageSetId(firstSetId);
+                    localStorage.setItem(STORAGE_KEYS.SELECTED_LANGUAGE_SET, firstSetId.toString());
+                }
+                // If no language sets exist, show error
+                if (data.length === 0) {
+                    setError(t('no_language_sets_error'));
+                }
+            })
+            .catch(err => console.error('Failed to load language sets:', err));
     }, [token]);
 
     // Handlers for pagination and offset input, to avoid negative or excessive values
@@ -125,18 +155,20 @@ export default function AdminPanel() {
 
     // Automatically fetch rows when logged in and dashboard is active
     useEffect(() => {
-        if (isLogged && !dashboard) fetchRows(offset, limit, filterCategory, searchTerm);
+        if (isLogged && !dashboard && selectedLanguageSetId) {
+            fetchRows(offset, limit, filterCategory, searchTerm, selectedLanguageSetId);
+        }
         // eslint-disable-next-line
-    }, [offset, filterCategory]);
+    }, [offset, filterCategory, selectedLanguageSetId]);
 
     // Fetch rows when search term changes
     useEffect(() => {
-        if (isLogged && !dashboard && searchTerm !== undefined) {
-            fetchRows(0, limit, filterCategory, searchTerm);
+        if (isLogged && !dashboard && searchTerm !== undefined && selectedLanguageSetId) {
+            fetchRows(0, limit, filterCategory, searchTerm, selectedLanguageSetId);
             setOffset(0); // Reset to first page when searching
         }
         // eslint-disable-next-line
-    }, [searchTerm, filterCategory, limit]);
+    }, [searchTerm, filterCategory, selectedLanguageSetId, limit]);
 
     // Check token on mount and after login
     useEffect(() => {
@@ -169,16 +201,16 @@ export default function AdminPanel() {
         // eslint-disable-next-line
     }, [token]);
 
-    // When switching to Browse Words, auto-load first page
+    // When switching to Browse Phrases, auto-load first page
     useEffect(() => {
-        if (!dashboard && !userManagement && !userProfile) {
+        if (!dashboard && !userManagement && !userProfile && !languageSetManagement && selectedLanguageSetId) {
             setReloadLoading(true);
-            fetchRows(0, limit, filterCategory, searchTerm);
+            fetchRows(0, limit, filterCategory, searchTerm, selectedLanguageSetId);
             setOffset(0);
             setReloadLoading(false);
         }
         // eslint-disable-next-line
-    }, [dashboard, userManagement, userProfile]);
+    }, [dashboard, userManagement, userProfile, languageSetManagement, selectedLanguageSetId]);
 
     // Handle inline save from table with optimistic updates
     const handleInlineSave = useCallback((updatedRow) => {
@@ -205,13 +237,15 @@ export default function AdminPanel() {
         }).catch(err => {
             // If save fails, revert the optimistic update
             console.error('Save failed:', err);
-            fetchRows(offset, limit, filterCategory, searchTerm);
+            if (selectedLanguageSetId) {
+                fetchRows(offset, limit, filterCategory, searchTerm, selectedLanguageSetId);
+            }
         });
-    }, [offset, limit, filterCategory, fetchRows]);
+    }, [offset, limit, filterCategory, selectedLanguageSetId, fetchRows]);
 
     // Handle inline delete from table with optimistic updates
     const handleInlineDelete = useCallback((id) => {
-        if (window.confirm(t('confirm_delete_word'))) {
+        if (window.confirm(t('confirm_delete_phrase'))) {
             // Optimistically remove from local state first
             setRows(prevRows => prevRows.filter(row => row.id !== id));
             setTotalRows(prev => prev - 1);
@@ -228,10 +262,12 @@ export default function AdminPanel() {
             }).catch(err => {
                 // If delete fails, reload the data
                 console.error('Delete failed:', err);
-                fetchRows(offset, limit, filterCategory, searchTerm);
+                if (selectedLanguageSetId) {
+                    fetchRows(offset, limit, filterCategory, searchTerm, selectedLanguageSetId);
+                }
             });
         }
-    }, [offset, limit, filterCategory, fetchRows, t]);
+    }, [offset, limit, filterCategory, selectedLanguageSetId, fetchRows, t]);
 
     // Handle clear database with confirmation and notification
     const handleClearDb = () => {
@@ -250,7 +286,9 @@ export default function AdminPanel() {
                             severity: 'success',
                             autoHideDuration: 3000,
                         });
-                        fetchRows(offset, limit, filterCategory, searchTerm);
+                        if (selectedLanguageSetId) {
+                            fetchRows(offset, limit, filterCategory, searchTerm, selectedLanguageSetId);
+                        }
                     } else {
                         setClearNotification({
                             open: true,
@@ -282,6 +320,7 @@ export default function AdminPanel() {
         setCurrentUser(null);
         setDashboard(true);
         setUserManagement(false);
+        setLanguageSetManagement(false);
         setUserProfile(false);
     };
 
@@ -360,10 +399,16 @@ export default function AdminPanel() {
                     </Typography>
                     <Box sx={{ display: 'flex', gap: 2, justifyContent: 'center', flexWrap: 'wrap', mt: 3 }}>
                         <Button
-                            onClick={() => setDashboard(false)}
+                            onClick={() => {
+                                if (languageSets.length === 0) {
+                                    setLanguageSetManagement(true);
+                                } else {
+                                    setDashboard(false);
+                                }
+                            }}
                             variant="contained"
                         >
-                            {t('browse_words')}
+                            {t('browse_phrases')}
                         </Button>
                         {currentUser?.role === 'root_admin' && (
                             <Button
@@ -375,6 +420,18 @@ export default function AdminPanel() {
                                 color="secondary"
                             >
                                 {t('user_management')}
+                            </Button>
+                        )}
+                        {currentUser?.role === 'root_admin' && (
+                            <Button
+                                onClick={() => {
+                                    setDashboard(false);
+                                    setLanguageSetManagement(true);
+                                }}
+                                variant="contained"
+                                color="warning"
+                            >
+                                {t('language_sets_management')}
                             </Button>
                         )}
                         <Button
@@ -418,6 +475,26 @@ export default function AdminPanel() {
         );
     }
 
+    // Language Sets Management View
+    if (languageSetManagement) {
+        return (
+            <AdminLayout
+                showBackToGame={true}
+                showDashboard={true}
+                showLogout={true}
+                onDashboard={() => {
+                    setLanguageSetManagement(false);
+                    setDashboard(true);
+                }}
+                onLogout={handleLogout}
+            >
+                <Paper sx={{ p: 3 }}>
+                    <LanguageSetManagement />
+                </Paper>
+            </AdminLayout>
+        );
+    }
+
     // User Profile View
     if (userProfile) {
         return (
@@ -447,6 +524,61 @@ export default function AdminPanel() {
             onDashboard={() => setDashboard(true)}
             onLogout={handleLogout}
         >
+            {/* Error overlay for no language sets */}
+            {languageSets.length === 0 && !dashboard && (
+                <Box
+                    sx={{
+                        position: 'fixed',
+                        top: 0,
+                        left: 0,
+                        right: 0,
+                        bottom: 0,
+                        backgroundColor: isDarkMode ? 'rgba(30,30,30,0.9)' : 'rgba(0, 0, 0, 0.7)',
+                        backdropFilter: 'blur(3px)',
+                        display: 'flex',
+                        alignItems: 'center',
+                        justifyContent: 'center',
+                        zIndex: 9999
+                    }}
+                >
+                    <Box
+                        sx={{
+                            backgroundColor: isDarkMode ? '#222' : 'white',
+                            color: isDarkMode ? '#fff' : 'inherit',
+                            borderRadius: 2,
+                            p: 4,
+                            maxWidth: 500,
+                            mx: 2,
+                            textAlign: 'center',
+                            boxShadow: isDarkMode ? 8 : 2
+                        }}
+                    >
+                        <Typography variant="h5" gutterBottom color="error">
+                            {t('no_language_sets_title')}
+                        </Typography>
+                        <Typography variant="body1" sx={{ mb: 3 }}>
+                            {t('no_language_sets_message')}
+                        </Typography>
+                        <Button
+                            variant="contained"
+                            color="primary"
+                            onClick={() => {
+                                setDashboard(true);
+                                setLanguageSetManagement(true);
+                            }}
+                            sx={{ mr: 2 }}
+                        >
+                            {t('go_to_language_sets')}
+                        </Button>
+                        <Button
+                            variant="outlined"
+                            onClick={() => setDashboard(true)}
+                        >
+                            {t('back_to_dashboard')}
+                        </Button>
+                    </Box>
+                </Box>
+            )}
             <Typography variant="h4" component="h2" gutterBottom align="center">
                 {t('admin_panel')}
             </Typography>
@@ -456,9 +588,11 @@ export default function AdminPanel() {
                     <Grid item xs={6} sm={4} md={2}>
                         <ResponsiveActionButton
                             onClick={() => {
-                                setReloadLoading(true);
-                                fetchRows(offset, limit, filterCategory, searchTerm);
-                                setTimeout(() => setReloadLoading(false), 500);
+                                if (selectedLanguageSetId) {
+                                    setReloadLoading(true);
+                                    fetchRows(offset, limit, filterCategory, searchTerm, selectedLanguageSetId);
+                                    setTimeout(() => setReloadLoading(false), 500);
+                                }
                             }}
                             loading={reloadLoading}
                             icon="📊"
@@ -468,7 +602,7 @@ export default function AdminPanel() {
                     </Grid>
                     <Grid item xs={6} sm={4} md={2}>
                         <ResponsiveActionButton
-                            onClick={() => setEditRow({ categories: '', word: '', translation: '' })}
+                            onClick={() => setEditRow({ categories: '', phrase: '', translation: '' })}
                             color="secondary"
                             icon="➕"
                             desktopText={t('add_row')}
@@ -477,7 +611,7 @@ export default function AdminPanel() {
                     </Grid>
                     <Grid item xs={6} sm={4} md={2}>
                         <Box sx={{ height: '100%', display: 'flex' }}>
-                            <UploadForm onUpload={() => fetchRows(offset, limit, filterCategory, searchTerm)} />
+                            <UploadForm onUpload={() => selectedLanguageSetId && fetchRows(offset, limit, filterCategory, searchTerm, selectedLanguageSetId)} />
                         </Box>
                     </Grid>
                     <Grid item xs={6} sm={4} md={2}>
@@ -486,7 +620,7 @@ export default function AdminPanel() {
                             variant="outlined"
                             color="success"
                             icon="💾"
-                            desktopText={t('download_words')}
+                            desktopText={t('download_phrases')}
                             mobileText={t('download')}
                         />
                     </Grid>
@@ -530,13 +664,36 @@ export default function AdminPanel() {
             <EditRowForm
                 editRow={editRow}
                 setEditRow={setEditRow}
-                handleSave={() => handleSave(editRow, () => fetchRows(offset, limit, filterCategory, searchTerm), setEditRow)}
+                handleSave={() => handleSave(editRow, () => selectedLanguageSetId && fetchRows(offset, limit, filterCategory, searchTerm, selectedLanguageSetId), setEditRow)}
             />
             {/* Filter and Statistics */}
             <Paper sx={{ p: 3, mb: 3 }}>
                 <Grid container spacing={3} alignItems="center">
-                    <Grid item xs={12} md={8}>
-                        <FormControl fullWidth sx={{ minWidth: 264 }}>
+                    {/* Language Set Filter */}
+                    <Grid item xs={12} md={4}>
+                        <FormControl fullWidth sx={{ minWidth: 200 }}>
+                            <InputLabel>{t('filter_by_language_set')}</InputLabel>
+                            <Select
+                                value={selectedLanguageSetId || ''}
+                                label={t('filter_by_language_set')}
+                                onChange={e => { 
+                                    const value = parseInt(e.target.value);
+                                    setSelectedLanguageSetId(value); 
+                                    setOffset(0);
+                                    // Save to localStorage
+                                    localStorage.setItem(STORAGE_KEYS.SELECTED_LANGUAGE_SET, value.toString());
+                                }}
+                            >
+                                {languageSets.map(set => (
+                                    <MenuItem key={set.id} value={set.id}>{set.name}</MenuItem>
+                                ))}
+                            </Select>
+                        </FormControl>
+                    </Grid>
+                    
+                    {/* Category Filter */}
+                    <Grid item xs={12} md={4}>
+                        <FormControl fullWidth sx={{ minWidth: 200 }}>
                             <InputLabel>{t('filter_by_category')}</InputLabel>
                             <Select
                                 value={filterCategory}

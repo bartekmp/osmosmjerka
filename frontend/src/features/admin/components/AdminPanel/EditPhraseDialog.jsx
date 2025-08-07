@@ -22,7 +22,7 @@ const containsHTML = (text) => {
     return htmlRegex.test(text);
 };
 
-export default function EditWordDialog({ 
+export default function EditPhraseDialog({ 
     open, 
     row, 
     onClose, 
@@ -55,7 +55,7 @@ export default function EditWordDialog({
         if (open && row) {
             setEditData({
                 categories: row.categories,
-                word: row.word,
+                phrase: row.phrase,
                 translation: row.translation
             });
             setErrors({});
@@ -107,7 +107,7 @@ export default function EditWordDialog({
         
         return (
             editData.categories !== row.categories ||
-            editData.word !== row.word ||
+            editData.phrase !== row.phrase ||
             editData.translation !== row.translation
         );
     }, [editData, row]);
@@ -120,8 +120,8 @@ export default function EditWordDialog({
         if (!editData.categories?.trim()) {
             newErrors.categories = t('categories_required');
         }
-        if (!editData.word?.trim()) {
-            newErrors.word = t('word_required');
+        if (!editData.phrase?.trim()) {
+            newErrors.phrase = t('phrase_required');
         }
         if (!editData.translation?.trim()) {
             newErrors.translation = t('translation_required');
@@ -131,8 +131,8 @@ export default function EditWordDialog({
         if (editData.categories && containsHTML(editData.categories)) {
             newErrors.categories = t('html_not_allowed');
         }
-        if (editData.word && containsHTML(editData.word)) {
-            newErrors.word = t('html_not_allowed');
+        if (editData.phrase && containsHTML(editData.phrase)) {
+            newErrors.phrase = t('html_not_allowed');
         }
         if (editData.translation && containsHTML(editData.translation)) {
             newErrors.translation = t('html_not_allowed');
@@ -146,7 +146,7 @@ export default function EditWordDialog({
         const updatedRow = {
             id: row.id,
             categories: editData.categories.trim(),
-            word: editData.word.trim(),
+            phrase: editData.phrase.trim(),
             translation: editData.translation.trim()
         };
 
@@ -186,7 +186,7 @@ export default function EditWordDialog({
                 backgroundColor: 'background.paper',
                 color: 'text.primary'
             }}>
-                <Typography variant="h6">{t('edit_word')}</Typography>
+                {t('edit_phrase')}
                 <IconButton onClick={onClose} size="small">
                     <CloseIcon />
                 </IconButton>
@@ -254,12 +254,12 @@ export default function EditWordDialog({
 
                     {/* Phrase Field */}
                     <TextField
-                        label={t('word')}
-                        value={editData.word || ''}
-                        onChange={(e) => handleEditChange('word', e.target.value)}
+                        label={t('phrase')}
+                        value={editData.phrase || ''}
+                        onChange={(e) => handleEditChange('phrase', e.target.value)}
                         fullWidth
-                        error={!!errors.word}
-                        helperText={errors.word}
+                        error={!!errors.phrase}
+                        helperText={errors.phrase}
                         variant="outlined"
                         sx={{
                             '& .MuiOutlinedInput-root': {

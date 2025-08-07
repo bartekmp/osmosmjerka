@@ -1,5 +1,5 @@
 import React from 'react';
-import { render, screen, waitFor } from '@testing-library/react';
+import { render, screen, waitFor, fireEvent, act } from '@testing-library/react';
 import axios from 'axios';
 import { BrowserRouter } from 'react-router-dom';
 import App from '../App';
@@ -19,8 +19,8 @@ test('renders profile link', async () => {
         if (url.startsWith('/api/categories')) {
             return Promise.resolve({ data: ['A', 'B'] });
         }
-        if (url.startsWith('/api/words')) {
-            return Promise.resolve({ data: { grid: [], words: [] } });
+        if (url.startsWith('/api/phrases')) {
+            return Promise.resolve({ data: { grid: [], phrases: [] } });
         }
         return Promise.resolve({ data: [] });
     });
@@ -29,30 +29,52 @@ test('renders profile link', async () => {
     expect(await screen.findByText(/Profile/i)).toBeInTheDocument();
 });
 
-test('shows not enough words overlay', async () => {
+test('shows not enough phrases overlay', async () => {
     axios.get.mockImplementation((url) => {
-        if (url.startsWith('/api/words')) {
-            return Promise.resolve({
-                data: {
-                    error_code: "NOT_ENOUGH_WORDS",
-                    detail: "Not enough words in the selected category.",
-                    grid: [],
-                    words: []
-                }
-            });
+        if (url.startsWith('/api/ignored-categories')) {
+            return Promise.resolve({ data: [] });
         }
         if (url.startsWith('/api/categories')) {
-            return Promise.resolve({ data: ['A', 'B'] });
+            return Promise.resolve({ data: ['TestCategory'] });
+        }
+        if (url.startsWith('/api/language-sets')) {
+            return Promise.resolve({ data: [] });
+        }
+        if (url.startsWith('/api/phrases')) {
+            return Promise.reject({ 
+                response: { 
+                    status: 404, 
+                    data: { 
+                        error: 'NOT_ENOUGH_PHRASES',
+                        category: 'TestCategory',
+                        available: 0,
+                        needed: 5
+                    } 
+                } 
+            });
         }
         return Promise.resolve({ data: [] });
     });
 
     render(withI18n(<BrowserRouter><App /></BrowserRouter>));
-    // Accept either translation or fallback detail
-    const overlays = await screen.findAllByText((content) =>
-        /not enough words/i.test(content)
-    );
-    expect(overlays.length).toBeGreaterThan(0);
+    
+    // Wait for the app to load and show the category selector
+    const combos = await screen.findAllByRole('combobox');
+    expect(combos.length).toBeGreaterThan(0);
+
+    // Find and click the refresh button to trigger puzzle loading
+    const refreshButton = await screen.findByTitle(/reload puzzle/i);
+    
+    // Use act to ensure all state updates are processed
+    await act(async () => {
+        fireEvent.click(refreshButton);
+    });
+
+    // Wait for the error state to be set by checking for content that appears when there are not enough phrases
+    await waitFor(() => {
+        const errorElement = screen.getByText(/not enough phrases/i);
+        expect(errorElement).toBeInTheDocument();
+    }, { timeout: 10000 });
 });
 
 test('renders category selector', async () => {
@@ -60,8 +82,8 @@ test('renders category selector', async () => {
         if (url.startsWith('/api/categories')) {
             return Promise.resolve({ data: ['A', 'B'] });
         }
-        if (url.startsWith('/api/words')) {
-            return Promise.resolve({ data: { grid: [], words: [] } });
+        if (url.startsWith('/api/phrases')) {
+            return Promise.resolve({ data: { grid: [], phrases: [] } });
         }
         return Promise.resolve({ data: [] });
     });
@@ -79,8 +101,8 @@ test('renders reload button', async () => {
         if (url.startsWith('/api/categories')) {
             return Promise.resolve({ data: ['A', 'B'] });
         }
-        if (url.startsWith('/api/words')) {
-            return Promise.resolve({ data: { grid: [], words: [] } });
+        if (url.startsWith('/api/phrases')) {
+            return Promise.resolve({ data: { grid: [], phrases: [] } });
         }
         return Promise.resolve({ data: [] });
     });

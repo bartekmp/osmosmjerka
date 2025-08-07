@@ -139,9 +139,9 @@ export default function EditRowForm({ editRow, setEditRow, handleSave }) {
                     }}
                 />
                 <TextField
-                    label={t('word')}
-                    value={editRow?.word || ''}
-                    onChange={e => setEditRow({ ...editRow, word: e.target.value })}
+                    label={t('phrase')}
+                    value={editRow?.phrase || ''}
+                    onChange={e => setEditRow({ ...editRow, phrase: e.target.value })}
                     fullWidth
                     variant="outlined"
                 />
