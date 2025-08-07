@@ -4,11 +4,11 @@ import { useTranslation } from 'react-i18next';
 import axios from 'axios';
 import { API_ENDPOINTS, STORAGE_KEYS } from '../../constants/constants';
 
-const LanguageSetSelector = ({ 
-    selectedLanguageSetId, 
-    onLanguageSetChange, 
+const LanguageSetSelector = ({
+    selectedLanguageSetId,
+    onLanguageSetChange,
     disabled = false,
-    size = 'medium',
+    size = 'small',
     variant = 'outlined'
 }) => {
     const { t } = useTranslation();
@@ -22,14 +22,14 @@ const LanguageSetSelector = ({
             // Prevent duplicate API calls in StrictMode
             if (fetchedRef.current) return;
             fetchedRef.current = true;
-            
+
             try {
                 setLoading(true);
                 const response = await axios.get(API_ENDPOINTS.LANGUAGE_SETS);
                 setLanguageSets(response.data);
             } catch (err) {
                 console.error('Failed to fetch language sets:', err);
-                setError(t('errors.failedToLoadLanguageSets', 'Failed to load language sets'));
+                setError(t('language_set_loading_failed', 'Failed to load language sets'));
                 fetchedRef.current = false; // Reset on error to allow retry
             } finally {
                 setLoading(false);
@@ -59,11 +59,11 @@ const LanguageSetSelector = ({
     if (loading) {
         return (
             <FormControl variant={variant} size={size} disabled>
-                <InputLabel>{t('game.languageSet', 'Language Set')}</InputLabel>
+                <InputLabel>{t('language_set', 'Language Set')}</InputLabel>
                 <Select value="" displayEmpty>
                     <MenuItem value="">
                         <Typography variant="body2" color="textSecondary">
-                            {t('common.loading', 'Loading...')}
+                            {t('language_set_loading', 'Loading...')}
                         </Typography>
                     </MenuItem>
                 </Select>
@@ -85,7 +85,7 @@ const LanguageSetSelector = ({
         return (
             <Box sx={{ minWidth: 120 }}>
                 <Typography variant="body2" color="textSecondary">
-                    {t('game.noLanguageSets', 'No language sets available')}
+                    {t('no_language_sets_title', 'No language sets available')}
                 </Typography>
             </Box>
         );
@@ -94,13 +94,13 @@ const LanguageSetSelector = ({
     return (
         <FormControl variant={variant} size={size} disabled={disabled} sx={{ minWidth: 130 }}>
             <InputLabel id="language-set-select-label">
-                {t('game.languageSet', 'Language Set')}
+                {t('language_set', 'Language Set')}
             </InputLabel>
             <Select
                 labelId="language-set-select-label"
                 id="language-set-select"
                 value={selectedLanguageSetId || ''}
-                label={t('game.languageSet', 'Language Set')}
+                label={t('language_set', 'Language Set')}
                 onChange={handleChange}
             >
                 {languageSets.map((set) => (

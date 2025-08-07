@@ -28,7 +28,7 @@ import TableNoRowsOverlay from './TableNoRowsOverlay';
 import { renderExpandableText } from './utils/renderHelpers';
 import { containsHTML, stripHTML } from './utils/validationUtils';
 
-export default function AdminTable({ rows, setEditRow, onSaveRow, onDeleteRow, totalRows, searchTerm, onSearchChange }) {
+export default function AdminTable({ rows, setEditRow, onSaveRow, onDeleteRow, totalRows, searchTerm, onSearchChange, isLoading = false }) {
     const { t } = useTranslation();
     const [editDialog, setEditDialog] = useState({ open: false, row: null });
     const [textDialog, setTextDialog] = useState({ open: false, title: '', content: '' });
@@ -329,6 +329,7 @@ export default function AdminTable({ rows, setEditRow, onSaveRow, onDeleteRow, t
                 {/* Empty State Overlay */}
                 <TableNoRowsOverlay
                     isEmpty={!rows || rows.length === 0}
+                    isLoading={isLoading}
                     searchTerm={searchTerm}
                     onClearSearch={() => handleSearchChange('')}
                     translationFn={t}

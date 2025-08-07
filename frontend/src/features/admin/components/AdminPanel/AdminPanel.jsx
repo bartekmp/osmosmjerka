@@ -74,6 +74,7 @@ export default function AdminPanel() {
     const [token, setToken] = useState(localStorage.getItem(STORAGE_KEYS.ADMIN_TOKEN) || '');
     const [clearLoading, setClearLoading] = useState(false);
     const [reloadLoading, setReloadLoading] = useState(false);
+    const [dataLoading, setDataLoading] = useState(false);
     const [clearNotification, setClearNotification] = useState({
         open: false,
         message: '',
@@ -83,7 +84,7 @@ export default function AdminPanel() {
     const { isDarkMode, toggleDarkMode } = useThemeMode();
 
     const {
-        fetchRows,
+        fetchRows: originalFetchRows,
         handleLogin,
         handleSave,
         handleExportTxt,
@@ -98,6 +99,21 @@ export default function AdminPanel() {
         setToken,
         setIsLogged
     });
+
+    // Wrap fetchRows to handle loading state
+    const fetchRows = useCallback((...args) => {
+        setDataLoading(true);
+        // Call original fetchRows and set up a listener for when data changes
+        originalFetchRows(...args);
+    }, [originalFetchRows]);
+
+    // Clear loading state when rows change (indicating fetch completed)
+    useEffect(() => {
+        if (dataLoading) {
+            const timer = setTimeout(() => setDataLoading(false), 100);
+            return () => clearTimeout(timer);
+        }
+    }, [rows, dataLoading]);
 
     useEffect(() => {
         // Load all categories for admin (including ignored ones)
@@ -761,6 +777,7 @@ export default function AdminPanel() {
                 totalRows={totalRows}
                 searchTerm={searchTerm}
                 onSearchChange={handleSearchChange}
+                isLoading={dataLoading}
             />
             {/* Pagination */}
             <Box sx={{ mt: 3 }}>
