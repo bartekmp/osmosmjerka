@@ -48,7 +48,7 @@ export default function LanguageSetManagement() {
         setLoading(true);
         setError('');
         try {
-            const response = await fetch(API_ENDPOINTS.LANGUAGE_SETS, {
+            const response = await fetch(API_ENDPOINTS.ADMIN_LANGUAGE_SETS, {
                 headers: {
                     'Authorization': `Bearer ${localStorage.getItem('adminToken')}`
                 }
@@ -93,8 +93,8 @@ export default function LanguageSetManagement() {
         setLoading(true);
         try {
             const url = editingSet 
-                ? `${API_ENDPOINTS.LANGUAGE_SETS}/${editingSet.id}`
-                : API_ENDPOINTS.LANGUAGE_SETS;
+                ? `${API_ENDPOINTS.ADMIN_LANGUAGE_SETS}/${editingSet.id}`
+                : API_ENDPOINTS.ADMIN_LANGUAGE_SETS;
             
             const method = editingSet ? 'PUT' : 'POST';
             
@@ -128,7 +128,7 @@ export default function LanguageSetManagement() {
 
         setLoading(true);
         try {
-            const response = await fetch(`${API_ENDPOINTS.LANGUAGE_SETS}/${languageSet.id}`, {
+            const response = await fetch(`${API_ENDPOINTS.ADMIN_LANGUAGE_SETS}/${languageSet.id}`, {
                 method: 'DELETE',
                 headers: {
                     'Authorization': `Bearer ${localStorage.getItem('adminToken')}`
