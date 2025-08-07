@@ -2,6 +2,19 @@
 
 <!-- version list -->
 
+## v1.17.0 (2025-08-07)
+
+### Feature
+
+- Add general error screen, fix static path mount, use dev/prod variable in build, add dev readme
+  ([#56](https://github.com/bartekmp/osmosmjerka/pull/56),
+  [`c3b92ee`](https://github.com/bartekmp/osmosmjerka/commit/c3b92eeb79ff3ab66d46446c302b6ba99645f401))
+
+- Allow creating more than 1 language set, refactor 'word' to 'phrase', add new admin dashboards and
+  controls to work with language sets ([#56](https://github.com/bartekmp/osmosmjerka/pull/56),
+  [`c3b92ee`](https://github.com/bartekmp/osmosmjerka/commit/c3b92eeb79ff3ab66d46446c302b6ba99645f401))
+
+
 ## v1.16.1 (2025-08-06)
 
 ### Bug Fixes
