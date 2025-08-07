@@ -84,6 +84,10 @@ export default defineConfig({
             }
         },
     },
+    // Define global constants at build time
+    define: {
+        __VITE_BASE_PATH__: JSON.stringify(process.env.VITE_BASE_PATH || (process.env.NODE_ENV === 'production' ? '/static/' : '/')),
+    },
     publicDir: 'public',
     // Base path configuration:
     // - Development: '/' (frontend served by Vite dev server on port 3000)
