@@ -2,6 +2,28 @@
 
 <!-- version list -->
 
+## v1.17.1 (2025-08-07)
+
+### Bug Fixes
+
+- Remove WordList files
+  ([`401bf47`](https://github.com/bartekmp/osmosmjerka/commit/401bf47d713a2d8602de9a0d455e012a7f5245b7))
+
+### Enhancement
+
+- Deduplicate frontend components, update readmes, tweak frontend build vars
+  ([#57](https://github.com/bartekmp/osmosmjerka/pull/57),
+  [`a0eb9ea`](https://github.com/bartekmp/osmosmjerka/commit/a0eb9eac8523fcac8366423333ac9537226e81e9))
+
+- Deduplicate GameHeader and AllFoundMessage, improve language and layout
+  ([#57](https://github.com/bartekmp/osmosmjerka/pull/57),
+  [`a0eb9ea`](https://github.com/bartekmp/osmosmjerka/commit/a0eb9eac8523fcac8366423333ac9537226e81e9))
+
+- Update readmes, adapt frontend build env vars
+  ([#57](https://github.com/bartekmp/osmosmjerka/pull/57),
+  [`a0eb9ea`](https://github.com/bartekmp/osmosmjerka/commit/a0eb9eac8523fcac8366423333ac9537226e81e9))
+
+
 ## v1.17.0 (2025-08-07)
 
 ### Feature
