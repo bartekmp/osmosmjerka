@@ -1,10 +1,11 @@
 import logging
+import os
 import sys
 from contextlib import asynccontextmanager
 
 from fastapi import FastAPI, Request
 from fastapi.middleware.cors import CORSMiddleware
-from fastapi.responses import FileResponse, JSONResponse
+from fastapi.responses import FileResponse, JSONResponse, RedirectResponse
 from fastapi.staticfiles import StaticFiles
 
 from osmosmjerka.admin_api import router as admin_router
@@ -14,6 +15,32 @@ from osmosmjerka.game_api import router as game_router
 
 # List of API endpoints that should be ignored for the SPA routing
 API_ENDPOINTS = ["api/", "admin/"]
+
+# Static file extensions that should not be handled by SPA routing
+STATIC_FILE_EXTENSIONS = [
+    ".ico",
+    ".png",
+    ".jpg",
+    ".jpeg",
+    ".gif",
+    ".svg",
+    ".webp",
+    ".css",
+    ".js",
+    ".json",
+    ".txt",
+    ".xml",
+    ".pdf",
+    ".woff",
+    ".woff2",
+    ".ttf",
+    ".eot",
+    ".otf",
+]
+
+# Check if we're in development mode
+DEVELOPMENT_MODE = os.getenv("DEVELOPMENT_MODE", "false").lower() == "true"
+FRONTEND_DEV_URL = "http://localhost:3000"
 
 
 # Initialize the FastAPI application
@@ -87,8 +114,9 @@ app.add_middleware(
 app.include_router(game_router)
 app.include_router(admin_router)
 
-# Serve static files at /static
-app.mount("/static", StaticFiles(directory="static", html=True), name="static")
+# Serve static files at /static (only if not in development mode)
+if not DEVELOPMENT_MODE:
+    app.mount("/static", StaticFiles(directory="static", html=True), name="static")
 
 
 # Serve the SPA for all non-API routes
@@ -99,6 +127,17 @@ async def serve_spa(request: Request, path: str):
     if any(path.startswith(endpoint) for endpoint in API_ENDPOINTS):
         # This shouldn't happen if routing is correct, but just in case
         return JSONResponse({"error": "Not found"}, status_code=404)
+
+    # Check if the request is for a static file (should be handled by StaticFiles mount)
+    if any(path.endswith(ext) for ext in STATIC_FILE_EXTENSIONS):
+        # In production, these should be served from /static/ path
+        # If someone is requesting them from root, return 404
+        return JSONResponse({"error": "Not found"}, status_code=404)
+
+    # In development mode, redirect to frontend dev server
+    if DEVELOPMENT_MODE:
+        redirect_url = f"{FRONTEND_DEV_URL}/{path}" if path else FRONTEND_DEV_URL
+        return RedirectResponse(url=redirect_url, status_code=302)
 
     # Serve the SPA
     return FileResponse("static/index.html")

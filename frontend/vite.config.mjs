@@ -39,7 +39,9 @@ export default defineConfig({
                 target: 'http://localhost:8085',
                 changeOrigin: true,
             }
-        }
+        },
+        // Ensure all routes fallback to index.html for SPA routing
+        historyApiFallback: true,
     },
     // Build configuration (only for production builds)
     build: {
@@ -83,6 +85,9 @@ export default defineConfig({
         },
     },
     publicDir: 'public',
-    // Always use root base path
-    base: '/',
+    // Base path configuration:
+    // - Development: '/' (frontend served by Vite dev server on port 3000)
+    // - Production: '/static/' (frontend build served by backend from /static/ path)
+    // Use explicit command argument or NODE_ENV check
+    base: process.env.VITE_BASE_PATH || (process.env.NODE_ENV === 'production' ? '/static/' : '/'),
 });

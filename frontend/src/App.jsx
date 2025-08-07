@@ -4,6 +4,7 @@ import React, { useEffect, useState, useRef, Suspense, lazy, useCallback } from 
 import { Route, Routes, useLocation, Link } from 'react-router-dom';
 import { ThemeProvider as MUIThemeProvider, CssBaseline, Box, Typography } from '@mui/material';
 import { Container, Stack, CircularProgress, FormControl, InputLabel, MenuItem, Select, Button } from '@mui/material';
+import { getAssetUrl } from './shared/utils/assets';
 import {
     ScrabbleGrid,
     PhraseList,
@@ -83,7 +84,7 @@ function AppContent() {
 
     // Winning condition: all phrases found
     const allFound = phrases.length > 0 && found.length === phrases.length;
-    
+
     // Use celebration hook
     const { showCelebration, resetCelebration, celebrationTriggeredRef } = useCelebration(allFound, setLogoFilter);
 
@@ -122,7 +123,7 @@ function AppContent() {
     useEffect(() => {
         if (ignoredCategoriesFetchedRef.current) return;
         ignoredCategoriesFetchedRef.current = true;
-        
+
         axios.get(API_ENDPOINTS.IGNORED_CATEGORIES).then(res => {
             setIgnoredCategories(res.data);
         }).catch(err => {
@@ -135,7 +136,7 @@ function AppContent() {
         // Prevent duplicate API calls for the same language set
         if (lastFetchedLanguageSetIdRef.current === selectedLanguageSetId) return;
         lastFetchedLanguageSetIdRef.current = selectedLanguageSetId;
-        
+
         // Load categories with language set parameter
         let categoriesUrl = API_ENDPOINTS.CATEGORIES;
         if (selectedLanguageSetId) {
@@ -357,7 +358,7 @@ function AppContent() {
                                     >
                                         <Box
                                             component="img"
-                                            src="/android-chrome-512x512.png"
+                                            src={getAssetUrl("android-chrome-512x512.png")}
                                             alt="Osmosmjerka logo"
                                             sx={{
                                                 height: '100%',
@@ -368,7 +369,7 @@ function AppContent() {
                                                 position: 'relative',
                                                 zIndex: 1,
                                             }}
-                                            onError={e => { e.target.onerror = null; e.target.src = "/favicon-32x32.png"; }}
+                                            onError={e => { e.target.onerror = null; e.target.src = getAssetUrl("favicon-32x32.png"); }}
                                         />
                                     </Box>
                                     <Typography
@@ -571,7 +572,7 @@ function AppContent() {
                                             lineHeight: 1.2
                                         }}
                                     >
-                                                                                🎉 {t('all_phrases_found')} 🎊
+                                        🎉 {t('all_phrases_found')} 🎊
                                     </Typography>
                                     <Button
                                         onClick={() => loadPuzzle(selectedCategory, difficulty)}
@@ -585,9 +586,9 @@ function AppContent() {
                                             minHeight: { xs: 28, sm: 36 }
                                         }}
                                     >
-                                        <ResponsiveText 
-                                            desktop={t('new_game')} 
-                                            mobile="🎮" 
+                                        <ResponsiveText
+                                            desktop={t('new_game')}
+                                            mobile="🎮"
                                         />
                                     </Button>
                                 </Box>

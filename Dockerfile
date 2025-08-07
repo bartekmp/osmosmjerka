@@ -9,7 +9,11 @@ WORKDIR /app
 COPY frontend/ frontend/
 WORKDIR /app/frontend
 COPY frontend/public public/
-RUN npm install && npm run build
+RUN npm install
+
+ENV NODE_ENV=production
+ENV VITE_BASE_PATH=/static/
+RUN npm run build
 
 FROM python:3.13-slim
 LABEL maintainer="bartekmp"
@@ -24,6 +28,9 @@ ARG VERSION
 ENV SETUPTOOLS_SCM_PRETEND_VERSION=$VERSION
 
 RUN pip install .
+
+# Ensure DEVELOPMENT_MODE is false in production
+ENV DEVELOPMENT_MODE=false
 
 # If using HTTP or reverse proxy
 EXPOSE 8085
