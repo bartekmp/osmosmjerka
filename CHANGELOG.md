@@ -2,6 +2,14 @@
 
 <!-- version list -->
 
+## v1.17.3 (2025-08-08)
+
+### Bug Fixes
+
+- Frontend versioning
+  ([`c2d35db`](https://github.com/bartekmp/osmosmjerka/commit/c2d35dbfd4d1cc6a77a4bfa25a33f2ec4dcefd28))
+
+
 ## v1.17.2 (2025-08-07)
 
 ### Bug Fixes
