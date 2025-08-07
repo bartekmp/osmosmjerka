@@ -2,6 +2,14 @@
 
 <!-- version list -->
 
+## v1.17.2 (2025-08-07)
+
+### Bug Fixes
+
+- Wrong endpoint used for language set management
+  ([`1985e1e`](https://github.com/bartekmp/osmosmjerka/commit/1985e1e908c2b957784442110ee2c962af02959f))
+
+
 ## v1.17.1 (2025-08-07)
 
 ### Bug Fixes
