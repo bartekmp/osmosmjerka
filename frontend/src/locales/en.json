@@ -179,6 +179,7 @@
     "active": "Active",
     "inactive": "Inactive",
     "add_language_set": "Add Language Set",
+    "add_language_set_short": "Add",
     "edit_language_set": "Edit Language Set",
     "create_language_set": "Create Language Set",
     "confirm_delete_language_set": "Are you sure you want to delete the language set '{{name}}'?",

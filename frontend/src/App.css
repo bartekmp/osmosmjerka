@@ -98,15 +98,41 @@
     justify-content: center;
 }
 
+/* Shared action button sizing */
+.control-action-button {
+    width: 48px;
+    height: 48px;
+    min-width: 48px;
+    padding: 0;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    font-size: 1.2rem;
+}
+
+@media (min-width: 600px) {
+    .control-action-button {
+        width: auto;
+        height: auto;
+        min-width: auto;
+        padding: 8px 16px;
+        flex-direction: row;
+        font-size: 1rem;
+    }
+}
+
 /* Control panel */
 .control-panel {
+    display: flex;
     flex-direction: row;
     align-items: flex-start;
     gap: 16px;
     width: 100%;
-    max-width: 600px;
+    max-width: 800px;
     margin-bottom: 8px;
     transition: all 0.2s;
+    flex-wrap: nowrap;
 }
 
 @media (min-width: 600px) {
@@ -131,13 +157,20 @@
     flex: 1;
     display: flex;
     flex-direction: column;
-    gap: 16px;
-    max-width: 40%;
+    gap: 8px;
+    max-width: 60%;
 }
 
 @media (min-width: 600px) {
     .dropdowns-container {
-        max-width: 70%;
+        gap: 16px;
+        max-width: 55%;
+    }
+}
+
+@media (min-width: 900px) {
+    .dropdowns-container {
+        max-width: 50%;
     }
 }
 
@@ -148,6 +181,8 @@
     align-items: center;
     gap: 8px;
     position: relative;
+    flex-wrap: nowrap;
+    flex-shrink: 0;
 }
 
 @media (min-width: 600px) {
@@ -159,10 +194,12 @@
 
 /* Refresh button */
 .refresh-button {
-    height: 48px;
-    min-width: 48px;
+    height: 60px;
+    min-width: 60px;
+    align-items: 'center';
+    justify-content: 'center';
     font-size: 1.2rem;
-    padding: 0 8px;
+    padding: 0;
     display: flex;
     flex-direction: column;
     justify-content: center;
@@ -170,10 +207,12 @@
 
 @media (min-width: 600px) {
     .refresh-button {
-        height: 96px;
-        min-width: 56px;
-        font-size: 2rem;
-        padding: 0 16px;
+    min-height: 60px;
+    height: auto;
+    min-width: 120px;
+    font-size: 1rem;
+    padding: 8px 16px;
+    flex-direction: row;
     }
 }
 

@@ -25,6 +25,7 @@ import DeleteIcon from '@mui/icons-material/Delete';
 import AddIcon from '@mui/icons-material/Add';
 import { useTranslation } from 'react-i18next';
 import { API_ENDPOINTS } from '@shared';
+import { ResponsiveText } from '../../../../shared';
 
 export default function LanguageSetManagement() {
     const { t } = useTranslation();
@@ -170,7 +171,7 @@ export default function LanguageSetManagement() {
                     onClick={handleCreate}
                     disabled={loading}
                 >
-                    {t('add_language_set')}
+                <ResponsiveText desktop={t('add_language_set')} mobile={t('add_language_set_short')} />
                 </Button>
             </Box>
 
