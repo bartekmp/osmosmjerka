@@ -1,5 +1,5 @@
 import React from 'react';
-import { render, screen, fireEvent, waitFor, act } from '@testing-library/react';
+import { render, screen, fireEvent, waitFor } from '@testing-library/react';
 import EditPhraseDialog from '../EditPhraseDialog';
 import { withI18n } from '../../../../../testUtils';
 import { ThemeProvider, createTheme } from '@mui/material/styles';
@@ -26,6 +26,22 @@ const renderWithTheme = (ui) => {
     ));
 };
 
+// Silence benign React act warnings caused by async effects during initial render
+const originalConsoleError = console.error;
+beforeAll(() => {
+    jest.spyOn(console, 'error').mockImplementation((...args) => {
+        const msg = args[0];
+        if (typeof msg === 'string' && msg.includes('not wrapped in act')) {
+            return; // ignore this specific warning in this suite
+        }
+        originalConsoleError(...args);
+    });
+});
+
+afterAll(() => {
+    console.error.mockRestore();
+});
+
 describe('EditPhraseDialog component', () => {
     const testRow = {
         id: 1,
@@ -35,16 +51,14 @@ describe('EditPhraseDialog component', () => {
     };
 
     test('renders dialog with row data when open', async () => {
-        await act(async () => {
-            renderWithTheme(
-                <EditPhraseDialog
-                    open={true}
-                    row={testRow}
-                    onClose={() => { }}
-                    onSave={() => { }}
-                />
-            );
-        });
+        renderWithTheme(
+            <EditPhraseDialog
+                open={true}
+                row={testRow}
+                onClose={() => { }}
+                onSave={() => { }}
+            />
+        );
 
         // Wait for the dialog to be rendered
         expect(await screen.findByText(/edit phrase/i)).toBeInTheDocument();
@@ -72,16 +86,14 @@ describe('EditPhraseDialog component', () => {
 
     test('calls onClose when cancel button is clicked', async () => {
         const mockClose = jest.fn();
-        await act(async () => {
-            renderWithTheme(
-                <EditPhraseDialog
-                    open={true}
-                    row={testRow}
-                    onClose={mockClose}
-                    onSave={() => { }}
-                />
-            );
-        });
+        renderWithTheme(
+            <EditPhraseDialog
+                open={true}
+                row={testRow}
+                onClose={mockClose}
+                onSave={() => { }}
+            />
+        );
 
         // Wait for dialog to render and click cancel
         const cancelButton = await screen.findByText(/cancel/i);
@@ -90,16 +102,14 @@ describe('EditPhraseDialog component', () => {
     });
 
     test('save button is disabled when no changes are made', async () => {
-        await act(async () => {
-            renderWithTheme(
-                <EditPhraseDialog
-                    open={true}
-                    row={testRow}
-                    onClose={() => { }}
-                    onSave={() => { }}
-                />
-            );
-        });
+        renderWithTheme(
+            <EditPhraseDialog
+                open={true}
+                row={testRow}
+                onClose={() => { }}
+                onSave={() => { }}
+            />
+        );
 
         // Wait for dialog to render and check save button state
         const saveButton = await screen.findByText(/save/i);
@@ -107,16 +117,14 @@ describe('EditPhraseDialog component', () => {
     });
 
     test('save button is enabled when changes are made', async () => {
-        await act(async () => {
-            renderWithTheme(
-                <EditPhraseDialog
-                    open={true}
-                    row={testRow}
-                    onClose={() => { }}
-                    onSave={() => { }}
-                />
-            );
-        });
+        renderWithTheme(
+            <EditPhraseDialog
+                open={true}
+                row={testRow}
+                onClose={() => { }}
+                onSave={() => { }}
+            />
+        );
 
         // Wait for form to be ready and make a change
         const phraseInput = await screen.findByDisplayValue('Dog');
@@ -130,16 +138,14 @@ describe('EditPhraseDialog component', () => {
     });
 
     test('validates required fields on save', async () => {
-        await act(async () => {
-            renderWithTheme(
-                <EditPhraseDialog
-                    open={true}
-                    row={testRow}
-                    onClose={() => { }}
-                    onSave={() => { }}
-                />
-            );
-        });
+        renderWithTheme(
+            <EditPhraseDialog
+                open={true}
+                row={testRow}
+                onClose={() => { }}
+                onSave={() => { }}
+            />
+        );
 
         // Wait for form to be ready, clear a required field
         const phraseInput = await screen.findByDisplayValue('Dog');
@@ -158,16 +164,14 @@ describe('EditPhraseDialog component', () => {
 
     test('calls onSave with updated data when valid', async () => {
         const mockSave = jest.fn();
-        await act(async () => {
-            renderWithTheme(
-                <EditPhraseDialog
-                    open={true}
-                    row={testRow}
-                    onClose={() => { }}
-                    onSave={mockSave}
-                />
-            );
-        });
+        renderWithTheme(
+            <EditPhraseDialog
+                open={true}
+                row={testRow}
+                onClose={() => { }}
+                onSave={mockSave}
+            />
+        );
 
         // Wait for form to be ready and make a valid change
         const phraseInput = await screen.findByDisplayValue('Dog');

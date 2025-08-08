@@ -203,24 +203,28 @@ export default function EditPhraseDialog({
                         inputValue={categoriesInputValue}
                         onInputChange={(event, newInputValue) => setCategoriesInputValue(newInputValue)}
                         renderTags={(value, getTagProps) =>
-                            value.map((option, index) => (
-                                <Chip
-                                    variant="outlined"
-                                    label={option}
-                                    {...getTagProps({ index })}
-                                    sx={{
-                                        backgroundColor: 'rgba(184, 156, 78, 0.1)',
-                                        borderColor: '#b89c4e',
-                                        color: 'text.primary',
-                                        '& .MuiChip-deleteIcon': {
-                                            color: '#b89c4e',
-                                            '&:hover': {
-                                                color: '#8a7429'
+                            value.map((option, index) => {
+                                const { key, ...tagProps } = getTagProps({ index });
+                                return (
+                                    <Chip
+                                        key={key}
+                                        variant="outlined"
+                                        label={option}
+                                        {...tagProps}
+                                        sx={{
+                                            backgroundColor: 'rgba(184, 156, 78, 0.1)',
+                                            borderColor: '#b89c4e',
+                                            color: 'text.primary',
+                                            '& .MuiChip-deleteIcon': {
+                                                color: '#b89c4e',
+                                                '&:hover': {
+                                                    color: '#8a7429'
+                                                }
                                             }
-                                        }
-                                    }}
-                                />
-                            ))
+                                        }}
+                                    />
+                                );
+                            })
                         }
                         renderInput={(params) => (
                             <TextField

@@ -1,8 +1,8 @@
-import React from 'react';
-import { Box, Button, FormControl, InputLabel, Select, MenuItem } from '@mui/material';
+import { Box, Button, FormControl, InputLabel, MenuItem, Select } from '@mui/material';
 import { useTranslation } from 'react-i18next';
-import CategorySelector from './CategorySelector';
+import { LanguageSetSelector, ResponsiveText } from '../../../../shared';
 import ExportButton from '../../../export/components/ExportButton';
+import CategorySelector from './CategorySelector';
 
 const GameControls = ({
     panelOpen,
@@ -19,29 +19,57 @@ const GameControls = ({
     grid,
     phrases,
     isLoading,
-    notEnoughPhrases
+    notEnoughPhrases,
+    selectedLanguageSetId,
+    onLanguageSetChange
 }) => {
     const { t } = useTranslation();
 
     return (
         <>
-            {/* Toggle button for mobile, only when menu is closed */}
-            {!panelOpen && (
-                <Box className="mobile-menu-toggle">
-                    <Button
-                        onClick={() => setPanelOpen(true)}
-                        className="mobile-menu-button"
-                        aria-label={t('show_controls')}
-                    >
-                        {t('menu')} ⬇️
-                    </Button>
-                </Box>
-            )}
+            {/* Mobile menu toggle button (burger / close), always shown on mobile */}
+            <Box sx={{
+                display: { xs: 'flex', sm: 'none' },
+                flexDirection: 'row',
+                alignItems: 'center',
+                width: '100%',
+                justifyContent: 'center',
+                mb: 1,
+            }}>
+                <Button
+                    onClick={() => setPanelOpen(!panelOpen)}
+                    sx={{
+                        minWidth: 0,
+                        width: 250,
+                        height: 36,
+                        display: 'flex',
+                        alignItems: 'center',
+                        justifyContent: 'center',
+                        borderRadius: 2,
+                        fontSize: '1.5rem',
+                        backgroundColor: panelOpen ? 'action.selected' : 'background.paper',
+                        '&:hover': {
+                            backgroundColor: panelOpen ? 'action.hover' : 'action.hover',
+                        }
+                    }}
+                    aria-label={panelOpen ? t('hide_controls') : t('show_controls')}
+                >
+                    {panelOpen ? '✕' : '☰'}
+                </Button>
+            </Box>
 
             {/* Control Panel: collapsible on mobile, always visible on desktop */}
             <Box className={`control-panel ${panelOpen ? '' : 'hidden'}`}>
                 {/* Dropdowns container */}
                 <Box className="dropdowns-container">
+                    {/* Language set selector (optional) */}
+                    {typeof onLanguageSetChange === 'function' && (
+                        <LanguageSetSelector
+                            selectedLanguageSetId={selectedLanguageSetId}
+                            onLanguageSetChange={onLanguageSetChange}
+                            size="small"
+                        />
+                    )}
                     <CategorySelector
                         categories={visibleCategories}
                         selected={selectedCategory}
@@ -69,12 +97,9 @@ const GameControls = ({
                     <Button
                         onClick={() => loadPuzzle(selectedCategoryState, difficultyState)}
                         title={t('reload_puzzle')}
-                        className="refresh-button"
+                        className="refresh-button control-action-button"
                     >
-                        <span>🔄</span>
-                        <Box component="span" className="refresh-button-text">
-                            {t('refresh')}
-                        </Box>
+                        <ResponsiveText desktop={'🔄 ' + t('refresh')} mobile="🔄" />
                     </Button>
 
                     {/* Export button */}
@@ -84,18 +109,8 @@ const GameControls = ({
                         phrases={phrases}
                         disabled={isLoading || grid.length === 0 || notEnoughPhrases}
                         t={t}
+                        className="refresh-button control-action-button"
                     />
-
-                    {/* Hide menu button for mobile, only when menu is open */}
-                    {panelOpen && (
-                        <Button
-                            onClick={() => setPanelOpen(false)}
-                            className="hide-menu-button"
-                            aria-label={t('hide_controls')}
-                        >
-                            ⬆️
-                        </Button>
-                    )}
                 </Box>
             </Box>
         </>

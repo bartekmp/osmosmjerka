@@ -7,13 +7,14 @@ const LoadingOverlay = ({ isLoading, isDarkMode }) => {
 
     if (!isLoading) return null;
 
+    const themeClass = isDarkMode ? 'dark' : 'light';
     return (
-        <Box className={`loading-overlay ${isDarkMode ? 'dark' : 'light'}`}>
-            <Box className={`loading-content ${isDarkMode ? 'dark' : 'light'}`}>
-                <CircularProgress 
-                    size={40} 
-                    color={isDarkMode ? 'inherit' : 'primary'} 
-                />
+        <Box 
+            className={`loading-overlay ${themeClass}`}
+            sx={{ position: 'absolute', inset: 0 }}
+        >
+            <Box className={`loading-content ${themeClass}`}>
+                <CircularProgress size={40} color={isDarkMode ? 'inherit' : 'primary'} />
                 <Box component="span">{t('loading_puzzle')}</Box>
             </Box>
         </Box>

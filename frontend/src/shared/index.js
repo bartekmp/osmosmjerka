@@ -12,6 +12,7 @@ export { default as GameActionButton } from './components/ui/GameActionButton';
 export { default as LanguageSwitcher } from './components/ui/LanguageSwitcher';
 export { default as NightModeButton } from './components/ui/NightModeButton';
 export { default as LanguageSetSelector } from './components/ui/LanguageSetSelector';
+export { default as NotEnoughPhrasesOverlay } from './components/ui/NotEnoughPhrasesOverlay';
 
 // Utilities
 export * from './utils/responsive';

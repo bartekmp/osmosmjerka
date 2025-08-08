@@ -1,35 +1,31 @@
+import { Box, CircularProgress, Container, CssBaseline, ThemeProvider as MUIThemeProvider, Stack } from '@mui/material';
 import axios from 'axios';
 import confetti from 'canvas-confetti';
-import React, { useEffect, useState, useRef, Suspense, lazy, useCallback } from 'react';
-import { Route, Routes, useLocation, Link } from 'react-router-dom';
-import { ThemeProvider as MUIThemeProvider, CssBaseline, Box, Typography } from '@mui/material';
-import { Container, Stack, CircularProgress, FormControl, InputLabel, MenuItem, Select, Button } from '@mui/material';
-import {
-    ScrabbleGrid,
-    PhraseList,
-    GameHeader,
-    GameControls,
-    CategorySelector,
-    ExportButton,
-    LoadingOverlay,
-    AllFoundMessage,
-    AdminControls
-} from './features';
-import { LanguageSwitcher, NightModeButton, LanguageSetSelector } from './shared';
-import { ThemeProvider, useThemeMode } from './contexts/ThemeContext';
-import createAppTheme from './theme';
-import './style.css';
-import './App.css';
+import React, { Suspense, lazy, useCallback, useEffect, useRef, useState } from 'react';
 import { useTranslation } from 'react-i18next';
-import GameActionButton from './shared/components/ui/GameActionButton';
+import { Route, Routes, useLocation } from 'react-router-dom';
+import './App.css';
+import { ThemeProvider, useThemeMode } from './contexts/ThemeContext';
+import {
+    AdminControls,
+    AllFoundMessage,
+    GameControls,
+    GameHeader,
+    LoadingOverlay,
+    PhraseList,
+    ScrabbleGrid
+} from './features';
+import { NotEnoughPhrasesOverlay } from './shared';
+import './style.css';
+import createAppTheme from './theme';
 
 // Import custom hooks
-import useLogoColor from './hooks/useLogoColor';
 import useCelebration from './hooks/useCelebration';
 import useGameDifficulties from './hooks/useGameDifficulties';
+import useLogoColor from './hooks/useLogoColor';
 
 import { loadPuzzle as loadPuzzleHelper, restoreGameState, saveGameState } from './helpers/appHelpers';
-import { STORAGE_KEYS, API_ENDPOINTS } from './shared/constants/constants';
+import { API_ENDPOINTS, STORAGE_KEYS } from './shared/constants/constants';
 
 // Lazy load admin components
 const AdminPanel = lazy(() => import('./features').then(module => ({ default: module.AdminPanel })));
@@ -234,41 +230,7 @@ function AppContent() {
             <CssBaseline />
             <Container maxWidth="xl" sx={{ minHeight: '100vh', py: 2, position: 'relative' }}>
                 {/* Top controls row for admin routes only */}
-                {isAdminRoute && (
-                    <>
-                        <Box
-                            sx={{
-                                position: 'absolute',
-                                top: 16,
-                                right: 16,
-                                display: 'flex',
-                                flexDirection: 'row',
-                                alignItems: 'center',
-                                gap: { xs: 1, sm: 1, md: 1 }, // Uniform gaps matching main controls
-                                minHeight: 48,
-                            }}
-                        >
-                            <LanguageSwitcher
-                                sx={{
-                                    minWidth: { xs: 36, sm: 44, md: 48 },
-                                    height: { xs: 36, sm: 44, md: 48 },
-                                    minHeight: { xs: 36, sm: 44, md: 48 },
-                                    fontSize: '1rem',
-                                }}
-                            />
-                            <NightModeButton
-                                sx={{
-                                    minWidth: { xs: 36, sm: 44, md: 48 },
-                                    height: { xs: 36, sm: 44, md: 48 },
-                                    minHeight: { xs: 36, sm: 44, md: 48 },
-                                    padding: { xs: 0.5, sm: 0.75, md: 1 },
-                                }}
-                            />
-                        </Box>
-                        {/* Add vertical spacing between controls row and content */}
-                        <Box sx={{ height: { xs: 16, sm: 20 } }} />
-                    </>
-                )}
+                {isAdminRoute && <AdminControls />}
 
                 <Routes>
                     <Route path="/admin" element={
@@ -296,107 +258,28 @@ function AppContent() {
                                 isDarkMode={isDarkMode}
                             />
 
-                            {/* Mobile menu toggle button */}
-                            <Box sx={{
-                                display: { xs: 'flex', sm: 'none' },
-                                flexDirection: 'row',
-                                alignItems: 'center',
-                                width: '100%',
-                                justifyContent: 'center',
-                                mb: 1,
-                            }}>
-                                <Button
-                                    onClick={() => setPanelOpen(!panelOpen)}
-                                    sx={{
-                                        minWidth: 0,
-                                        width: 250,
-                                        height: 36,
-                                        display: 'flex',
-                                        alignItems: 'center',
-                                        justifyContent: 'center',
-                                        borderRadius: 2,
-                                        fontSize: '1.5rem',
-                                        backgroundColor: panelOpen ? 'action.selected' : 'background.paper',
-                                        '&:hover': {
-                                            backgroundColor: panelOpen ? 'action.hover' : 'action.hover',
-                                        }
-                                    }}
-                                    aria-label={panelOpen ? t('hide_controls') : t('show_controls')}
-                                >
-                                    {panelOpen ? '✕' : '☰'}
-                                </Button>
-                            </Box>
-
-                            {/* Control Panel: collapsible on mobile, always visible on desktop */}
-                            <Box
-                                sx={{
-                                    display: { xs: panelOpen ? 'flex' : 'none', sm: 'flex' },
-                                    flexDirection: 'row',
-                                    alignItems: 'flex-start',
-                                    gap: { xs: 1, sm: 2 },
-                                    width: '100%',
-                                    maxWidth: 800,
-                                    mb: { xs: 1, sm: 2 },
-                                    transition: 'all 0.2s'
-                                }}
-                            >
-                                {/* Dropdowns container */}
-                                <Box sx={{ flex: 1, display: 'flex', flexDirection: 'column', gap: { xs: 1, sm: 2 }, maxWidth: { xs: '60%', sm: '70%' } }}>
-                                    <LanguageSetSelector
-                                        selectedLanguageSetId={selectedLanguageSetId}
-                                        onLanguageSetChange={handleLanguageSetChange}
-                                    />
-                                    <CategorySelector
-                                        categories={visibleCategories}
-                                        selected={selectedCategory}
-                                        onSelect={cat => setSelectedCategory(cat)}
-                                    />
-                                    <FormControl fullWidth size="small">
-                                        <InputLabel>{t('difficulty')}</InputLabel>
-                                        <Select
-                                            value={difficulty}
-                                            label={t('difficulty')}
-                                            onChange={e => setDifficulty(e.target.value)}
-                                        >
-                                            {availableDifficulties.map(diff => (
-                                                <MenuItem key={diff.value} value={diff.value}>
-                                                    {t(diff.value)}
-                                                </MenuItem>
-                                            ))}
-                                        </Select>
-                                    </FormControl>
-                                </Box>
-
-                                {/* Buttons container */}
-                                <Box sx={{
-                                    display: 'flex',
-                                    flexDirection: { xs: 'row', sm: 'row' },
-                                    alignItems: { xs: 'center', sm: 'flex-start' },
-                                    gap: { xs: 1, sm: 2 },
-                                    position: 'relative'
-                                }}>
-                                    {/* Refresh button */}
-                                    <GameActionButton
-                                        icon="🔄"
-                                        desktopText={t('refresh')}
-                                        onClick={() => loadPuzzle(selectedCategory, difficulty)}
-                                        title={t('reload_puzzle')}
-                                        sx={{ height: { xs: 48, sm: 96 } }}
-                                    />
-
-                                    {/* Export button */}
-                                    <ExportButton
-                                        category={selectedCategory}
-                                        grid={grid}
-                                        phrases={phrases}
-                                        disabled={isGridLoading || grid.length === 0 || notEnoughPhrases}
-                                        t={t}
-                                    />
-                                </Box>
-                            </Box>
+                            <GameControls
+                                panelOpen={panelOpen}
+                                setPanelOpen={setPanelOpen}
+                                visibleCategories={visibleCategories}
+                                selectedCategory={selectedCategory}
+                                setSelectedCategory={setSelectedCategory}
+                                difficulty={difficulty}
+                                setDifficulty={setDifficulty}
+                                availableDifficulties={availableDifficulties}
+                                loadPuzzle={loadPuzzle}
+                                selectedCategoryState={selectedCategory}
+                                difficultyState={difficulty}
+                                grid={grid}
+                                phrases={phrases}
+                                isLoading={isGridLoading}
+                                notEnoughPhrases={notEnoughPhrases}
+                                selectedLanguageSetId={selectedLanguageSetId}
+                                onLanguageSetChange={handleLanguageSetChange}
+                            />
 
                             {/* All Found Message */}
-                            <AllFoundMessage 
+                            <AllFoundMessage
                                 allFound={allFound}
                                 loadPuzzle={loadPuzzle}
                                 selectedCategory={selectedCategory}
@@ -435,69 +318,13 @@ function AppContent() {
                                         showCelebration={showCelebration}
                                     />
 
-                                    {/* Grid loading overlay */}
-                                    {isGridLoading && (
-                                        <Box sx={{
-                                            position: 'absolute',
-                                            top: 0,
-                                            left: 0,
-                                            width: '100%',
-                                            height: '100%',
-                                            backdropFilter: 'blur(3px)',
-                                            bgcolor: isDarkMode ? 'rgba(30,30,30,0.8)' : 'rgba(255,255,255,0.8)',
-                                            zIndex: 15,
-                                            display: 'flex',
-                                            flexDirection: 'column',
-                                            alignItems: 'center',
-                                            justifyContent: 'center',
-                                            gap: 2,
-                                        }}>
-                                            <CircularProgress
-                                                size={48}
-                                                color={isDarkMode ? 'inherit' : 'primary'}
-                                                sx={{ color: isDarkMode ? '#fff' : 'primary.main' }}
-                                            />
-                                            <Typography
-                                                variant="h6"
-                                                sx={{
-                                                    color: isDarkMode ? '#fff' : 'text.primary',
-                                                    fontWeight: 'bold',
-                                                    textAlign: 'center'
-                                                }}
-                                            >
-                                                {t('loading_puzzle')}
-                                            </Typography>
-                                        </Box>
-                                    )}
+                                    <LoadingOverlay isLoading={isGridLoading} isDarkMode={isDarkMode} />
 
-                                    {/* Not enough phrases overlay */}
-                                    {notEnoughPhrases && (
-                                        <Box sx={{
-                                            position: 'absolute',
-                                            top: 0,
-                                            left: 0,
-                                            width: '100%',
-                                            height: '100%',
-                                            backdropFilter: 'blur(6px)',
-                                            bgcolor: isDarkMode ? 'rgba(30,30,30,0.7)' : 'rgba(255,255,255,0.7)',
-                                            zIndex: 10,
-                                            display: 'flex',
-                                            alignItems: 'center',
-                                            justifyContent: 'center',
-                                        }}>
-                                            <Box sx={{
-                                                bgcolor: isDarkMode ? '#222' : 'rgba(255,255,255,0.95)',
-                                                color: isDarkMode ? '#fff' : 'error.main',
-                                                borderRadius: 3,
-                                                p: 3,
-                                                boxShadow: isDarkMode ? 8 : 2,
-                                                textAlign: 'center',
-                                                fontWeight: 'bold'
-                                            }}>
-                                                {notEnoughPhrasesMsg || t('not_enough_phrases')}
-                                            </Box>
-                                        </Box>
-                                    )}
+                                    <NotEnoughPhrasesOverlay
+                                        show={notEnoughPhrases}
+                                        message={notEnoughPhrasesMsg}
+                                        isDarkMode={isDarkMode}
+                                    />
                                 </Box>
                                 <Box sx={{ width: { xs: '100%', md: 320 }, maxWidth: 400, alignSelf: { xs: 'flex-start', md: 'flex-start' }, position: { md: 'relative' }, left: { md: '0' }, top: { md: '0' } }}>
                                     <PhraseList
