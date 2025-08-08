@@ -183,5 +183,8 @@
     "edit_language_set": "Edit Language Set",
     "create_language_set": "Create Language Set",
     "confirm_delete_language_set": "Are you sure you want to delete the language set '{{name}}'?",
-    "name_helper_text": "Unique identifier for the language set (used in URLs and database)"
+    "name_helper_text": "Unique identifier for the language set (used in URLs and database)",
+    "make_default": "Make default",
+    "default": "Default",
+    "saving_language_set": "Saving language set, please wait..."
 }

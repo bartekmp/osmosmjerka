@@ -89,8 +89,8 @@ function AppContent() {
         localStorage.setItem(STORAGE_KEYS.SELECTED_LANGUAGE_SET, languageSetId?.toString() || '');
         // Clear current game state when changing language set
         setGrid([]);
-        setSelected([]);
         setPhrases([]);
+        setFound([]);
     }, []);
 
     // Apply theme data attribute to body

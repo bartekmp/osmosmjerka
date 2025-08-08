@@ -177,47 +177,8 @@ async def upload(
 ) -> JSONResponse:
     """Upload CSV file with phrases to specified language set"""
     try:
-        content = await file.read()
-        content = content.decode("utf-8")
-
-        # Use CSV reader to properly handle semicolon-separated values and preserve line breaks
-        lines = content.strip().split("\n")
-
-        # Skip header if present
-        if lines and (lines[0].lower().startswith("categories") or ";" in lines[0]):
-            lines = lines[1:]
-
-        phrases_data = []
-        for line_num, line in enumerate(lines, start=2):  # Start at 2 to account for header
-            if not line.strip():
-                continue
-
-            try:
-                # Use CSV reader with semicolon delimiter to properly parse fields
-                csv_reader = csv.reader([line], delimiter=";", quotechar='"')
-                parts = next(csv_reader)
-
-                if len(parts) >= 3:
-                    categories = parts[0].strip()
-                    phrase = parts[1].strip()
-                    translation = parts[2].strip()
-
-                    # Preserve line breaks: normalize different line break formats
-                    translation = (
-                        translation.replace("\\n", "\n")
-                        .replace("<br>", "\n")
-                        .replace("<br/>", "\n")
-                        .replace("<br />", "\n")
-                    )
-
-                    phrases_data.append({"categories": categories, "phrase": phrase, "translation": translation})
-                else:
-                    print(f"Warning: Line {line_num} has insufficient columns: {len(parts)}")
-
-            except csv.Error as e:
-                print(f"Error parsing line {line_num}: {e}")
-                continue
-
+        content = (await file.read()).decode("utf-8")
+        phrases_data = _parse_phrases_csv(content)
         if phrases_data:
             await run_in_threadpool(db_manager.fast_bulk_insert_phrases, language_set_id, phrases_data)
             return JSONResponse({"message": f"Uploaded {len(phrases_data)} phrases"}, status_code=status.HTTP_201_CREATED)
@@ -465,3 +426,56 @@ async def change_password(
     await db_manager.update_account(user["id"], password_hash=new_password_hash)
 
     return JSONResponse({"message": "Password changed successfully"}, status_code=status.HTTP_200_OK)
+
+
+def _parse_phrases_csv(content: str) -> list[dict]:
+    """Parse semicolon-separated CSV content into phrase dicts with preserved line breaks."""
+    # Use CSV reader to properly handle semicolon-separated values and preserve line breaks
+    lines = content.strip().split("\n")
+
+    # Skip header if present
+    if lines and (lines[0].lower().startswith("categories") or ";" in lines[0]):
+        lines = lines[1:]
+
+    phrases_data: list[dict] = []
+    for line_num, line in enumerate(lines, start=2):  # Start at 2 to account for header
+        if not line.strip():
+            continue
+
+        try:
+            # Use CSV reader with semicolon delimiter to properly parse fields
+            csv_reader = csv.reader([line], delimiter=";", quotechar='"')
+            parts = next(csv_reader)
+
+            if len(parts) >= 3:
+                categories = parts[0].strip()
+                phrase = parts[1].strip()
+                translation = parts[2].strip()
+
+                # Preserve line breaks: normalize different line break formats
+                translation = (
+                    translation.replace("\\n", "\n")
+                    .replace("<br>", "\n")
+                    .replace("<br/>", "\n")
+                    .replace("<br />", "\n")
+                )
+
+                phrases_data.append({"categories": categories, "phrase": phrase, "translation": translation})
+            else:
+                print(f"Warning: Line {line_num} has insufficient columns: {len(parts)}")
+
+        except csv.Error as e:
+            print(f"Error parsing line {line_num}: {e}")
+            continue
+
+    return phrases_data
+
+
+@router.post("/language-sets/{language_set_id}/make-default")
+async def make_default_language_set(language_set_id: int, user=Depends(require_root_admin)) -> JSONResponse:
+    """Mark a language set as the default one (root admin only)."""
+    try:
+        await db_manager.set_default_language_set(language_set_id)
+        return JSONResponse({"message": "Default language set updated"})
+    except Exception as e:
+        return JSONResponse({"error": str(e)}, status_code=400)

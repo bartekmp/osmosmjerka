@@ -182,5 +182,8 @@
     "edit_language_set": "Edytuj zestaw językowy",
     "create_language_set": "Utwórz zestaw językowy",
     "confirm_delete_language_set": "Czy na pewno chcesz usunąć zestaw językowy '{{name}}'?",
-    "name_helper_text": "Unikalny identyfikator zestawu językowego (używany w URL i bazie danych)"
+    "name_helper_text": "Unikalny identyfikator zestawu językowego (używany w URL i bazie danych)",
+    "make_default": "Ustaw jako domyślny",
+    "default": "Domyślny",
+    "saving_language_set": "Zapisywanie zestawu językowego, proszę czekać..."
 }

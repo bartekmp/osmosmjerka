@@ -4,9 +4,9 @@ import { useRef, useState } from 'react';
 import { Button, Box, Typography, CircularProgress, Snackbar, Alert, IconButton } from '@mui/material';
 import CloseIcon from '@mui/icons-material/Close';
 import { useTranslation } from 'react-i18next';
-import { ResponsiveText } from '../../../shared';
+import { ResponsiveText, STORAGE_KEYS } from '../../../shared';
 
-export default function UploadForm({ onUpload }) {
+export default function UploadForm({ onUpload, selectedLanguageSetId }) {
     const { t } = useTranslation();
     const fileInputRef = useRef();
     const [loading, setLoading] = useState(false);
@@ -17,7 +17,29 @@ export default function UploadForm({ onUpload }) {
         autoHideDuration: 3000, // ms, only for success
     });
 
+    const getEffectiveLanguageSetId = () => {
+        const fromProps = selectedLanguageSetId ?? null;
+        if (fromProps) return fromProps;
+        const fromStorage = localStorage.getItem(STORAGE_KEYS.SELECTED_LANGUAGE_SET);
+        return fromStorage ? parseInt(fromStorage) : null;
+    };
+
+    const ensureLanguageSetSelected = () => {
+        const effective = getEffectiveLanguageSetId();
+        if (!effective) {
+            setNotification({
+                open: true,
+                message: t('no_language_sets_error') || 'Please select a language set first.',
+                severity: 'error',
+                autoHideDuration: null,
+            });
+            return false;
+        }
+        return true;
+    };
+
     const handleButtonClick = () => {
+        if (!ensureLanguageSetSelected()) return;
         fileInputRef.current.click();
     };
 
@@ -25,6 +47,10 @@ export default function UploadForm({ onUpload }) {
 
     const handleFileChange = async (e) => {
         setNotification((n) => ({ ...n, open: false }));
+        if (!ensureLanguageSetSelected()) {
+            e.target.value = "";
+            return;
+        }
         setLoading(true);
         const file = e.target.files[0];
         if (!file) {
@@ -37,9 +63,11 @@ export default function UploadForm({ onUpload }) {
         // Get token from localStorage
         const token = localStorage.getItem('adminToken');
         const headers = token ? { Authorization: 'Bearer ' + token } : {};
+        const languageSetId = getEffectiveLanguageSetId();
 
         try {
-            const res = await axios.post("/admin/upload", formData, { headers });
+            const url = `/admin/upload?language_set_id=${encodeURIComponent(languageSetId)}`;
+            const res = await axios.post(url, formData, { headers });
             setNotification({
                 open: true,
                 message: res.data.message || t('upload_successful'),

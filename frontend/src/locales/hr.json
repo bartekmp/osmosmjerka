@@ -182,5 +182,8 @@
     "edit_language_set": "Uredi jezični set",
     "create_language_set": "Stvori jezični set",
     "confirm_delete_language_set": "Jeste li sigurni da želite obrisati jezični set '{{name}}'?",
-    "name_helper_text": "Jedinstveni identifikator jezičnog seta (koristi se u URL-ovima i bazi podataka)"
+    "name_helper_text": "Jedinstveni identifikator jezičnog seta (koristi se u URL-ovima i bazi podataka)",
+    "make_default": "Postavi kao zadano",
+    "default": "Zadano",
+    "saving_language_set": "Spremanje jezičnog seta, molimo pričekajte..."
 }

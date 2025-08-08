@@ -24,6 +24,7 @@ language_sets_table = Table(
     Column("author", String, nullable=True),
     Column("created_at", DateTime, nullable=False, server_default=func.now()),
     Column("is_active", Boolean, nullable=False, default=True),
+    Column("is_default", Boolean, nullable=False, default=False),
 )
 
 # Dynamic phrase table creation function
@@ -183,7 +184,7 @@ class DatabaseManager:
         database = self._ensure_database()
         query = select(accounts_table).where(accounts_table.c.username == username)
         result = await database.fetch_one(query)
-        return self._serialize_datetimes(dict(result)) if result else None
+        return self._serialize_datetimes(dict(result._mapping)) if result else None
 
     async def get_account_by_id(self, account_id: int) -> Optional[dict[str, Any]]:
         database = self._ensure_database()
@@ -198,7 +199,7 @@ class DatabaseManager:
             accounts_table.c.last_login,
         ).where(accounts_table.c.id == account_id)
         result = await database.fetch_one(query)
-        return self._serialize_datetimes(dict(result)) if result else None
+        return self._serialize_datetimes(dict(result._mapping)) if result else None
 
     async def create_account(
         self,
@@ -256,7 +257,8 @@ class DatabaseManager:
         query = select(language_sets_table)
         if active_only:
             query = query.where(language_sets_table.c.is_active == True)
-        query = query.order_by(language_sets_table.c.display_name)
+        # Default first, then by display name
+        query = query.order_by(language_sets_table.c.is_default.desc(), language_sets_table.c.display_name)
         result = await database.fetch_all(query)
         return [self._serialize_datetimes(dict(row)) for row in result]
 
@@ -265,7 +267,7 @@ class DatabaseManager:
         database = self._ensure_database()
         query = select(language_sets_table).where(language_sets_table.c.id == language_set_id)
         result = await database.fetch_one(query)
-        return self._serialize_datetimes(dict(result)) if result else None
+        return self._serialize_datetimes(dict(result._mapping)) if result else None
 
     async def create_language_set(self, name: str, display_name: str, description: Optional[str] = None, author: Optional[str] = None) -> int:
         """Create a new language set and its phrase table"""
@@ -277,7 +279,8 @@ class DatabaseManager:
             display_name=display_name,
             description=description,
             author=author,
-            is_active=True
+            is_active=True,
+            is_default=False,
         )
         language_set_id = await database.execute(query)
         
@@ -551,7 +554,7 @@ class DatabaseManager:
             if not result:
                 raise ValueError(f"Language set with ID {language_set_id} not found")
             
-            language_set = dict(result)
+            language_set = dict(result._mapping)
             phrase_table = self._get_phrase_table(language_set["name"])
             
             result = conn.execute(insert(phrase_table), phrases_data)
@@ -570,6 +573,19 @@ class DatabaseManager:
         phrase_table = self._get_phrase_table(language_set["name"])
         query = delete(phrase_table)
         await database.execute(query)
+
+    async def set_default_language_set(self, language_set_id: int):
+        """Mark the given language set as default and unset default for all others."""
+        database = self._ensure_database()
+        async with database.transaction():
+            # Unset all
+            await database.execute(update(language_sets_table).values(is_default=False))
+            # Set the one
+            await database.execute(
+                update(language_sets_table)
+                .where(language_sets_table.c.id == language_set_id)
+                .values(is_default=True)
+            )
 
 
 # Create global database manager instance
