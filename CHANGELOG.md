@@ -2,6 +2,14 @@
 
 <!-- version list -->
 
+## v1.18.0 (2025-08-08)
+
+### Feature
+
+- Deduplicate UI components, unify layout ([#58](https://github.com/bartekmp/osmosmjerka/pull/58),
+  [`5a0f5e9`](https://github.com/bartekmp/osmosmjerka/commit/5a0f5e9ad228133f2a36fb36aa2f3e6cf0e9d15f))
+
+
 ## v1.17.3 (2025-08-08)
 
 ### Bug Fixes
