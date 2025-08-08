@@ -53,5 +53,6 @@ export const API_ENDPOINTS = {
   EXPORT: '/api/export',
   ADMIN_STATUS: '/admin/status',
   ADMIN_CLEAR: '/admin/clear',
-  ADMIN_LANGUAGE_SETS: '/admin/language-sets'
+  ADMIN_LANGUAGE_SETS: '/admin/language-sets',
+  ADMIN_MAKE_DEFAULT: (id) => `/admin/language-sets/${id}/make-default`
 };

@@ -4,7 +4,7 @@ import { useRef, useState } from 'react';
 import { Button, Box, Typography, CircularProgress, Snackbar, Alert, IconButton } from '@mui/material';
 import CloseIcon from '@mui/icons-material/Close';
 import { useTranslation } from 'react-i18next';
-import { ResponsiveText } from '../../../shared';
+import { ResponsiveText, STORAGE_KEYS } from '../../../shared';
 
 export default function UploadForm({ onUpload }) {
     const { t } = useTranslation();
@@ -37,9 +37,11 @@ export default function UploadForm({ onUpload }) {
         // Get token from localStorage
         const token = localStorage.getItem('adminToken');
         const headers = token ? { Authorization: 'Bearer ' + token } : {};
+        const languageSetId = localStorage.getItem(STORAGE_KEYS.SELECTED_LANGUAGE_SET);
 
         try {
-            const res = await axios.post("/admin/upload", formData, { headers });
+            const url = languageSetId ? `/admin/upload?language_set_id=${encodeURIComponent(languageSetId)}` : '/admin/upload';
+            const res = await axios.post(url, formData, { headers });
             setNotification({
                 open: true,
                 message: res.data.message || t('upload_successful'),

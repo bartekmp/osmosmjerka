@@ -14,7 +14,7 @@ router = APIRouter(prefix="/api")
 
 @router.get("/language-sets")
 async def get_language_sets() -> JSONResponse:
-    """Get all active language sets"""
+    """Get all active language sets with default first"""
     language_sets = await db_manager.get_language_sets(active_only=True)
     return JSONResponse(language_sets)
 

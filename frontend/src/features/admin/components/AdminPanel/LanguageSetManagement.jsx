@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import {
     Paper,
     Table,
@@ -11,6 +11,7 @@ import {
     Button,
     Box,
     IconButton,
+    Tooltip,
     Dialog,
     DialogTitle,
     DialogContent,
@@ -40,6 +41,8 @@ export default function LanguageSetManagement() {
         description: '',
         author: ''
     });
+    const [file, setFile] = useState(null);
+    const fileInputRef = useRef();
 
     useEffect(() => {
         loadLanguageSets();
@@ -76,6 +79,7 @@ export default function LanguageSetManagement() {
             description: '',
             author: ''
         });
+    setFile(null);
         setDialogOpen(true);
     };
 
@@ -87,6 +91,7 @@ export default function LanguageSetManagement() {
             description: languageSet.description || '',
             author: languageSet.author || ''
         });
+        setFile(null);
         setDialogOpen(true);
     };
 
@@ -98,9 +103,9 @@ export default function LanguageSetManagement() {
                 : API_ENDPOINTS.ADMIN_LANGUAGE_SETS;
             
             const method = editingSet ? 'PUT' : 'POST';
-            
-            const response = await fetch(url, {
-                method: method,
+            // Always send JSON for metadata first
+            const metaRes = await fetch(url, {
+                method,
                 headers: {
                     'Content-Type': 'application/json',
                     'Authorization': `Bearer ${localStorage.getItem('adminToken')}`
@@ -108,13 +113,47 @@ export default function LanguageSetManagement() {
                 body: JSON.stringify(formData)
             });
 
-            if (response.ok) {
-                setDialogOpen(false);
-                await loadLanguageSets();
-            } else {
-                const errorData = await response.json();
-                setError(errorData.detail || 'Failed to save language set');
+            if (!metaRes.ok) {
+                const errorData = await metaRes.json().catch(() => ({}));
+                throw new Error(errorData.error || errorData.detail || 'Failed to save language set');
             }
+
+            // If a file was selected, perform upload step
+            if (file) {
+                let targetId = editingSet?.id;
+                if (!editingSet) {
+                    const data = await metaRes.json().catch(() => ({}));
+                    targetId = data.id;
+                }
+
+                if (!targetId) {
+                    throw new Error('Missing language set id for upload');
+                }
+
+                // If editing, erase previous contents before upload
+                if (editingSet) {
+                    await fetch(`${API_ENDPOINTS.ADMIN_CLEAR}?language_set_id=${targetId}`, {
+                        method: 'DELETE',
+                        headers: { 'Authorization': `Bearer ${localStorage.getItem('adminToken')}` }
+                    });
+                }
+
+                const form = new FormData();
+                form.append('file', file);
+                form.append('language_set_id', String(targetId));
+                const uploadRes = await fetch('/admin/upload', {
+                    method: 'POST',
+                    headers: { 'Authorization': `Bearer ${localStorage.getItem('adminToken')}` },
+                    body: form
+                });
+                if (!uploadRes.ok) {
+                    const errData = await uploadRes.json().catch(() => ({}));
+                    throw new Error(errData.error || errData.detail || 'Upload failed');
+                }
+            }
+
+            setDialogOpen(false);
+            await loadLanguageSets();
         } catch (err) {
             setError('Error saving language set: ' + err.message);
         } finally {
@@ -157,6 +196,26 @@ export default function LanguageSetManagement() {
             description: '',
             author: ''
         });
+        setFile(null);
+    };
+
+    const handleMakeDefault = async (languageSetId) => {
+        setLoading(true);
+        try {
+            const res = await fetch(API_ENDPOINTS.ADMIN_MAKE_DEFAULT(languageSetId), {
+                method: 'POST',
+                headers: { 'Authorization': `Bearer ${localStorage.getItem('adminToken')}` }
+            });
+            if (!res.ok) {
+                const data = await res.json().catch(() => ({}));
+                throw new Error(data.error || data.detail || 'Failed to set default');
+            }
+            await loadLanguageSets();
+        } catch (e) {
+            setError(e.message);
+        } finally {
+            setLoading(false);
+        }
     };
 
     return (
@@ -203,7 +262,14 @@ export default function LanguageSetManagement() {
                     <TableBody>
                         {languageSets.map((set) => (
                             <TableRow key={set.id}>
-                                <TableCell>{set.name}</TableCell>
+                                <TableCell>
+                                    <Box display="flex" alignItems="center" gap={1}>
+                                        <span>{set.name}</span>
+                                        {set.is_default && (
+                                            <Chip size="small" color="warning" label={t('default', 'Default')} />
+                                        )}
+                                    </Box>
+                                </TableCell>
                                 <TableCell>{set.display_name}</TableCell>
                                 <TableCell>{set.description}</TableCell>
                                 <TableCell>{set.author}</TableCell>
@@ -233,6 +299,20 @@ export default function LanguageSetManagement() {
                                     >
                                         <DeleteIcon />
                                     </IconButton>
+                                    {!set.is_default && (
+                                        <Tooltip title={t('make_default', 'Make default')} arrow>
+                                            <IconButton
+                                                size="small"
+                                                color="warning"
+                                                onClick={() => handleMakeDefault(set.id)}
+                                                aria-label={t('make_default', 'Make default')}
+                                                disabled={loading}
+                                                sx={{ border: 1, borderColor: 'divider' }}
+                                            >
+                                                <span role="img" aria-hidden>⭐</span>
+                                            </IconButton>
+                                        </Tooltip>
+                                    )}
                                 </TableCell>
                             </TableRow>
                         ))}
@@ -281,6 +361,28 @@ export default function LanguageSetManagement() {
                         margin="normal"
                         disabled={loading}
                     />
+                    <Box mt={2}>
+                        <input
+                            ref={fileInputRef}
+                            type="file"
+                            accept=".txt,.csv"
+                            style={{ display: 'none' }}
+                            onChange={(e) => setFile(e.target.files?.[0] || null)}
+                        />
+                        <Button variant="outlined" size="small" onClick={() => fileInputRef.current?.click()} disabled={loading}>
+                            {editingSet ? t('upload_new_phrases_replace', 'Upload phrases (replace)') : t('upload_initial_phrases', 'Upload phrases (initial)')}
+                        </Button>
+                        {file && (
+                            <Typography variant="caption" sx={{ ml: 1 }}>
+                                {file.name}
+                            </Typography>
+                        )}
+                        {editingSet && (
+                            <Typography variant="caption" display="block" color="text.secondary" sx={{ mt: 1 }}>
+                                {t('upload_replace_hint', 'Uploading a file while editing will erase previous contents and replace them.')}
+                            </Typography>
+                        )}
+                    </Box>
                 </DialogContent>
                 <DialogActions>
                     <Button onClick={handleClose} disabled={loading}>

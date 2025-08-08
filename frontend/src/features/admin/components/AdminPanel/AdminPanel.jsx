@@ -54,6 +54,7 @@ export default function AdminPanel() {
     const [currentUser, setCurrentUser] = useState(null);
     const [categories, setCategories] = useState([]);
     const [languageSets, setLanguageSets] = useState([]);
+    const [languageSetsLoading, setLanguageSetsLoading] = useState(true);
     const [ignoredCategories, setIgnoredCategories] = useState([]);
     const [showIgnoredCategories, setShowIgnoredCategories] = useState(false);
     const [filterCategory, setFilterCategory] = useState('');
@@ -141,6 +142,7 @@ export default function AdminPanel() {
             .then(res => res.json())
             .then(data => {
                 setLanguageSets(data);
+                setLanguageSetsLoading(false);
                 // Auto-select first language set if none is selected
                 if (data.length > 0 && !selectedLanguageSetId) {
                     const firstSetId = data[0].id;
@@ -152,7 +154,10 @@ export default function AdminPanel() {
                     setError(t('no_language_sets_error'));
                 }
             })
-            .catch(err => console.error('Failed to load language sets:', err));
+            .catch(err => {
+                console.error('Failed to load language sets:', err);
+                setLanguageSetsLoading(false);
+            });
     }, [token]);
 
     // Handlers for pagination and offset input, to avoid negative or excessive values
@@ -416,13 +421,16 @@ export default function AdminPanel() {
                     <Box sx={{ display: 'flex', gap: 2, justifyContent: 'center', flexWrap: 'wrap', mt: 3 }}>
                         <Button
                             onClick={() => {
+                                if (languageSetsLoading) return;
                                 if (languageSets.length === 0) {
+                                    setDashboard(false);
                                     setLanguageSetManagement(true);
                                 } else {
                                     setDashboard(false);
                                 }
                             }}
                             variant="contained"
+                            disabled={languageSetsLoading}
                         >
                             {t('browse_phrases')}
                         </Button>
@@ -541,7 +549,7 @@ export default function AdminPanel() {
             onLogout={handleLogout}
         >
             {/* Error overlay for no language sets */}
-            {languageSets.length === 0 && !dashboard && (
+            {languageSets.length === 0 && !dashboard && !languageSetsLoading && (
                 <Box
                     sx={{
                         position: 'fixed',
