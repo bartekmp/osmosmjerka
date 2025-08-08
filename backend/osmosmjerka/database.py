@@ -184,7 +184,7 @@ class DatabaseManager:
         database = self._ensure_database()
         query = select(accounts_table).where(accounts_table.c.username == username)
         result = await database.fetch_one(query)
-        return self._serialize_datetimes(dict(result)) if result else None
+        return self._serialize_datetimes(dict(result._mapping)) if result else None
 
     async def get_account_by_id(self, account_id: int) -> Optional[dict[str, Any]]:
         database = self._ensure_database()
@@ -199,7 +199,7 @@ class DatabaseManager:
             accounts_table.c.last_login,
         ).where(accounts_table.c.id == account_id)
         result = await database.fetch_one(query)
-        return self._serialize_datetimes(dict(result)) if result else None
+        return self._serialize_datetimes(dict(result._mapping)) if result else None
 
     async def create_account(
         self,
@@ -267,7 +267,7 @@ class DatabaseManager:
         database = self._ensure_database()
         query = select(language_sets_table).where(language_sets_table.c.id == language_set_id)
         result = await database.fetch_one(query)
-        return self._serialize_datetimes(dict(result)) if result else None
+        return self._serialize_datetimes(dict(result._mapping)) if result else None
 
     async def create_language_set(self, name: str, display_name: str, description: Optional[str] = None, author: Optional[str] = None) -> int:
         """Create a new language set and its phrase table"""
@@ -554,7 +554,7 @@ class DatabaseManager:
             if not result:
                 raise ValueError(f"Language set with ID {language_set_id} not found")
             
-            language_set = dict(result)
+            language_set = dict(result._mapping)
             phrase_table = self._get_phrase_table(language_set["name"])
             
             result = conn.execute(insert(phrase_table), phrases_data)

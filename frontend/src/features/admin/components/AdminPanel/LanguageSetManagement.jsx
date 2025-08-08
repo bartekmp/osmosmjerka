@@ -140,8 +140,7 @@ export default function LanguageSetManagement() {
 
                 const form = new FormData();
                 form.append('file', file);
-                form.append('language_set_id', String(targetId));
-                const uploadRes = await fetch('/admin/upload', {
+                const uploadRes = await fetch(`/admin/upload?language_set_id=${encodeURIComponent(targetId)}`, {
                     method: 'POST',
                     headers: { 'Authorization': `Bearer ${localStorage.getItem('adminToken')}` },
                     body: form

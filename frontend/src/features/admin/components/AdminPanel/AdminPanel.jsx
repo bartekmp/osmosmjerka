@@ -635,7 +635,7 @@ export default function AdminPanel() {
                     </Grid>
                     <Grid item xs={6} sm={4} md={2}>
                         <Box sx={{ height: '100%', display: 'flex' }}>
-                            <UploadForm onUpload={() => selectedLanguageSetId && fetchRows(offset, limit, filterCategory, searchTerm, selectedLanguageSetId)} />
+                            <UploadForm selectedLanguageSetId={selectedLanguageSetId} onUpload={() => selectedLanguageSetId && fetchRows(offset, limit, filterCategory, searchTerm, selectedLanguageSetId)} />
                         </Box>
                     </Grid>
                     <Grid item xs={6} sm={4} md={2}>

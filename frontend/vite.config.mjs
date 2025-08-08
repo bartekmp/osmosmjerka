@@ -29,7 +29,7 @@ export default defineConfig({
         host: '0.0.0.0', // Allow access from any host
         port: 3000,
         strictPort: true,
-        allowedHosts: ['localhost', 'workstation.local'], // Allow these hosts
+        allowedHosts: ['localhost', 'workstation.local', 'workstation'], // Allow these hosts
         proxy: {
             '/api': {
                 target: 'http://localhost:8085',
