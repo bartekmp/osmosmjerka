@@ -6,6 +6,11 @@ import { withI18n } from '../../../../testUtils';
 
 jest.mock('axios');
 
+beforeEach(() => {
+    // Reset localStorage between tests
+    localStorage.clear();
+});
+
 test('renders upload button', () => {
     render(withI18n(<UploadForm onUpload={() => { }} />));
     // The button text now includes emoji and may have responsive text
@@ -14,6 +19,8 @@ test('renders upload button', () => {
 });
 
 test('shows error on upload failure', async () => {
+    // Ensure language set is selected so component proceeds with upload
+    localStorage.setItem('selectedLanguageSet', '1');
     axios.post.mockRejectedValue({ response: { data: { detail: 'Upload failed.' } } });
     const { container } = render(withI18n(<UploadForm onUpload={() => { }} />));
     // Try both possible button texts

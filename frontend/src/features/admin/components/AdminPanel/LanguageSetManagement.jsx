@@ -19,7 +19,8 @@ import {
     TextField,
     Chip,
     Alert,
-    CircularProgress
+    CircularProgress,
+    Backdrop
 } from '@mui/material';
 import EditIcon from '@mui/icons-material/Edit';
 import DeleteIcon from '@mui/icons-material/Delete';
@@ -43,6 +44,7 @@ export default function LanguageSetManagement() {
     });
     const [file, setFile] = useState(null);
     const fileInputRef = useRef();
+    const [saving, setSaving] = useState(false);
 
     useEffect(() => {
         loadLanguageSets();
@@ -96,6 +98,7 @@ export default function LanguageSetManagement() {
     };
 
     const handleSave = async () => {
+        setSaving(true);
         setLoading(true);
         try {
             const url = editingSet 
@@ -157,6 +160,7 @@ export default function LanguageSetManagement() {
             setError('Error saving language set: ' + err.message);
         } finally {
             setLoading(false);
+            setSaving(false);
         }
     };
 
@@ -391,6 +395,15 @@ export default function LanguageSetManagement() {
                         {loading ? <CircularProgress size={20} /> : t('save')}
                     </Button>
                 </DialogActions>
+                <Backdrop
+                    sx={{ color: '#fff', zIndex: (theme) => theme.zIndex.modal + 1, display: 'flex', flexDirection: 'column', gap: 2 }}
+                    open={saving}
+                >
+                    <CircularProgress color="inherit" />
+                    <Typography variant="body1" sx={{ textAlign: 'center' }}>
+                        {t('saving_language_set', 'Saving language set, please wait...')}
+                    </Typography>
+                </Backdrop>
             </Dialog>
         </Paper>
     );
