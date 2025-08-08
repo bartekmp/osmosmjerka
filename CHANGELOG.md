@@ -2,6 +2,29 @@
 
 <!-- version list -->
 
+## v1.19.0 (2025-08-08)
+
+### Bug Fixes
+
+- Language set upload ([#59](https://github.com/bartekmp/osmosmjerka/pull/59),
+  [`de3d71f`](https://github.com/bartekmp/osmosmjerka/commit/de3d71fded47ac90e599c1bbe2b1b748b82cf862))
+
+### Enhancement
+
+- Display loading overlay when creating language set
+  ([#59](https://github.com/bartekmp/osmosmjerka/pull/59),
+  [`de3d71f`](https://github.com/bartekmp/osmosmjerka/commit/de3d71fded47ac90e599c1bbe2b1b748b82cf862))
+
+### Feature
+
+- Uploading language sets ([#59](https://github.com/bartekmp/osmosmjerka/pull/59),
+  [`de3d71f`](https://github.com/bartekmp/osmosmjerka/commit/de3d71fded47ac90e599c1bbe2b1b748b82cf862))
+
+- Uploading new language sets, making sets default for all
+  ([#59](https://github.com/bartekmp/osmosmjerka/pull/59),
+  [`de3d71f`](https://github.com/bartekmp/osmosmjerka/commit/de3d71fded47ac90e599c1bbe2b1b748b82cf862))
+
+
 ## v1.18.0 (2025-08-08)
 
 ### Feature
