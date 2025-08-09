@@ -186,5 +186,12 @@
     "name_helper_text": "Unique identifier for the language set (used in URLs and database)",
     "make_default": "Make default",
     "default": "Default",
-    "saving_language_set": "Saving language set, please wait..."
+    "saving_language_set": "Saving language set, please wait...",
+    "manage_ignored_categories": "Manage Ignored Categories",
+    "ignored_categories_help": "Select the categories you want to ignore for this language set. They will be excluded from gameplay for your account only.",
+    "your_ignored_categories": "Your Ignored Categories",
+    "no_user_ignored_categories": "You have not ignored any categories yet.",
+    "ignored_categories_updated_success": "Ignored categories updated",
+    "ignored_categories_updated_error": "Failed to update ignored categories",
+    "clear_all_ignored": "Clear All"
 }

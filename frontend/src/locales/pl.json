@@ -185,5 +185,12 @@
     "name_helper_text": "Unikalny identyfikator zestawu językowego (używany w URL i bazie danych)",
     "make_default": "Ustaw jako domyślny",
     "default": "Domyślny",
-    "saving_language_set": "Zapisywanie zestawu językowego, proszę czekać..."
+    "saving_language_set": "Zapisywanie zestawu językowego, proszę czekać...",
+    "manage_ignored_categories": "Zarządzaj ignorowanymi kategoriami",
+    "ignored_categories_help": "Wybierz kategorie, które chcesz ignorować dla tego zestawu językowego. Zostaną wykluczone z rozgrywki tylko dla twojego konta.",
+    "your_ignored_categories": "Twoje ignorowane kategorie",
+    "no_user_ignored_categories": "Nie zignorowałeś jeszcze żadnych kategorii.",
+    "ignored_categories_updated_success": "Zaktualizowano ignorowane kategorie",
+    "ignored_categories_updated_error": "Nie udało się zaktualizować ignorowanych kategorii",
+    "clear_all_ignored": "Wyczyść wszystko"
 }

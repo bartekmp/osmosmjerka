@@ -45,6 +45,7 @@ function AppContent() {
 
     const [categories, setCategories] = useState([]);
     const [ignoredCategories, setIgnoredCategories] = useState([]);
+    const [userIgnoredCategories, setUserIgnoredCategories] = useState([]);
     const [selectedCategory, setSelectedCategory] = useState('');
     const [selectedLanguageSetId, setSelectedLanguageSetId] = useState(() => {
         // Load from localStorage or default to null
@@ -125,6 +126,16 @@ function AppContent() {
             ignoredCategoriesFetchedRef.current = false; // Reset on error to allow retry
         });
     }, []);
+
+    // Load user-specific ignored categories when language set changes
+    useEffect(() => {
+        if (!selectedLanguageSetId) return;
+        const token = localStorage.getItem('adminToken'); // reuse admin token if logged in
+        axios.get(`${API_ENDPOINTS.USER_IGNORED_CATEGORIES}?language_set_id=${selectedLanguageSetId}`, {
+            headers: token ? { Authorization: `Bearer ${token}` } : {}
+        }).then(res => setUserIgnoredCategories(res.data))
+          .catch(() => setUserIgnoredCategories([]));
+    }, [selectedLanguageSetId]);
 
     useEffect(() => {
         // Only run after game state restoration is complete
@@ -215,7 +226,7 @@ function AppContent() {
         if (allFound) setHidePhrases(false);
     }, [allFound]);
 
-    const visibleCategories = categories.filter(cat => !ignoredCategories.includes(cat));
+    const visibleCategories = categories.filter(cat => !ignoredCategories.includes(cat) && !userIgnoredCategories.includes(cat));
 
     // Auto-adjust difficulty if current one becomes unavailable
     React.useEffect(() => {

@@ -20,11 +20,13 @@ import {
     Chip,
     Alert,
     CircularProgress,
-    Backdrop
+    Backdrop,
+    Snackbar
 } from '@mui/material';
 import EditIcon from '@mui/icons-material/Edit';
 import DeleteIcon from '@mui/icons-material/Delete';
 import AddIcon from '@mui/icons-material/Add';
+import SettingsIcon from '@mui/icons-material/Settings';
 import { useTranslation } from 'react-i18next';
 import { API_ENDPOINTS } from '@shared';
 import { ResponsiveText } from '../../../../shared';
@@ -45,6 +47,10 @@ export default function LanguageSetManagement() {
     const [file, setFile] = useState(null);
     const fileInputRef = useRef();
     const [saving, setSaving] = useState(false);
+    const [ignoredCategoriesDialogOpen, setIgnoredCategoriesDialogOpen] = useState(false);
+    const [allCategoriesForSet, setAllCategoriesForSet] = useState([]);
+    const [userIgnoredCategories, setUserIgnoredCategories] = useState([]);
+    const [updatingIgnored, setUpdatingIgnored] = useState(false);
 
     useEffect(() => {
         loadLanguageSets();
@@ -221,6 +227,58 @@ export default function LanguageSetManagement() {
         }
     };
 
+    const openIgnoredCategoriesDialog = async (languageSet) => {
+        // Load all categories for this set (including ignored globally)
+        let url = `/api/categories`;
+        if (languageSet?.id) url += `?language_set_id=${languageSet.id}`;
+        try {
+            const token = localStorage.getItem('adminToken');
+            const [catsRes, userIgnoredRes] = await Promise.all([
+                fetch(url),
+                fetch(`/api/user/ignored-categories?language_set_id=${languageSet.id}`, {
+                    headers: token ? { 'Authorization': `Bearer ${token}` } : {}
+                })
+            ]);
+            const cats = catsRes.ok ? await catsRes.json() : [];
+            const ignored = userIgnoredRes.ok ? await userIgnoredRes.json() : [];
+            setAllCategoriesForSet(cats);
+            setUserIgnoredCategories(ignored);
+            setEditingSet(languageSet);
+            setIgnoredCategoriesDialogOpen(true);
+        } catch (e) {
+            console.error('Failed to load categories for ignored management', e);
+        }
+    };
+
+    const toggleIgnoredCategory = (cat) => {
+        setUserIgnoredCategories(prev => prev.includes(cat) ? prev.filter(c => c !== cat) : [...prev, cat]);
+    };
+
+    const saveIgnoredCategories = async () => {
+        if (!editingSet) return;
+        setUpdatingIgnored(true);
+        try {
+            const token = localStorage.getItem('adminToken');
+            const res = await fetch('/api/user/ignored-categories', {
+                method: 'PUT',
+                headers: {
+                    'Content-Type': 'application/json',
+                    ...(token ? { 'Authorization': `Bearer ${token}` } : {})
+                },
+                body: JSON.stringify({ language_set_id: editingSet.id, categories: userIgnoredCategories })
+            });
+            if (!res.ok) {
+                const data = await res.json().catch(()=>({}));
+                throw new Error(data.error || data.detail || 'Failed to update ignored categories');
+            }
+            setIgnoredCategoriesDialogOpen(false);
+        } catch (e) {
+            setError(e.message);
+        } finally {
+            setUpdatingIgnored(false);
+        }
+    };
+
     return (
         <Paper sx={{ p: 3, mt: 3 }}>
             <Box display="flex" justifyContent="space-between" alignItems="center" mb={2}>
@@ -302,6 +360,18 @@ export default function LanguageSetManagement() {
                                     >
                                         <DeleteIcon />
                                     </IconButton>
+                                    <Tooltip title={t('manage_ignored_categories', 'Manage ignored categories')} arrow>
+                                        <span>
+                                            <IconButton
+                                                size="small"
+                                                onClick={() => openIgnoredCategoriesDialog(set)}
+                                                disabled={loading}
+                                                color="primary"
+                                            >
+                                                <SettingsIcon fontSize="inherit" />
+                                            </IconButton>
+                                        </span>
+                                    </Tooltip>
                                     {!set.is_default && (
                                         <Tooltip title={t('make_default', 'Make default')} arrow>
                                             <IconButton
@@ -404,6 +474,43 @@ export default function LanguageSetManagement() {
                         {t('saving_language_set', 'Saving language set, please wait...')}
                     </Typography>
                 </Backdrop>
+            </Dialog>
+
+            {/* Ignored Categories Dialog */}
+            <Dialog open={ignoredCategoriesDialogOpen} onClose={() => setIgnoredCategoriesDialogOpen(false)} maxWidth="sm" fullWidth>
+                <DialogTitle>{t('manage_ignored_categories', 'Manage Ignored Categories')}</DialogTitle>
+                <DialogContent dividers>
+                    <Typography variant="body2" sx={{ mb: 2 }}>
+                        {t('ignored_categories_help', 'Select the categories you want to ignore for this language set. They will be excluded from gameplay for your account only.')}
+                    </Typography>
+                    <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 1 }}>
+                        {allCategoriesForSet.map(cat => {
+                            const active = userIgnoredCategories.includes(cat);
+                            return (
+                                <Chip
+                                    key={cat}
+                                    label={cat}
+                                    clickable
+                                    color={active ? 'default' : 'primary'}
+                                    variant={active ? 'outlined' : 'filled'}
+                                    onClick={() => toggleIgnoredCategory(cat)}
+                                    sx={{ textDecoration: active ? 'line-through' : 'none' }}
+                                />
+                            );
+                        })}
+                    </Box>
+                </DialogContent>
+                <DialogActions sx={{ justifyContent: 'space-between' }}>
+                    <Button onClick={() => setUserIgnoredCategories([])} disabled={updatingIgnored} color="warning">
+                        {t('clear_all_ignored', 'Clear All')}
+                    </Button>
+                    <Box>
+                        <Button onClick={() => setIgnoredCategoriesDialogOpen(false)} disabled={updatingIgnored}>{t('cancel')}</Button>
+                        <Button onClick={saveIgnoredCategories} variant="contained" disabled={updatingIgnored} sx={{ ml: 1 }}>
+                            {updatingIgnored ? <CircularProgress size={20} /> : t('save')}
+                        </Button>
+                    </Box>
+                </DialogActions>
             </Dialog>
         </Paper>
     );

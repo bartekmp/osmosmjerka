@@ -185,5 +185,12 @@
     "name_helper_text": "Jedinstveni identifikator jezičnog seta (koristi se u URL-ovima i bazi podataka)",
     "make_default": "Postavi kao zadano",
     "default": "Zadano",
-    "saving_language_set": "Spremanje jezičnog seta, molimo pričekajte..."
+    "saving_language_set": "Spremanje jezičnog seta, molimo pričekajte...",
+    "manage_ignored_categories": "Upravljanje ignoriranim kategorijama",
+    "ignored_categories_help": "Odaberite kategorije koje želite ignorirati za ovaj jezični skup. Bit će isključene iz igre samo za vaš račun.",
+    "your_ignored_categories": "Vaše ignorirane kategorije",
+    "no_user_ignored_categories": "Još niste ignorirali nijednu kategoriju.",
+    "ignored_categories_updated_success": "Ignorirane kategorije ažurirane",
+    "ignored_categories_updated_error": "Neuspješno ažuriranje ignoriranih kategorija",
+    "clear_all_ignored": "Očisti sve"
 }

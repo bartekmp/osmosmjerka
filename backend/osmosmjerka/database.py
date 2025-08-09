@@ -57,6 +57,16 @@ accounts_table = Table(
     Column("last_login", DateTime),
 )
 
+# Define the user_ignored_categories table
+user_ignored_categories_table = Table(
+    "user_ignored_categories",
+    metadata,
+    Column("id", Integer, primary_key=True, index=True),
+    Column("user_id", Integer, nullable=False, index=True),
+    Column("language_set_id", Integer, nullable=False, index=True),
+    Column("category", String, nullable=False),
+)
+
 IGNORED_CATEGORIES_STR = os.getenv("IGNORED_CATEGORIES", "")
 IGNORED_CATEGORIES = set(cat.strip() for cat in IGNORED_CATEGORIES_STR.split(",") if cat.strip())
 
@@ -318,7 +328,7 @@ class DatabaseManager:
     # Phrase Management Methods (replacing word methods with dynamic tables)
     async def get_phrases(
         self, language_set_id: Optional[int] = None, category: Optional[str] = None, 
-        limit: Optional[int] = None, offset: int = 0
+        limit: Optional[int] = None, offset: int = 0, ignored_categories_override: Optional[set[str]] = None
     ) -> list[dict[str, str]]:
         """Get phrases from specified language set using dynamic table"""
         database = self._ensure_database()
@@ -346,6 +356,7 @@ class DatabaseManager:
         
         result = await database.fetch_all(query)
         row_list = []
+        effective_ignored = ignored_categories_override if ignored_categories_override is not None else IGNORED_CATEGORIES
         for row in result:
             row = dict(row)
             # Skip phrases shorter than 3 characters
@@ -353,7 +364,7 @@ class DatabaseManager:
                 continue
             # Remove ignored categories
             cats_set = set(row["categories"].split())
-            cats_set = cats_set.difference(IGNORED_CATEGORIES)
+            cats_set = cats_set.difference(effective_ignored)
             # Skip if no valid categories left
             if not cats_set:
                 continue
@@ -411,7 +422,7 @@ class DatabaseManager:
         query = delete(phrase_table).where(phrase_table.c.id == phrase_id)
         return await database.execute(query)
 
-    async def get_categories_for_language_set(self, language_set_id: Optional[int] = None) -> list[str]:
+    async def get_categories_for_language_set(self, language_set_id: Optional[int] = None, ignored_categories_override: Optional[set[str]] = None) -> list[str]:
         """Get categories for a specific language set using dynamic table"""
         database = self._ensure_database()
         
@@ -429,9 +440,10 @@ class DatabaseManager:
         query = select(phrase_table.c.categories)
         result = await database.fetch_all(query)
         categories_set = set()
+        effective_ignored = ignored_categories_override if ignored_categories_override is not None else IGNORED_CATEGORIES
         for row in result:
             for cat in row["categories"].split():
-                if cat.strip() and cat not in IGNORED_CATEGORIES:
+                if cat.strip() and cat not in effective_ignored:
                     categories_set.add(cat.strip())
         return sorted(list(categories_set))
 
@@ -586,6 +598,48 @@ class DatabaseManager:
                 .where(language_sets_table.c.id == language_set_id)
                 .values(is_default=True)
             )
+
+    async def get_user_ignored_categories(self, user_id: int, language_set_id: int) -> list[str]:
+        database = self._ensure_database()
+        query = select(user_ignored_categories_table.c.category).where(
+            user_ignored_categories_table.c.user_id == user_id,
+            user_ignored_categories_table.c.language_set_id == language_set_id,
+        )
+        rows = await database.fetch_all(query)
+        return [r[0] for r in rows]
+
+    async def replace_user_ignored_categories(self, user_id: int, language_set_id: int, categories: list[str]):
+        database = self._ensure_database()
+        async with database.transaction():
+            # Delete existing
+            del_query = delete(user_ignored_categories_table).where(
+                user_ignored_categories_table.c.user_id == user_id,
+                user_ignored_categories_table.c.language_set_id == language_set_id,
+            )
+            await database.execute(del_query)
+            if categories:
+                insert_values = [
+                    {"user_id": user_id, "language_set_id": language_set_id, "category": c}
+                    for c in sorted(set(categories))
+                ]
+                await database.execute_many(insert(user_ignored_categories_table), insert_values)
+
+    async def get_all_user_ignored_categories(self, user_id: int) -> dict[int, list[str]]:
+        database = self._ensure_database()
+        query = select(
+            user_ignored_categories_table.c.language_set_id,
+            user_ignored_categories_table.c.category,
+        ).where(user_ignored_categories_table.c.user_id == user_id)
+        rows = await database.fetch_all(query)
+        result: dict[int, list[str]] = {}
+        for row in rows:
+            ls_id = row[0]
+            cat = row[1]
+            result.setdefault(ls_id, []).append(cat)
+        # Sort categories
+        for k in result:
+            result[k] = sorted(result[k])
+        return result
 
 
 # Create global database manager instance

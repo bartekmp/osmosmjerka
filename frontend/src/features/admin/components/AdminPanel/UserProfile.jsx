@@ -10,9 +10,12 @@ import {
     Dialog,
     DialogTitle,
     DialogContent,
-    DialogActions
+    DialogActions,
+    Chip,
+    Divider
 } from '@mui/material';
 import { useTranslation } from 'react-i18next';
+import { API_ENDPOINTS } from '@shared';
 
 export default function UserProfile({ currentUser }) {
     const { t } = useTranslation();
@@ -34,6 +37,8 @@ export default function UserProfile({ currentUser }) {
         message: '',
         severity: 'success'
     });
+    const [ignoredSummary, setIgnoredSummary] = useState({});
+    const [languageSets, setLanguageSets] = useState([]);
 
     const authHeader = {
         'Authorization': `Bearer ${localStorage.getItem('adminToken')}`,
@@ -42,6 +47,8 @@ export default function UserProfile({ currentUser }) {
 
     useEffect(() => {
         fetchProfile();
+        fetchIgnoredSummary();
+        fetchLanguageSets();
     }, []);
 
     const fetchProfile = async () => {
@@ -59,6 +66,28 @@ export default function UserProfile({ currentUser }) {
         } catch (err) {
             showNotification(t('network_error', { message: err.message }), 'error');
         }
+    };
+
+    const fetchIgnoredSummary = async () => {
+        try {
+            const res = await fetch(API_ENDPOINTS.USER_IGNORED_CATEGORIES_ALL, { headers: authHeader });
+            if (res.ok) {
+                const data = await res.json();
+                setIgnoredSummary(data);
+            }
+        } catch (e) {
+            // silent fail
+        }
+    };
+
+    const fetchLanguageSets = async () => {
+        try {
+            const res = await fetch(API_ENDPOINTS.LANGUAGE_SETS);
+            if (res.ok) {
+                const data = await res.json();
+                setLanguageSets(data);
+            }
+        } catch (_) { /* ignore */ }
     };
 
     const updateProfile = async () => {
@@ -160,6 +189,29 @@ export default function UserProfile({ currentUser }) {
                 <Typography variant="h6" gutterBottom>{t('account_information')}</Typography>
                 <Typography sx={{ mb: 1 }}><strong>{t('username')}:</strong> {profile.username}</Typography>
                 <Typography sx={{ mb: 2 }}><strong>{t('role')}:</strong> {profile.role}</Typography>
+                <Divider sx={{ my: 2 }} />
+                <Typography variant="subtitle1" sx={{ mb: 1 }}>{t('your_ignored_categories', 'Your Ignored Categories')}</Typography>
+                {Object.keys(ignoredSummary).length === 0 && (
+                    <Typography variant="body2" color="text.secondary" sx={{ mb: 2 }}>
+                        {t('no_user_ignored_categories', 'You have not ignored any categories yet.')}
+                    </Typography>
+                )}
+                {Object.entries(ignoredSummary).map(([lsId, cats]) => {
+                    const ls = languageSets.find(l => l.id === Number(lsId));
+                    const label = ls ? (ls.display_name || ls.name || `#${lsId}`) : `#${lsId}`;
+                    return (
+                        <Box key={lsId} sx={{ mb: 2 }}>
+                            <Typography variant="caption" sx={{ fontWeight: 600, display: 'block', mb: 0.5 }}>
+                                {label}
+                            </Typography>
+                            <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 0.5 }}>
+                                {cats.map(c => (
+                                    <Chip key={c} label={c} size="small" variant="outlined" />
+                                ))}
+                            </Box>
+                        </Box>
+                    );
+                })}
                 <TextField
                     fullWidth
                     label={t('description')}
