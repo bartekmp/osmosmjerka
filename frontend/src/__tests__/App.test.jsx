@@ -13,13 +13,13 @@ afterEach(() => {
 
 test('renders profile link', async () => {
     axios.get.mockImplementation((url) => {
-        if (url.startsWith('/api/ignored-categories')) {
+        if (typeof url === 'string' && url.startsWith('/api/default-ignored-categories')) {
             return Promise.resolve({ data: [] });
         }
-        if (url.startsWith('/api/categories')) {
+        if (typeof url === 'string' && url.startsWith('/api/categories')) {
             return Promise.resolve({ data: ['A', 'B'] });
         }
-        if (url.startsWith('/api/phrases')) {
+        if (typeof url === 'string' && url.startsWith('/api/phrases')) {
             return Promise.resolve({ data: { grid: [], phrases: [] } });
         }
         return Promise.resolve({ data: [] });
@@ -31,16 +31,16 @@ test('renders profile link', async () => {
 
 test('shows not enough phrases overlay', async () => {
     axios.get.mockImplementation((url) => {
-        if (url.startsWith('/api/ignored-categories')) {
+        if (typeof url === 'string' && url.startsWith('/api/default-ignored-categories')) {
             return Promise.resolve({ data: [] });
         }
-        if (url.startsWith('/api/categories')) {
+        if (typeof url === 'string' && url.startsWith('/api/categories')) {
             return Promise.resolve({ data: ['TestCategory'] });
         }
-        if (url.startsWith('/api/language-sets')) {
+        if (typeof url === 'string' && url.startsWith('/api/language-sets')) {
             return Promise.resolve({ data: [] });
         }
-        if (url.startsWith('/api/phrases')) {
+        if (typeof url === 'string' && url.startsWith('/api/phrases')) {
             return Promise.reject({ 
                 response: { 
                     status: 404, 
@@ -79,10 +79,10 @@ test('shows not enough phrases overlay', async () => {
 
 test('renders category selector', async () => {
     axios.get.mockImplementation((url) => {
-        if (url.startsWith('/api/categories')) {
+        if (typeof url === 'string' && url.startsWith('/api/categories')) {
             return Promise.resolve({ data: ['A', 'B'] });
         }
-        if (url.startsWith('/api/phrases')) {
+        if (typeof url === 'string' && url.startsWith('/api/phrases')) {
             return Promise.resolve({ data: { grid: [], phrases: [] } });
         }
         return Promise.resolve({ data: [] });
@@ -95,13 +95,13 @@ test('renders category selector', async () => {
 
 test('renders reload button', async () => {
     axios.get.mockImplementation((url) => {
-        if (url.startsWith('/api/ignored-categories')) {
+        if (typeof url === 'string' && url.startsWith('/api/default-ignored-categories')) {
             return Promise.resolve({ data: [] });
         }
-        if (url.startsWith('/api/categories')) {
+        if (typeof url === 'string' && url.startsWith('/api/categories')) {
             return Promise.resolve({ data: ['A', 'B'] });
         }
-        if (url.startsWith('/api/phrases')) {
+        if (typeof url === 'string' && url.startsWith('/api/phrases')) {
             return Promise.resolve({ data: { grid: [], phrases: [] } });
         }
         return Promise.resolve({ data: [] });

@@ -45,7 +45,7 @@ export const STORAGE_KEYS = {
 // API endpoints
 export const API_ENDPOINTS = {
   CATEGORIES: '/api/categories',
-  IGNORED_CATEGORIES: '/api/ignored-categories',
+  DEFAULT_IGNORED_CATEGORIES: '/api/default-ignored-categories',
   ALL_CATEGORIES: '/admin/all-categories',
   PHRASES: '/api/phrases',
   EXPORT: '/api/export',

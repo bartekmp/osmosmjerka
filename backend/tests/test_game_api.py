@@ -31,25 +31,24 @@ def test_game_api_router_structure():
 
 
 @patch('osmosmjerka.database.db_manager.get_categories_for_language_set')
-@patch('osmosmjerka.game_api.IGNORED_CATEGORIES', {'ignored_cat'})
 def test_get_all_categories(mock_get_categories, client):
-    """Test getting all categories with ignored categories filtered out"""
-    mock_get_categories.return_value = ["A", "B", "ignored_cat", "C"]
+    """Test getting all categories with language set specific filtering"""
+    mock_get_categories.return_value = ["A", "B", "C"]
     
-    response = client.get("/api/categories")
+    response = client.get("/api/categories?language_set_id=1")
     assert response.status_code == 200
     categories = response.json()
     assert sorted(categories) == ["A", "B", "C"]
-    assert "ignored_cat" not in categories
 
 
-def test_get_ignored_categories(client):
-    """Test getting ignored categories"""
-    with patch('osmosmjerka.game_api.IGNORED_CATEGORIES', {"X", "Y", "Z"}):
-        response = client.get("/api/ignored-categories")
-        assert response.status_code == 200
-        ignored = response.json()
-        assert set(ignored) == {"X", "Y", "Z"}
+@patch('osmosmjerka.database.db_manager.get_default_ignored_categories')
+def test_get_default_ignored_categories(mock_get_default_ignored, client):
+    """Test getting default ignored categories for a language set"""
+    mock_get_default_ignored.return_value = ["X", "Y", "Z"]
+    response = client.get("/api/default-ignored-categories?language_set_id=1")
+    assert response.status_code == 200
+    ignored = response.json()
+    assert set(ignored) == {"X", "Y", "Z"}
 
 
 def test_get_grid_size_and_num_phrases_easy():
@@ -303,13 +302,12 @@ def test_api_endpoints_exist():
 def test_imports_work():
     """Test that all necessary imports work correctly"""
     from osmosmjerka.game_api import router
-    from osmosmjerka.database import IGNORED_CATEGORIES, db_manager
+    from osmosmjerka.database import db_manager
     from osmosmjerka.grid_generator import generate_grid
     from osmosmjerka.utils import export_to_docx, export_to_png
     
     # Basic sanity checks
     assert router is not None
-    assert IGNORED_CATEGORIES is not None
     assert db_manager is not None
     assert callable(generate_grid)
     assert callable(export_to_docx)
@@ -324,8 +322,7 @@ def test_game_api_integration():
         generate_grid,
         export_to_docx,
         export_to_png,
-        db_manager,
-        IGNORED_CATEGORIES
+        db_manager
     )
     
     assert router is not None
@@ -334,7 +331,6 @@ def test_game_api_integration():
     assert callable(export_to_docx)
     assert callable(export_to_png)
     assert db_manager is not None
-    assert IGNORED_CATEGORIES is not None
 
 
 def test_router_has_expected_routes():

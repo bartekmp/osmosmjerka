@@ -198,10 +198,10 @@ def test_delete_row(mock_delete_phrase, client, mock_admin_user):
 
 
 @patch('osmosmjerka.database.db_manager.clear_all_phrases')
-def test_clear_db(mock_clear_all, client, mock_admin_user):
-    """Test clearing all phrases from database"""
+def test_clear_db(mock_clear_all, client, mock_root_admin_user):
+    """Test clearing all phrases from database - root admin only"""
     # Override the dependency
-    app.dependency_overrides[require_admin_access] = lambda: mock_admin_user
+    app.dependency_overrides[require_root_admin] = lambda: mock_root_admin_user
     mock_clear_all.return_value = None
 
     response = client.delete("/admin/clear?language_set_id=1")
@@ -337,7 +337,7 @@ def test_export_data_all_categories(mock_get_phrases, client, mock_admin_user):
 def test_get_users(mock_get_count, mock_get_accounts, client, mock_root_admin_user):
     """Test getting list of users (root admin only)"""
     # Override the dependency
-    app.dependency_overrides[require_root_admin] = lambda: mock_root_admin_user
+    app.dependency_overrides[require_admin_access] = lambda: mock_root_admin_user
     mock_get_accounts.return_value = [
         {"id": 1, "username": "admin", "role": "administrative", "is_active": True},
         {"id": 2, "username": "user", "role": "regular", "is_active": True}
@@ -361,7 +361,7 @@ def test_get_users(mock_get_count, mock_get_accounts, client, mock_root_admin_us
 def test_get_user_by_id(mock_get_account, client, mock_root_admin_user):
     """Test getting specific user by ID"""
     # Override the dependency
-    app.dependency_overrides[require_root_admin] = lambda: mock_root_admin_user
+    app.dependency_overrides[require_admin_access] = lambda: mock_root_admin_user
     mock_get_account.return_value = {
         "id": 1,
         "username": "admin",
@@ -382,7 +382,7 @@ def test_get_user_by_id(mock_get_account, client, mock_root_admin_user):
 def test_get_user_not_found(mock_get_account, client, mock_root_admin_user):
     """Test getting non-existent user"""
     # Override the dependency
-    app.dependency_overrides[require_root_admin] = lambda: mock_root_admin_user
+    app.dependency_overrides[require_admin_access] = lambda: mock_root_admin_user
     mock_get_account.return_value = None
 
     response = client.get("/admin/users/999")
@@ -400,7 +400,7 @@ def test_get_user_not_found(mock_get_account, client, mock_root_admin_user):
 def test_create_user(mock_gensalt, mock_hashpw, mock_create_account, mock_get_by_username, client, mock_root_admin_user):
     """Test creating new user"""
     # Override the dependency
-    app.dependency_overrides[require_root_admin] = lambda: mock_root_admin_user
+    app.dependency_overrides[require_admin_access] = lambda: mock_root_admin_user
     mock_get_by_username.return_value = None  # User doesn't exist
     mock_gensalt.return_value = b"salt"
     mock_hashpw.return_value = b"hashed_password"
@@ -426,7 +426,7 @@ def test_create_user(mock_gensalt, mock_hashpw, mock_create_account, mock_get_by
 def test_create_user_already_exists(mock_get_by_username, client, mock_root_admin_user):
     """Test creating user with existing username"""
     # Override the dependency
-    app.dependency_overrides[require_root_admin] = lambda: mock_root_admin_user
+    app.dependency_overrides[require_admin_access] = lambda: mock_root_admin_user
     mock_get_by_username.return_value = {"username": "existing"}
 
     response = client.post("/admin/users", json={
@@ -444,7 +444,7 @@ def test_create_user_already_exists(mock_get_by_username, client, mock_root_admi
 def test_create_user_invalid_role(client, mock_root_admin_user):
     """Test creating user with invalid role"""
     # Override the dependency
-    app.dependency_overrides[require_root_admin] = lambda: mock_root_admin_user
+    app.dependency_overrides[require_admin_access] = lambda: mock_root_admin_user
 
     response = client.post("/admin/users", json={
         "username": "newuser",

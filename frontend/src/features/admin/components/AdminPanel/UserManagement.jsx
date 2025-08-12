@@ -296,6 +296,7 @@ export default function UserManagement({ currentUser }) {
                                         size="small"
                                         onClick={() => handleOpenDialog('edit', user)}
                                         title={t('edit_user')}
+                                        disabled={user.id === 0 && currentUser?.role !== 'root_admin'}
                                     >
                                         <Edit />
                                     </IconButton>
@@ -303,6 +304,7 @@ export default function UserManagement({ currentUser }) {
                                         size="small"
                                         onClick={() => handleResetPassword(user.id)}
                                         title={t('reset_password')}
+                                        disabled={user.id === 0 && currentUser?.role !== 'root_admin'}
                                     >
                                         🔑
                                     </IconButton>

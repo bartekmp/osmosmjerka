@@ -47,7 +47,7 @@ export const STORAGE_KEYS = {
 export const API_ENDPOINTS = {
   LANGUAGE_SETS: '/api/language-sets',
   CATEGORIES: '/api/categories',
-  IGNORED_CATEGORIES: '/api/ignored-categories', // global (legacy)
+  DEFAULT_IGNORED_CATEGORIES: '/api/default-ignored-categories', // language set defaults
   USER_IGNORED_CATEGORIES: '/api/user/ignored-categories', // per-user single set
   USER_IGNORED_CATEGORIES_ALL: '/api/user/ignored-categories/all', // per-user all sets
   ALL_CATEGORIES: '/admin/all-categories',

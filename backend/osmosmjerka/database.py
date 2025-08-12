@@ -22,6 +22,8 @@ language_sets_table = Table(
     Column("display_name", String, nullable=False),  # User-friendly name like "Croatian-Polish"
     Column("description", Text, nullable=True),
     Column("author", String, nullable=True),
+    Column("created_by", Integer, nullable=True),  # User ID of creator, NULL for root admin (id=0)
+    Column("default_ignored_categories", Text, nullable=True),  # Comma-separated list of ignored categories
     Column("created_at", DateTime, nullable=False, server_default=func.now()),
     Column("is_active", Boolean, nullable=False, default=True),
     Column("is_default", Boolean, nullable=False, default=False),
@@ -66,9 +68,6 @@ user_ignored_categories_table = Table(
     Column("language_set_id", Integer, nullable=False, index=True),
     Column("category", String, nullable=False),
 )
-
-IGNORED_CATEGORIES_STR = os.getenv("IGNORED_CATEGORIES", "")
-IGNORED_CATEGORIES = set(cat.strip() for cat in IGNORED_CATEGORIES_STR.split(",") if cat.strip())
 
 
 class DatabaseManager:
@@ -262,7 +261,7 @@ class DatabaseManager:
 
     # Language Set Management Methods
     async def get_language_sets(self, active_only: bool = True) -> list[dict]:
-        """Get all language sets"""
+        """Get all language sets with protected flag"""
         database = self._ensure_database()
         query = select(language_sets_table)
         if active_only:
@@ -270,7 +269,15 @@ class DatabaseManager:
         # Default first, then by display name
         query = query.order_by(language_sets_table.c.is_default.desc(), language_sets_table.c.display_name)
         result = await database.fetch_all(query)
-        return [self._serialize_datetimes(dict(row)) for row in result]
+        
+        language_sets = []
+        for row in result:
+            lang_set = self._serialize_datetimes(dict(row))
+            # Add protected flag: protected if created_by is None or 0
+            lang_set["protected"] = lang_set.get("created_by") is None or lang_set.get("created_by") == 0
+            language_sets.append(lang_set)
+        
+        return language_sets
 
     async def get_language_set_by_id(self, language_set_id: int) -> Optional[dict]:
         """Get a specific language set by ID"""
@@ -279,9 +286,12 @@ class DatabaseManager:
         result = await database.fetch_one(query)
         return self._serialize_datetimes(dict(result._mapping)) if result else None
 
-    async def create_language_set(self, name: str, display_name: str, description: Optional[str] = None, author: Optional[str] = None) -> int:
+    async def create_language_set(self, name: str, display_name: str, description: Optional[str] = None, author: Optional[str] = None, created_by: Optional[int] = None, default_ignored_categories: Optional[list[str]] = None) -> int:
         """Create a new language set and its phrase table"""
         database = self._ensure_database()
+        
+        # Convert default_ignored_categories list to comma-separated string
+        default_ignored_str = ",".join(default_ignored_categories) if default_ignored_categories else None
         
         # Create language set record
         query = insert(language_sets_table).values(
@@ -289,6 +299,8 @@ class DatabaseManager:
             display_name=display_name,
             description=description,
             author=author,
+            created_by=created_by,
+            default_ignored_categories=default_ignored_str,
             is_active=True,
             is_default=False,
         )
@@ -304,6 +316,23 @@ class DatabaseManager:
         database = self._ensure_database()
         query = update(language_sets_table).where(language_sets_table.c.id == language_set_id).values(**updates)
         return await database.execute(query)
+
+    async def is_language_set_protected(self, language_set_id: int) -> bool:
+        """Check if a language set is protected (created by root admin)"""
+        database = self._ensure_database()
+        query = select(language_sets_table.c.created_by).where(language_sets_table.c.id == language_set_id)
+        result = await database.fetch_one(query)
+        # If created_by is None or 0, it's considered a root-admin-created set (protected)
+        return result is None or result[0] is None or result[0] == 0
+
+    async def get_default_ignored_categories(self, language_set_id: int) -> list[str]:
+        """Get default ignored categories for a language set"""
+        database = self._ensure_database()
+        query = select(language_sets_table.c.default_ignored_categories).where(language_sets_table.c.id == language_set_id)
+        result = await database.fetch_one(query)
+        if result and result[0]:
+            return [cat.strip() for cat in result[0].split(",") if cat.strip()]
+        return []
 
     async def delete_language_set(self, language_set_id: int):
         """Delete a language set and its phrase table"""
@@ -356,7 +385,14 @@ class DatabaseManager:
         
         result = await database.fetch_all(query)
         row_list = []
-        effective_ignored = ignored_categories_override if ignored_categories_override is not None else IGNORED_CATEGORIES
+        
+        # Use language set's default ignored categories if no override provided
+        if ignored_categories_override is not None:
+            effective_ignored = ignored_categories_override
+        else:
+            default_ignored = await self.get_default_ignored_categories(language_set["id"])
+            effective_ignored = set(default_ignored)
+            
         for row in result:
             row = dict(row)
             # Skip phrases shorter than 3 characters
@@ -440,7 +476,14 @@ class DatabaseManager:
         query = select(phrase_table.c.categories)
         result = await database.fetch_all(query)
         categories_set = set()
-        effective_ignored = ignored_categories_override if ignored_categories_override is not None else IGNORED_CATEGORIES
+        
+        # Use language set's default ignored categories if no override provided
+        if ignored_categories_override is not None:
+            effective_ignored = ignored_categories_override
+        else:
+            default_ignored = await self.get_default_ignored_categories(language_set["id"])
+            effective_ignored = set(default_ignored)
+            
         for row in result:
             for cat in row["categories"].split():
                 if cat.strip() and cat not in effective_ignored:
