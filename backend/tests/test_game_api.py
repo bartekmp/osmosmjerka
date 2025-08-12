@@ -16,32 +16,34 @@ def client():
 @pytest.fixture(autouse=True)
 def mock_db_connection():
     """Automatically mock the database connection for all tests"""
-    with patch('osmosmjerka.database.db_manager._ensure_database'), \
-         patch('osmosmjerka.database.db_manager.database', Mock()):
+    with (
+        patch("osmosmjerka.database.db_manager._ensure_database"),
+        patch("osmosmjerka.database.db_manager.database", Mock()),
+    ):
         yield
 
 
 def test_game_api_router_structure():
     """Test that the game API router is properly structured"""
     assert router is not None
-    assert hasattr(router, 'prefix')
+    assert hasattr(router, "prefix")
     assert router.prefix == "/api"
-    assert hasattr(router, 'routes')
+    assert hasattr(router, "routes")
     assert len(router.routes) > 0
 
 
-@patch('osmosmjerka.database.db_manager.get_categories_for_language_set')
+@patch("osmosmjerka.database.db_manager.get_categories_for_language_set")
 def test_get_all_categories(mock_get_categories, client):
     """Test getting all categories with language set specific filtering"""
     mock_get_categories.return_value = ["A", "B", "C"]
-    
+
     response = client.get("/api/categories?language_set_id=1")
     assert response.status_code == 200
     categories = response.json()
     assert sorted(categories) == ["A", "B", "C"]
 
 
-@patch('osmosmjerka.database.db_manager.get_default_ignored_categories')
+@patch("osmosmjerka.database.db_manager.get_default_ignored_categories")
 def test_get_default_ignored_categories(mock_get_default_ignored, client):
     """Test getting default ignored categories for a language set"""
     mock_get_default_ignored.return_value = ["X", "Y", "Z"]
@@ -81,25 +83,25 @@ def test_get_grid_size_and_num_phrases_edge_cases():
     # Empty phrase list - defaults to easy difficulty settings
     size, num_phrases = get_grid_size_and_num_phrases([], "easy")
     assert size == 10 and num_phrases == 7
-    
+
     # Single phrase - still uses difficulty settings
     size, num_phrases = get_grid_size_and_num_phrases([{"phrase": "test"}], "easy")
     assert size == 10 and num_phrases == 7
-    
+
     # Test unknown difficulty defaults to easy
     size, num_phrases = get_grid_size_and_num_phrases([{"phrase": "test"}], "unknown")
     assert size == 10 and num_phrases == 7
 
 
-@patch('osmosmjerka.database.db_manager.get_categories_for_language_set')
-@patch('osmosmjerka.database.db_manager.get_phrases')
-@patch('osmosmjerka.game_api.generate_grid')
+@patch("osmosmjerka.database.db_manager.get_categories_for_language_set")
+@patch("osmosmjerka.database.db_manager.get_phrases")
+@patch("osmosmjerka.game_api.generate_grid")
 def test_get_phrases_no_category_specified(mock_generate_grid, mock_get_phrases, mock_get_categories, client):
     """Test getting phrases when no category is specified"""
     mock_get_categories.return_value = ["A", "B"]
     mock_get_phrases.return_value = [{"phrase": "test", "categories": "A", "translation": "test"}] * 20
     mock_generate_grid.return_value = ([["A"]], [{"phrase": "test"}])
-    
+
     response = client.get("/api/phrases")
     assert response.status_code == 200
     data = response.json()
@@ -108,41 +110,41 @@ def test_get_phrases_no_category_specified(mock_generate_grid, mock_get_phrases,
     assert "phrases" in data
 
 
-@patch('osmosmjerka.database.db_manager.get_categories_for_language_set')
-@patch('osmosmjerka.database.db_manager.get_phrases')
-@patch('osmosmjerka.game_api.generate_grid')
+@patch("osmosmjerka.database.db_manager.get_categories_for_language_set")
+@patch("osmosmjerka.database.db_manager.get_phrases")
+@patch("osmosmjerka.game_api.generate_grid")
 def test_get_phrases_invalid_category(mock_generate_grid, mock_get_phrases, mock_get_categories, client):
     """Test getting phrases with invalid category falls back to random"""
     mock_get_categories.return_value = ["A", "B"]
     mock_get_phrases.return_value = [{"phrase": "test", "categories": "A", "translation": "test"}] * 20
     mock_generate_grid.return_value = ([["A"]], [{"phrase": "test"}])
-    
+
     response = client.get("/api/phrases?category=INVALID")
     assert response.status_code == 200
     data = response.json()
     assert data["category"] in ["A", "B"]  # Should pick a random valid category
 
 
-@patch('osmosmjerka.database.db_manager.get_categories_for_language_set')
-@patch('osmosmjerka.database.db_manager.get_phrases')
+@patch("osmosmjerka.database.db_manager.get_categories_for_language_set")
+@patch("osmosmjerka.database.db_manager.get_phrases")
 def test_get_phrases_no_phrases_found(mock_get_phrases, mock_get_categories, client):
     """Test getting phrases when no phrases exist for category"""
     mock_get_categories.return_value = ["A"]
     mock_get_phrases.return_value = []
-    
+
     response = client.get("/api/phrases?category=A")
     assert response.status_code == 404
     data = response.json()
     assert "No phrases found" in data["error"]
 
 
-@patch('osmosmjerka.database.db_manager.get_categories_for_language_set')
-@patch('osmosmjerka.database.db_manager.get_phrases')
+@patch("osmosmjerka.database.db_manager.get_categories_for_language_set")
+@patch("osmosmjerka.database.db_manager.get_phrases")
 def test_get_phrases_not_enough_phrases(mock_get_phrases, mock_get_categories, client):
     """Test getting phrases when there aren't enough for difficulty"""
     mock_get_categories.return_value = ["A"]
     mock_get_phrases.return_value = [{"phrase": "a", "categories": "A", "translation": "a"}]  # Only 1 phrase
-    
+
     response = client.get("/api/phrases?category=A&difficulty=hard")  # Needs 12 phrases
     assert response.status_code == 404
     data = response.json()
@@ -151,15 +153,15 @@ def test_get_phrases_not_enough_phrases(mock_get_phrases, mock_get_categories, c
     assert data["needed"] == 12
 
 
-@patch('osmosmjerka.database.db_manager.get_categories_for_language_set')
-@patch('osmosmjerka.database.db_manager.get_phrases')
-@patch('osmosmjerka.game_api.generate_grid')
+@patch("osmosmjerka.database.db_manager.get_categories_for_language_set")
+@patch("osmosmjerka.database.db_manager.get_phrases")
+@patch("osmosmjerka.game_api.generate_grid")
 def test_get_phrases_success(mock_generate_grid, mock_get_phrases, mock_get_categories, client):
     """Test successful phrase retrieval"""
     mock_get_categories.return_value = ["A"]
     mock_get_phrases.return_value = [{"phrase": "a", "categories": "A", "translation": "a"}] * 20
     mock_generate_grid.return_value = ([["A"]], [{"phrase": "a", "translation": "a"}])
-    
+
     response = client.get("/api/phrases?category=A&difficulty=easy")
     assert response.status_code == 200
     data = response.json()
@@ -169,17 +171,12 @@ def test_get_phrases_success(mock_generate_grid, mock_get_phrases, mock_get_cate
     assert data["category"] == "A"
 
 
-@patch('osmosmjerka.game_api.export_to_docx')
+@patch("osmosmjerka.game_api.export_to_docx")
 def test_export_puzzle_docx(mock_export_docx, client):
     """Test exporting puzzle as DOCX"""
     mock_export_docx.return_value = b"docx_content"
-    
-    data = {
-        "category": "Test", 
-        "grid": [["A"]], 
-        "phrases": [{"phrase": "A", "translation": "A"}],
-        "format": "docx"
-    }
+
+    data = {"category": "Test", "grid": [["A"]], "phrases": [{"phrase": "A", "translation": "A"}], "format": "docx"}
     response = client.post("/api/export", json=data)
     assert response.status_code == 200
     assert response.headers["content-type"].startswith(
@@ -188,17 +185,12 @@ def test_export_puzzle_docx(mock_export_docx, client):
     assert "attachment; filename=wordsearch-test.docx" in response.headers["content-disposition"]
 
 
-@patch('osmosmjerka.game_api.export_to_png')
+@patch("osmosmjerka.game_api.export_to_png")
 def test_export_puzzle_png(mock_export_png, client):
     """Test exporting puzzle as PNG"""
     mock_export_png.return_value = b"png_content"
-    
-    data = {
-        "category": "Test", 
-        "grid": [["A"]], 
-        "phrases": [{"phrase": "A", "translation": "A"}],
-        "format": "png"
-    }
+
+    data = {"category": "Test", "grid": [["A"]], "phrases": [{"phrase": "A", "translation": "A"}], "format": "png"}
     response = client.post("/api/export", json=data)
     assert response.status_code == 200
     assert response.headers["content-type"] == "image/png"
@@ -207,13 +199,13 @@ def test_export_puzzle_png(mock_export_png, client):
 
 def test_export_puzzle_default_format(client):
     """Test exporting puzzle with default DOCX format"""
-    with patch('osmosmjerka.game_api.export_to_docx') as mock_export:
+    with patch("osmosmjerka.game_api.export_to_docx") as mock_export:
         mock_export.return_value = b"docx_content"
-        
+
         data = {
             "category": "Test",
             "grid": [["A"]],
-            "phrases": [{"phrase": "A", "translation": "A"}]
+            "phrases": [{"phrase": "A", "translation": "A"}],
             # No format specified, should default to docx
         }
         response = client.post("/api/export", json=data)
@@ -225,15 +217,18 @@ def test_export_puzzle_default_format(client):
 
 def test_export_puzzle_invalid_format(client):
     """Test exporting puzzle with invalid format"""
-    with patch('osmosmjerka.game_api.export_to_docx') as mock_docx, patch('osmosmjerka.game_api.export_to_png') as mock_png:
+    with (
+        patch("osmosmjerka.game_api.export_to_docx") as mock_docx,
+        patch("osmosmjerka.game_api.export_to_png") as mock_png,
+    ):
         mock_docx.return_value = b"docxbytes"
         mock_png.return_value = b"pngbytes"
-        
+
         data = {
-            "category": "Test", 
-            "grid": [["A"]], 
+            "category": "Test",
+            "grid": [["A"]],
             "phrases": [{"phrase": "A", "translation": "A"}],
-            "format": "invalid"
+            "format": "invalid",
         }
         response = client.post("/api/export", json=data)
         assert response.status_code == 500
@@ -242,14 +237,14 @@ def test_export_puzzle_invalid_format(client):
 
 def test_export_puzzle_filename_sanitization(client):
     """Test that category names are properly sanitized in filenames"""
-    with patch('osmosmjerka.game_api.export_to_docx') as mock_export:
+    with patch("osmosmjerka.game_api.export_to_docx") as mock_export:
         mock_export.return_value = b"docx_content"
-        
+
         data = {
             "category": "Test Category with Spaces & Special!",
             "grid": [["A"]],
             "phrases": [{"phrase": "A", "translation": "A"}],
-            "format": "docx"
+            "format": "docx",
         }
         response = client.post("/api/export", json=data)
         assert response.status_code == 200
@@ -259,15 +254,10 @@ def test_export_puzzle_filename_sanitization(client):
 
 def test_export_puzzle_no_category(client):
     """Test exporting puzzle with valid category"""
-    with patch('osmosmjerka.game_api.export_to_docx') as mock_export:
+    with patch("osmosmjerka.game_api.export_to_docx") as mock_export:
         mock_export.return_value = b"docx_content"
-        
-        data = {
-            "category": "Test", 
-            "grid": [["A"]],
-            "phrases": [{"phrase": "A", "translation": "A"}],
-            "format": "docx"
-        }
+
+        data = {"category": "Test", "grid": [["A"]], "phrases": [{"phrase": "A", "translation": "A"}], "format": "docx"}
         response = client.post("/api/export", json=data)
         assert response.status_code == 200
         assert "wordsearch-test.docx" in response.headers["content-disposition"]
@@ -275,15 +265,10 @@ def test_export_puzzle_no_category(client):
 
 def test_export_puzzle_exception(client):
     """Test export puzzle when export function raises exception"""
-    with patch('osmosmjerka.game_api.export_to_docx') as mock_export:
+    with patch("osmosmjerka.game_api.export_to_docx") as mock_export:
         mock_export.side_effect = Exception("Export failed")
-        
-        data = {
-            "category": "Test", 
-            "grid": [["A"]], 
-            "phrases": [{"phrase": "A", "translation": "A"}],
-            "format": "docx"
-        }
+
+        data = {"category": "Test", "grid": [["A"]], "phrases": [{"phrase": "A", "translation": "A"}], "format": "docx"}
         response = client.post("/api/export", json=data)
         assert response.status_code == 500
         assert "Export failed" in response.json()["detail"]
@@ -293,9 +278,10 @@ def test_api_endpoints_exist():
     """Test that expected API endpoints are registered with the router"""
     # Just check that the router has routes
     assert len(router.routes) > 0
-    
+
     # Check that we can import the functions that should be available
     from osmosmjerka.game_api import get_grid_size_and_num_phrases
+
     assert callable(get_grid_size_and_num_phrases)
 
 
@@ -305,7 +291,7 @@ def test_imports_work():
     from osmosmjerka.database import db_manager
     from osmosmjerka.grid_generator import generate_grid
     from osmosmjerka.utils import export_to_docx, export_to_png
-    
+
     # Basic sanity checks
     assert router is not None
     assert db_manager is not None
@@ -317,14 +303,14 @@ def test_imports_work():
 def test_game_api_integration():
     """Test that game API imports all required modules correctly"""
     from osmosmjerka.game_api import (
-        router, 
+        router,
         get_grid_size_and_num_phrases,
         generate_grid,
         export_to_docx,
         export_to_png,
-        db_manager
+        db_manager,
     )
-    
+
     assert router is not None
     assert callable(get_grid_size_and_num_phrases)
     assert callable(generate_grid)

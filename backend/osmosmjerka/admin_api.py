@@ -35,70 +35,62 @@ async def get_default_ignored_categories(language_set_id: int, user=Depends(requ
         return JSONResponse(categories)
     except Exception as e:
         return JSONResponse(
-            {"error": f"Failed to get default ignored categories: {str(e)}"}, 
-            status_code=status.HTTP_400_BAD_REQUEST
+            {"error": f"Failed to get default ignored categories: {str(e)}"}, status_code=status.HTTP_400_BAD_REQUEST
         )
 
 
 @router.post("/language-sets")
-async def create_language_set(
-    language_set: dict, user=Depends(require_admin_access)
-) -> JSONResponse:
+async def create_language_set(language_set: dict, user=Depends(require_admin_access)) -> JSONResponse:
     """Create a new language set (admin access required)"""
     try:
         # Validate name format (alphanumeric, underscore, dash only)
         name = language_set["name"]
-        if not name or not all(c.isalnum() or c in '_-' for c in name):
+        if not name or not all(c.isalnum() or c in "_-" for c in name):
             return JSONResponse(
-                {"error": "Language set name can only contain alphanumeric characters, underscore and dash"}, 
-                status_code=status.HTTP_400_BAD_REQUEST
+                {"error": "Language set name can only contain alphanumeric characters, underscore and dash"},
+                status_code=status.HTTP_400_BAD_REQUEST,
             )
-        
+
         # Set created_by: None for root admin (id=0), user_id for others
         created_by = None if user["id"] == 0 else user["id"]
-        
+
         # Handle default ignored categories
         default_ignored_categories = language_set.get("default_ignored_categories", [])
         if isinstance(default_ignored_categories, str):
             default_ignored_categories = [cat.strip() for cat in default_ignored_categories.split(",") if cat.strip()]
-        
+
         language_set_id = await db_manager.create_language_set(
             name=name,
             display_name=language_set["display_name"],
             description=language_set.get("description"),
             author=language_set.get("author"),
             created_by=created_by,
-            default_ignored_categories=default_ignored_categories
+            default_ignored_categories=default_ignored_categories,
         )
         return JSONResponse(
-            {"message": "Language set created", "id": language_set_id}, 
-            status_code=status.HTTP_201_CREATED
+            {"message": "Language set created", "id": language_set_id}, status_code=status.HTTP_201_CREATED
         )
     except Exception as e:
         return JSONResponse(
-            {"error": f"Failed to create language set: {str(e)}"}, 
-            status_code=status.HTTP_400_BAD_REQUEST
+            {"error": f"Failed to create language set: {str(e)}"}, status_code=status.HTTP_400_BAD_REQUEST
         )
 
 
 @router.put("/language-sets/{language_set_id}")
-async def update_language_set(
-    language_set_id: int, updates: dict, user=Depends(require_admin_access)
-) -> JSONResponse:
+async def update_language_set(language_set_id: int, updates: dict, user=Depends(require_admin_access)) -> JSONResponse:
     """Update language set metadata"""
     try:
         # Check if the language set is protected and user isn't root admin
         is_protected = await db_manager.is_language_set_protected(language_set_id)
         if is_protected and user["id"] != 0:
             return JSONResponse(
-                {"error": "Cannot edit language set created by root admin"}, 
-                status_code=status.HTTP_403_FORBIDDEN
+                {"error": "Cannot edit language set created by root admin"}, status_code=status.HTTP_403_FORBIDDEN
             )
-        
+
         # Remove author from updates - it cannot be edited
         if "author" in updates:
             del updates["author"]
-        
+
         # Handle default ignored categories
         if "default_ignored_categories" in updates:
             default_ignored = updates["default_ignored_categories"]
@@ -107,37 +99,33 @@ async def update_language_set(
             elif isinstance(default_ignored, str):
                 categories = [cat.strip() for cat in default_ignored.split(",") if cat.strip()]
                 updates["default_ignored_categories"] = ",".join(categories) if categories else None
-        
+
         await db_manager.update_language_set(language_set_id, **updates)
         return JSONResponse({"message": "Language set updated"})
     except Exception as e:
         return JSONResponse(
-            {"error": f"Failed to update language set: {str(e)}"}, 
-            status_code=status.HTTP_400_BAD_REQUEST
+            {"error": f"Failed to update language set: {str(e)}"}, status_code=status.HTTP_400_BAD_REQUEST
         )
 
 
 @router.delete("/language-sets/{language_set_id}")
-async def delete_language_set(
-    language_set_id: int, user=Depends(require_admin_access)
-) -> JSONResponse:
+async def delete_language_set(language_set_id: int, user=Depends(require_admin_access)) -> JSONResponse:
     """Delete a language set and all its phrases (admin access required, but protected sets cannot be deleted)"""
     try:
         # Check if the language set is protected (created by root admin)
         is_protected = await db_manager.is_language_set_protected(language_set_id)
-        
+
         if is_protected and user["role"] != "root_admin":
             return JSONResponse(
-                {"error": "Cannot delete language set created by root administrator"}, 
-                status_code=status.HTTP_403_FORBIDDEN
+                {"error": "Cannot delete language set created by root administrator"},
+                status_code=status.HTTP_403_FORBIDDEN,
             )
-        
+
         await db_manager.delete_language_set(language_set_id)
         return JSONResponse({"message": "Language set deleted"})
     except Exception as e:
         return JSONResponse(
-            {"error": f"Failed to delete language set: {str(e)}"}, 
-            status_code=status.HTTP_400_BAD_REQUEST
+            {"error": f"Failed to delete language set: {str(e)}"}, status_code=status.HTTP_400_BAD_REQUEST
         )
 
 
@@ -163,78 +151,50 @@ async def get_all_rows(
 
 
 @router.post("/row")
-async def add_row(
-    row: dict, 
-    language_set_id: int = Query(...),
-    user=Depends(require_admin_access)
-) -> JSONResponse:
+async def add_row(row: dict, language_set_id: int = Query(...), user=Depends(require_admin_access)) -> JSONResponse:
     """Add a new phrase to specified language set"""
     try:
         await db_manager.add_phrase(language_set_id, row["categories"], row["phrase"], row["translation"])
         return JSONResponse({"message": "Phrase added"}, status_code=status.HTTP_201_CREATED)
     except Exception as e:
-        return JSONResponse(
-            {"error": f"Failed to add phrase: {str(e)}"}, 
-            status_code=status.HTTP_400_BAD_REQUEST
-        )
+        return JSONResponse({"error": f"Failed to add phrase: {str(e)}"}, status_code=status.HTTP_400_BAD_REQUEST)
 
 
 @router.put("/row/{id}")
 async def update_row(
-    id: int, 
-    row: dict, 
-    language_set_id: int = Query(...),
-    user=Depends(require_admin_access)
+    id: int, row: dict, language_set_id: int = Query(...), user=Depends(require_admin_access)
 ) -> JSONResponse:
     """Update an existing phrase"""
     try:
         await db_manager.update_phrase(id, language_set_id, row["categories"], row["phrase"], row["translation"])
         return JSONResponse({"message": "Phrase updated"}, status_code=status.HTTP_200_OK)
     except Exception as e:
-        return JSONResponse(
-            {"error": f"Failed to update phrase: {str(e)}"}, 
-            status_code=status.HTTP_400_BAD_REQUEST
-        )
+        return JSONResponse({"error": f"Failed to update phrase: {str(e)}"}, status_code=status.HTTP_400_BAD_REQUEST)
 
 
 @router.delete("/row/{id}")
-async def delete_row(
-    id: int, 
-    language_set_id: int = Query(...),
-    user=Depends(require_admin_access)
-) -> JSONResponse:
+async def delete_row(id: int, language_set_id: int = Query(...), user=Depends(require_admin_access)) -> JSONResponse:
     """Delete a phrase"""
     try:
         await db_manager.delete_phrase(id, language_set_id)
         return JSONResponse({"message": "Phrase deleted"}, status_code=status.HTTP_200_OK)
     except Exception as e:
-        return JSONResponse(
-            {"error": f"Failed to delete phrase: {str(e)}"}, 
-            status_code=status.HTTP_400_BAD_REQUEST
-        )
+        return JSONResponse({"error": f"Failed to delete phrase: {str(e)}"}, status_code=status.HTTP_400_BAD_REQUEST)
 
 
 @router.delete("/clear")
-async def clear_db(
-    language_set_id: int = Query(...),
-    user=Depends(require_root_admin)
-) -> JSONResponse:
+async def clear_db(language_set_id: int = Query(...), user=Depends(require_root_admin)) -> JSONResponse:
     """Clear all phrases for a specific language set - root admin only"""
     try:
         await db_manager.clear_all_phrases(language_set_id)
         return JSONResponse({"message": "Language set phrases cleared"}, status_code=status.HTTP_200_OK)
     except Exception as e:
-        return JSONResponse(
-            {"error": f"Failed to clear phrases: {str(e)}"}, 
-            status_code=status.HTTP_400_BAD_REQUEST
-        )
+        return JSONResponse({"error": f"Failed to clear phrases: {str(e)}"}, status_code=status.HTTP_400_BAD_REQUEST)
 
 
 @router.post("/upload")
 async def upload(
-    file: UploadFile = File(...), 
-    language_set_id: int = Query(...),
-    user=Depends(require_admin_access)
+    file: UploadFile = File(...), language_set_id: int = Query(...), user=Depends(require_admin_access)
 ) -> JSONResponse:
     """Upload CSV file with phrases to specified language set"""
     try:
@@ -242,16 +202,15 @@ async def upload(
         phrases_data = _parse_phrases_csv(content)
         if phrases_data:
             await run_in_threadpool(db_manager.fast_bulk_insert_phrases, language_set_id, phrases_data)
-            return JSONResponse({"message": f"Uploaded {len(phrases_data)} phrases"}, status_code=status.HTTP_201_CREATED)
+            return JSONResponse(
+                {"message": f"Uploaded {len(phrases_data)} phrases"}, status_code=status.HTTP_201_CREATED
+            )
         else:
             return JSONResponse(
                 {"message": "Upload failed - no valid phrases found"}, status_code=status.HTTP_400_BAD_REQUEST
             )
     except Exception as e:
-        return JSONResponse(
-            {"error": f"Upload failed: {str(e)}"}, 
-            status_code=status.HTTP_400_BAD_REQUEST
-        )
+        return JSONResponse({"error": f"Upload failed: {str(e)}"}, status_code=status.HTTP_400_BAD_REQUEST)
 
 
 @router.post("/login")
@@ -270,10 +229,7 @@ async def login(username: str = Body(...), password: str = Body(...)) -> JSONRes
 
 
 @router.get("/all-categories")
-async def get_all_categories(
-    language_set_id: int = Query(None),
-    user=Depends(require_admin_access)
-) -> JSONResponse:
+async def get_all_categories(language_set_id: int = Query(None), user=Depends(require_admin_access)) -> JSONResponse:
     """Get all categories including ignored ones for admin panel with language set support"""
     categories = await db_manager.get_all_categories_for_language_set(language_set_id)
     return JSONResponse(categories)
@@ -281,9 +237,7 @@ async def get_all_categories(
 
 @router.get("/export")
 async def export_data(
-    category: str = Query(None), 
-    language_set_id: int = Query(None),
-    user=Depends(require_admin_access)
+    category: str = Query(None), language_set_id: int = Query(None), user=Depends(require_admin_access)
 ) -> StreamingResponse:
     """Export phrases as CSV from specified language set"""
     try:
@@ -309,15 +263,15 @@ async def export_data(
 
         content = output.getvalue()
         output.close()
-        
+
         # Get language set info for filename
         language_set = None
         if language_set_id:
             language_set = await db_manager.get_language_set_by_id(language_set_id)
-        
+
         language_name = language_set["name"] if language_set else "default"
         filename = f"export_{language_name}_{category or 'all'}.csv"
-        
+
         return StreamingResponse(
             io.StringIO(content),
             media_type="text/csv",
@@ -326,11 +280,7 @@ async def export_data(
     except Exception as e:
         # For errors, we need to return a proper error response but with correct type
         error_content = f"Export failed: {str(e)}"
-        return StreamingResponse(
-            io.StringIO(error_content),
-            media_type="text/plain",
-            status_code=400
-        )
+        return StreamingResponse(io.StringIO(error_content), media_type="text/plain", status_code=400)
 
 
 # User Management Endpoints (Admin Access Required)
@@ -378,9 +328,7 @@ async def update_user(
 ) -> JSONResponse:
     # Prevent administrative users from editing root admin
     if user_id == 0 and user["role"] != "root_admin":
-        return JSONResponse(
-            {"error": "Cannot update root admin account"}, status_code=status.HTTP_403_FORBIDDEN
-        )
+        return JSONResponse({"error": "Cannot update root admin account"}, status_code=status.HTTP_403_FORBIDDEN)
     if role and role not in ["regular", "administrative"]:
         return JSONResponse({"error": "Invalid role"}, status_code=status.HTTP_400_BAD_REQUEST)
     existing_user = await db_manager.get_account_by_id(user_id)
@@ -417,9 +365,7 @@ async def reset_user_password(
 ) -> JSONResponse:
     # Prevent administrative users from resetting root admin password
     if user_id == 0 and user["role"] != "root_admin":
-        return JSONResponse(
-            {"error": "Cannot reset root admin password"}, status_code=status.HTTP_403_FORBIDDEN
-        )
+        return JSONResponse({"error": "Cannot reset root admin password"}, status_code=status.HTTP_403_FORBIDDEN)
     existing_user = await db_manager.get_account_by_id(user_id)
     if not existing_user:
         return JSONResponse({"error": "User not found"}, status_code=status.HTTP_404_NOT_FOUND)

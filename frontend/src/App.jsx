@@ -74,7 +74,6 @@ function AppContent() {
     const [panelOpen, setPanelOpen] = useState(false);
 
     // Refs to prevent duplicate API calls in StrictMode
-    const ignoredCategoriesFetchedRef = useRef(false);
     const lastFetchedLanguageSetIdRef = useRef(null);
 
     // Winning condition: all phrases found
@@ -114,27 +113,25 @@ function AppContent() {
         // eslint-disable-next-line
     }, []);
 
-    // Load ignored categories only once on mount (they're global)
+    // Load default and user-specific ignored categories when language set changes
     useEffect(() => {
-        if (ignoredCategoriesFetchedRef.current) return;
-        ignoredCategoriesFetchedRef.current = true;
+        if (!selectedLanguageSetId) {
+            setIgnoredCategories([]);
+            setUserIgnoredCategories([]);
+            return;
+        }
 
-        axios.get(API_ENDPOINTS.IGNORED_CATEGORIES).then(res => {
-            setIgnoredCategories(res.data);
-        }).catch(err => {
-            console.error('Error loading ignored categories:', err);
-            ignoredCategoriesFetchedRef.current = false; // Reset on error to allow retry
-        });
-    }, []);
+        // Load default ignored categories for the language set
+        axios.get(`${API_ENDPOINTS.DEFAULT_IGNORED_CATEGORIES}?language_set_id=${selectedLanguageSetId}`)
+            .then(res => setIgnoredCategories(res.data))
+            .catch(() => setIgnoredCategories([]));
 
-    // Load user-specific ignored categories when language set changes
-    useEffect(() => {
-        if (!selectedLanguageSetId) return;
+        // Load user-specific ignored categories
         const token = localStorage.getItem('adminToken'); // reuse admin token if logged in
         axios.get(`${API_ENDPOINTS.USER_IGNORED_CATEGORIES}?language_set_id=${selectedLanguageSetId}`, {
             headers: token ? { Authorization: `Bearer ${token}` } : {}
         }).then(res => setUserIgnoredCategories(res.data))
-          .catch(() => setUserIgnoredCategories([]));
+            .catch(() => setUserIgnoredCategories([]));
     }, [selectedLanguageSetId]);
 
     useEffect(() => {

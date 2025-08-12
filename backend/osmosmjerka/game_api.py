@@ -2,10 +2,10 @@ import io
 import random
 import re
 
-from fastapi import APIRouter, Body, HTTPException, Query, status, Depends, Request
+from fastapi import APIRouter, Body, Depends, HTTPException, Query, Request, status
 from fastapi.responses import JSONResponse, StreamingResponse
 
-from osmosmjerka.auth import get_current_user, verify_token, SECRET_KEY
+from osmosmjerka.auth import get_current_user, verify_token
 from osmosmjerka.database import db_manager
 from osmosmjerka.grid_generator import generate_grid
 from osmosmjerka.utils import export_to_docx, export_to_png
@@ -89,7 +89,7 @@ async def get_phrases(
 
     if not category or category not in categories:
         category = random.choice(categories) if categories else None
-        
+
     if not category:
         return JSONResponse(
             {"error": "No categories available for the selected language set"},
@@ -172,7 +172,9 @@ async def get_default_ignored_categories(language_set_id: int = Query(...)) -> J
 
 
 @router.get("/user/ignored-categories")
-async def get_user_ignored_categories(language_set_id: int = Query(...), user=Depends(get_current_user)) -> JSONResponse:
+async def get_user_ignored_categories(
+    language_set_id: int = Query(...), user=Depends(get_current_user)
+) -> JSONResponse:
     cats = await db_manager.get_user_ignored_categories(user["id"], language_set_id)
     return JSONResponse(sorted(cats))
 
@@ -185,7 +187,7 @@ async def put_user_ignored_categories(body: dict = Body(...), user=Depends(get_c
         return JSONResponse({"error": "language_set_id required"}, status_code=400)
     if not isinstance(categories, list):
         return JSONResponse({"error": "categories must be a list"}, status_code=400)
-    
+
     await db_manager.replace_user_ignored_categories(user["id"], language_set_id, categories)
     return JSONResponse({"message": "Ignored categories updated", "categories": sorted(categories)})
 

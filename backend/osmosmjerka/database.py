@@ -29,6 +29,7 @@ language_sets_table = Table(
     Column("is_default", Boolean, nullable=False, default=False),
 )
 
+
 # Dynamic phrase table creation function
 def create_phrase_table(table_name: str) -> Table:
     """Create a phrases table for a specific language set"""
@@ -39,8 +40,9 @@ def create_phrase_table(table_name: str) -> Table:
         Column("categories", String, nullable=False),
         Column("phrase", String, nullable=False),
         Column("translation", Text, nullable=False),
-        extend_existing=True
+        extend_existing=True,
     )
+
 
 # Language sets table
 
@@ -139,31 +141,31 @@ class DatabaseManager:
     def _get_phrase_table(self, language_set_name: str) -> Table:
         """Get or create a phrase table for a specific language set"""
         table_name = self._get_phrase_table_name(language_set_name)
-        
+
         # Check cache first
         if table_name in self._phrase_tables_cache:
             return self._phrase_tables_cache[table_name]
-        
+
         # Create new table object
         phrase_table = create_phrase_table(table_name)
         self._phrase_tables_cache[table_name] = phrase_table
-        
+
         # Create the actual table in database if it doesn't exist
         if self.engine:
             phrase_table.create(bind=self.engine, checkfirst=True)
-        
+
         return phrase_table
 
     async def _ensure_phrase_table_exists(self, language_set_name: str):
         """Ensure phrase table exists for the given language set"""
         table_name = self._get_phrase_table_name(language_set_name)
         database = self._ensure_database()
-        
+
         # Check if table exists
         result = await database.fetch_one(
             f"SELECT EXISTS (SELECT FROM information_schema.tables WHERE table_name = '{table_name}')"
         )
-        
+
         if not (result and result[0]):
             # Table doesn't exist, create it
             phrase_table = self._get_phrase_table(language_set_name)
@@ -269,14 +271,14 @@ class DatabaseManager:
         # Default first, then by display name
         query = query.order_by(language_sets_table.c.is_default.desc(), language_sets_table.c.display_name)
         result = await database.fetch_all(query)
-        
+
         language_sets = []
         for row in result:
             lang_set = self._serialize_datetimes(dict(row))
             # Add protected flag: protected if created_by is None or 0
             lang_set["protected"] = lang_set.get("created_by") is None or lang_set.get("created_by") == 0
             language_sets.append(lang_set)
-        
+
         return language_sets
 
     async def get_language_set_by_id(self, language_set_id: int) -> Optional[dict]:
@@ -286,13 +288,21 @@ class DatabaseManager:
         result = await database.fetch_one(query)
         return self._serialize_datetimes(dict(result._mapping)) if result else None
 
-    async def create_language_set(self, name: str, display_name: str, description: Optional[str] = None, author: Optional[str] = None, created_by: Optional[int] = None, default_ignored_categories: Optional[list[str]] = None) -> int:
+    async def create_language_set(
+        self,
+        name: str,
+        display_name: str,
+        description: Optional[str] = None,
+        author: Optional[str] = None,
+        created_by: Optional[int] = None,
+        default_ignored_categories: Optional[list[str]] = None,
+    ) -> int:
         """Create a new language set and its phrase table"""
         database = self._ensure_database()
-        
+
         # Convert default_ignored_categories list to comma-separated string
         default_ignored_str = ",".join(default_ignored_categories) if default_ignored_categories else None
-        
+
         # Create language set record
         query = insert(language_sets_table).values(
             name=name,
@@ -305,10 +315,10 @@ class DatabaseManager:
             is_default=False,
         )
         language_set_id = await database.execute(query)
-        
+
         # Create the phrase table for this language set
         await self._ensure_phrase_table_exists(name)
-        
+
         return language_set_id
 
     async def update_language_set(self, language_set_id: int, **updates) -> int:
@@ -328,7 +338,9 @@ class DatabaseManager:
     async def get_default_ignored_categories(self, language_set_id: int) -> list[str]:
         """Get default ignored categories for a language set"""
         database = self._ensure_database()
-        query = select(language_sets_table.c.default_ignored_categories).where(language_sets_table.c.id == language_set_id)
+        query = select(language_sets_table.c.default_ignored_categories).where(
+            language_sets_table.c.id == language_set_id
+        )
         result = await database.fetch_one(query)
         if result and result[0]:
             return [cat.strip() for cat in result[0].split(",") if cat.strip()]
@@ -337,31 +349,35 @@ class DatabaseManager:
     async def delete_language_set(self, language_set_id: int):
         """Delete a language set and its phrase table"""
         database = self._ensure_database()
-        
+
         # First get the language set to find its name
         language_set = await self.get_language_set_by_id(language_set_id)
         if not language_set:
             return
-        
+
         # Drop the phrase table
         table_name = self._get_phrase_table_name(language_set["name"])
         await database.execute(f"DROP TABLE IF EXISTS {table_name}")
-        
+
         # Remove from cache
         if table_name in self._phrase_tables_cache:
             del self._phrase_tables_cache[table_name]
-        
+
         # Delete the language set
         await database.execute(delete(language_sets_table).where(language_sets_table.c.id == language_set_id))
 
     # Phrase Management Methods (replacing word methods with dynamic tables)
     async def get_phrases(
-        self, language_set_id: Optional[int] = None, category: Optional[str] = None, 
-        limit: Optional[int] = None, offset: int = 0, ignored_categories_override: Optional[set[str]] = None
+        self,
+        language_set_id: Optional[int] = None,
+        category: Optional[str] = None,
+        limit: Optional[int] = None,
+        offset: int = 0,
+        ignored_categories_override: Optional[set[str]] = None,
     ) -> list[dict[str, str]]:
         """Get phrases from specified language set using dynamic table"""
         database = self._ensure_database()
-        
+
         # If no language set specified, use the first active one
         if language_set_id is None:
             sets = await self.get_language_sets(active_only=True)
@@ -372,27 +388,27 @@ class DatabaseManager:
             language_set = await self.get_language_set_by_id(language_set_id)
             if not language_set:
                 return []
-        
+
         # Get the dynamic phrase table
         phrase_table = self._get_phrase_table(language_set["name"])
-        
+
         query = select(phrase_table)
         if category:
             query = query.where(phrase_table.c.categories.like(f"%{category}%"))
         query = query.order_by(phrase_table.c.id)
         if limit:
             query = query.limit(limit).offset(offset)
-        
+
         result = await database.fetch_all(query)
         row_list = []
-        
+
         # Use language set's default ignored categories if no override provided
         if ignored_categories_override is not None:
             effective_ignored = ignored_categories_override
         else:
             default_ignored = await self.get_default_ignored_categories(language_set["id"])
             effective_ignored = set(default_ignored)
-            
+
         for row in result:
             row = dict(row)
             # Skip phrases shorter than 3 characters
@@ -411,32 +427,28 @@ class DatabaseManager:
     async def add_phrase(self, language_set_id: int, categories: str, phrase: str, translation: str):
         """Add a new phrase to a language set using dynamic table"""
         database = self._ensure_database()
-        
+
         # Get language set info
         language_set = await self.get_language_set_by_id(language_set_id)
         if not language_set:
             raise ValueError(f"Language set with ID {language_set_id} not found")
-        
+
         # Ensure phrase table exists and get it
         await self._ensure_phrase_table_exists(language_set["name"])
         phrase_table = self._get_phrase_table(language_set["name"])
-        
-        query = insert(phrase_table).values(
-            categories=categories, 
-            phrase=phrase, 
-            translation=translation
-        )
+
+        query = insert(phrase_table).values(categories=categories, phrase=phrase, translation=translation)
         return await database.execute(query)
 
     async def update_phrase(self, phrase_id: int, language_set_id: int, categories: str, phrase: str, translation: str):
         """Update an existing phrase using dynamic table"""
         database = self._ensure_database()
-        
+
         # Get language set info
         language_set = await self.get_language_set_by_id(language_set_id)
         if not language_set:
             raise ValueError(f"Language set with ID {language_set_id} not found")
-        
+
         phrase_table = self._get_phrase_table(language_set["name"])
         query = (
             update(phrase_table)
@@ -448,22 +460,24 @@ class DatabaseManager:
     async def delete_phrase(self, phrase_id: int, language_set_id: int):
         """Delete a phrase using dynamic table"""
         database = self._ensure_database()
-        
+
         # Get language set info
         language_set = await self.get_language_set_by_id(language_set_id)
         if not language_set:
             raise ValueError(f"Language set with ID {language_set_id} not found")
-        
+
         phrase_table = self._get_phrase_table(language_set["name"])
         query = delete(phrase_table).where(phrase_table.c.id == phrase_id)
         return await database.execute(query)
 
-    async def get_categories_for_language_set(self, language_set_id: Optional[int] = None, ignored_categories_override: Optional[set[str]] = None) -> list[str]:
+    async def get_categories_for_language_set(
+        self, language_set_id: Optional[int] = None, ignored_categories_override: Optional[set[str]] = None
+    ) -> list[str]:
         """Get categories for a specific language set using dynamic table"""
         database = self._ensure_database()
-        
+
         if language_set_id is None:
-            sets = await self.get_language_sets(active_only=True) 
+            sets = await self.get_language_sets(active_only=True)
             if not sets:
                 return []
             language_set = sets[0]
@@ -471,19 +485,19 @@ class DatabaseManager:
             language_set = await self.get_language_set_by_id(language_set_id)
             if not language_set:
                 return []
-        
+
         phrase_table = self._get_phrase_table(language_set["name"])
         query = select(phrase_table.c.categories)
         result = await database.fetch_all(query)
         categories_set = set()
-        
+
         # Use language set's default ignored categories if no override provided
         if ignored_categories_override is not None:
             effective_ignored = ignored_categories_override
         else:
             default_ignored = await self.get_default_ignored_categories(language_set["id"])
             effective_ignored = set(default_ignored)
-            
+
         for row in result:
             for cat in row["categories"].split():
                 if cat.strip() and cat not in effective_ignored:
@@ -491,12 +505,16 @@ class DatabaseManager:
         return sorted(list(categories_set))
 
     async def get_phrases_for_admin(
-        self, language_set_id: Optional[int] = None, category: Optional[str] = None, 
-        limit: Optional[int] = None, offset: int = 0, search_term: Optional[str] = None
+        self,
+        language_set_id: Optional[int] = None,
+        category: Optional[str] = None,
+        limit: Optional[int] = None,
+        offset: int = 0,
+        search_term: Optional[str] = None,
     ) -> list[dict[str, str]]:
         """Get phrases for admin panel using dynamic table - returns all phrases including ignored categories"""
         database = self._ensure_database()
-        
+
         # If no language set specified, use the first active one
         if language_set_id is None:
             sets = await self.get_language_sets(active_only=True)
@@ -507,7 +525,7 @@ class DatabaseManager:
             language_set = await self.get_language_set_by_id(language_set_id)
             if not language_set:
                 return []
-        
+
         phrase_table = self._get_phrase_table(language_set["name"])
         query = select(phrase_table)
         if category:
@@ -515,15 +533,15 @@ class DatabaseManager:
         if search_term:
             # Search in phrase, translation, and categories fields
             search_filter = (
-                phrase_table.c.phrase.ilike(f"%{search_term}%") |
-                phrase_table.c.translation.ilike(f"%{search_term}%") |
-                phrase_table.c.categories.ilike(f"%{search_term}%")
+                phrase_table.c.phrase.ilike(f"%{search_term}%")
+                | phrase_table.c.translation.ilike(f"%{search_term}%")
+                | phrase_table.c.categories.ilike(f"%{search_term}%")
             )
             query = query.where(search_filter)
         query = query.order_by(phrase_table.c.id)
         if limit:
             query = query.limit(limit).offset(offset)
-        
+
         result = await database.fetch_all(query)
         row_list = []
         for row in result:
@@ -539,7 +557,7 @@ class DatabaseManager:
     ) -> int:
         """Get phrase count for admin panel using dynamic table - counts all phrases including ignored categories"""
         database = self._ensure_database()
-        
+
         # If no language set specified, use the first active one
         if language_set_id is None:
             sets = await self.get_language_sets(active_only=True)
@@ -550,7 +568,7 @@ class DatabaseManager:
             language_set = await self.get_language_set_by_id(language_set_id)
             if not language_set:
                 return 0
-        
+
         phrase_table = self._get_phrase_table(language_set["name"])
         query = select(func.count(phrase_table.c.id))
         if category:
@@ -558,9 +576,9 @@ class DatabaseManager:
         if search_term:
             # Search in phrase, translation, and categories fields
             search_filter = (
-                phrase_table.c.phrase.ilike(f"%{search_term}%") |
-                phrase_table.c.translation.ilike(f"%{search_term}%") |
-                phrase_table.c.categories.ilike(f"%{search_term}%")
+                phrase_table.c.phrase.ilike(f"%{search_term}%")
+                | phrase_table.c.translation.ilike(f"%{search_term}%")
+                | phrase_table.c.categories.ilike(f"%{search_term}%")
             )
             query = query.where(search_filter)
         # Only filter by minimum phrase length - NO category filtering
@@ -571,7 +589,7 @@ class DatabaseManager:
     async def get_all_categories_for_language_set(self, language_set_id: Optional[int] = None) -> list[str]:
         """Get all categories including ignored ones for a language set using dynamic table - used for admin panel"""
         database = self._ensure_database()
-        
+
         if language_set_id is None:
             sets = await self.get_language_sets(active_only=True)
             if not sets:
@@ -581,7 +599,7 @@ class DatabaseManager:
             language_set = await self.get_language_set_by_id(language_set_id)
             if not language_set:
                 return []
-        
+
         phrase_table = self._get_phrase_table(language_set["name"])
         query = select(phrase_table.c.categories)
         result = await database.fetch_all(query)
@@ -596,10 +614,10 @@ class DatabaseManager:
         """Bulk insert phrases for a language set using dynamic table for performance"""
         if not phrases_data:
             return 0
-        
+
         # Get language set info
         engine = self._ensure_engine()
-        
+
         # We need to get the language set synchronously for the table name
         # This is a limitation of the bulk insert approach
         with engine.connect() as conn:
@@ -608,10 +626,10 @@ class DatabaseManager:
             ).fetchone()
             if not result:
                 raise ValueError(f"Language set with ID {language_set_id} not found")
-            
+
             language_set = dict(result._mapping)
             phrase_table = self._get_phrase_table(language_set["name"])
-            
+
             result = conn.execute(insert(phrase_table), phrases_data)
             conn.commit()
             return result.rowcount
@@ -619,12 +637,12 @@ class DatabaseManager:
     async def clear_all_phrases(self, language_set_id: int):
         """Clear all phrases for a specific language set using dynamic table"""
         database = self._ensure_database()
-        
+
         # Get language set info
         language_set = await self.get_language_set_by_id(language_set_id)
         if not language_set:
             return
-        
+
         phrase_table = self._get_phrase_table(language_set["name"])
         query = delete(phrase_table)
         await database.execute(query)
@@ -637,9 +655,7 @@ class DatabaseManager:
             await database.execute(update(language_sets_table).values(is_default=False))
             # Set the one
             await database.execute(
-                update(language_sets_table)
-                .where(language_sets_table.c.id == language_set_id)
-                .values(is_default=True)
+                update(language_sets_table).where(language_sets_table.c.id == language_set_id).values(is_default=True)
             )
 
     async def get_user_ignored_categories(self, user_id: int, language_set_id: int) -> list[str]:

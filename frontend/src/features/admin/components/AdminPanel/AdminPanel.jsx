@@ -1,42 +1,39 @@
-import { useEffect, useState, useCallback } from 'react';
-import { Link } from 'react-router-dom';
-import {
-    Container,
-    Box,
-    Typography,
-    Button,
-    Grid,
-    FormControl,
-    InputLabel,
-    Select,
-    MenuItem,
-    TextField,
-    Paper,
-    Stack,
-    CircularProgress,
-    Snackbar,
-    Alert,
-    IconButton,
-    Chip,
-    Tooltip,
-    Collapse
-} from '@mui/material';
+import { useThemeMode } from '@contexts/ThemeContext';
 import CloseIcon from '@mui/icons-material/Close';
 import ExpandMoreIcon from '@mui/icons-material/ExpandMore';
+import {
+    Alert,
+    Box,
+    Button,
+    Chip,
+    Collapse,
+    Container,
+    FormControl,
+    Grid,
+    IconButton,
+    InputLabel,
+    MenuItem,
+    Paper,
+    Select,
+    Snackbar,
+    Stack,
+    TextField,
+    Tooltip,
+    Typography
+} from '@mui/material';
+import { AdminButton, AdminLayout, API_ENDPOINTS, ResponsiveActionButton, STORAGE_KEYS } from '@shared';
+import { useCallback, useEffect, useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import UploadForm from '../UploadForm';
 import './AdminPanel.css';
 import AdminTable from './AdminTable';
 import EditRowForm from './EditRowForm';
-import UserManagement from './UserManagement';
-import UserProfile from './UserProfile';
-import LanguageSetManagement from './LanguageSetManagement';
 import { isTokenExpired } from './helpers';
+import LanguageSetManagement from './LanguageSetManagement';
 import PaginationControls from './PaginationControls';
 import { useAdminApi } from './useAdminApi';
-import { useThemeMode } from '@contexts/ThemeContext';
-import { useTranslation } from 'react-i18next';
-import { AdminLayout, AdminButton, ResponsiveActionButton } from '@shared';
-import { STORAGE_KEYS, API_ENDPOINTS } from '@shared';
+import UserManagement from './UserManagement';
+import UserProfile from './UserProfile';
 
 export default function AdminPanel() {
     const { t } = useTranslation();
@@ -128,7 +125,7 @@ export default function AdminPanel() {
                 .then(res => res.json())
                 .then(data => setCategories(data))
                 .catch(err => console.error('Failed to load categories:', err));
-            
+
             // Load ignored categories for display - user-specific if logged in and language set selected, default otherwise
             if (currentUser && token) {
                 // Load both user-specific and default ignored categories when logged in
@@ -260,21 +257,21 @@ export default function AdminPanel() {
     // Handle inline save from table with optimistic updates
     const handleInlineSave = useCallback((updatedRow) => {
         // Optimistically update the local state first
-        setRows(prevRows => 
-            prevRows.map(row => 
+        setRows(prevRows =>
+            prevRows.map(row =>
                 row.id === updatedRow.id ? { ...row, ...updatedRow } : row
             )
         );
-        
+
         // Then save to server
         // If it's a new row, use POST; otherwise, use PUT to update
         const method = updatedRow.id ? 'PUT' : 'POST';
         const url = updatedRow.id ? `/admin/row/${updatedRow.id}` : `/admin/row`;
         const token = localStorage.getItem(STORAGE_KEYS.ADMIN_TOKEN);
-        const headers = token 
+        const headers = token
             ? { Authorization: 'Bearer ' + token, 'Content-Type': 'application/json' }
             : { 'Content-Type': 'application/json' };
-            
+
         fetch(url, {
             method,
             headers,
@@ -294,13 +291,13 @@ export default function AdminPanel() {
             // Optimistically remove from local state first
             setRows(prevRows => prevRows.filter(row => row.id !== id));
             setTotalRows(prev => prev - 1);
-            
+
             // Then delete from server
             const token = localStorage.getItem(STORAGE_KEYS.ADMIN_TOKEN);
-            const headers = token 
+            const headers = token
                 ? { Authorization: 'Bearer ' + token }
                 : {};
-                
+
             fetch(`/admin/row/${id}`, {
                 method: 'DELETE',
                 headers
@@ -360,7 +357,7 @@ export default function AdminPanel() {
     // Function to toggle ignored categories for logged in users
     const toggleIgnoredCategory = async (category) => {
         if (!currentUser || !selectedLanguageSetId) return;
-        
+
         try {
             const isCurrentlyIgnored = userIgnoredCategories.includes(category);
             const newIgnoredCategories = isCurrentlyIgnored
@@ -412,8 +409,8 @@ export default function AdminPanel() {
         return (
             <Container maxWidth="sm" sx={{ py: 4 }}>
                 <Box sx={{ textAlign: 'right', mb: 2 }}>
-                    <AdminButton 
-                        to="/" 
+                    <AdminButton
+                        to="/"
                         desktopText={`⇇ ${t('back_to_game')}`}
                         mobileText="🏠"
                     />
@@ -766,9 +763,9 @@ export default function AdminPanel() {
                             <Select
                                 value={selectedLanguageSetId || ''}
                                 label={t('filter_by_language_set')}
-                                onChange={e => { 
+                                onChange={e => {
                                     const value = parseInt(e.target.value);
-                                    setSelectedLanguageSetId(value); 
+                                    setSelectedLanguageSetId(value);
                                     setOffset(0);
                                     setFilterCategory(''); // Reset category filter when language set changes
                                     // Save to localStorage
@@ -781,7 +778,7 @@ export default function AdminPanel() {
                             </Select>
                         </FormControl>
                     </Grid>
-                    
+
                     {/* Category Filter */}
                     <Grid item xs={12} md={4}>
                         <FormControl fullWidth sx={{ minWidth: 200 }}>
@@ -799,7 +796,7 @@ export default function AdminPanel() {
                         </FormControl>
                     </Grid>
                 </Grid>
-                
+
                 {/* Ignored Categories Display - New Row */}
                 {((currentUser && selectedLanguageSetId) || ignoredCategories.length > 0 || userIgnoredCategories.length > 0) && (
                     <Box sx={{ mt: 2 }}>
@@ -807,11 +804,11 @@ export default function AdminPanel() {
                             variant="outlined"
                             size="small"
                             onClick={() => setShowIgnoredCategories(!showIgnoredCategories)}
-                            startIcon={<ExpandMoreIcon 
-                                style={{ 
+                            startIcon={<ExpandMoreIcon
+                                style={{
                                     transform: showIgnoredCategories ? 'rotate(180deg)' : 'rotate(0deg)',
                                     transition: 'transform 0.2s'
-                                }} 
+                                }}
                             />}
                             sx={{ mb: showIgnoredCategories ? 1 : 0 }}
                         >
@@ -828,13 +825,13 @@ export default function AdminPanel() {
                                         <Stack direction="row" spacing={0.5} flexWrap="wrap" useFlexGap>
                                             {userIgnoredCategories.map(category => (
                                                 <Tooltip key={category} title={t('click_to_remove_ignored', 'Click to remove from ignored categories')}>
-                                                    <Chip 
-                                                        label={category} 
+                                                    <Chip
+                                                        label={category}
                                                         size="small"
                                                         color="warning"
                                                         variant="filled"
                                                         onClick={() => toggleIgnoredCategory(category)}
-                                                        sx={{ 
+                                                        sx={{
                                                             cursor: 'pointer',
                                                             textDecoration: 'line-through',
                                                             mb: 0.5
@@ -845,7 +842,7 @@ export default function AdminPanel() {
                                         </Stack>
                                     </Box>
                                 )}
-                                
+
                                 {/* Global ignored categories */}
                                 {ignoredCategories.length > 0 && (
                                     <Box>
@@ -855,12 +852,12 @@ export default function AdminPanel() {
                                         <Stack direction="row" spacing={0.5} flexWrap="wrap" useFlexGap>
                                             {ignoredCategories.map(category => (
                                                 <Tooltip key={category} title={t('ignored_category_tooltip')}>
-                                                    <Chip 
-                                                        label={category} 
+                                                    <Chip
+                                                        label={category}
                                                         size="small"
                                                         color="default"
                                                         variant="outlined"
-                                                        sx={{ 
+                                                        sx={{
                                                             opacity: 0.7,
                                                             textDecoration: 'line-through',
                                                             mb: 0.5
@@ -871,7 +868,7 @@ export default function AdminPanel() {
                                         </Stack>
                                     </Box>
                                 )}
-                                
+
                                 {/* Message when no categories are ignored yet */}
                                 {currentUser && ignoredCategories.length === 0 && userIgnoredCategories.length === 0 && categories.length > 0 && (
                                     <Box sx={{ mb: 1 }}>
@@ -892,13 +889,13 @@ export default function AdminPanel() {
                                                 .filter(cat => !userIgnoredCategories.includes(cat) && !ignoredCategories.includes(cat))
                                                 .map(category => (
                                                     <Tooltip key={category} title={t('click_to_add_ignored', 'Click to add to ignored categories')}>
-                                                        <Chip 
-                                                            label={category} 
+                                                        <Chip
+                                                            label={category}
                                                             size="small"
                                                             color="primary"
                                                             variant="outlined"
                                                             onClick={() => toggleIgnoredCategory(category)}
-                                                            sx={{ 
+                                                            sx={{
                                                                 cursor: 'pointer',
                                                                 mb: 0.5
                                                             }}

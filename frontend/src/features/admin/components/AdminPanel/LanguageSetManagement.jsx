@@ -1,5 +1,19 @@
-import React, { useState, useEffect, useRef } from 'react';
+import AddIcon from '@mui/icons-material/Add';
+import DeleteIcon from '@mui/icons-material/Delete';
+import EditIcon from '@mui/icons-material/Edit';
+import SettingsIcon from '@mui/icons-material/Settings';
 import {
+    Alert,
+    Backdrop,
+    Box,
+    Button,
+    Chip,
+    CircularProgress,
+    Dialog,
+    DialogActions,
+    DialogContent,
+    DialogTitle,
+    IconButton,
     Paper,
     Table,
     TableBody,
@@ -7,28 +21,13 @@ import {
     TableContainer,
     TableHead,
     TableRow,
-    Typography,
-    Button,
-    Box,
-    IconButton,
-    Tooltip,
-    Dialog,
-    DialogTitle,
-    DialogContent,
-    DialogActions,
     TextField,
-    Chip,
-    Alert,
-    CircularProgress,
-    Backdrop,
-    Snackbar
+    Tooltip,
+    Typography
 } from '@mui/material';
-import EditIcon from '@mui/icons-material/Edit';
-import DeleteIcon from '@mui/icons-material/Delete';
-import AddIcon from '@mui/icons-material/Add';
-import SettingsIcon from '@mui/icons-material/Settings';
-import { useTranslation } from 'react-i18next';
 import { API_ENDPOINTS } from '@shared';
+import { useEffect, useRef, useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import { ResponsiveText } from '../../../../shared';
 
 export default function LanguageSetManagement({ currentUser }) {
@@ -66,7 +65,7 @@ export default function LanguageSetManagement({ currentUser }) {
                     'Authorization': `Bearer ${localStorage.getItem('adminToken')}`
                 }
             });
-            
+
             if (response.ok) {
                 const data = await response.json();
                 setAvailableCategories(data);
@@ -85,7 +84,7 @@ export default function LanguageSetManagement({ currentUser }) {
                     'Authorization': `Bearer ${localStorage.getItem('adminToken')}`
                 }
             });
-            
+
             if (response.ok) {
                 const data = await response.json();
                 setLanguageSets(data);
@@ -114,7 +113,7 @@ export default function LanguageSetManagement({ currentUser }) {
 
     const handleEdit = (languageSet) => {
         setEditingSet(languageSet);
-        const defaultIgnored = languageSet.default_ignored_categories 
+        const defaultIgnored = languageSet.default_ignored_categories
             ? languageSet.default_ignored_categories.split(',').map(c => c.trim()).filter(c => c)
             : [];
         setFormData({
@@ -138,10 +137,10 @@ export default function LanguageSetManagement({ currentUser }) {
                 return;
             }
 
-            const url = editingSet 
+            const url = editingSet
                 ? `${API_ENDPOINTS.ADMIN_LANGUAGE_SETS}/${editingSet.id}`
                 : API_ENDPOINTS.ADMIN_LANGUAGE_SETS;
-            
+
             const method = editingSet ? 'PUT' : 'POST';
             // Always send JSON for metadata first
             const metaRes = await fetch(url, {
@@ -289,7 +288,7 @@ export default function LanguageSetManagement({ currentUser }) {
             const cats = catsRes.ok ? await catsRes.json() : [];
             const globalIgnored = globalIgnoredRes.ok ? await globalIgnoredRes.json() : [];
             const ignored = userIgnoredRes.ok ? await userIgnoredRes.json() : [];
-            
+
             // Combine language set categories with globally ignored categories
             const allCategories = [...new Set([...cats, ...globalIgnored])].sort();
             setAllCategoriesForSet(allCategories);
@@ -319,7 +318,7 @@ export default function LanguageSetManagement({ currentUser }) {
                 body: JSON.stringify({ language_set_id: editingSet.id, categories: userIgnoredCategories })
             });
             if (!res.ok) {
-                const data = await res.json().catch(()=>({}));
+                const data = await res.json().catch(() => ({}));
                 throw new Error(data.error || data.detail || 'Failed to update ignored categories');
             }
             setIgnoredCategoriesDialogOpen(false);
@@ -342,7 +341,7 @@ export default function LanguageSetManagement({ currentUser }) {
                     onClick={handleCreate}
                     disabled={loading}
                 >
-                <ResponsiveText desktop={t('add_language_set')} mobile={t('add_language_set_short')} />
+                    <ResponsiveText desktop={t('add_language_set')} mobile={t('add_language_set_short')} />
                 </Button>
             </Box>
 
@@ -494,7 +493,7 @@ export default function LanguageSetManagement({ currentUser }) {
                         <Typography variant="caption" color="text.secondary" sx={{ display: 'block', mb: 1 }}>
                             {t('default_ignored_categories_help', 'Categories that will be ignored by default for this language set')}
                         </Typography>
-                        
+
                         {/* Selected default ignored categories */}
                         {formData.default_ignored_categories.length > 0 && (
                             <Box sx={{ mb: 2 }}>
@@ -517,7 +516,7 @@ export default function LanguageSetManagement({ currentUser }) {
                                 </Box>
                             </Box>
                         )}
-                        
+
                         {/* Available categories to select from */}
                         {availableCategories.length > 0 && (
                             <Box>
