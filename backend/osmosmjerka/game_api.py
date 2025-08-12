@@ -2,10 +2,11 @@ import io
 import random
 import re
 
-from fastapi import APIRouter, Body, HTTPException, Query, status
+from fastapi import APIRouter, Body, Depends, HTTPException, Query, Request, status
 from fastapi.responses import JSONResponse, StreamingResponse
 
-from osmosmjerka.database import IGNORED_CATEGORIES, db_manager
+from osmosmjerka.auth import get_current_user, verify_token
+from osmosmjerka.database import db_manager
 from osmosmjerka.grid_generator import generate_grid
 from osmosmjerka.utils import export_to_docx, export_to_png
 
@@ -20,11 +21,24 @@ async def get_language_sets() -> JSONResponse:
 
 
 @router.get("/categories")
-async def get_all_categories(language_set_id: int = Query(None)) -> JSONResponse:
-    """Get categories for a specific language set, or default if not specified"""
-    all_categories = await db_manager.get_categories_for_language_set(language_set_id)
-    filtered = [cat for cat in all_categories if cat not in IGNORED_CATEGORIES]
-    return JSONResponse(sorted(filtered))
+async def get_all_categories(language_set_id: int = Query(None), *, request: Request) -> JSONResponse:
+    """Get categories for a specific language set, applying user-specific ignored categories if authenticated"""
+    user = None
+    if request:
+        auth = request.headers.get("Authorization")
+        if auth and auth.startswith("Bearer "):
+            try:
+                user = verify_token(auth.split(" ", 1)[1])
+            except Exception:
+                user = None
+    ignored_override = None
+    if user and language_set_id is not None:
+        user_ignored = await db_manager.get_user_ignored_categories(user["id"], language_set_id)
+        ignored_override = set(user_ignored)
+    all_categories = await db_manager.get_categories_for_language_set(
+        language_set_id, ignored_categories_override=ignored_override
+    )
+    return JSONResponse(sorted(all_categories))
 
 
 def get_grid_size_and_num_phrases(selected: list, difficulty: str) -> tuple:
@@ -50,16 +64,32 @@ def get_grid_size_and_num_phrases(selected: list, difficulty: str) -> tuple:
 
 @router.get("/phrases")
 async def get_phrases(
-    category: str | None = None, 
-    difficulty: str = "medium", 
-    language_set_id: int = Query(None)
+    category: str | None = None,
+    difficulty: str = "medium",
+    language_set_id: int = Query(None),
+    *,
+    request: Request,
 ) -> JSONResponse:
-    """Get phrases for puzzle generation with language set support"""
-    categories = await db_manager.get_categories_for_language_set(language_set_id)
+    """Get phrases for puzzle generation with language set support and user-specific ignored categories"""
+    user = None
+    if request:
+        auth = request.headers.get("Authorization")
+        if auth and auth.startswith("Bearer "):
+            try:
+                user = verify_token(auth.split(" ", 1)[1])
+            except Exception:
+                user = None
+    ignored_override = None
+    if user and language_set_id is not None:
+        user_ignored = await db_manager.get_user_ignored_categories(user["id"], language_set_id)
+        ignored_override = set(user_ignored)
+    categories = await db_manager.get_categories_for_language_set(
+        language_set_id, ignored_categories_override=ignored_override
+    )
 
     if not category or category not in categories:
         category = random.choice(categories) if categories else None
-        
+
     if not category:
         return JSONResponse(
             {"error": "No categories available for the selected language set"},
@@ -67,7 +97,7 @@ async def get_phrases(
         )
 
     # Get all phrases for the category from the specified language set
-    selected = await db_manager.get_phrases(language_set_id, category)
+    selected = await db_manager.get_phrases(language_set_id, category, ignored_categories_override=ignored_override)
 
     if not selected:
         return JSONResponse(
@@ -131,6 +161,38 @@ async def export_puzzle(
         raise HTTPException(status_code=500, detail=f"Export failed: {str(e)}")
 
 
-@router.get("/ignored-categories")
-def get_ignored_categories() -> JSONResponse:
-    return JSONResponse(sorted(list(IGNORED_CATEGORIES)))
+@router.get("/default-ignored-categories")
+async def get_default_ignored_categories(language_set_id: int = Query(...)) -> JSONResponse:
+    """Get default ignored categories for a language set"""
+    try:
+        categories = await db_manager.get_default_ignored_categories(language_set_id)
+        return JSONResponse(sorted(categories))
+    except Exception as e:
+        return JSONResponse({"error": str(e)}, status_code=400)
+
+
+@router.get("/user/ignored-categories")
+async def get_user_ignored_categories(
+    language_set_id: int = Query(...), user=Depends(get_current_user)
+) -> JSONResponse:
+    cats = await db_manager.get_user_ignored_categories(user["id"], language_set_id)
+    return JSONResponse(sorted(cats))
+
+
+@router.put("/user/ignored-categories")
+async def put_user_ignored_categories(body: dict = Body(...), user=Depends(get_current_user)) -> JSONResponse:
+    language_set_id = body.get("language_set_id")
+    categories = body.get("categories", [])
+    if not isinstance(language_set_id, int):
+        return JSONResponse({"error": "language_set_id required"}, status_code=400)
+    if not isinstance(categories, list):
+        return JSONResponse({"error": "categories must be a list"}, status_code=400)
+
+    await db_manager.replace_user_ignored_categories(user["id"], language_set_id, categories)
+    return JSONResponse({"message": "Ignored categories updated", "categories": sorted(categories)})
+
+
+@router.get("/user/ignored-categories/all")
+async def get_all_user_ignored_categories(user=Depends(get_current_user)) -> JSONResponse:
+    data = await db_manager.get_all_user_ignored_categories(user["id"])
+    return JSONResponse(data)

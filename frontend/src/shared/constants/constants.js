@@ -5,7 +5,7 @@
 // Game difficulty settings
 export const GAME_DIFFICULTIES = {
   EASY: 'easy',
-  MEDIUM: 'medium', 
+  MEDIUM: 'medium',
   HARD: 'hard',
   VERY_HARD: 'very_hard'
 };
@@ -47,7 +47,9 @@ export const STORAGE_KEYS = {
 export const API_ENDPOINTS = {
   LANGUAGE_SETS: '/api/language-sets',
   CATEGORIES: '/api/categories',
-  IGNORED_CATEGORIES: '/api/ignored-categories',
+  DEFAULT_IGNORED_CATEGORIES: '/api/default-ignored-categories', // language set defaults
+  USER_IGNORED_CATEGORIES: '/api/user/ignored-categories', // per-user single set
+  USER_IGNORED_CATEGORIES_ALL: '/api/user/ignored-categories/all', // per-user all sets
   ALL_CATEGORIES: '/admin/all-categories',
   PHRASES: '/api/phrases',
   EXPORT: '/api/export',

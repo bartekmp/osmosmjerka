@@ -1,30 +1,30 @@
-import { useState, useEffect } from 'react';
+import { Delete, Edit, PersonAdd } from '@mui/icons-material';
 import {
+    Alert,
     Box,
-    Typography,
     Button,
+    Chip,
+    Dialog,
+    DialogActions,
+    DialogContent,
+    DialogTitle,
+    FormControl,
+    IconButton,
+    InputLabel,
+    MenuItem,
+    Paper,
+    Select,
+    Snackbar,
     Table,
     TableBody,
     TableCell,
     TableContainer,
     TableHead,
     TableRow,
-    Paper,
-    Dialog,
-    DialogTitle,
-    DialogContent,
-    DialogActions,
     TextField,
-    FormControl,
-    InputLabel,
-    Select,
-    MenuItem,
-    Chip,
-    IconButton,
-    Snackbar,
-    Alert
+    Typography
 } from '@mui/material';
-import { Edit, Delete, Add, PersonAdd } from '@mui/icons-material';
+import { useEffect, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 
 export default function UserManagement({ currentUser }) {
@@ -296,6 +296,7 @@ export default function UserManagement({ currentUser }) {
                                         size="small"
                                         onClick={() => handleOpenDialog('edit', user)}
                                         title={t('edit_user')}
+                                        disabled={user.id === 0 && currentUser?.role !== 'root_admin'}
                                     >
                                         <Edit />
                                     </IconButton>
@@ -303,6 +304,7 @@ export default function UserManagement({ currentUser }) {
                                         size="small"
                                         onClick={() => handleResetPassword(user.id)}
                                         title={t('reset_password')}
+                                        disabled={user.id === 0 && currentUser?.role !== 'root_admin'}
                                     >
                                         🔑
                                     </IconButton>

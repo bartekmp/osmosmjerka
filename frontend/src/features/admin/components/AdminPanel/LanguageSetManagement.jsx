@@ -1,5 +1,19 @@
-import React, { useState, useEffect, useRef } from 'react';
+import AddIcon from '@mui/icons-material/Add';
+import DeleteIcon from '@mui/icons-material/Delete';
+import EditIcon from '@mui/icons-material/Edit';
+import SettingsIcon from '@mui/icons-material/Settings';
 import {
+    Alert,
+    Backdrop,
+    Box,
+    Button,
+    Chip,
+    CircularProgress,
+    Dialog,
+    DialogActions,
+    DialogContent,
+    DialogTitle,
+    IconButton,
     Paper,
     Table,
     TableBody,
@@ -7,31 +21,19 @@ import {
     TableContainer,
     TableHead,
     TableRow,
-    Typography,
-    Button,
-    Box,
-    IconButton,
-    Tooltip,
-    Dialog,
-    DialogTitle,
-    DialogContent,
-    DialogActions,
     TextField,
-    Chip,
-    Alert,
-    CircularProgress,
-    Backdrop
+    Tooltip,
+    Typography
 } from '@mui/material';
-import EditIcon from '@mui/icons-material/Edit';
-import DeleteIcon from '@mui/icons-material/Delete';
-import AddIcon from '@mui/icons-material/Add';
-import { useTranslation } from 'react-i18next';
 import { API_ENDPOINTS } from '@shared';
+import { useEffect, useRef, useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import { ResponsiveText } from '../../../../shared';
 
-export default function LanguageSetManagement() {
+export default function LanguageSetManagement({ currentUser }) {
     const { t } = useTranslation();
     const [languageSets, setLanguageSets] = useState([]);
+    const [availableCategories, setAvailableCategories] = useState([]);
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState('');
     const [dialogOpen, setDialogOpen] = useState(false);
@@ -40,15 +42,38 @@ export default function LanguageSetManagement() {
         name: '',
         display_name: '',
         description: '',
-        author: ''
+        author: '',
+        default_ignored_categories: []
     });
     const [file, setFile] = useState(null);
     const fileInputRef = useRef();
     const [saving, setSaving] = useState(false);
+    const [ignoredCategoriesDialogOpen, setIgnoredCategoriesDialogOpen] = useState(false);
+    const [allCategoriesForSet, setAllCategoriesForSet] = useState([]);
+    const [userIgnoredCategories, setUserIgnoredCategories] = useState([]);
+    const [updatingIgnored, setUpdatingIgnored] = useState(false);
 
     useEffect(() => {
         loadLanguageSets();
+        loadAvailableCategories();
     }, []);
+
+    const loadAvailableCategories = async () => {
+        try {
+            const response = await fetch(API_ENDPOINTS.ALL_CATEGORIES, {
+                headers: {
+                    'Authorization': `Bearer ${localStorage.getItem('adminToken')}`
+                }
+            });
+
+            if (response.ok) {
+                const data = await response.json();
+                setAvailableCategories(data);
+            }
+        } catch (err) {
+            console.error('Failed to load categories:', err);
+        }
+    };
 
     const loadLanguageSets = async () => {
         setLoading(true);
@@ -59,7 +84,7 @@ export default function LanguageSetManagement() {
                     'Authorization': `Bearer ${localStorage.getItem('adminToken')}`
                 }
             });
-            
+
             if (response.ok) {
                 const data = await response.json();
                 setLanguageSets(data);
@@ -79,19 +104,24 @@ export default function LanguageSetManagement() {
             name: '',
             display_name: '',
             description: '',
-            author: ''
+            author: currentUser?.username || '',
+            default_ignored_categories: []
         });
-    setFile(null);
+        setFile(null);
         setDialogOpen(true);
     };
 
     const handleEdit = (languageSet) => {
         setEditingSet(languageSet);
+        const defaultIgnored = languageSet.default_ignored_categories
+            ? languageSet.default_ignored_categories.split(',').map(c => c.trim()).filter(c => c)
+            : [];
         setFormData({
             name: languageSet.name,
             display_name: languageSet.display_name,
             description: languageSet.description || '',
-            author: languageSet.author || ''
+            author: languageSet.author || '',
+            default_ignored_categories: defaultIgnored
         });
         setFile(null);
         setDialogOpen(true);
@@ -101,10 +131,16 @@ export default function LanguageSetManagement() {
         setSaving(true);
         setLoading(true);
         try {
-            const url = editingSet 
+            // Validate name format
+            if (!formData.name || !/^[a-zA-Z0-9_-]+$/.test(formData.name)) {
+                setError('Language set name can only contain alphanumeric characters, underscore and dash');
+                return;
+            }
+
+            const url = editingSet
                 ? `${API_ENDPOINTS.ADMIN_LANGUAGE_SETS}/${editingSet.id}`
                 : API_ENDPOINTS.ADMIN_LANGUAGE_SETS;
-            
+
             const method = editingSet ? 'PUT' : 'POST';
             // Always send JSON for metadata first
             const metaRes = await fetch(url, {
@@ -197,9 +233,26 @@ export default function LanguageSetManagement() {
             name: '',
             display_name: '',
             description: '',
-            author: ''
+            author: '',
+            default_ignored_categories: []
         });
         setFile(null);
+    };
+
+    const addDefaultIgnoredCategory = (category) => {
+        if (category && !formData.default_ignored_categories.includes(category)) {
+            setFormData(prev => ({
+                ...prev,
+                default_ignored_categories: [...prev.default_ignored_categories, category]
+            }));
+        }
+    };
+
+    const removeDefaultIgnoredCategory = (category) => {
+        setFormData(prev => ({
+            ...prev,
+            default_ignored_categories: prev.default_ignored_categories.filter(c => c !== category)
+        }));
     };
 
     const handleMakeDefault = async (languageSetId) => {
@@ -221,6 +274,61 @@ export default function LanguageSetManagement() {
         }
     };
 
+    const openIgnoredCategoriesDialog = async (languageSet) => {
+        // Load all categories for this set (including globally ignored ones)
+        try {
+            const token = localStorage.getItem('adminToken');
+            const [catsRes, globalIgnoredRes, userIgnoredRes] = await Promise.all([
+                fetch(`/api/categories?language_set_id=${languageSet.id}`),
+                fetch('/api/ignored-categories'),
+                fetch(`/api/user/ignored-categories?language_set_id=${languageSet.id}`, {
+                    headers: token ? { 'Authorization': `Bearer ${token}` } : {}
+                })
+            ]);
+            const cats = catsRes.ok ? await catsRes.json() : [];
+            const globalIgnored = globalIgnoredRes.ok ? await globalIgnoredRes.json() : [];
+            const ignored = userIgnoredRes.ok ? await userIgnoredRes.json() : [];
+
+            // Combine language set categories with globally ignored categories
+            const allCategories = [...new Set([...cats, ...globalIgnored])].sort();
+            setAllCategoriesForSet(allCategories);
+            setUserIgnoredCategories(ignored);
+            setEditingSet(languageSet);
+            setIgnoredCategoriesDialogOpen(true);
+        } catch (e) {
+            console.error('Failed to load categories for ignored management', e);
+        }
+    };
+
+    const toggleIgnoredCategory = (cat) => {
+        setUserIgnoredCategories(prev => prev.includes(cat) ? prev.filter(c => c !== cat) : [...prev, cat]);
+    };
+
+    const saveIgnoredCategories = async () => {
+        if (!editingSet) return;
+        setUpdatingIgnored(true);
+        try {
+            const token = localStorage.getItem('adminToken');
+            const res = await fetch('/api/user/ignored-categories', {
+                method: 'PUT',
+                headers: {
+                    'Content-Type': 'application/json',
+                    ...(token ? { 'Authorization': `Bearer ${token}` } : {})
+                },
+                body: JSON.stringify({ language_set_id: editingSet.id, categories: userIgnoredCategories })
+            });
+            if (!res.ok) {
+                const data = await res.json().catch(() => ({}));
+                throw new Error(data.error || data.detail || 'Failed to update ignored categories');
+            }
+            setIgnoredCategoriesDialogOpen(false);
+        } catch (e) {
+            setError(e.message);
+        } finally {
+            setUpdatingIgnored(false);
+        }
+    };
+
     return (
         <Paper sx={{ p: 3, mt: 3 }}>
             <Box display="flex" justifyContent="space-between" alignItems="center" mb={2}>
@@ -233,7 +341,7 @@ export default function LanguageSetManagement() {
                     onClick={handleCreate}
                     disabled={loading}
                 >
-                <ResponsiveText desktop={t('add_language_set')} mobile={t('add_language_set_short')} />
+                    <ResponsiveText desktop={t('add_language_set')} mobile={t('add_language_set_short')} />
                 </Button>
             </Box>
 
@@ -297,11 +405,24 @@ export default function LanguageSetManagement() {
                                     <IconButton
                                         size="small"
                                         onClick={() => handleDelete(set)}
-                                        disabled={loading}
+                                        disabled={loading || (set.protected && currentUser?.role !== 'root_admin')}
                                         color="error"
+                                        title={set.protected && currentUser?.role !== 'root_admin' ? t('protected_language_set', 'Cannot delete root admin language set') : t('delete')}
                                     >
                                         <DeleteIcon />
                                     </IconButton>
+                                    <Tooltip title={t('manage_ignored_categories', 'Manage ignored categories')} arrow>
+                                        <span>
+                                            <IconButton
+                                                size="small"
+                                                onClick={() => openIgnoredCategoriesDialog(set)}
+                                                disabled={loading}
+                                                color="primary"
+                                            >
+                                                <SettingsIcon fontSize="inherit" />
+                                            </IconButton>
+                                        </span>
+                                    </Tooltip>
                                     {!set.is_default && (
                                         <Tooltip title={t('make_default', 'Make default')} arrow>
                                             <IconButton
@@ -362,8 +483,65 @@ export default function LanguageSetManagement() {
                         value={formData.author}
                         onChange={(e) => setFormData({ ...formData, author: e.target.value })}
                         margin="normal"
-                        disabled={loading}
+                        disabled={loading || editingSet} // Disable when editing
+                        helperText={editingSet ? t('author_cannot_edit', 'Author cannot be changed when editing') : t('author_auto_set', 'Author is automatically set to current user')}
                     />
+                    <Box sx={{ mt: 2 }}>
+                        <Typography variant="subtitle2" sx={{ mb: 1 }}>
+                            {t('default_ignored_categories', 'Default Ignored Categories')}
+                        </Typography>
+                        <Typography variant="caption" color="text.secondary" sx={{ display: 'block', mb: 1 }}>
+                            {t('default_ignored_categories_help', 'Categories that will be ignored by default for this language set')}
+                        </Typography>
+
+                        {/* Selected default ignored categories */}
+                        {formData.default_ignored_categories.length > 0 && (
+                            <Box sx={{ mb: 2 }}>
+                                <Typography variant="caption" sx={{ fontWeight: 600, display: 'block', mb: 0.5 }}>
+                                    {t('selected_ignored_categories', 'Selected Ignored Categories')}
+                                </Typography>
+                                <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 0.5 }}>
+                                    {formData.default_ignored_categories.map(category => (
+                                        <Chip
+                                            key={category}
+                                            label={category}
+                                            size="small"
+                                            color="warning"
+                                            variant="filled"
+                                            onDelete={() => removeDefaultIgnoredCategory(category)}
+                                            disabled={loading}
+                                            sx={{ textDecoration: 'line-through' }}
+                                        />
+                                    ))}
+                                </Box>
+                            </Box>
+                        )}
+
+                        {/* Available categories to select from */}
+                        {availableCategories.length > 0 && (
+                            <Box>
+                                <Typography variant="caption" sx={{ fontWeight: 600, display: 'block', mb: 0.5 }}>
+                                    {t('available_categories', 'Available Categories')} ({t('click_to_ignore', 'click to ignore')})
+                                </Typography>
+                                <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 0.5 }}>
+                                    {availableCategories
+                                        .filter(cat => !formData.default_ignored_categories.includes(cat))
+                                        .map(category => (
+                                            <Chip
+                                                key={category}
+                                                label={category}
+                                                size="small"
+                                                color="primary"
+                                                variant="outlined"
+                                                onClick={() => addDefaultIgnoredCategory(category)}
+                                                disabled={loading}
+                                                sx={{ cursor: 'pointer' }}
+                                            />
+                                        ))}
+                                </Box>
+                            </Box>
+                        )}
+                    </Box>
                     <Box mt={2}>
                         <input
                             ref={fileInputRef}
@@ -404,6 +582,43 @@ export default function LanguageSetManagement() {
                         {t('saving_language_set', 'Saving language set, please wait...')}
                     </Typography>
                 </Backdrop>
+            </Dialog>
+
+            {/* Ignored Categories Dialog */}
+            <Dialog open={ignoredCategoriesDialogOpen} onClose={() => setIgnoredCategoriesDialogOpen(false)} maxWidth="sm" fullWidth>
+                <DialogTitle>{t('manage_ignored_categories', 'Manage Ignored Categories')}</DialogTitle>
+                <DialogContent dividers>
+                    <Typography variant="body2" sx={{ mb: 2 }}>
+                        {t('ignored_categories_help', 'Select the categories you want to ignore for this language set. They will be excluded from gameplay for your account only.')}
+                    </Typography>
+                    <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 1 }}>
+                        {allCategoriesForSet.map(cat => {
+                            const active = userIgnoredCategories.includes(cat);
+                            return (
+                                <Chip
+                                    key={cat}
+                                    label={cat}
+                                    clickable
+                                    color={active ? 'default' : 'primary'}
+                                    variant={active ? 'outlined' : 'filled'}
+                                    onClick={() => toggleIgnoredCategory(cat)}
+                                    sx={{ textDecoration: active ? 'line-through' : 'none' }}
+                                />
+                            );
+                        })}
+                    </Box>
+                </DialogContent>
+                <DialogActions sx={{ justifyContent: 'space-between' }}>
+                    <Button onClick={() => setUserIgnoredCategories([])} disabled={updatingIgnored} color="warning">
+                        {t('clear_all_ignored', 'Clear All')}
+                    </Button>
+                    <Box>
+                        <Button onClick={() => setIgnoredCategoriesDialogOpen(false)} disabled={updatingIgnored}>{t('cancel')}</Button>
+                        <Button onClick={saveIgnoredCategories} variant="contained" disabled={updatingIgnored} sx={{ ml: 1 }}>
+                            {updatingIgnored ? <CircularProgress size={20} /> : t('save')}
+                        </Button>
+                    </Box>
+                </DialogActions>
             </Dialog>
         </Paper>
     );

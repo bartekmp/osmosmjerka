@@ -10,9 +10,12 @@ import {
     Dialog,
     DialogTitle,
     DialogContent,
-    DialogActions
+    DialogActions,
+    Chip,
+    Divider
 } from '@mui/material';
 import { useTranslation } from 'react-i18next';
+import { API_ENDPOINTS } from '@shared';
 
 export default function UserProfile({ currentUser }) {
     const { t } = useTranslation();
@@ -34,6 +37,9 @@ export default function UserProfile({ currentUser }) {
         message: '',
         severity: 'success'
     });
+    const [ignoredSummary, setIgnoredSummary] = useState({});
+    const [modifiedIgnoredSummary, setModifiedIgnoredSummary] = useState({});
+    const [languageSets, setLanguageSets] = useState([]);
 
     const authHeader = {
         'Authorization': `Bearer ${localStorage.getItem('adminToken')}`,
@@ -42,6 +48,8 @@ export default function UserProfile({ currentUser }) {
 
     useEffect(() => {
         fetchProfile();
+        fetchIgnoredSummary();
+        fetchLanguageSets();
     }, []);
 
     const fetchProfile = async () => {
@@ -61,9 +69,50 @@ export default function UserProfile({ currentUser }) {
         }
     };
 
+    const fetchIgnoredSummary = async () => {
+        try {
+            const res = await fetch(API_ENDPOINTS.USER_IGNORED_CATEGORIES_ALL, { headers: authHeader });
+            if (res.ok) {
+                const data = await res.json();
+                setIgnoredSummary(data);
+                setModifiedIgnoredSummary(data);
+            }
+        } catch (e) {
+            // silent fail
+        }
+    };
+
+    const fetchLanguageSets = async () => {
+        try {
+            const res = await fetch(API_ENDPOINTS.LANGUAGE_SETS);
+            if (res.ok) {
+                const data = await res.json();
+                setLanguageSets(data);
+            }
+        } catch (_) { /* ignore */ }
+    };
+
+    const removeIgnoredCategory = (languageSetId, category) => {
+        setModifiedIgnoredSummary(prev => {
+            const newSummary = { ...prev };
+            if (newSummary[languageSetId]) {
+                newSummary[languageSetId] = newSummary[languageSetId].filter(cat => cat !== category);
+                if (newSummary[languageSetId].length === 0) {
+                    delete newSummary[languageSetId];
+                }
+            }
+            return newSummary;
+        });
+    };
+
+    const hasIgnoredChanges = () => {
+        return JSON.stringify(ignoredSummary) !== JSON.stringify(modifiedIgnoredSummary);
+    };
+
     const updateProfile = async () => {
         setLoading(true);
         try {
+            // Update profile description
             const response = await fetch('/admin/profile', {
                 method: 'PUT',
                 headers: authHeader,
@@ -73,12 +122,51 @@ export default function UserProfile({ currentUser }) {
             });
             const data = await response.json();
 
-            if (response.ok) {
-                showNotification(t('profile_updated'), 'success');
-                setProfile({ ...profile, self_description: description });
-            } else {
+            if (!response.ok) {
                 showNotification(data.error || t('update_profile_failed'), 'error');
+                return;
             }
+
+            // Update ignored categories if they changed
+            if (hasIgnoredChanges()) {
+                const ignoredPromises = [];
+                
+                // Update each language set's ignored categories
+                for (const [languageSetId, categories] of Object.entries(modifiedIgnoredSummary)) {
+                    ignoredPromises.push(
+                        fetch('/api/user/ignored-categories', {
+                            method: 'PUT',
+                            headers: authHeader,
+                            body: JSON.stringify({
+                                language_set_id: parseInt(languageSetId),
+                                categories: categories
+                            })
+                        })
+                    );
+                }
+
+                // Handle deleted language sets (no categories left)
+                for (const languageSetId of Object.keys(ignoredSummary)) {
+                    if (!modifiedIgnoredSummary[languageSetId]) {
+                        ignoredPromises.push(
+                            fetch('/api/user/ignored-categories', {
+                                method: 'PUT',
+                                headers: authHeader,
+                                body: JSON.stringify({
+                                    language_set_id: parseInt(languageSetId),
+                                    categories: []
+                                })
+                            })
+                        );
+                    }
+                }
+
+                await Promise.all(ignoredPromises);
+                setIgnoredSummary(modifiedIgnoredSummary);
+            }
+
+            showNotification(t('profile_updated'), 'success');
+            setProfile({ ...profile, self_description: description });
         } catch (err) {
             showNotification(t('network_error', { message: err.message }), 'error');
         } finally {
@@ -135,23 +223,6 @@ export default function UserProfile({ currentUser }) {
         });
     };
 
-    if (currentUser?.role === 'root_admin') {
-        return (
-            <Box>
-                <Typography variant="h5" sx={{ mb: 3 }}>{t('user_profile')}</Typography>
-                <Alert severity="info">
-                    {t('root_admin_profile_readonly')}
-                </Alert>
-                <Paper sx={{ p: 3, mt: 2 }}>
-                    <Typography variant="h6" gutterBottom>{t('account_information')}</Typography>
-                    <Typography><strong>{t('username')}:</strong> {currentUser.username}</Typography>
-                    <Typography><strong>{t('role')}:</strong> {currentUser.role}</Typography>
-                    <Typography><strong>{t('description')}:</strong> {t('root_administrator')}</Typography>
-                </Paper>
-            </Box>
-        );
-    }
-
     return (
         <Box>
             <Typography variant="h5" sx={{ mb: 3 }}>{t('user_profile')}</Typography>
@@ -160,6 +231,44 @@ export default function UserProfile({ currentUser }) {
                 <Typography variant="h6" gutterBottom>{t('account_information')}</Typography>
                 <Typography sx={{ mb: 1 }}><strong>{t('username')}:</strong> {profile.username}</Typography>
                 <Typography sx={{ mb: 2 }}><strong>{t('role')}:</strong> {profile.role}</Typography>
+                <Button
+                    variant="outlined"
+                    onClick={() => setPasswordDialog(true)}
+                    sx={{ mb: 2 }}
+                >
+                    {t('change_password')}
+                </Button>
+                <Divider sx={{ my: 2 }} />
+                <Typography variant="subtitle1" sx={{ mb: 1 }}>{t('your_ignored_categories', 'Your Ignored Categories')}</Typography>
+                {Object.keys(modifiedIgnoredSummary).length === 0 && (
+                    <Typography variant="body2" color="text.secondary" sx={{ mb: 2 }}>
+                        {t('no_user_ignored_categories', 'You have not ignored any categories yet.')}
+                    </Typography>
+                )}
+                {Object.entries(modifiedIgnoredSummary).map(([lsId, cats]) => {
+                    const ls = languageSets.find(l => l.id === Number(lsId));
+                    const label = ls ? (ls.display_name || ls.name || `#${lsId}`) : `#${lsId}`;
+                    return (
+                        <Box key={lsId} sx={{ mb: 2 }}>
+                            <Typography variant="caption" sx={{ fontWeight: 600, display: 'block', mb: 0.5 }}>
+                                {label}
+                            </Typography>
+                            <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 0.5 }}>
+                                {cats.map(c => (
+                                    <Chip 
+                                        key={c} 
+                                        label={c} 
+                                        size="small" 
+                                        variant="outlined" 
+                                        onDelete={() => removeIgnoredCategory(lsId, c)}
+                                        sx={{ cursor: 'pointer' }}
+                                    />
+                                ))}
+                            </Box>
+                        </Box>
+                    );
+                })}
+                <Divider sx={{ my: 2 }} />
                 <TextField
                     fullWidth
                     label={t('description')}
@@ -172,16 +281,9 @@ export default function UserProfile({ currentUser }) {
                 <Button
                     variant="contained"
                     onClick={updateProfile}
-                    disabled={loading || !description.trim()}
-                    sx={{ mr: 2 }}
+                    disabled={loading || (!description.trim() && !hasIgnoredChanges())}
                 >
-                    {t('update_description')}
-                </Button>
-                <Button
-                    variant="outlined"
-                    onClick={() => setPasswordDialog(true)}
-                >
-                    {t('change_password')}
+                    {t('update')}
                 </Button>
             </Paper>
             {/* Change Password Dialog */}
