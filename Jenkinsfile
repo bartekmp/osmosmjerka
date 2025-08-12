@@ -4,14 +4,12 @@ pipeline {
     parameters {
         booleanParam(name: 'DEPLOY_TO_ARGOCD', defaultValue: true, description: 'Deploy to ArgoCD after build? Set to false to skip deployment.')
         booleanParam(name: 'SKIP_IMAGE_PUSH', defaultValue: false, description: 'Skip Docker image push? Set to false to skip.')
-        string(name: 'IGNORED_CATEGORIES', defaultValue: '', description: 'Comma-separated list of categories to ignore when processing data from the DB')
     }
 
     environment {
         IMAGE_NAME = 'osmosmjerka'
         BACKEND_DIR = 'backend'
         FRONTEND_DIR = 'frontend'
-        IGNORED_CATEGORIES = "${params.IGNORED_CATEGORIES ?: env.IGNORED_CATEGORIES}"
 
         GITOPS_REPO = "${env.OSMOSMJERKA_GITOPS_REPO}"
 
@@ -47,7 +45,7 @@ pipeline {
                 sh 'git config --global --add safe.directory $PWD'
                 sh 'git fetch --tags'
                 sh 'git fetch --all'
-                sh 'git pull origin main'
+                sh "git pull origin ${env.BRANCH_NAME}"
                 sh 'git describe --tags || echo "No tags found"'
                 sh 'echo "Current branch: ${BRANCH_NAME}"'
             }
@@ -232,7 +230,6 @@ pipeline {
 ADMIN_USERNAME=${env.ADMIN_USERNAME}
 ADMIN_PASSWORD_HASH=${env.ADMIN_PASSWORD_HASH}
 ADMIN_SECRET_KEY=${env.ADMIN_SECRET_KEY}
-IGNORED_CATEGORIES=${env.IGNORED_CATEGORIES}
 POSTGRES_HOST=${env.POSTGRES_HOST}
 POSTGRES_PORT=${env.POSTGRES_PORT}
 POSTGRES_USER=${env.POSTGRES_USER}
