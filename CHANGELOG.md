@@ -2,6 +2,31 @@
 
 <!-- version list -->
 
+## v1.20.0 (2025-08-13)
+
+### Bug Fixes
+
+- Remove IGNORED_CATEGORIES env var ([#60](https://github.com/bartekmp/osmosmjerka/pull/60),
+  [`ad6d029`](https://github.com/bartekmp/osmosmjerka/commit/ad6d029392faed0b9162eb0a3a9a3bad3231bf4f))
+
+### Enhancement
+
+- Remove unused files, reformat sources ([#60](https://github.com/bartekmp/osmosmjerka/pull/60),
+  [`ad6d029`](https://github.com/bartekmp/osmosmjerka/commit/ad6d029392faed0b9162eb0a3a9a3bad3231bf4f))
+
+### Feature
+
+- Flexible categories ignoring, default ignored categories for each language set, rich UI for set
+  configuration ([#60](https://github.com/bartekmp/osmosmjerka/pull/60),
+  [`ad6d029`](https://github.com/bartekmp/osmosmjerka/commit/ad6d029392faed0b9162eb0a3a9a3bad3231bf4f))
+
+- Ignored categories ([#60](https://github.com/bartekmp/osmosmjerka/pull/60),
+  [`ad6d029`](https://github.com/bartekmp/osmosmjerka/commit/ad6d029392faed0b9162eb0a3a9a3bad3231bf4f))
+
+- Ignored categories setting ([#60](https://github.com/bartekmp/osmosmjerka/pull/60),
+  [`ad6d029`](https://github.com/bartekmp/osmosmjerka/commit/ad6d029392faed0b9162eb0a3a9a3bad3231bf4f))
+
+
 ## v1.19.0 (2025-08-08)
 
 ### Bug Fixes
