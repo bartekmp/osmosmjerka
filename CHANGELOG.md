@@ -2,6 +2,19 @@
 
 <!-- version list -->
 
+## v1.20.1 (2025-08-13)
+
+### Bug Fixes
+
+- Add lodash to frontend deps
+  ([`bfac815`](https://github.com/bartekmp/osmosmjerka/commit/bfac81583eed6ae8341bc72d94a81ea922692f0e))
+
+### Enhancement
+
+- Change labels in language set dropdown
+  ([`a339db2`](https://github.com/bartekmp/osmosmjerka/commit/a339db2d2f1fbf4e4c378437f9015621ca369467))
+
+
 ## v1.20.0 (2025-08-13)
 
 ### Bug Fixes
