@@ -773,7 +773,7 @@ export default function AdminPanel() {
                                 }}
                             >
                                 {languageSets.map(set => (
-                                    <MenuItem key={set.id} value={set.id}>{set.name}</MenuItem>
+                                    <MenuItem key={set.id} value={set.id}>{set.display_name}</MenuItem>
                                 ))}
                             </Select>
                         </FormControl>
