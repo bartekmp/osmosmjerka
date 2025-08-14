@@ -75,6 +75,9 @@ export default function AdminPanel({
     const [offsetInput, setOffsetInput] = useState(0);
     const [searchTerm, setSearchTerm] = useState('');
 
+    const [languageSetsLoaded, setLanguageSetsLoaded] = useState(false);
+    const [categoriesLoaded, setCategoriesLoaded] = useState(false);
+
     // Batch operations state
     const [batchMode, setBatchMode] = useState(false);
     const [selectedRows, setSelectedRows] = useState([]);
@@ -137,47 +140,70 @@ export default function AdminPanel({
     useEffect(() => {
         // Only make admin API calls if user is properly logged in
         if (!isLogged || !token) {
+            // Clear admin data when not logged in
+            setCategories([]);
+            setLanguageSets([]);
+            setRows([]);
+            setTotalRows(0);
+            setLanguageSetsLoading(true);
+            setLanguageSetsLoaded(false);
+            setCategoriesLoaded(false);
             return;
         }
 
-        // Load all categories for admin (including ignored ones) when language set changes
-        if (selectedLanguageSetId) {
+        // Always load language sets when user logs in (needed for dashboard button logic)
+        if (!languageSetsLoaded) {
+            fetch(API_ENDPOINTS.ADMIN_LANGUAGE_SETS, {
+                headers: {
+                    'Authorization': `Bearer ${token}`
+                }
+            })
+                .then(res => res.json())
+                .then(data => {
+                    setLanguageSets(data);
+                    setLanguageSetsLoading(false);
+                    setLanguageSetsLoaded(true);
+                    // Auto-select first language set if none is selected
+                    if (data.length > 0 && !selectedLanguageSetId) {
+                        const firstSetId = data[0].id;
+                        setSelectedLanguageSetId(firstSetId);
+                        localStorage.setItem(STORAGE_KEYS.SELECTED_LANGUAGE_SET, firstSetId.toString());
+                    }
+                    // If no language sets exist, show error
+                    if (data.length === 0) {
+                        setError(t('no_language_sets_error'));
+                    }
+                })
+                .catch(err => {
+                    console.error('Failed to load language sets:', err);
+                    setLanguageSetsLoading(false);
+                });
+        }
+    }, [isLogged, token, languageSetsLoaded]);
+
+    // Separate useEffect for categories that depends on selectedLanguageSetId
+    useEffect(() => {
+        // Reset categories loaded flag when language set changes
+        setCategoriesLoaded(false);
+    }, [selectedLanguageSetId]);
+
+    useEffect(() => {
+        // Only load categories when navigating to views that need them and language set is selected
+        const needsCategories = (!dashboard && !userManagement && !userProfile) || languageSetManagement;
+        if (isLogged && token && selectedLanguageSetId && needsCategories && !categoriesLoaded) {
             fetch(`${API_ENDPOINTS.ALL_CATEGORIES}?language_set_id=${selectedLanguageSetId}`, {
                 headers: {
                     'Authorization': `Bearer ${token}`
                 }
             })
                 .then(res => res.json())
-                .then(data => setCategories(data))
+                .then(data => {
+                    setCategories(data);
+                    setCategoriesLoaded(true);
+                })
                 .catch(err => console.error('Failed to load categories:', err));
         }
-
-        // Load language sets for filtering
-        fetch(API_ENDPOINTS.ADMIN_LANGUAGE_SETS, {
-            headers: {
-                'Authorization': `Bearer ${token}`
-            }
-        })
-            .then(res => res.json())
-            .then(data => {
-                setLanguageSets(data);
-                setLanguageSetsLoading(false);
-                // Auto-select first language set if none is selected
-                if (data.length > 0 && !selectedLanguageSetId) {
-                    const firstSetId = data[0].id;
-                    setSelectedLanguageSetId(firstSetId);
-                    localStorage.setItem(STORAGE_KEYS.SELECTED_LANGUAGE_SET, firstSetId.toString());
-                }
-                // If no language sets exist, show error
-                if (data.length === 0) {
-                    setError(t('no_language_sets_error'));
-                }
-            })
-            .catch(err => {
-                console.error('Failed to load language sets:', err);
-                setLanguageSetsLoading(false);
-            });
-    }, [isLogged, token, currentUser, selectedLanguageSetId]);
+    }, [isLogged, token, selectedLanguageSetId, dashboard, userManagement, userProfile, languageSetManagement, categoriesLoaded]);
 
     // Handlers for pagination and offset input, to avoid negative or excessive values
     const handleOffsetInput = (e) => {
@@ -344,14 +370,14 @@ export default function AdminPanel({
 
     // When switching to Browse Phrases, auto-load first page
     useEffect(() => {
-        if (!dashboard && !userManagement && !userProfile && !languageSetManagement && selectedLanguageSetId) {
+        if (isLogged && !dashboard && !userManagement && !userProfile && !languageSetManagement && selectedLanguageSetId) {
             setReloadLoading(true);
             fetchRows(0, limit, filterCategory, searchTerm, selectedLanguageSetId);
             setOffset(0);
             setReloadLoading(false);
         }
         // eslint-disable-next-line
-    }, [dashboard, userManagement, userProfile, languageSetManagement, selectedLanguageSetId]);
+    }, [isLogged, dashboard, userManagement, userProfile, languageSetManagement, selectedLanguageSetId]);
 
     // Handle inline save from table with optimistic updates
     const handleInlineSave = useCallback((updatedRow) => {
@@ -672,7 +698,11 @@ export default function AdminPanel({
                 onLogout={handleLogout}
             >
                 <Paper sx={{ p: 3 }}>
-                    <LanguageSetManagement currentUser={currentUser} />
+                    <LanguageSetManagement 
+                        currentUser={currentUser} 
+                        initialLanguageSets={languageSets}
+                        initialCategories={categories}
+                    />
                 </Paper>
             </AdminLayout>
         );

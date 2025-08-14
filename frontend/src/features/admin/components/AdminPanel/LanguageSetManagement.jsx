@@ -30,10 +30,10 @@ import { useEffect, useRef, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { ResponsiveText } from '../../../../shared';
 
-export default function LanguageSetManagement({ currentUser }) {
+export default function LanguageSetManagement({ currentUser, initialLanguageSets = [], initialCategories = [] }) {
     const { t } = useTranslation();
-    const [languageSets, setLanguageSets] = useState([]);
-    const [availableCategories, setAvailableCategories] = useState([]);
+    const [languageSets, setLanguageSets] = useState(initialLanguageSets);
+    const [availableCategories, setAvailableCategories] = useState(initialCategories);
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState('');
     const [dialogOpen, setDialogOpen] = useState(false);
@@ -54,9 +54,28 @@ export default function LanguageSetManagement({ currentUser }) {
     const [updatingIgnored, setUpdatingIgnored] = useState(false);
 
     useEffect(() => {
-        loadLanguageSets();
-        loadAvailableCategories();
-    }, []);
+        // Only load language sets if not provided as initial data
+        if (initialLanguageSets.length === 0) {
+            loadLanguageSets();
+        }
+        // Only load available categories if not provided as initial data
+        if (initialCategories.length === 0) {
+            loadAvailableCategories();
+        }
+    }, [initialLanguageSets.length, initialCategories.length]);
+
+    // Update local state when initial props change
+    useEffect(() => {
+        if (initialLanguageSets.length > 0) {
+            setLanguageSets(initialLanguageSets);
+        }
+    }, [initialLanguageSets]);
+
+    useEffect(() => {
+        if (initialCategories.length > 0) {
+            setAvailableCategories(initialCategories);
+        }
+    }, [initialCategories]);
 
     const loadAvailableCategories = async () => {
         try {
@@ -275,22 +294,20 @@ export default function LanguageSetManagement({ currentUser }) {
     };
 
     const openIgnoredCategoriesDialog = async (languageSet) => {
-        // Load all categories for this set (including globally ignored ones)
+        // Load all categories for this set and user ignored categories
         try {
             const token = localStorage.getItem('adminToken');
-            const [catsRes, globalIgnoredRes, userIgnoredRes] = await Promise.all([
+            const [catsRes, userIgnoredRes] = await Promise.all([
                 fetch(`/api/categories?language_set_id=${languageSet.id}`),
-                fetch('/api/ignored-categories'),
                 fetch(`/api/user/ignored-categories?language_set_id=${languageSet.id}`, {
                     headers: token ? { 'Authorization': `Bearer ${token}` } : {}
                 })
             ]);
             const cats = catsRes.ok ? await catsRes.json() : [];
-            const globalIgnored = globalIgnoredRes.ok ? await globalIgnoredRes.json() : [];
             const ignored = userIgnoredRes.ok ? await userIgnoredRes.json() : [];
 
-            // Combine language set categories with globally ignored categories
-            const allCategories = [...new Set([...cats, ...globalIgnored])].sort();
+            // Use only the language set categories
+            const allCategories = [...new Set(cats)].sort();
             setAllCategoriesForSet(allCategories);
             setUserIgnoredCategories(ignored);
             setEditingSet(languageSet);
