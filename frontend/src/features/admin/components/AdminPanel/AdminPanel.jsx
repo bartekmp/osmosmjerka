@@ -39,7 +39,11 @@ import UserManagement from './UserManagement';
 import UserProfile from './UserProfile';
 import './AdminPanel.css';
 
-export default function AdminPanel() {
+export default function AdminPanel({ 
+    ignoredCategories = [], 
+    userIgnoredCategories = [], 
+    onUpdateUserIgnoredCategories = () => {} 
+}) {
     const { t } = useTranslation();
     const [auth, setAuth] = useState({ user: '', pass: '' });
     const [rows, setRows] = useState([]);
@@ -60,8 +64,6 @@ export default function AdminPanel() {
     const [categories, setCategories] = useState([]);
     const [languageSets, setLanguageSets] = useState([]);
     const [languageSetsLoading, setLanguageSetsLoading] = useState(true);
-    const [ignoredCategories, setIgnoredCategories] = useState([]);
-    const [userIgnoredCategories, setUserIgnoredCategories] = useState([]);
     const [showIgnoredCategories, setShowIgnoredCategories] = useState(false);
     const [filterCategory, setFilterCategory] = useState('');
     const [selectedLanguageSetId, setSelectedLanguageSetId] = useState(() => {
@@ -133,6 +135,11 @@ export default function AdminPanel() {
     }, [rows, dataLoading]);
 
     useEffect(() => {
+        // Only make admin API calls if user is properly logged in
+        if (!isLogged || !token) {
+            return;
+        }
+
         // Load all categories for admin (including ignored ones) when language set changes
         if (selectedLanguageSetId) {
             fetch(`${API_ENDPOINTS.ALL_CATEGORIES}?language_set_id=${selectedLanguageSetId}`, {
@@ -143,33 +150,6 @@ export default function AdminPanel() {
                 .then(res => res.json())
                 .then(data => setCategories(data))
                 .catch(err => console.error('Failed to load categories:', err));
-
-            // Load ignored categories for display - user-specific if logged in and language set selected, default otherwise
-            if (currentUser && token) {
-                // Load both user-specific and default ignored categories when logged in
-                Promise.all([
-                    fetch(`${API_ENDPOINTS.USER_IGNORED_CATEGORIES}?language_set_id=${selectedLanguageSetId}`, {
-                        headers: { 'Authorization': `Bearer ${token}` }
-                    }).then(res => res.json()),
-                    fetch(`${API_ENDPOINTS.DEFAULT_IGNORED_CATEGORIES}?language_set_id=${selectedLanguageSetId}`).then(res => res.json())
-                ]).then(([userIgnored, defaultIgnored]) => {
-                    setUserIgnoredCategories(userIgnored);
-                    setIgnoredCategories(defaultIgnored);
-                }).catch(err => {
-                    console.error('Failed to load ignored categories:', err);
-                    // Fallback to default ignored categories only
-                    fetch(`${API_ENDPOINTS.DEFAULT_IGNORED_CATEGORIES}?language_set_id=${selectedLanguageSetId}`)
-                        .then(res => res.json())
-                        .then(data => setIgnoredCategories(data))
-                        .catch(err => console.error('Failed to load ignored categories:', err));
-                });
-            } else {
-                // Load default ignored categories for non-logged users or admin browsing
-                fetch(`${API_ENDPOINTS.DEFAULT_IGNORED_CATEGORIES}?language_set_id=${selectedLanguageSetId}`)
-                    .then(res => res.json())
-                    .then(data => setIgnoredCategories(data))
-                    .catch(err => console.error('Failed to load ignored categories:', err));
-            }
         }
 
         // Load language sets for filtering
@@ -197,7 +177,7 @@ export default function AdminPanel() {
                 console.error('Failed to load language sets:', err);
                 setLanguageSetsLoading(false);
             });
-    }, [token, currentUser, selectedLanguageSetId]);
+    }, [isLogged, token, currentUser, selectedLanguageSetId]);
 
     // Handlers for pagination and offset input, to avoid negative or excessive values
     const handleOffsetInput = (e) => {
@@ -497,7 +477,7 @@ export default function AdminPanel() {
             });
 
             if (response.ok) {
-                setUserIgnoredCategories(newIgnoredCategories);
+                onUpdateUserIgnoredCategories(newIgnoredCategories);
                 // Refresh the data to reflect the changes
                 if (selectedLanguageSetId) {
                     fetchRows(offset, limit, filterCategory, searchTerm, selectedLanguageSetId);
