@@ -138,6 +138,98 @@ export function useAdminApi({ token, setRows, setTotalRows, setDashboard, setErr
         cacheTimestamp = null;
     }, []);
 
+    const handleBatchDelete = useCallback(async (rowIds, languageSetId) => {
+        try {
+            const response = await fetch(`${API_ENDPOINTS.ADMIN_BATCH_DELETE}?language_set_id=${languageSetId}`, {
+                method: 'POST',
+                headers: authHeader,
+                body: JSON.stringify({ row_ids: rowIds })
+            });
+
+            const data = await response.json();
+
+            if (!response.ok) {
+                throw new Error(data.error || data.detail || 'Failed to delete records');
+            }
+
+            return {
+                success: true,
+                affected: data.deleted_count || rowIds.length,
+                count: rowIds.length,
+                message: data.message
+            };
+        } catch (error) {
+            return {
+                success: false,
+                error: error.message
+            };
+        }
+    }, [authHeader]);
+
+    const handleBatchAddCategory = useCallback(async (rowIds, category, languageSetId) => {
+        try {
+            const response = await fetch(`${API_ENDPOINTS.ADMIN_BATCH_ADD_CATEGORY}?language_set_id=${languageSetId}`, {
+                method: 'POST',
+                headers: authHeader,
+                body: JSON.stringify({ 
+                    row_ids: rowIds,
+                    category: category.trim()
+                })
+            });
+
+            const data = await response.json();
+
+            if (!response.ok) {
+                throw new Error(data.error || data.detail || 'Failed to add category');
+            }
+
+            return {
+                success: true,
+                affected: data.affected_count || 0,
+                count: rowIds.length,
+                category: category.trim(),
+                message: data.message
+            };
+        } catch (error) {
+            return {
+                success: false,
+                error: error.message
+            };
+        }
+    }, [authHeader]);
+
+    const handleBatchRemoveCategory = useCallback(async (rowIds, category, languageSetId) => {
+        try {
+            const response = await fetch(`${API_ENDPOINTS.ADMIN_BATCH_REMOVE_CATEGORY}?language_set_id=${languageSetId}`, {
+                method: 'POST',
+                headers: authHeader,
+                body: JSON.stringify({ 
+                    row_ids: rowIds,
+                    category: category.trim()
+                })
+            });
+
+            const data = await response.json();
+
+            if (!response.ok) {
+                throw new Error(data.error || data.detail || 'Failed to remove category');
+            }
+
+            return {
+                success: true,
+                affected: data.affected_count || 0,
+                count: rowIds.length,
+                category: category.trim(),
+                message: data.message
+            };
+        } catch (error) {
+            return {
+                success: false,
+                error: error.message
+            };
+        }
+    }, [authHeader]);
+
     return { 
         fetchRows, 
         handleLogin, 
@@ -146,6 +238,9 @@ export function useAdminApi({ token, setRows, setTotalRows, setDashboard, setErr
         clearDb, 
         handleDelete, 
         fetchCategories,
-        invalidateCategoriesCache 
+        invalidateCategoriesCache,
+        handleBatchDelete,
+        handleBatchAddCategory,
+        handleBatchRemoveCategory
     };
 }

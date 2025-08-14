@@ -9,13 +9,14 @@ export default function PaginationControls({
     offsetInput,
     handleOffsetInput,
     goToOffset,
-    setOffset
+    setOffset,
+    pageSizeSelector
 }) {
     const { t } = useTranslation();
     return (
         <Box sx={{ mt: 2, p: 2, bgcolor: 'background.paper', borderRadius: 1 }}>
-            <Grid container spacing={2} alignItems="center" justifyContent="center">
-                <Grid item xs={12} sm="auto">
+            <Grid container spacing={2} alignItems="center" justifyContent="space-between">
+                <Grid item xs={12} sm="auto" sx={{ display: 'flex', alignItems: 'center', gap: 2, flexWrap: 'wrap', justifyContent: { xs: 'center', sm: 'flex-start' } }}>
                     <Button
                         variant="contained"
                         onClick={() => setOffset(Math.max(offset - limit, 0))}
@@ -24,13 +25,9 @@ export default function PaginationControls({
                     >
                         {t('previous')}
                     </Button>
-                </Grid>
-                <Grid item xs={12} sm="auto">
                     <Typography variant="body2" align="center">
                         {t('offset')}: {offset}
                     </Typography>
-                </Grid>
-                <Grid item xs={12} sm="auto">
                     <Button
                         variant="contained"
                         onClick={() => setOffset(Math.min(offset + limit, Math.max(totalRows - limit, 0)))}
@@ -39,9 +36,7 @@ export default function PaginationControls({
                     >
                         {t('next')}
                     </Button>
-                </Grid>
-                <Grid item xs={12} sm="auto">
-                    <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, flexWrap: 'wrap', justifyContent: 'center' }}>
+                    <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, flexWrap: 'wrap' }}>
                         <Typography variant="body2">{t('go_to_offset')}:</Typography>
                         <TextField
                             type="number"
@@ -63,6 +58,11 @@ export default function PaginationControls({
                         </Button>
                     </Box>
                 </Grid>
+                {pageSizeSelector && (
+                    <Grid item xs={12} sm="auto" sx={{ display: 'flex', justifyContent: { xs: 'center', sm: 'flex-end' } }}>
+                        {pageSizeSelector}
+                    </Grid>
+                )}
             </Grid>
         </Box>
     );

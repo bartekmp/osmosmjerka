@@ -24,23 +24,31 @@ import {
 import { AdminButton, AdminLayout, API_ENDPOINTS, ResponsiveActionButton, STORAGE_KEYS } from '@shared';
 import { useCallback, useEffect, useState } from 'react';
 import { useTranslation } from 'react-i18next';
-import UploadForm from '../UploadForm';
-import './AdminPanel.css';
 import AdminTable from './AdminTable';
+import BatchOperationDialog from './BatchOperationDialog';
+import BatchOperationsToolbar from './BatchOperationsToolbar';
+import BatchResultDialog from './BatchResultDialog';
 import EditRowForm from './EditRowForm';
 import { isTokenExpired } from './helpers';
 import LanguageSetManagement from './LanguageSetManagement';
+import PageSizeSelector from './PageSizeSelector';
 import PaginationControls from './PaginationControls';
 import { useAdminApi } from './useAdminApi';
+import UploadForm from '../UploadForm';
 import UserManagement from './UserManagement';
 import UserProfile from './UserProfile';
+import './AdminPanel.css';
 
 export default function AdminPanel() {
     const { t } = useTranslation();
     const [auth, setAuth] = useState({ user: '', pass: '' });
     const [rows, setRows] = useState([]);
     const [offset, setOffset] = useState(0);
-    const [limit] = useState(20);
+    const [limit, setLimit] = useState(() => {
+        // Load page size from localStorage or default to 20
+        const saved = localStorage.getItem(STORAGE_KEYS.ADMIN_PAGE_SIZE);
+        return saved ? parseInt(saved) : 20;
+    });
     const [editRow, setEditRow] = useState(null);
     const [error, setError] = useState("");
     const [isLogged, setIsLogged] = useState(false);
@@ -65,6 +73,13 @@ export default function AdminPanel() {
     const [offsetInput, setOffsetInput] = useState(0);
     const [searchTerm, setSearchTerm] = useState('');
 
+    // Batch operations state
+    const [batchMode, setBatchMode] = useState(false);
+    const [selectedRows, setSelectedRows] = useState([]);
+    const [batchDialog, setBatchDialog] = useState({ open: false, operation: null });
+    const [batchResult, setBatchResult] = useState({ open: false, operation: null, result: null });
+    const [batchLoading, setBatchLoading] = useState(false);
+
     // Memoize search term handler to prevent unnecessary re-renders
     const handleSearchChange = useCallback((value) => {
         setSearchTerm(value);
@@ -88,7 +103,10 @@ export default function AdminPanel() {
         handleSave,
         handleExportTxt,
         clearDb,
-        handleDelete
+        handleDelete,
+        handleBatchDelete,
+        handleBatchAddCategory,
+        handleBatchRemoveCategory
     } = useAdminApi({
         token,
         setRows,
@@ -195,13 +213,114 @@ export default function AdminPanel() {
         }
     };
 
+    // Page size handler
+    const handlePageSizeChange = (newLimit) => {
+        setLimit(newLimit);
+        setOffset(0); // Reset to first page when changing page size
+        localStorage.setItem(STORAGE_KEYS.ADMIN_PAGE_SIZE, newLimit.toString());
+    };
+
+    // Batch mode handlers
+    const handleEnterBatchMode = () => {
+        setBatchMode(true);
+        setSelectedRows([]);
+    };
+
+    const handleExitBatchMode = () => {
+        setBatchMode(false);
+        setSelectedRows([]);
+    };
+
+    const handleBatchModeToggle = () => {
+        if (batchMode) {
+            handleExitBatchMode();
+        } else {
+            handleEnterBatchMode();
+        }
+    };
+
+    const handleRowSelectionChange = (newSelectedRows) => {
+        setSelectedRows(newSelectedRows);
+    };
+
+    // Batch operation handlers
+    const handleBatchDeleteClick = () => {
+        setBatchDialog({ open: true, operation: 'delete' });
+    };
+
+    const handleBatchAddCategoryClick = () => {
+        setBatchDialog({ open: true, operation: 'add_category' });
+    };
+
+    const handleBatchRemoveCategoryClick = () => {
+        setBatchDialog({ open: true, operation: 'remove_category' });
+    };
+
+    const handleBatchConfirm = async (categoryName = '') => {
+        setBatchLoading(true);
+        setBatchDialog({ open: false, operation: null });
+
+        let result;
+        const operation = batchDialog.operation;
+
+        try {
+            switch (operation) {
+                case 'delete':
+                    result = await handleBatchDelete(selectedRows, selectedLanguageSetId);
+                    break;
+                case 'add_category':
+                    result = await handleBatchAddCategory(selectedRows, categoryName, selectedLanguageSetId);
+                    break;
+                case 'remove_category':
+                    result = await handleBatchRemoveCategory(selectedRows, categoryName, selectedLanguageSetId);
+                    break;
+                default:
+                    throw new Error('Unknown batch operation');
+            }
+
+            // Show result dialog
+            setBatchResult({ open: true, operation, result });
+
+            // If successful, refresh data and clear selections
+            if (result.success) {
+                setSelectedRows([]);
+                if (selectedLanguageSetId) {
+                    fetchRows(offset, limit, filterCategory, searchTerm, selectedLanguageSetId);
+                }
+            }
+        } catch (error) {
+            setBatchResult({
+                open: true,
+                operation,
+                result: { success: false, error: error.message }
+            });
+        } finally {
+            setBatchLoading(false);
+        }
+    };
+
+    const handleBatchDialogClose = () => {
+        setBatchDialog({ open: false, operation: null });
+    };
+
+    const handleBatchResultClose = () => {
+        setBatchResult({ open: false, operation: null, result: null });
+    };
+
     // Automatically fetch rows when logged in and dashboard is active
     useEffect(() => {
         if (isLogged && !dashboard && selectedLanguageSetId) {
             fetchRows(offset, limit, filterCategory, searchTerm, selectedLanguageSetId);
         }
         // eslint-disable-next-line
-    }, [offset, filterCategory, selectedLanguageSetId]);
+    }, [offset, filterCategory, selectedLanguageSetId, limit]);
+
+    // Clear selections when exiting batch mode
+    useEffect(() => {
+        if (!batchMode) {
+            setSelectedRows([]);
+        }
+    }, [batchMode]);
 
     // Fetch rows when search term changes
     useEffect(() => {
@@ -910,6 +1029,16 @@ export default function AdminPanel() {
                     </Box>
                 )}
             </Paper>
+            {/* Batch Operations Toolbar */}
+            {batchMode && (
+                <BatchOperationsToolbar
+                    selectedCount={selectedRows.length}
+                    onBatchDelete={handleBatchDeleteClick}
+                    onBatchAddCategory={handleBatchAddCategoryClick}
+                    onBatchRemoveCategory={handleBatchRemoveCategoryClick}
+                    disabled={batchLoading || selectedRows.length === 0}
+                />
+            )}
             {/* Data Table */}
             <AdminTable
                 rows={rows}
@@ -920,6 +1049,10 @@ export default function AdminPanel() {
                 searchTerm={searchTerm}
                 onSearchChange={handleSearchChange}
                 isLoading={dataLoading}
+                batchMode={batchMode}
+                selectedRows={selectedRows}
+                onRowSelectionChange={handleRowSelectionChange}
+                onBatchModeToggle={handleBatchModeToggle}
             />
             {/* Pagination */}
             <Box sx={{ mt: 3 }}>
@@ -931,6 +1064,12 @@ export default function AdminPanel() {
                     handleOffsetInput={handleOffsetInput}
                     goToOffset={goToOffset}
                     setOffset={setOffset}
+                    pageSizeSelector={
+                        <PageSizeSelector
+                            value={limit}
+                            onChange={handlePageSizeChange}
+                        />
+                    }
                 />
             </Box>
             {/* Error Display */}
@@ -939,6 +1078,23 @@ export default function AdminPanel() {
                     <Typography color="error.contrastText">{error}</Typography>
                 </Box>
             )}
+
+            {/* Batch Operation Dialogs */}
+            <BatchOperationDialog
+                open={batchDialog.open}
+                onClose={handleBatchDialogClose}
+                operation={batchDialog.operation}
+                selectedCount={selectedRows.length}
+                onConfirm={handleBatchConfirm}
+                availableCategories={categories}
+            />
+
+            <BatchResultDialog
+                open={batchResult.open}
+                onClose={handleBatchResultClose}
+                operation={batchResult.operation}
+                result={batchResult.result}
+            />
         </AdminLayout>
     );
 }

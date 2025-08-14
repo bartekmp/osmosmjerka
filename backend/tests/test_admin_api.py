@@ -568,3 +568,120 @@ def test_change_password_success(
     assert response.status_code == 200
     data = response.json()
     assert data["message"] == "Password changed successfully"
+
+
+# Batch Operations Tests
+@patch('osmosmjerka.admin_api.db_manager')
+def test_batch_delete_rows_success(mock_db_manager, client, mock_admin_user):
+    """Test successful batch deletion of rows"""
+    app.dependency_overrides[require_admin_access] = lambda: mock_admin_user
+    
+    # Mock successful batch deletion as async
+    mock_db_manager.batch_delete_phrases = AsyncMock(return_value=3)
+    
+    response = client.post(
+        "/admin/batch/delete?language_set_id=1",
+        json={"row_ids": [1, 2, 3]}
+    )
+    
+    assert response.status_code == 200
+    data = response.json()
+    assert data["deleted_count"] == 3
+    assert "Successfully deleted 3 phrases" in data["message"]
+    mock_db_manager.batch_delete_phrases.assert_called_once_with([1, 2, 3], 1)
+
+
+@patch('osmosmjerka.admin_api.db_manager')
+def test_batch_delete_rows_empty_list(mock_db_manager, client, mock_admin_user):
+    """Test batch deletion with empty row list"""
+    app.dependency_overrides[require_admin_access] = lambda: mock_admin_user
+    
+    response = client.post(
+        "/admin/batch/delete?language_set_id=1",
+        json={"row_ids": []}
+    )
+    
+    assert response.status_code == 400
+    data = response.json()
+    assert data["error"] == "No rows selected for deletion"
+
+
+@patch('osmosmjerka.admin_api.db_manager')
+def test_batch_add_category_success(mock_db_manager, client, mock_admin_user):
+    """Test successful batch addition of category"""
+    app.dependency_overrides[require_admin_access] = lambda: mock_admin_user
+    
+    # Mock successful batch category addition as async
+    mock_db_manager.batch_add_category = AsyncMock(return_value=2)
+    
+    response = client.post(
+        "/admin/batch/add-category?language_set_id=1",
+        json={"row_ids": [1, 2, 3], "category": "test_category"}
+    )
+    
+    assert response.status_code == 200
+    data = response.json()
+    assert data["affected_count"] == 2
+    assert data["category"] == "test_category"
+    assert "Successfully added category 'test_category' to 2 phrases" in data["message"]
+    mock_db_manager.batch_add_category.assert_called_once_with([1, 2, 3], "test_category", 1)
+
+
+@patch('osmosmjerka.admin_api.db_manager')
+def test_batch_add_category_empty_category(mock_db_manager, client, mock_admin_user):
+    """Test batch add category with empty category name"""
+    app.dependency_overrides[require_admin_access] = lambda: mock_admin_user
+    
+    response = client.post(
+        "/admin/batch/add-category?language_set_id=1",
+        json={"row_ids": [1, 2], "category": "  "}
+    )
+    
+    assert response.status_code == 400
+    data = response.json()
+    assert data["error"] == "Category name cannot be empty"
+
+
+@patch('osmosmjerka.admin_api.db_manager')
+def test_batch_remove_category_success(mock_db_manager, client, mock_admin_user):
+    """Test successful batch removal of category"""
+    app.dependency_overrides[require_admin_access] = lambda: mock_admin_user
+    
+    # Mock successful batch category removal as async
+    mock_db_manager.batch_remove_category = AsyncMock(return_value=1)
+    
+    response = client.post(
+        "/admin/batch/remove-category?language_set_id=1",
+        json={"row_ids": [1, 2, 3], "category": "old_category"}
+    )
+    
+    assert response.status_code == 200
+    data = response.json()
+    assert data["affected_count"] == 1
+    assert data["category"] == "old_category"
+    assert "Successfully removed category 'old_category' from 1 phrases" in data["message"]
+    mock_db_manager.batch_remove_category.assert_called_once_with([1, 2, 3], "old_category", 1)
+
+
+@patch('osmosmjerka.admin_api.db_manager')
+def test_batch_operations_unauthorized(mock_db_manager, client):
+    """Test that batch operations require admin access"""
+    # No auth override - should fail
+    
+    response = client.post(
+        "/admin/batch/delete?language_set_id=1",
+        json={"row_ids": [1, 2, 3]}
+    )
+    assert response.status_code == 401  # Unauthorized
+    
+    response = client.post(
+        "/admin/batch/add-category?language_set_id=1",
+        json={"row_ids": [1, 2], "category": "test"}
+    )
+    assert response.status_code == 401  # Unauthorized
+    
+    response = client.post(
+        "/admin/batch/remove-category?language_set_id=1",
+        json={"row_ids": [1, 2], "category": "test"}
+    )
+    assert response.status_code == 401  # Unauthorized

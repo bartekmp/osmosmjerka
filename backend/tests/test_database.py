@@ -66,3 +66,35 @@ def test_delete_phrase_calls_execute(db_manager):
     db_manager.delete_phrase = mock_delete_phrase
     result = run_async(db_manager.delete_phrase(1, 1))
     assert result == 1
+
+
+def test_batch_delete_phrases(db_manager):
+    # Mock the entire batch_delete_phrases method
+    async def mock_batch_delete_phrases(phrase_ids, language_set_id):
+        return len(phrase_ids)  # Return count of deleted phrases
+    
+    db_manager.batch_delete_phrases = mock_batch_delete_phrases
+    result = run_async(db_manager.batch_delete_phrases([1, 2, 3], 1))
+    assert result == 3
+
+
+def test_batch_add_category(db_manager):
+    # Mock the entire batch_add_category method
+    async def mock_batch_add_category(phrase_ids, category, language_set_id):
+        # Simulate that 2 out of 3 phrases were affected (1 already had the category)
+        return 2
+    
+    db_manager.batch_add_category = mock_batch_add_category
+    result = run_async(db_manager.batch_add_category([1, 2, 3], "new_category", 1))
+    assert result == 2
+
+
+def test_batch_remove_category(db_manager):
+    # Mock the entire batch_remove_category method
+    async def mock_batch_remove_category(phrase_ids, category, language_set_id):
+        # Simulate that 1 out of 3 phrases was affected (2 didn't have the category)
+        return 1
+    
+    db_manager.batch_remove_category = mock_batch_remove_category
+    result = run_async(db_manager.batch_remove_category([1, 2, 3], "old_category", 1))
+    assert result == 1
