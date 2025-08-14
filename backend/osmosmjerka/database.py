@@ -470,6 +470,87 @@ class DatabaseManager:
         query = delete(phrase_table).where(phrase_table.c.id == phrase_id)
         return await database.execute(query)
 
+    async def batch_delete_phrases(self, phrase_ids: list[int], language_set_id: int) -> int:
+        """Delete multiple phrases using dynamic table"""
+        database = self._ensure_database()
+
+        # Get language set info
+        language_set = await self.get_language_set_by_id(language_set_id)
+        if not language_set:
+            raise ValueError(f"Language set with ID {language_set_id} not found")
+
+        phrase_table = self._get_phrase_table(language_set["name"])
+        query = delete(phrase_table).where(phrase_table.c.id.in_(phrase_ids))
+        result = await database.execute(query)
+        return result
+
+    async def batch_add_category(self, phrase_ids: list[int], category: str, language_set_id: int) -> int:
+        """Add a category to multiple phrases using dynamic table"""
+        database = self._ensure_database()
+
+        # Get language set info
+        language_set = await self.get_language_set_by_id(language_set_id)
+        if not language_set:
+            raise ValueError(f"Language set with ID {language_set_id} not found")
+
+        phrase_table = self._get_phrase_table(language_set["name"])
+        
+        # Get current phrases that need updating
+        select_query = select(phrase_table.c.id, phrase_table.c.categories).where(
+            phrase_table.c.id.in_(phrase_ids)
+        )
+        phrases = await database.fetch_all(select_query)
+        
+        affected_count = 0
+        for phrase in phrases:
+            current_categories = phrase["categories"] or ""
+            current_cat_list = [cat.strip() for cat in current_categories.split() if cat.strip()]
+            
+            # Only update if category doesn't already exist
+            if category not in current_cat_list:
+                new_categories = " ".join(current_cat_list + [category])
+                update_query = update(phrase_table).where(
+                    phrase_table.c.id == phrase["id"]
+                ).values(categories=new_categories)
+                await database.execute(update_query)
+                affected_count += 1
+        
+        return affected_count
+
+    async def batch_remove_category(self, phrase_ids: list[int], category: str, language_set_id: int) -> int:
+        """Remove a category from multiple phrases using dynamic table"""
+        database = self._ensure_database()
+
+        # Get language set info
+        language_set = await self.get_language_set_by_id(language_set_id)
+        if not language_set:
+            raise ValueError(f"Language set with ID {language_set_id} not found")
+
+        phrase_table = self._get_phrase_table(language_set["name"])
+        
+        # Get current phrases that need updating
+        select_query = select(phrase_table.c.id, phrase_table.c.categories).where(
+            phrase_table.c.id.in_(phrase_ids)
+        )
+        phrases = await database.fetch_all(select_query)
+        
+        affected_count = 0
+        for phrase in phrases:
+            current_categories = phrase["categories"] or ""
+            current_cat_list = [cat.strip() for cat in current_categories.split() if cat.strip()]
+            
+            # Only update if category exists
+            if category in current_cat_list:
+                new_cat_list = [cat for cat in current_cat_list if cat != category]
+                new_categories = " ".join(new_cat_list)
+                update_query = update(phrase_table).where(
+                    phrase_table.c.id == phrase["id"]
+                ).values(categories=new_categories)
+                await database.execute(update_query)
+                affected_count += 1
+        
+        return affected_count
+
     async def get_categories_for_language_set(
         self, language_set_id: Optional[int] = None, ignored_categories_override: Optional[set[str]] = None
     ) -> list[str]:

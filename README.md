@@ -8,9 +8,12 @@ Each phrase includes translation into another language, making it an excellent t
 - **Dark/Light Mode**: Toggle between themes for comfortable viewing
 - **Responsive Design**: Optimized for mobile, tablet, and desktop
 - **Game State Persistence**: Automatic progress saving and restoration
-- **Administrative Tools**: Comprehensive database management with import/export
+- **Administrative Tools**: Comprehensive database management with import/export and batch operations
 - **Touch & Mouse Support**: Seamless interaction across all devices
 - **User Management System**: Role-based access control with root admin capabilities
+- **Language Set Management**: Organize phrases into separate language collections
+- **Batch Operations**: Efficient bulk editing with category management and multi-select actions
+- **Optimized Performance**: Smart API loading and reduced server requests for better user experience
 
 ![Osmosmjerka game](docs/assets/osmosmjerka-game.gif)
 
@@ -84,7 +87,9 @@ The responsive design ensures that whether you're playing on a smartphone, table
 On mobile screens, some interface elements are reduced to minimum, to keep as much space for the playing area as possible.
 
 ## The admin page
-The admin page can be accessed via the `/admin` endpoint, which displays a login screen. The system now supports multiple user roles with different access levels:
+The admin page can be accessed via the `/admin` endpoint, which displays a login screen. The system supports multiple user roles with different access levels and provides comprehensive database management capabilities.
+
+For detailed information about all admin panel features and capabilities, see the [Admin Panel Features](#admin-panel-features) section below.
 
 ### User Roles and Authentication
 - **Root Administrator**: Created automatically on first startup, has full system access including user management
@@ -95,37 +100,184 @@ The login credentials for the root admin (username and password hash) must be pr
 
 ![Admin page](docs/assets/osmosmjerka-admin.gif)
 
-The admin panel provides comprehensive database management capabilities:
-
-### Data Management
-- **View and Browse**: Display all existing entries with pagination support and category filtering
-- **Inline Editing**: Edit entries directly in the table view with immediate validation
-- **Bulk Operations**: Add new entries or delete existing ones with confirmation dialogs
-- **Database Clearing**: Remove all entries with a safety confirmation prompt
-
-### File Operations
-- **Data Import**: Upload new entries from `.txt` and `.csv` files using the format: `<phrase>;<translation>;<categories>`
-- **Data Export**: Export filtered or complete datasets to `.txt` format for backup or external use
-- **Duplicate Prevention**: The system automatically prevents duplicate entries based on the phrase field
-
-### Advanced Features
-- **Category Filtering**: Filter the view by specific categories to manage subsets of data
-- **Pagination Controls**: Navigate through large datasets with customizable page sizes
-- **Responsive Interface**: The admin panel adapts to different screen sizes with optimized layouts for mobile use
-- **Search and Navigation**: Quick offset jumping and intuitive pagination controls
-
-### User Management
-The admin panel now includes comprehensive user management capabilities, including creating new accounts, role-based access, resetting passwords, editing user information.
-
-![Main admin page](docs/assets/osmosmjerka-admin-view.png)
-
-The admin interface supports multiple categories per phrase (separated by spaces), making it easy to organize vocabulary by themes like "Toys Sport Nouns". The phrase field serves as the primary key, ensuring data integrity by preventing duplicates during imports.
-
 ### How to generate admin's password hash
 Use this one-liner to convert your password into a hash, which then you can use to log into admin's page:
 ```bash
 python3 -c "import bcrypt; import getpass; pwd=getpass.getpass('Password: ').encode(); print(bcrypt.hashpw(pwd, bcrypt.gensalt()).decode())"
 ```
+
+## Admin Panel Features
+
+The admin panel provides a comprehensive suite of tools for managing the word search database, user accounts, and system configuration. The interface is designed to be intuitive and efficient, with optimized performance and minimal server requests.
+
+### Dashboard
+The main dashboard serves as the central hub for admin activities, providing quick access to all administrative functions:
+- **Browse Records**: Access the phrase database management interface
+- **User Management**: Create and manage user accounts (root admin and administrative users only)
+- **Language Sets Management**: Organize and configure language collections
+- **User Profile**: Edit personal account settings and manage ignored categories
+
+### Browse Records (Phrase Database Management)
+The core database management interface provides powerful tools for working with phrase collections:
+
+**Data Browsing and Navigation**
+- View all entries with advanced pagination controls and customizable page sizes
+- Category-based filtering to focus on specific themes or topics
+- Smart search functionality across phrases and translations
+- Optimized loading with minimal API requests for better performance
+
+**Inline Editing**
+- Edit phrases, translations, and categories directly in the table view
+- Real-time validation with immediate feedback
+- Automatic saving with optimistic updates for responsive interactions
+
+**Batch Operations**
+- Multi-select functionality for bulk operations on multiple entries
+- Batch delete selected records with confirmation dialogs
+- Bulk category operations: add or remove categories from multiple phrases simultaneously
+- Efficient processing with progress feedback and error handling
+
+**Advanced Features**
+- Language set filtering to work with specific language collections
+- Ignored category management for filtering unwanted content
+- Responsive design optimized for mobile and tablet use
+- Smart pagination with offset jumping and navigation controls
+
+### File Operations
+**Data Import**
+- Upload new entries from `.txt` and `.csv` files
+- Support for the format: `<phrase>;<translation>;<categories>`
+- Automatic duplicate prevention based on phrase uniqueness
+- Validation and error reporting for malformed entries
+- Batch processing with progress indicators
+
+**Data Export**
+- Export filtered or complete datasets to `.txt` format
+- Choose specific language sets or categories for targeted exports
+- Backup functionality for data preservation
+- Format preservation for easy re-import
+
+### User Management
+Comprehensive user account management system available to root administrators:
+
+**Account Management**
+- Create new user accounts with role assignment
+- Edit existing user profiles and account information
+- Password reset functionality for user assistance
+- Account activation and deactivation controls
+
+**Role-based Access Control**
+- Root Administrator: Full system access with user management capabilities
+- Administrative Users: Database management with restricted system access
+- Granular permission system for secure operation
+
+**User Profiles**
+- Customizable user descriptions and profile information
+- Individual password management and security settings
+- Personal ignored category preferences
+- Profile viewing and editing for administrative oversight
+
+### Language Sets Management
+Advanced organization system for managing multiple language collections:
+
+**Language Set Configuration**
+- Create and configure separate language collections
+- Set display names and descriptions for each language set
+- Define default ignored categories per language set
+- Mark language sets as default for new users
+
+**Category Management**
+- Configure default ignored categories for each language set
+- View and manage available categories across language sets
+- Category filtering and organization tools
+- Import/export category configurations
+
+**Data Organization**
+- Assign phrases to specific language sets
+- Bulk operations for moving phrases between language sets
+- Language set filtering in all database operations
+- Automatic categorization and validation
+
+![Main admin page](docs/assets/osmosmjerka-admin-view.png)
+
+The admin interface supports multiple categories per phrase (separated by spaces), making it easy to organize vocabulary by themes like "Toys Sport Nouns". The phrase field serves as the primary key, ensuring data integrity by preventing duplicates during imports.
+
+## Language Sets
+
+Language Sets are an organizational feature that allows you to manage separate collections of phrases for different languages, themes, or learning objectives. This feature transforms Osmosmjerka from a simple word search game into a comprehensive language learning platform.
+
+### What are Language Sets?
+
+A Language Set is a distinct collection of phrases that can be managed independently from other collections. Each Language Set contains its own phrases, categories, and configuration settings. Think of it as creating separate "databases" within your Osmosmjerka instance - for example, you might have one Language Set for Croatian-English learning, another for Spanish-French, and a third for specialized vocabulary like medical terms.
+
+### The Core Idea
+
+The Language Set concept addresses several key needs:
+
+**Multi-language Support**: Organize phrases by language pairs (e.g., Croatian-English, Polish-German, Spanish-Italian) without mixing vocabularies from different language combinations.
+
+**Thematic Organization**: Create focused collections for specific learning goals - business vocabulary, travel phrases, academic terms, or children's vocabulary.
+
+**User Customization**: Different users can work with different Language Sets based on their learning needs, while administrators can maintain separate content collections.
+
+**Content Isolation**: Keep experimental or specialized content separate from your main phrase collections, allowing for safe testing and development.
+
+### Impact on the Game
+
+Language Sets fundamentally enhance the gaming experience by providing:
+
+**Targeted Learning**: Players can focus on specific vocabulary sets relevant to their current learning objectives, making study sessions more efficient and goal-oriented.
+
+**Difficulty Scaling**: Different Language Sets can contain phrases of varying complexity, allowing learners to progress from beginner to advanced levels within the same application.
+
+**Context-Aware Puzzles**: By selecting appropriate Language Sets, players ensure that puzzle themes remain consistent and educationally coherent.
+
+**Personalized Experience**: Users can ignore categories they're not interested in within each Language Set, creating a truly personalized learning environment.
+
+### Creating and Managing Language Sets
+
+#### Creating a New Language Set
+
+1. **Access Language Sets Management**: Navigate to the admin panel and click on "Language Sets Management"
+2. **Create New Set**: Use the "Create New Language Set" function to establish a new collection
+3. **Configure Basic Settings**: Set the display name, description, and initial configuration for your new Language Set
+4. **Define Categories**: Establish the category structure that will be used within this Language Set
+
+#### Loading Records into a Language Set
+
+1. **File Preparation**: Prepare your phrase files in the supported format: `<phrase>;<translation>;<categories>`
+2. **Select Target Language Set**: In the admin panel, ensure you have the correct Language Set selected before importing
+3. **Upload Process**: Use the "Upload Phrases" functionality to import your data into the selected Language Set
+4. **Validation**: The system automatically validates entries, filters duplicates, and ensures data integrity
+
+#### Setting Default Ignored Categories
+
+1. **Access Language Set Configuration**: Open the Language Sets Management interface
+2. **Select Language Set**: Choose the Language Set you want to configure
+3. **Category Management**: Access the category configuration for the selected set
+4. **Define Ignored Categories**: Set which categories should be ignored by default for new users of this Language Set
+5. **Save Configuration**: Apply the settings to make them effective for future users
+
+#### Making a Language Set Default
+
+1. **Language Set Selection**: In the Language Sets Management interface, locate your desired Language Set
+2. **Default Configuration**: Use the "Set as Default" option to make this Language Set the default choice for new users
+3. **User Impact**: New users will automatically start with this Language Set, while existing users can switch manually
+4. **System Behavior**: The default Language Set determines which phrases are used when no specific Language Set is selected
+
+### Advanced Language Set Features
+
+**Bulk Operations**: Move phrases between Language Sets using batch operations for efficient content organization.
+
+**Export/Import**: Export entire Language Sets for backup or sharing, and import complete Language Set configurations.
+
+**Category Synchronization**: Maintain consistent category structures across multiple Language Sets while allowing for set-specific customizations.
+
+**User Assignment**: Configure which users have access to specific Language Sets for controlled content distribution.
+
+**Performance Optimization**: Language Sets are loaded efficiently with smart caching and minimal API requests, ensuring responsive user experience even with large vocabulary collections.
+
+The Language Set feature transforms Osmosmjerka into a flexible, scalable platform that can accommodate diverse learning needs while maintaining the engaging word search gameplay that makes vocabulary acquisition enjoyable and effective.
 
 ## How to run
 1. Pull the code and enter the main directory.

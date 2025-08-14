@@ -9,8 +9,12 @@ import {
     Box,
     TableContainer,
     Paper,
-    Typography
+    Typography,
+    Checkbox,
+    Chip,
+    Stack
 } from '@mui/material';
+import CheckBoxIcon from '@mui/icons-material/CheckBox';
 import { useTranslation } from 'react-i18next';
 import {
     useReactTable,
@@ -28,17 +32,56 @@ import TableNoRowsOverlay from './TableNoRowsOverlay';
 import { renderExpandableText } from './utils/renderHelpers';
 import { containsHTML, stripHTML } from './utils/validationUtils';
 
-export default function AdminTable({ rows, setEditRow, onSaveRow, onDeleteRow, totalRows, searchTerm, onSearchChange, isLoading = false }) {
+export default function AdminTable({ 
+    rows, 
+    setEditRow, 
+    onSaveRow, 
+    onDeleteRow, 
+    totalRows, 
+    searchTerm, 
+    onSearchChange, 
+    isLoading = false,
+    batchMode = false,
+    selectedRows = [],
+    onRowSelectionChange,
+    onBatchModeToggle
+}) {
     const { t } = useTranslation();
     const [editDialog, setEditDialog] = useState({ open: false, row: null });
     const [textDialog, setTextDialog] = useState({ open: false, title: '', content: '' });
     const [localSearchTerm, setLocalSearchTerm] = useState(searchTerm || '');
 
-        // Handle search term changes - delegated to SearchBar component
+    // Handle search term changes - delegated to SearchBar component
     const handleSearchChange = useCallback((value) => {
         setLocalSearchTerm(value);
         onSearchChange(value);
     }, [onSearchChange]);
+
+    // Batch selection handlers
+    const handleRowCheckboxChange = useCallback((rowId, checked) => {
+        if (!onRowSelectionChange) return;
+        
+        const newSelectedRows = checked 
+            ? [...selectedRows, rowId]
+            : selectedRows.filter(id => id !== rowId);
+        
+        onRowSelectionChange(newSelectedRows);
+    }, [selectedRows, onRowSelectionChange]);
+
+    const handleSelectAll = useCallback((checked) => {
+        if (!onRowSelectionChange) return;
+        
+        const newSelectedRows = checked ? rows.map(row => row.id) : [];
+        onRowSelectionChange(newSelectedRows);
+    }, [rows, onRowSelectionChange]);
+
+    const isAllSelected = useMemo(() => {
+        return rows.length > 0 && selectedRows.length === rows.length;
+    }, [rows.length, selectedRows.length]);
+
+    const isIndeterminate = useMemo(() => {
+        return selectedRows.length > 0 && selectedRows.length < rows.length;
+    }, [selectedRows.length, rows.length]);
 
     // Remove client-side filtering since we're now doing server-side search
     // The rows prop should already contain the filtered results from the server
@@ -100,58 +143,94 @@ export default function AdminTable({ rows, setEditRow, onSaveRow, onDeleteRow, t
     const columnHelper = createColumnHelper();
 
     // Define table columns with resizing
-    const columns = useMemo(() => [
-        columnHelper.accessor('id', {
-            header: 'ID',
-            size: 80,
-            minSize: minColumnWidths.id || 60,
-            maxSize: 120,
-            enableResizing: true,
-            cell: info => info.getValue()
-        }),
-        columnHelper.accessor('categories', {
-            header: t('categories'),
-            size: 180,
-            minSize: minColumnWidths.categories || 120,
-            maxSize: 300,
-            enableResizing: true,
-            cell: info => renderExpandableText(info.getValue(), 'categories', t, openTextDialog)
-        }),
-        columnHelper.accessor('phrase', {
-            header: t('phrase'),
-            size: 200,
-            minSize: minColumnWidths.phrase || 150,
-            maxSize: 350,
-            enableResizing: true,
-            cell: info => renderExpandableText(info.getValue(), 'phrase', t, openTextDialog)
-        }),
-        columnHelper.accessor('translation', {
-            header: t('translation'),
-            size: 300,
-            minSize: minColumnWidths.translation || 180,
-            maxSize: 500,
-            enableResizing: true,
-            cell: info => renderExpandableText(info.getValue(), 'translation', t, openTextDialog)
-        }),
-        columnHelper.display({
-            id: 'actions',
-            header: t('actions'),
-            size: 140,
-            minSize: 140,
-            maxSize: 140,
-            enableResizing: false,
-            cell: info => {
-                const row = info.row.original;
-                return (
-                    <TableRowActions 
-                        row={row}
-                        onEdit={handleOpenEditDialog}
-                        onDelete={handleDelete}
+    const columns = useMemo(() => {
+        const baseColumns = [
+            columnHelper.accessor('id', {
+                header: 'ID',
+                size: 80,
+                minSize: minColumnWidths.id || 60,
+                maxSize: 120,
+                enableResizing: true,
+                cell: info => info.getValue()
+            }),
+            columnHelper.accessor('categories', {
+                header: t('categories'),
+                size: 180,
+                minSize: minColumnWidths.categories || 120,
+                maxSize: 300,
+                enableResizing: true,
+                cell: info => renderExpandableText(info.getValue(), 'categories', t, openTextDialog)
+            }),
+            columnHelper.accessor('phrase', {
+                header: t('phrase'),
+                size: 200,
+                minSize: minColumnWidths.phrase || 150,
+                maxSize: 350,
+                enableResizing: true,
+                cell: info => renderExpandableText(info.getValue(), 'phrase', t, openTextDialog)
+            }),
+            columnHelper.accessor('translation', {
+                header: t('translation'),
+                size: 300,
+                minSize: minColumnWidths.translation || 180,
+                maxSize: 500,
+                enableResizing: true,
+                cell: info => renderExpandableText(info.getValue(), 'translation', t, openTextDialog)
+            }),
+            columnHelper.display({
+                id: 'actions',
+                header: t('actions'),
+                size: 140,
+                minSize: 140,
+                maxSize: 140,
+                enableResizing: false,
+                cell: info => {
+                    const row = info.row.original;
+                    return (
+                        <TableRowActions 
+                            row={row}
+                            onEdit={handleOpenEditDialog}
+                            onDelete={handleDelete}
+                        />
+                    );
+                }
+            })
+        ];
+
+        // Add checkbox column at the beginning if in batch mode
+        if (batchMode) {
+            const checkboxColumn = columnHelper.display({
+                id: 'select',
+                header: () => (
+                    <Checkbox
+                        checked={isAllSelected}
+                        indeterminate={isIndeterminate}
+                        onChange={(e) => handleSelectAll(e.target.checked)}
+                        size="small"
                     />
-                );
-            }
-        })
-    ], [t, minColumnWidths]);
+                ),
+                size: 50,
+                minSize: 50,
+                maxSize: 50,
+                enableResizing: false,
+                cell: info => {
+                    const rowId = info.row.original.id;
+                    const isSelected = selectedRows.includes(rowId);
+                    return (
+                        <Checkbox
+                            checked={isSelected}
+                            onChange={(e) => handleRowCheckboxChange(rowId, e.target.checked)}
+                            size="small"
+                        />
+                    );
+                }
+            });
+            return [checkboxColumn, ...baseColumns];
+        }
+
+        return baseColumns;
+    }, [t, minColumnWidths, batchMode, isAllSelected, isIndeterminate, handleSelectAll, 
+        selectedRows, handleRowCheckboxChange]);
 
     // Create table instance
     const table = useReactTable({
@@ -166,6 +245,53 @@ export default function AdminTable({ rows, setEditRow, onSaveRow, onDeleteRow, t
 
     return (
         <>
+            {/* Batch Mode Status Bar */}
+            {batchMode && (
+                <Box sx={{
+                    mt: 2,
+                    p: 2,
+                    bgcolor: 'primary.light',
+                    borderRadius: 1,
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: 2,
+                    flexWrap: 'wrap'
+                }}>
+                    <Chip 
+                        label={t('batch_mode')} 
+                        color="primary" 
+                        size="small" 
+                        variant="filled"
+                    />
+                    {selectedRows.length > 0 && (
+                        <Chip 
+                            label={t('selected_count', { count: selectedRows.length })} 
+                            color="secondary" 
+                            size="small" 
+                            variant="filled"
+                        />
+                    )}
+                    <Stack direction="row" spacing={1} sx={{ ml: 'auto' }}>
+                        <Button
+                            size="small"
+                            variant="outlined"
+                            onClick={() => handleSelectAll(true)}
+                            disabled={isAllSelected}
+                        >
+                            {t('select_all')}
+                        </Button>
+                        <Button
+                            size="small"
+                            variant="outlined"
+                            onClick={() => handleSelectAll(false)}
+                            disabled={selectedRows.length === 0}
+                        >
+                            {t('deselect_all')}
+                        </Button>
+                    </Stack>
+                </Box>
+            )}
+
             {/* Search Box */}
             <Box sx={{
                 mt: 2,
@@ -176,14 +302,28 @@ export default function AdminTable({ rows, setEditRow, onSaveRow, onDeleteRow, t
                 flexDirection: { xs: 'column', sm: 'row' },
                 justifyContent: 'space-between'
             }}>
-                <Typography variant="h6">
-                    {t('total_rows', { count: totalRows })}
-                    {searchTerm && (
-                        <Typography component="span" variant="body2" sx={{ ml: 1, color: 'text.secondary' }}>
-                            ({t('filtered_results', { count: rows.length })})
-                        </Typography>
+                <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
+                    <Typography variant="h6">
+                        {t('total_rows', { count: totalRows })}
+                        {searchTerm && (
+                            <Typography component="span" variant="body2" sx={{ ml: 1, color: 'text.secondary' }}>
+                                ({t('filtered_results', { count: rows.length })})
+                            </Typography>
+                        )}
+                    </Typography>
+                    {onBatchModeToggle && (
+                        <Button
+                            variant={batchMode ? "contained" : "outlined"}
+                            color={batchMode ? "warning" : "info"}
+                            size="small"
+                            onClick={onBatchModeToggle}
+                            startIcon={<CheckBoxIcon />}
+                            sx={{ ml: 2 }}
+                        >
+                            {batchMode ? t('exit_batch_mode') : t('enter_batch_mode')}
+                        </Button>
                     )}
-                </Typography>
+                </Box>
                 <SearchBar
                     value={localSearchTerm}
                     onChange={handleSearchChange}

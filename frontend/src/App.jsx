@@ -233,6 +233,11 @@ function AppContent() {
         }
     }, [availableDifficulties, difficulty]);
 
+    // Callback function for AdminPanel to update user ignored categories
+    const updateUserIgnoredCategories = (newCategories) => {
+        setUserIgnoredCategories(newCategories);
+    };
+
     return (
         <MUIThemeProvider theme={createAppTheme(isDarkMode)}>
             <CssBaseline />
@@ -243,7 +248,11 @@ function AppContent() {
                 <Routes>
                     <Route path="/admin" element={
                         <Suspense fallback={<CircularProgress />}>
-                            <AdminPanel />
+                            <AdminPanel 
+                                ignoredCategories={ignoredCategories}
+                                userIgnoredCategories={userIgnoredCategories}
+                                onUpdateUserIgnoredCategories={updateUserIgnoredCategories}
+                            />
                         </Suspense>
                     } />
                     <Route path="/admin/users" element={

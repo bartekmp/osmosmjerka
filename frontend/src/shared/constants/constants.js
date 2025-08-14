@@ -40,7 +40,8 @@ export const STORAGE_KEYS = {
   THEME: 'osmosmjerka-dark-mode',
   LANGUAGE: 'lng',
   ADMIN_TOKEN: 'adminToken',
-  SELECTED_LANGUAGE_SET: 'selectedLanguageSet'
+  SELECTED_LANGUAGE_SET: 'selectedLanguageSet',
+  ADMIN_PAGE_SIZE: 'adminPageSize'
 };
 
 // API endpoints
@@ -56,5 +57,8 @@ export const API_ENDPOINTS = {
   ADMIN_STATUS: '/admin/status',
   ADMIN_CLEAR: '/admin/clear',
   ADMIN_LANGUAGE_SETS: '/admin/language-sets',
-  ADMIN_MAKE_DEFAULT: (id) => `/admin/language-sets/${id}/make-default`
+  ADMIN_MAKE_DEFAULT: (id) => `/admin/language-sets/${id}/make-default`,
+  ADMIN_BATCH_DELETE: '/admin/batch/delete',
+  ADMIN_BATCH_ADD_CATEGORY: '/admin/batch/add-category',
+  ADMIN_BATCH_REMOVE_CATEGORY: '/admin/batch/remove-category'
 };

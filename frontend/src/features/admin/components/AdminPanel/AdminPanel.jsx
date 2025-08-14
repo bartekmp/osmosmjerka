@@ -24,23 +24,35 @@ import {
 import { AdminButton, AdminLayout, API_ENDPOINTS, ResponsiveActionButton, STORAGE_KEYS } from '@shared';
 import { useCallback, useEffect, useState } from 'react';
 import { useTranslation } from 'react-i18next';
-import UploadForm from '../UploadForm';
-import './AdminPanel.css';
 import AdminTable from './AdminTable';
+import BatchOperationDialog from './BatchOperationDialog';
+import BatchOperationsToolbar from './BatchOperationsToolbar';
+import BatchResultDialog from './BatchResultDialog';
 import EditRowForm from './EditRowForm';
 import { isTokenExpired } from './helpers';
 import LanguageSetManagement from './LanguageSetManagement';
+import PageSizeSelector from './PageSizeSelector';
 import PaginationControls from './PaginationControls';
 import { useAdminApi } from './useAdminApi';
+import UploadForm from '../UploadForm';
 import UserManagement from './UserManagement';
 import UserProfile from './UserProfile';
+import './AdminPanel.css';
 
-export default function AdminPanel() {
+export default function AdminPanel({ 
+    ignoredCategories = [], 
+    userIgnoredCategories = [], 
+    onUpdateUserIgnoredCategories = () => {} 
+}) {
     const { t } = useTranslation();
     const [auth, setAuth] = useState({ user: '', pass: '' });
     const [rows, setRows] = useState([]);
     const [offset, setOffset] = useState(0);
-    const [limit] = useState(20);
+    const [limit, setLimit] = useState(() => {
+        // Load page size from localStorage or default to 20
+        const saved = localStorage.getItem(STORAGE_KEYS.ADMIN_PAGE_SIZE);
+        return saved ? parseInt(saved) : 20;
+    });
     const [editRow, setEditRow] = useState(null);
     const [error, setError] = useState("");
     const [isLogged, setIsLogged] = useState(false);
@@ -52,8 +64,6 @@ export default function AdminPanel() {
     const [categories, setCategories] = useState([]);
     const [languageSets, setLanguageSets] = useState([]);
     const [languageSetsLoading, setLanguageSetsLoading] = useState(true);
-    const [ignoredCategories, setIgnoredCategories] = useState([]);
-    const [userIgnoredCategories, setUserIgnoredCategories] = useState([]);
     const [showIgnoredCategories, setShowIgnoredCategories] = useState(false);
     const [filterCategory, setFilterCategory] = useState('');
     const [selectedLanguageSetId, setSelectedLanguageSetId] = useState(() => {
@@ -64,6 +74,16 @@ export default function AdminPanel() {
     const [totalRows, setTotalRows] = useState(0);
     const [offsetInput, setOffsetInput] = useState(0);
     const [searchTerm, setSearchTerm] = useState('');
+
+    const [languageSetsLoaded, setLanguageSetsLoaded] = useState(false);
+    const [categoriesLoaded, setCategoriesLoaded] = useState(false);
+
+    // Batch operations state
+    const [batchMode, setBatchMode] = useState(false);
+    const [selectedRows, setSelectedRows] = useState([]);
+    const [batchDialog, setBatchDialog] = useState({ open: false, operation: null });
+    const [batchResult, setBatchResult] = useState({ open: false, operation: null, result: null });
+    const [batchLoading, setBatchLoading] = useState(false);
 
     // Memoize search term handler to prevent unnecessary re-renders
     const handleSearchChange = useCallback((value) => {
@@ -88,7 +108,10 @@ export default function AdminPanel() {
         handleSave,
         handleExportTxt,
         clearDb,
-        handleDelete
+        handleDelete,
+        handleBatchDelete,
+        handleBatchAddCategory,
+        handleBatchRemoveCategory
     } = useAdminApi({
         token,
         setRows,
@@ -115,71 +138,72 @@ export default function AdminPanel() {
     }, [rows, dataLoading]);
 
     useEffect(() => {
-        // Load all categories for admin (including ignored ones) when language set changes
-        if (selectedLanguageSetId) {
+        // Only make admin API calls if user is properly logged in
+        if (!isLogged || !token) {
+            // Clear admin data when not logged in
+            setCategories([]);
+            setLanguageSets([]);
+            setRows([]);
+            setTotalRows(0);
+            setLanguageSetsLoading(true);
+            setLanguageSetsLoaded(false);
+            setCategoriesLoaded(false);
+            return;
+        }
+
+        // Always load language sets when user logs in (needed for dashboard button logic)
+        if (!languageSetsLoaded) {
+            fetch(API_ENDPOINTS.ADMIN_LANGUAGE_SETS, {
+                headers: {
+                    'Authorization': `Bearer ${token}`
+                }
+            })
+                .then(res => res.json())
+                .then(data => {
+                    setLanguageSets(data);
+                    setLanguageSetsLoading(false);
+                    setLanguageSetsLoaded(true);
+                    // Auto-select first language set if none is selected
+                    if (data.length > 0 && !selectedLanguageSetId) {
+                        const firstSetId = data[0].id;
+                        setSelectedLanguageSetId(firstSetId);
+                        localStorage.setItem(STORAGE_KEYS.SELECTED_LANGUAGE_SET, firstSetId.toString());
+                    }
+                    // If no language sets exist, show error
+                    if (data.length === 0) {
+                        setError(t('no_language_sets_error'));
+                    }
+                })
+                .catch(err => {
+                    console.error('Failed to load language sets:', err);
+                    setLanguageSetsLoading(false);
+                });
+        }
+    }, [isLogged, token, languageSetsLoaded]);
+
+    // Separate useEffect for categories that depends on selectedLanguageSetId
+    useEffect(() => {
+        // Reset categories loaded flag when language set changes
+        setCategoriesLoaded(false);
+    }, [selectedLanguageSetId]);
+
+    useEffect(() => {
+        // Only load categories when navigating to views that need them and language set is selected
+        const needsCategories = (!dashboard && !userManagement && !userProfile) || languageSetManagement;
+        if (isLogged && token && selectedLanguageSetId && needsCategories && !categoriesLoaded) {
             fetch(`${API_ENDPOINTS.ALL_CATEGORIES}?language_set_id=${selectedLanguageSetId}`, {
                 headers: {
                     'Authorization': `Bearer ${token}`
                 }
             })
                 .then(res => res.json())
-                .then(data => setCategories(data))
+                .then(data => {
+                    setCategories(data);
+                    setCategoriesLoaded(true);
+                })
                 .catch(err => console.error('Failed to load categories:', err));
-
-            // Load ignored categories for display - user-specific if logged in and language set selected, default otherwise
-            if (currentUser && token) {
-                // Load both user-specific and default ignored categories when logged in
-                Promise.all([
-                    fetch(`${API_ENDPOINTS.USER_IGNORED_CATEGORIES}?language_set_id=${selectedLanguageSetId}`, {
-                        headers: { 'Authorization': `Bearer ${token}` }
-                    }).then(res => res.json()),
-                    fetch(`${API_ENDPOINTS.DEFAULT_IGNORED_CATEGORIES}?language_set_id=${selectedLanguageSetId}`).then(res => res.json())
-                ]).then(([userIgnored, defaultIgnored]) => {
-                    setUserIgnoredCategories(userIgnored);
-                    setIgnoredCategories(defaultIgnored);
-                }).catch(err => {
-                    console.error('Failed to load ignored categories:', err);
-                    // Fallback to default ignored categories only
-                    fetch(`${API_ENDPOINTS.DEFAULT_IGNORED_CATEGORIES}?language_set_id=${selectedLanguageSetId}`)
-                        .then(res => res.json())
-                        .then(data => setIgnoredCategories(data))
-                        .catch(err => console.error('Failed to load ignored categories:', err));
-                });
-            } else {
-                // Load default ignored categories for non-logged users or admin browsing
-                fetch(`${API_ENDPOINTS.DEFAULT_IGNORED_CATEGORIES}?language_set_id=${selectedLanguageSetId}`)
-                    .then(res => res.json())
-                    .then(data => setIgnoredCategories(data))
-                    .catch(err => console.error('Failed to load ignored categories:', err));
-            }
         }
-
-        // Load language sets for filtering
-        fetch(API_ENDPOINTS.ADMIN_LANGUAGE_SETS, {
-            headers: {
-                'Authorization': `Bearer ${token}`
-            }
-        })
-            .then(res => res.json())
-            .then(data => {
-                setLanguageSets(data);
-                setLanguageSetsLoading(false);
-                // Auto-select first language set if none is selected
-                if (data.length > 0 && !selectedLanguageSetId) {
-                    const firstSetId = data[0].id;
-                    setSelectedLanguageSetId(firstSetId);
-                    localStorage.setItem(STORAGE_KEYS.SELECTED_LANGUAGE_SET, firstSetId.toString());
-                }
-                // If no language sets exist, show error
-                if (data.length === 0) {
-                    setError(t('no_language_sets_error'));
-                }
-            })
-            .catch(err => {
-                console.error('Failed to load language sets:', err);
-                setLanguageSetsLoading(false);
-            });
-    }, [token, currentUser, selectedLanguageSetId]);
+    }, [isLogged, token, selectedLanguageSetId, dashboard, userManagement, userProfile, languageSetManagement, categoriesLoaded]);
 
     // Handlers for pagination and offset input, to avoid negative or excessive values
     const handleOffsetInput = (e) => {
@@ -195,13 +219,114 @@ export default function AdminPanel() {
         }
     };
 
+    // Page size handler
+    const handlePageSizeChange = (newLimit) => {
+        setLimit(newLimit);
+        setOffset(0); // Reset to first page when changing page size
+        localStorage.setItem(STORAGE_KEYS.ADMIN_PAGE_SIZE, newLimit.toString());
+    };
+
+    // Batch mode handlers
+    const handleEnterBatchMode = () => {
+        setBatchMode(true);
+        setSelectedRows([]);
+    };
+
+    const handleExitBatchMode = () => {
+        setBatchMode(false);
+        setSelectedRows([]);
+    };
+
+    const handleBatchModeToggle = () => {
+        if (batchMode) {
+            handleExitBatchMode();
+        } else {
+            handleEnterBatchMode();
+        }
+    };
+
+    const handleRowSelectionChange = (newSelectedRows) => {
+        setSelectedRows(newSelectedRows);
+    };
+
+    // Batch operation handlers
+    const handleBatchDeleteClick = () => {
+        setBatchDialog({ open: true, operation: 'delete' });
+    };
+
+    const handleBatchAddCategoryClick = () => {
+        setBatchDialog({ open: true, operation: 'add_category' });
+    };
+
+    const handleBatchRemoveCategoryClick = () => {
+        setBatchDialog({ open: true, operation: 'remove_category' });
+    };
+
+    const handleBatchConfirm = async (categoryName = '') => {
+        setBatchLoading(true);
+        setBatchDialog({ open: false, operation: null });
+
+        let result;
+        const operation = batchDialog.operation;
+
+        try {
+            switch (operation) {
+                case 'delete':
+                    result = await handleBatchDelete(selectedRows, selectedLanguageSetId);
+                    break;
+                case 'add_category':
+                    result = await handleBatchAddCategory(selectedRows, categoryName, selectedLanguageSetId);
+                    break;
+                case 'remove_category':
+                    result = await handleBatchRemoveCategory(selectedRows, categoryName, selectedLanguageSetId);
+                    break;
+                default:
+                    throw new Error('Unknown batch operation');
+            }
+
+            // Show result dialog
+            setBatchResult({ open: true, operation, result });
+
+            // If successful, refresh data and clear selections
+            if (result.success) {
+                setSelectedRows([]);
+                if (selectedLanguageSetId) {
+                    fetchRows(offset, limit, filterCategory, searchTerm, selectedLanguageSetId);
+                }
+            }
+        } catch (error) {
+            setBatchResult({
+                open: true,
+                operation,
+                result: { success: false, error: error.message }
+            });
+        } finally {
+            setBatchLoading(false);
+        }
+    };
+
+    const handleBatchDialogClose = () => {
+        setBatchDialog({ open: false, operation: null });
+    };
+
+    const handleBatchResultClose = () => {
+        setBatchResult({ open: false, operation: null, result: null });
+    };
+
     // Automatically fetch rows when logged in and dashboard is active
     useEffect(() => {
         if (isLogged && !dashboard && selectedLanguageSetId) {
             fetchRows(offset, limit, filterCategory, searchTerm, selectedLanguageSetId);
         }
         // eslint-disable-next-line
-    }, [offset, filterCategory, selectedLanguageSetId]);
+    }, [offset, filterCategory, selectedLanguageSetId, limit]);
+
+    // Clear selections when exiting batch mode
+    useEffect(() => {
+        if (!batchMode) {
+            setSelectedRows([]);
+        }
+    }, [batchMode]);
 
     // Fetch rows when search term changes
     useEffect(() => {
@@ -245,14 +370,14 @@ export default function AdminPanel() {
 
     // When switching to Browse Phrases, auto-load first page
     useEffect(() => {
-        if (!dashboard && !userManagement && !userProfile && !languageSetManagement && selectedLanguageSetId) {
+        if (isLogged && !dashboard && !userManagement && !userProfile && !languageSetManagement && selectedLanguageSetId) {
             setReloadLoading(true);
             fetchRows(0, limit, filterCategory, searchTerm, selectedLanguageSetId);
             setOffset(0);
             setReloadLoading(false);
         }
         // eslint-disable-next-line
-    }, [dashboard, userManagement, userProfile, languageSetManagement, selectedLanguageSetId]);
+    }, [isLogged, dashboard, userManagement, userProfile, languageSetManagement, selectedLanguageSetId]);
 
     // Handle inline save from table with optimistic updates
     const handleInlineSave = useCallback((updatedRow) => {
@@ -378,7 +503,7 @@ export default function AdminPanel() {
             });
 
             if (response.ok) {
-                setUserIgnoredCategories(newIgnoredCategories);
+                onUpdateUserIgnoredCategories(newIgnoredCategories);
                 // Refresh the data to reflect the changes
                 if (selectedLanguageSetId) {
                     fetchRows(offset, limit, filterCategory, searchTerm, selectedLanguageSetId);
@@ -573,7 +698,11 @@ export default function AdminPanel() {
                 onLogout={handleLogout}
             >
                 <Paper sx={{ p: 3 }}>
-                    <LanguageSetManagement currentUser={currentUser} />
+                    <LanguageSetManagement 
+                        currentUser={currentUser} 
+                        initialLanguageSets={languageSets}
+                        initialCategories={categories}
+                    />
                 </Paper>
             </AdminLayout>
         );
@@ -910,6 +1039,16 @@ export default function AdminPanel() {
                     </Box>
                 )}
             </Paper>
+            {/* Batch Operations Toolbar */}
+            {batchMode && (
+                <BatchOperationsToolbar
+                    selectedCount={selectedRows.length}
+                    onBatchDelete={handleBatchDeleteClick}
+                    onBatchAddCategory={handleBatchAddCategoryClick}
+                    onBatchRemoveCategory={handleBatchRemoveCategoryClick}
+                    disabled={batchLoading || selectedRows.length === 0}
+                />
+            )}
             {/* Data Table */}
             <AdminTable
                 rows={rows}
@@ -920,6 +1059,10 @@ export default function AdminPanel() {
                 searchTerm={searchTerm}
                 onSearchChange={handleSearchChange}
                 isLoading={dataLoading}
+                batchMode={batchMode}
+                selectedRows={selectedRows}
+                onRowSelectionChange={handleRowSelectionChange}
+                onBatchModeToggle={handleBatchModeToggle}
             />
             {/* Pagination */}
             <Box sx={{ mt: 3 }}>
@@ -931,6 +1074,12 @@ export default function AdminPanel() {
                     handleOffsetInput={handleOffsetInput}
                     goToOffset={goToOffset}
                     setOffset={setOffset}
+                    pageSizeSelector={
+                        <PageSizeSelector
+                            value={limit}
+                            onChange={handlePageSizeChange}
+                        />
+                    }
                 />
             </Box>
             {/* Error Display */}
@@ -939,6 +1088,23 @@ export default function AdminPanel() {
                     <Typography color="error.contrastText">{error}</Typography>
                 </Box>
             )}
+
+            {/* Batch Operation Dialogs */}
+            <BatchOperationDialog
+                open={batchDialog.open}
+                onClose={handleBatchDialogClose}
+                operation={batchDialog.operation}
+                selectedCount={selectedRows.length}
+                onConfirm={handleBatchConfirm}
+                availableCategories={categories}
+            />
+
+            <BatchResultDialog
+                open={batchResult.open}
+                onClose={handleBatchResultClose}
+                operation={batchResult.operation}
+                result={batchResult.result}
+            />
         </AdminLayout>
     );
 }
