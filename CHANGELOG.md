@@ -2,6 +2,31 @@
 
 <!-- version list -->
 
+## v1.21.0 (2025-08-14)
+
+### Enhancement
+
+- Reduce api calls, reorganize backend code ([#61](https://github.com/bartekmp/osmosmjerka/pull/61),
+  [`4ff0a8f`](https://github.com/bartekmp/osmosmjerka/commit/4ff0a8f12eea59611e4ac70d0a6479236c5079a8))
+
+- Reduce the number of API requests for admin login
+  ([#61](https://github.com/bartekmp/osmosmjerka/pull/61),
+  [`4ff0a8f`](https://github.com/bartekmp/osmosmjerka/commit/4ff0a8f12eea59611e4ac70d0a6479236c5079a8))
+
+- Update readme with recent admin panel changes and language sets description
+  ([#61](https://github.com/bartekmp/osmosmjerka/pull/61),
+  [`4ff0a8f`](https://github.com/bartekmp/osmosmjerka/commit/4ff0a8f12eea59611e4ac70d0a6479236c5079a8))
+
+### Feature
+
+- Batch operations in admin panel ([#61](https://github.com/bartekmp/osmosmjerka/pull/61),
+  [`4ff0a8f`](https://github.com/bartekmp/osmosmjerka/commit/4ff0a8f12eea59611e4ac70d0a6479236c5079a8))
+
+- Batch operations, reducing API calls number, updating README
+  ([#61](https://github.com/bartekmp/osmosmjerka/pull/61),
+  [`4ff0a8f`](https://github.com/bartekmp/osmosmjerka/commit/4ff0a8f12eea59611e4ac70d0a6479236c5079a8))
+
+
 ## v1.20.1 (2025-08-13)
 
 ### Bug Fixes
