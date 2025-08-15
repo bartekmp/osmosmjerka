@@ -8,6 +8,7 @@ from fastapi.responses import JSONResponse, StreamingResponse
 from starlette.concurrency import run_in_threadpool
 
 from osmosmjerka.auth import require_admin_access, require_root_admin
+from osmosmjerka.cache import rate_limit, categories_cache
 from osmosmjerka.database import db_manager
 
 router = APIRouter()
@@ -62,6 +63,7 @@ def admin_status(user=Depends(require_admin_access)) -> JSONResponse:
 
 
 @router.get("/rows")
+@rate_limit(max_requests=60, window_seconds=60)  # 60 requests per minute for admin browsing
 async def get_all_rows(
     offset: int = 0,
     limit: int = 20,
@@ -77,12 +79,15 @@ async def get_all_rows(
 
 
 @router.post("/row")
+@rate_limit(max_requests=30, window_seconds=60)  # 30 additions per minute
 async def add_row(row: dict, language_set_id: int = Query(...), user=Depends(require_admin_access)) -> JSONResponse:
     """Add a new phrase to specified language set"""
     try:
         await db_manager.add_phrase(language_set_id, row["categories"], row["phrase"], row["translation"])
         # Track statistics for phrase addition
         await db_manager.record_phrase_operation(user["id"], language_set_id, "added")
+        # Invalidate relevant caches
+        categories_cache.invalidate(f"categories_{language_set_id}")
         return JSONResponse({"message": "Phrase added"}, status_code=status.HTTP_201_CREATED)
     except Exception as e:
         return JSONResponse({"error": f"Failed to add phrase: {str(e)}"}, status_code=status.HTTP_400_BAD_REQUEST)
@@ -154,6 +159,7 @@ async def get_all_categories(language_set_id: int = Query(None), user=Depends(re
 
 
 @router.get("/export")
+@rate_limit(max_requests=5, window_seconds=60)  # 5 exports per minute
 async def export_data(
     category: str = Query(None), language_set_id: int = Query(None), user=Depends(require_admin_access)
 ) -> StreamingResponse:

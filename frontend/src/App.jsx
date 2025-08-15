@@ -23,9 +23,11 @@ import createAppTheme from './theme';
 import useCelebration from './hooks/useCelebration';
 import useGameDifficulties from './hooks/useGameDifficulties';
 import useLogoColor from './hooks/useLogoColor';
+import { useDebouncedValue } from './hooks/useDebounce';
 
 import { loadPuzzle as loadPuzzleHelper, restoreGameState, saveGameState } from './helpers/appHelpers';
 import { API_ENDPOINTS, STORAGE_KEYS } from './shared/constants/constants';
+import { RateLimitWarning } from './shared/components/ui/RateLimitWarning';
 
 // Lazy load admin components
 const AdminPanel = lazy(() => import('./features').then(module => ({ default: module.AdminPanel })));
@@ -72,6 +74,7 @@ function AppContent() {
     const [notEnoughPhrasesMsg, setNotEnoughPhrasesMsg] = useState("");
     const [isGridLoading, setIsGridLoading] = useState(false);
     const [panelOpen, setPanelOpen] = useState(false);
+    const [showRateLimit, setShowRateLimit] = useState(false);
 
     // Game session tracking for statistics
     const [gameSessionId, setGameSessionId] = useState(null);
@@ -79,6 +82,9 @@ function AppContent() {
     const [lastFoundCount, setLastFoundCount] = useState(0);
     const [sessionCompleted, setSessionCompleted] = useState(false);
     const [statisticsEnabled, setStatisticsEnabled] = useState(true); // Default to true, will be checked from server
+
+    // Debounced language set ID to prevent excessive API calls
+    const debouncedLanguageSetId = useDebouncedValue(selectedLanguageSetId, 500);
 
     // Refs to prevent duplicate API calls in StrictMode
     const lastFetchedLanguageSetIdRef = useRef(null);
@@ -129,37 +135,49 @@ function AppContent() {
 
     // Load default and user-specific ignored categories when language set changes
     useEffect(() => {
-        if (!selectedLanguageSetId) {
+        if (!debouncedLanguageSetId) {
             setIgnoredCategories([]);
             setUserIgnoredCategories([]);
             return;
         }
 
         // Load default ignored categories for the language set
-        axios.get(`${API_ENDPOINTS.DEFAULT_IGNORED_CATEGORIES}?language_set_id=${selectedLanguageSetId}`)
+        axios.get(`${API_ENDPOINTS.DEFAULT_IGNORED_CATEGORIES}?language_set_id=${debouncedLanguageSetId}`)
             .then(res => setIgnoredCategories(res.data))
-            .catch(() => setIgnoredCategories([]));
+            .catch((err) => {
+                setIgnoredCategories([]);
+                if (err.response?.status === 429) {
+                    setShowRateLimit(true);
+                    setTimeout(() => setShowRateLimit(false), 4000);
+                }
+            });
 
         // Load user-specific ignored categories
         const token = localStorage.getItem('adminToken'); // reuse admin token if logged in
-        axios.get(`${API_ENDPOINTS.USER_IGNORED_CATEGORIES}?language_set_id=${selectedLanguageSetId}`, {
+        axios.get(`${API_ENDPOINTS.USER_IGNORED_CATEGORIES}?language_set_id=${debouncedLanguageSetId}`, {
             headers: token ? { Authorization: `Bearer ${token}` } : {}
         }).then(res => setUserIgnoredCategories(res.data))
-            .catch(() => setUserIgnoredCategories([]));
-    }, [selectedLanguageSetId]);
+            .catch((err) => {
+                setUserIgnoredCategories([]);
+                if (err.response?.status === 429) {
+                    setShowRateLimit(true);
+                    setTimeout(() => setShowRateLimit(false), 4000);
+                }
+            });
+    }, [debouncedLanguageSetId]);
 
     useEffect(() => {
         // Only run after game state restoration is complete
         if (!restored) return;
 
         // Prevent duplicate API calls for the same language set
-        if (lastFetchedLanguageSetIdRef.current === selectedLanguageSetId) return;
-        lastFetchedLanguageSetIdRef.current = selectedLanguageSetId;
+        if (lastFetchedLanguageSetIdRef.current === debouncedLanguageSetId) return;
+        lastFetchedLanguageSetIdRef.current = debouncedLanguageSetId;
 
         // Load categories with language set parameter
         let categoriesUrl = API_ENDPOINTS.CATEGORIES;
-        if (selectedLanguageSetId) {
-            categoriesUrl += `?language_set_id=${selectedLanguageSetId}`;
+        if (debouncedLanguageSetId) {
+            categoriesUrl += `?language_set_id=${debouncedLanguageSetId}`;
         }
 
         axios.get(categoriesUrl).then(res => {
@@ -174,10 +192,14 @@ function AppContent() {
             }
         }).catch(err => {
             console.error('Error loading categories:', err);
+            if (err.response?.status === 429) {
+                setShowRateLimit(true);
+                setTimeout(() => setShowRateLimit(false), 4000);
+            }
             lastFetchedLanguageSetIdRef.current = null; // Reset on error to allow retry
         });
         // eslint-disable-next-line
-    }, [restored, selectedLanguageSetId]);
+    }, [restored, debouncedLanguageSetId]);
 
     // Check if statistics are enabled on the server
     const checkStatisticsEnabled = useCallback(async () => {
@@ -536,6 +558,13 @@ function AppContent() {
                     } />
                 </Routes>
             </Container>
+
+            {/* Rate Limit Warning */}
+            <RateLimitWarning 
+                show={showRateLimit}
+                onClose={() => setShowRateLimit(false)}
+                message={t('common.rateLimitWarning', 'Please wait before making another request. The server is processing your previous request.')}
+            />
         </MUIThemeProvider>
     );
 }

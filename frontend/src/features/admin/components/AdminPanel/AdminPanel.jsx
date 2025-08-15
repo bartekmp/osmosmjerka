@@ -22,6 +22,7 @@ import {
     Typography
 } from '@mui/material';
 import { AdminButton, AdminLayout, API_ENDPOINTS, ResponsiveActionButton, STORAGE_KEYS } from '@shared';
+import { RateLimitWarning } from '@shared/components/ui/RateLimitWarning';
 import { useCallback, useEffect, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import AdminTable from './AdminTable';
@@ -113,7 +114,9 @@ export default function AdminPanel({
         handleDelete,
         handleBatchDelete,
         handleBatchAddCategory,
-        handleBatchRemoveCategory
+        handleBatchRemoveCategory,
+        isFetchingRows,
+        showFetchRateLimit
     } = useAdminApi({
         token,
         setRows,
@@ -1175,6 +1178,13 @@ export default function AdminPanel({
                     </Button>
                 </Box>
             )}
+
+            {/* Rate Limit Warning */}
+            <RateLimitWarning 
+                show={showFetchRateLimit}
+                onClose={() => {}} // Auto-closes via autoHideDuration
+                message={t('admin.rateLimitWarning', 'Please wait before making another request. Data is being processed.')}
+            />
         </AdminLayout>
     );
 }

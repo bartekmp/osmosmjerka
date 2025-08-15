@@ -1,6 +1,7 @@
 import axios from "axios";
 import { useCallback } from "react";
 import { API_ENDPOINTS } from '../../../../shared/constants/constants';
+import { useDebouncedApiCall } from '../../../../hooks/useDebounce';
 
 // Cache for categories to avoid frequent API calls
 let categoriesCache = null;
@@ -12,29 +13,42 @@ export function useAdminApi({ token, setRows, setTotalRows, setDashboard, setErr
         ? { Authorization: 'Bearer ' + token, 'Content-Type': 'application/json' }
         : {};
 
-    const fetchRows = useCallback((offset, limit, filterCategory, searchTerm, languageSetId) => {
+    // Create debounced API call for fetching rows
+    const fetchRowsApiCall = useCallback(async (offset, limit, filterCategory, searchTerm, languageSetId) => {
         let url = `/admin/rows?offset=${offset}&limit=${limit}`;
         if (filterCategory) url += `&category=${encodeURIComponent(filterCategory)}`;
         if (searchTerm && searchTerm.trim()) url += `&search=${encodeURIComponent(searchTerm.trim())}`;
         if (languageSetId) url += `&language_set_id=${languageSetId}`;
         
-        console.log('Fetching with URL:', url); // Debug log
-        
-        fetch(url, { headers: authHeader })
-            .then(res => {
-                if (!res.ok) throw new Error("Unauthorized or server error");
-                return res.json();
-            })
-            .then(data => {
-                setRows(data.rows || data);
-                setTotalRows(data.total || data.length || 0);
-                setDashboard(false);
-                setError("");
-            })
-            .catch(err => {
-                setError(err.message);
-            });
-    }, [authHeader, setRows, setTotalRows, setDashboard, setError]);
+        const response = await fetch(url, { headers: authHeader });
+        if (!response.ok) {
+            if (response.status === 429) {
+                throw new Error("Too many requests. Please wait before trying again.");
+            }
+            throw new Error("Unauthorized or server error");
+        }
+        return response.json();
+    }, [authHeader]);
+
+    const { 
+        call: debouncedFetchRows, 
+        isLoading: isFetchingRows, 
+        showRateLimit: showFetchRateLimit 
+    } = useDebouncedApiCall(fetchRowsApiCall, 750, {
+        onSuccess: (data) => {
+            setRows(data.rows || data);
+            setTotalRows(data.total || data.length || 0);
+            setDashboard(false);
+            setError("");
+        },
+        onError: (err) => {
+            setError(err.message);
+        }
+    });
+
+    const fetchRows = useCallback((offset, limit, filterCategory, searchTerm, languageSetId) => {
+        debouncedFetchRows(offset, limit, filterCategory, searchTerm, languageSetId);
+    }, [debouncedFetchRows]);
 
     const handleLogin = useCallback((auth, setError, setCurrentUser) => {
         fetch(`/admin/login`, {
@@ -250,6 +264,8 @@ export function useAdminApi({ token, setRows, setTotalRows, setDashboard, setErr
         handleBatchDelete,
         handleBatchAddCategory,
         handleBatchRemoveCategory,
-        getWithAuth
+        getWithAuth,
+        isFetchingRows,
+        showFetchRateLimit
     };
 }

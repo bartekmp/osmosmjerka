@@ -322,11 +322,8 @@ openssl req -x509 -nodes -days 365 -newkey rsa:2048 -keyout privkey.pem -out ful
 As this is self-signed, the browser will show you dreadful warnings when accessing the app.
 
 ## Planned features and fixes
-- Enhanced visual effects and animations
-- Add support for multiple phrases tables for more than one language
 - Integration with [Anki](https://apps.ankiweb.net/)
 - API optimization and potential load balancing
-- Code quality improvements and testing coverage
 
 # License
 Osmosmjerka is licensed under Apache License 2.0.
