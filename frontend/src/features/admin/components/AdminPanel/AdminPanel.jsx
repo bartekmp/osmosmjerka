@@ -37,6 +37,7 @@ import { useAdminApi } from './useAdminApi';
 import UploadForm from '../UploadForm';
 import UserManagement from './UserManagement';
 import UserProfile from './UserProfile';
+import StatisticsDashboard from '../StatisticsDashboard/StatisticsDashboard';
 import './AdminPanel.css';
 
 export default function AdminPanel({ 
@@ -59,6 +60,7 @@ export default function AdminPanel({
     const [dashboard, setDashboard] = useState(true);
     const [userManagement, setUserManagement] = useState(false);
     const [userProfile, setUserProfile] = useState(false);
+    const [statisticsDashboard, setStatisticsDashboard] = useState(false);
     const [languageSetManagement, setLanguageSetManagement] = useState(false);
     const [currentUser, setCurrentUser] = useState(null);
     const [categories, setCategories] = useState([]);
@@ -152,8 +154,15 @@ export default function AdminPanel({
         }
 
         // Always load language sets when user logs in (needed for dashboard button logic)
-        if (!languageSetsLoaded) {
-            fetch(API_ENDPOINTS.ADMIN_LANGUAGE_SETS, {
+        if (!languageSetsLoaded && currentUser) {
+            // Use different endpoints based on user role
+            const endpoint = currentUser?.role === 'admin' || currentUser?.role === 'root_admin' 
+                ? API_ENDPOINTS.ADMIN_LANGUAGE_SETS 
+                : API_ENDPOINTS.LANGUAGE_SETS;
+                
+            console.log('Loading language sets for user:', currentUser, 'using endpoint:', endpoint);
+                
+            fetch(endpoint, {
                 headers: {
                     'Authorization': `Bearer ${token}`
                 }
@@ -179,7 +188,7 @@ export default function AdminPanel({
                     setLanguageSetsLoading(false);
                 });
         }
-    }, [isLogged, token, languageSetsLoaded]);
+    }, [isLogged, token, languageSetsLoaded, currentUser]);
 
     // Separate useEffect for categories that depends on selectedLanguageSetId
     useEffect(() => {
@@ -189,7 +198,7 @@ export default function AdminPanel({
 
     useEffect(() => {
         // Only load categories when navigating to views that need them and language set is selected
-        const needsCategories = (!dashboard && !userManagement && !userProfile) || languageSetManagement;
+        const needsCategories = (!dashboard && !userManagement && !userProfile && !statisticsDashboard) || languageSetManagement;
         if (isLogged && token && selectedLanguageSetId && needsCategories && !categoriesLoaded) {
             fetch(`${API_ENDPOINTS.ALL_CATEGORIES}?language_set_id=${selectedLanguageSetId}`, {
                 headers: {
@@ -203,7 +212,7 @@ export default function AdminPanel({
                 })
                 .catch(err => console.error('Failed to load categories:', err));
         }
-    }, [isLogged, token, selectedLanguageSetId, dashboard, userManagement, userProfile, languageSetManagement, categoriesLoaded]);
+    }, [isLogged, token, selectedLanguageSetId, dashboard, userManagement, userProfile, statisticsDashboard, languageSetManagement, categoriesLoaded]);
 
     // Handlers for pagination and offset input, to avoid negative or excessive values
     const handleOffsetInput = (e) => {
@@ -346,7 +355,7 @@ export default function AdminPanel({
                 localStorage.removeItem(STORAGE_KEYS.ADMIN_TOKEN);
                 return;
             }
-            fetch(API_ENDPOINTS.ADMIN_STATUS, {
+            fetch(API_ENDPOINTS.USER_PROFILE, {
                 headers: token
                     ? { Authorization: 'Bearer ' + token, 'Content-Type': 'application/json' }
                     : {}
@@ -357,7 +366,7 @@ export default function AdminPanel({
                 })
                 .then(data => {
                     setIsLogged(true);
-                    setCurrentUser(data.user);
+                    setCurrentUser(data); // Profile endpoint returns user data directly
                 })
                 .catch(() => {
                     setIsLogged(false);
@@ -370,14 +379,14 @@ export default function AdminPanel({
 
     // When switching to Browse Phrases, auto-load first page
     useEffect(() => {
-        if (isLogged && !dashboard && !userManagement && !userProfile && !languageSetManagement && selectedLanguageSetId) {
+        if (isLogged && !dashboard && !userManagement && !userProfile && !statisticsDashboard && !languageSetManagement && selectedLanguageSetId) {
             setReloadLoading(true);
             fetchRows(0, limit, filterCategory, searchTerm, selectedLanguageSetId);
             setOffset(0);
             setReloadLoading(false);
         }
         // eslint-disable-next-line
-    }, [isLogged, dashboard, userManagement, userProfile, languageSetManagement, selectedLanguageSetId]);
+    }, [isLogged, dashboard, userManagement, userProfile, statisticsDashboard, languageSetManagement, selectedLanguageSetId]);
 
     // Handle inline save from table with optimistic updates
     const handleInlineSave = useCallback((updatedRow) => {
@@ -528,6 +537,7 @@ export default function AdminPanel({
         setUserManagement(false);
         setLanguageSetManagement(false);
         setUserProfile(false);
+        setStatisticsDashboard(false);
     };
 
     if (!isLogged) {
@@ -604,21 +614,23 @@ export default function AdminPanel({
                         {t('welcome_user', { username: currentUser?.username, role: currentUser?.role })}
                     </Typography>
                     <Box sx={{ display: 'flex', gap: 2, justifyContent: 'center', flexWrap: 'wrap', mt: 3 }}>
-                        <Button
-                            onClick={() => {
-                                if (languageSetsLoading) return;
-                                if (languageSets.length === 0) {
-                                    setDashboard(false);
-                                    setLanguageSetManagement(true);
-                                } else {
-                                    setDashboard(false);
-                                }
-                            }}
-                            variant="contained"
-                            disabled={languageSetsLoading}
-                        >
-                            {t('browse_phrases')}
-                        </Button>
+                        {(currentUser?.role === 'admin' || currentUser?.role === 'root_admin' || currentUser?.role === 'administrative') && (
+                            <Button
+                                onClick={() => {
+                                    if (languageSetsLoading) return;
+                                    if (languageSets.length === 0) {
+                                        setDashboard(false);
+                                        setLanguageSetManagement(true);
+                                    } else {
+                                        setDashboard(false);
+                                    }
+                                }}
+                                variant="contained"
+                                disabled={languageSetsLoading}
+                            >
+                                {t('browse_phrases')}
+                            </Button>
+                        )}
                         {(currentUser?.role === 'root_admin' || currentUser?.role === 'administrative') && (
                             <Button
                                 onClick={() => {
@@ -631,16 +643,29 @@ export default function AdminPanel({
                                 {t('user_management')}
                             </Button>
                         )}
+                        <Button
+                            onClick={() => {
+                                setDashboard(false);
+                                setLanguageSetManagement(true);
+                            }}
+                            variant="contained"
+                            color="warning"
+                        >
+                            {currentUser?.role === 'admin' || currentUser?.role === 'root_admin' || currentUser?.role === 'administrative' 
+                                ? t('language_sets_management')
+                                : t('manage_ignored_categories', 'Manage Ignored Categories')
+                            }
+                        </Button>
                         {(currentUser?.role === 'root_admin' || currentUser?.role === 'administrative') && (
                             <Button
                                 onClick={() => {
                                     setDashboard(false);
-                                    setLanguageSetManagement(true);
+                                    setStatisticsDashboard(true);
                                 }}
                                 variant="contained"
-                                color="warning"
+                                color="success"
                             >
-                                {t('language_sets_management')}
+                                {t('statistics_dashboard')}
                             </Button>
                         )}
                         <Button
@@ -684,6 +709,24 @@ export default function AdminPanel({
         );
     }
 
+    // Statistics Dashboard View
+    if (statisticsDashboard) {
+        return (
+            <AdminLayout
+                showBackToGame={true}
+                showDashboard={true}
+                showLogout={true}
+                onDashboard={() => {
+                    setStatisticsDashboard(false);
+                    setDashboard(true);
+                }}
+                onLogout={handleLogout}
+            >
+                <StatisticsDashboard token={token} setError={setError} currentUser={currentUser} />
+            </AdminLayout>
+        );
+    }
+
     // Language Sets Management View
     if (languageSetManagement) {
         return (
@@ -702,6 +745,7 @@ export default function AdminPanel({
                         currentUser={currentUser} 
                         initialLanguageSets={languageSets}
                         initialCategories={categories}
+                        showAdminActions={currentUser?.role === 'admin' || currentUser?.role === 'root_admin' || currentUser?.role === 'administrative'}
                     />
                 </Paper>
             </AdminLayout>
@@ -722,9 +766,7 @@ export default function AdminPanel({
                 }}
                 onLogout={handleLogout}
             >
-                <Paper sx={{ p: 3 }}>
-                    <UserProfile currentUser={currentUser} />
-                </Paper>
+                <UserProfile currentUser={currentUser} />
             </AdminLayout>
         );
     }
@@ -792,9 +834,13 @@ export default function AdminPanel({
                     </Box>
                 </Box>
             )}
-            <Typography variant="h4" component="h2" gutterBottom align="center">
-                {t('admin_panel')}
-            </Typography>
+            
+            {/* Browse Records Interface - Admin Only */}
+            {(currentUser?.role === 'admin' || currentUser?.role === 'root_admin' || currentUser?.role === 'administrative') ? (
+                <>
+                    <Typography variant="h4" component="h2" gutterBottom align="center">
+                        {t('admin_panel')}
+                    </Typography>
             {/* Action Buttons */}
             <Paper sx={{ p: 3, mb: 3 }}>
                 <Grid container spacing={2} justifyContent="center">
@@ -1105,6 +1151,30 @@ export default function AdminPanel({
                 operation={batchResult.operation}
                 result={batchResult.result}
             />
+            </>) : (
+                /* Regular users - Access Denied */
+                <Box sx={{ 
+                    display: 'flex', 
+                    flexDirection: 'column', 
+                    alignItems: 'center', 
+                    justifyContent: 'center', 
+                    minHeight: '400px', 
+                    textAlign: 'center' 
+                }}>
+                    <Typography variant="h5" gutterBottom color="error">
+                        {t('access_denied', 'Access Denied')}
+                    </Typography>
+                    <Typography variant="body1" sx={{ mb: 3 }}>
+                        {t('browse_records_admin_only', 'Browse records is only available for administrators.')}
+                    </Typography>
+                    <Button
+                        variant="contained"
+                        onClick={() => setDashboard(true)}
+                    >
+                        {t('back_to_dashboard')}
+                    </Button>
+                </Box>
+            )}
         </AdminLayout>
     );
 }

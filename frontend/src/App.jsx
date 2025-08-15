@@ -73,8 +73,16 @@ function AppContent() {
     const [isGridLoading, setIsGridLoading] = useState(false);
     const [panelOpen, setPanelOpen] = useState(false);
 
+    // Game session tracking for statistics
+    const [gameSessionId, setGameSessionId] = useState(null);
+    const [gameStartTime, setGameStartTime] = useState(null);
+    const [lastFoundCount, setLastFoundCount] = useState(0);
+    const [sessionCompleted, setSessionCompleted] = useState(false);
+    const [statisticsEnabled, setStatisticsEnabled] = useState(true); // Default to true, will be checked from server
+
     // Refs to prevent duplicate API calls in StrictMode
     const lastFetchedLanguageSetIdRef = useRef(null);
+    const completionInProgressRef = useRef(false);
 
     // Winning condition: all phrases found
     const allFound = phrases.length > 0 && found.length === phrases.length;
@@ -91,6 +99,12 @@ function AppContent() {
         setGrid([]);
         setPhrases([]);
         setFound([]);
+        
+        // Reset session tracking state when changing language set
+        setSessionCompleted(false);
+        setGameSessionId(null);
+        setGameStartTime(null);
+        setLastFoundCount(0);
     }, []);
 
     // Apply theme data attribute to body
@@ -165,6 +179,39 @@ function AppContent() {
         // eslint-disable-next-line
     }, [restored, selectedLanguageSetId]);
 
+    // Check if statistics are enabled on the server
+    const checkStatisticsEnabled = useCallback(async () => {
+        const token = localStorage.getItem(STORAGE_KEYS.ADMIN_TOKEN);
+        if (!token) {
+            setStatisticsEnabled(false);
+            return;
+        }
+
+        try {
+            const response = await axios.get(`${API_ENDPOINTS.ADMIN}/admin/settings/statistics-enabled`, {
+                headers: {
+                    'Authorization': `Bearer ${token}`,
+                    'Content-Type': 'application/json'
+                }
+            });
+            setStatisticsEnabled(response.data.enabled);
+        } catch (error) {
+            // If error (e.g., unauthorized, settings not found), default to enabled for normal users
+            setStatisticsEnabled(true);
+        }
+    }, []);
+
+    // Check statistics enabled status on component mount and when auth changes
+    useEffect(() => {
+        checkStatisticsEnabled();
+        
+        // Also check when auth token changes
+        const token = localStorage.getItem(STORAGE_KEYS.ADMIN_TOKEN);
+        if (token) {
+            checkStatisticsEnabled();
+        }
+    }, [checkStatisticsEnabled]);
+
     // Save state to localStorage on change, including showTranslations and selectedLanguageSetId
     useEffect(() => {
         saveGameState({
@@ -191,6 +238,14 @@ function AppContent() {
     const loadPuzzle = (category, diff = difficulty) => {
         setIsGridLoading(true);
         resetCelebration(); // Reset celebration state using hook
+        
+        // Reset session tracking state when loading a new puzzle
+        setSessionCompleted(false);
+        setGameSessionId(null);
+        setGameStartTime(null);
+        setLastFoundCount(0);
+        completionInProgressRef.current = false; // Reset completion flag for new puzzle
+        
         loadPuzzleHelper(category, diff, {
             setSelectedCategory,
             setGrid,
@@ -205,18 +260,137 @@ function AppContent() {
         });
     };
 
-    const markFound = (phrase) => {
+    // Game session tracking functions
+    const startGameSession = useCallback(async (category, difficulty, gridSize, totalPhrases) => {
+        const token = localStorage.getItem(STORAGE_KEYS.ADMIN_TOKEN);
+        if (!token || !selectedLanguageSetId || !statisticsEnabled) return;
+
+        try {
+            const response = await axios.post(`${API_ENDPOINTS.GAME}/game/start`, {
+                language_set_id: selectedLanguageSetId,
+                category,
+                difficulty,
+                grid_size: gridSize,
+                total_phrases: totalPhrases
+            }, {
+                headers: {
+                    'Authorization': `Bearer ${token}`,
+                    'Content-Type': 'application/json'
+                }
+            });
+
+            setGameSessionId(response.data.session_id);
+            setGameStartTime(Date.now());
+            setLastFoundCount(0);
+            setSessionCompleted(false);
+            completionInProgressRef.current = false; // Reset completion flag for new session
+        } catch (error) {
+            console.error('Failed to start game session:', error);
+        }
+    }, [selectedLanguageSetId, statisticsEnabled]);
+
+    const updateGameProgress = useCallback(async (phrasesFound) => {
+        const token = localStorage.getItem(STORAGE_KEYS.ADMIN_TOKEN);
+        if (!token || !gameSessionId || !statisticsEnabled) return;
+
+        try {
+            await axios.put(`${API_ENDPOINTS.GAME}/game/progress`, {
+                session_id: gameSessionId,
+                phrases_found: phrasesFound
+            }, {
+                headers: {
+                    'Authorization': `Bearer ${token}`,
+                    'Content-Type': 'application/json'
+                }
+            });
+        } catch (error) {
+            console.error('Failed to update game progress:', error);
+        }
+    }, [gameSessionId, statisticsEnabled]);
+
+    const completeGameSession = useCallback(async (phrasesFound, isCompleted) => {
+        const token = localStorage.getItem(STORAGE_KEYS.ADMIN_TOKEN);
+        if (!token || !gameSessionId || !gameStartTime || sessionCompleted || completionInProgressRef.current || !statisticsEnabled) return;
+
+        // Set flag to prevent duplicate calls
+        completionInProgressRef.current = true;
+
+        try {
+            const durationSeconds = Math.floor((Date.now() - gameStartTime) / 1000);
+            
+            await axios.post(`${API_ENDPOINTS.GAME}/game/complete`, {
+                session_id: gameSessionId,
+                phrases_found: phrasesFound,
+                duration_seconds: durationSeconds
+            }, {
+                headers: {
+                    'Authorization': `Bearer ${token}`,
+                    'Content-Type': 'application/json'
+                }
+            });
+
+            // Reset session tracking
+            setSessionCompleted(true);
+            setGameSessionId(null);
+            setGameStartTime(null);
+            setLastFoundCount(0);
+        } catch (error) {
+            console.error('Failed to complete game session:', error);
+        } finally {
+            // Reset flag after completion (successful or failed)
+            completionInProgressRef.current = false;
+        }
+    }, [gameSessionId, gameStartTime, sessionCompleted, statisticsEnabled]);
+
+    const markFound = useCallback((phrase) => {
         if (!found.includes(phrase)) {
+            // Start game session on first found phrase (only if statistics are enabled)
+            if (found.length === 0 && phrases.length > 0 && grid.length > 0 && selectedCategory && !gameSessionId && !sessionCompleted && statisticsEnabled) {
+                const gridSize = grid.length;
+                startGameSession(selectedCategory, difficulty, gridSize, phrases.length);
+            }
+            
             setFound([...found, phrase]);
             confetti();
         }
-    };
+    }, [found, phrases.length, grid.length, selectedCategory, gameSessionId, sessionCompleted, difficulty, startGameSession, statisticsEnabled]);
 
     const handlePhraseClick = (phrase) => {
         if (gridRef.current) {
             gridRef.current.blinkPhrase(phrase);
         }
     };
+
+    // Game session tracking effects
+    // Note: Game session now starts when first phrase is found (see markFound function)
+    
+    useEffect(() => {
+        // Update progress when found phrases change
+        if (gameSessionId && found.length !== lastFoundCount) {
+            updateGameProgress(found.length);
+            setLastFoundCount(found.length);
+        }
+    }, [found.length, gameSessionId, lastFoundCount, updateGameProgress]);
+
+    useEffect(() => {
+        // Complete session when all phrases are found (only once)
+        if (allFound && gameSessionId && gameStartTime && !sessionCompleted) {
+            completeGameSession(found.length, true);
+        }
+    }, [allFound, gameSessionId, gameStartTime, sessionCompleted, completeGameSession, found.length]);
+
+    useEffect(() => {
+        // Complete session when starting a new game (if there was a previous incomplete session)
+        const currentGameSessionId = gameSessionId;
+        const currentSessionCompleted = sessionCompleted;
+        const currentFoundLength = found.length;
+        
+        return () => {
+            if (currentGameSessionId && !currentSessionCompleted && !completionInProgressRef.current) {
+                completeGameSession(currentFoundLength, false);
+            }
+        };
+    }, [selectedCategory, difficulty]); // Only reset when starting new game
 
     // Automatically reveal phrases when all are found
     useEffect(() => {

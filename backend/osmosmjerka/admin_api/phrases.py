@@ -81,6 +81,8 @@ async def add_row(row: dict, language_set_id: int = Query(...), user=Depends(req
     """Add a new phrase to specified language set"""
     try:
         await db_manager.add_phrase(language_set_id, row["categories"], row["phrase"], row["translation"])
+        # Track statistics for phrase addition
+        await db_manager.record_phrase_operation(user["id"], language_set_id, "added")
         return JSONResponse({"message": "Phrase added"}, status_code=status.HTTP_201_CREATED)
     except Exception as e:
         return JSONResponse({"error": f"Failed to add phrase: {str(e)}"}, status_code=status.HTTP_400_BAD_REQUEST)
@@ -93,6 +95,8 @@ async def update_row(
     """Update an existing phrase"""
     try:
         await db_manager.update_phrase(id, language_set_id, row["categories"], row["phrase"], row["translation"])
+        # Track statistics for phrase editing
+        await db_manager.record_phrase_operation(user["id"], language_set_id, "edited")
         return JSONResponse({"message": "Phrase updated"}, status_code=status.HTTP_200_OK)
     except Exception as e:
         return JSONResponse({"error": f"Failed to update phrase: {str(e)}"}, status_code=status.HTTP_400_BAD_REQUEST)
@@ -128,6 +132,9 @@ async def upload(
         phrases_data = _parse_phrases_csv(content)
         if phrases_data:
             await run_in_threadpool(db_manager.fast_bulk_insert_phrases, language_set_id, phrases_data)
+            # Track statistics for bulk phrase addition
+            for _ in range(len(phrases_data)):
+                await db_manager.record_phrase_operation(user["id"], language_set_id, "added")
             return JSONResponse(
                 {"message": f"Uploaded {len(phrases_data)} phrases"}, status_code=status.HTTP_201_CREATED
             )
