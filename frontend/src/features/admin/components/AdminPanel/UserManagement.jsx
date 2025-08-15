@@ -357,9 +357,13 @@ export default function UserManagement({ currentUser }) {
                                 value={formData.role}
                                 label={t('role')}
                                 onChange={(e) => setFormData({ ...formData, role: e.target.value })}
+                                disabled={selectedUser?.id === 0} // Disable role editing for root admin
                             >
                                 <MenuItem value="regular">{t('regular')}</MenuItem>
                                 <MenuItem value="administrative">{t('administrative')}</MenuItem>
+                                {(selectedUser?.id === 0 || formData.role === 'root_admin') && (
+                                    <MenuItem value="root_admin">{t('root_admin')}</MenuItem>
+                                )}
                             </Select>
                         </FormControl>
 
