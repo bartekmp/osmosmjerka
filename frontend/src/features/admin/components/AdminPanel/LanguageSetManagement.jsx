@@ -30,7 +30,7 @@ import { useEffect, useRef, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { ResponsiveText } from '../../../../shared';
 
-export default function LanguageSetManagement({ currentUser, initialLanguageSets = [], initialCategories = [] }) {
+export default function LanguageSetManagement({ currentUser, initialLanguageSets = [], initialCategories = [], showAdminActions = true }) {
     const { t } = useTranslation();
     const [languageSets, setLanguageSets] = useState(initialLanguageSets);
     const [availableCategories, setAvailableCategories] = useState(initialCategories);
@@ -350,16 +350,18 @@ export default function LanguageSetManagement({ currentUser, initialLanguageSets
         <Paper sx={{ p: 3, mt: 3 }}>
             <Box display="flex" justifyContent="space-between" alignItems="center" mb={2}>
                 <Typography variant="h5" component="h2">
-                    {t('language_sets_management')}
+                    {showAdminActions ? t('language_sets_management') : t('manage_ignored_categories', 'Manage Ignored Categories')}
                 </Typography>
-                <Button
-                    variant="contained"
-                    startIcon={<AddIcon />}
-                    onClick={handleCreate}
-                    disabled={loading}
-                >
-                    <ResponsiveText desktop={t('add_language_set')} mobile={t('add_language_set_short')} />
-                </Button>
+                {showAdminActions && (
+                    <Button
+                        variant="contained"
+                        startIcon={<AddIcon />}
+                        onClick={handleCreate}
+                        disabled={loading}
+                    >
+                        <ResponsiveText desktop={t('add_language_set')} mobile={t('add_language_set_short')} />
+                    </Button>
+                )}
             </Box>
 
             {error && (
@@ -380,10 +382,10 @@ export default function LanguageSetManagement({ currentUser, initialLanguageSets
                         <TableRow>
                             <TableCell>{t('name')}</TableCell>
                             <TableCell>{t('display_name')}</TableCell>
-                            <TableCell>{t('description')}</TableCell>
-                            <TableCell>{t('author')}</TableCell>
-                            <TableCell>{t('status')}</TableCell>
-                            <TableCell>{t('created_at')}</TableCell>
+                            {showAdminActions && <TableCell>{t('description')}</TableCell>}
+                            {showAdminActions && <TableCell>{t('author')}</TableCell>}
+                            {showAdminActions && <TableCell>{t('status')}</TableCell>}
+                            {showAdminActions && <TableCell>{t('created_at')}</TableCell>}
                             <TableCell>{t('actions')}</TableCell>
                         </TableRow>
                     </TableHead>
@@ -399,35 +401,43 @@ export default function LanguageSetManagement({ currentUser, initialLanguageSets
                                     </Box>
                                 </TableCell>
                                 <TableCell>{set.display_name}</TableCell>
-                                <TableCell>{set.description}</TableCell>
-                                <TableCell>{set.author}</TableCell>
+                                {showAdminActions && <TableCell>{set.description}</TableCell>}
+                                {showAdminActions && <TableCell>{set.author}</TableCell>}
+                                {showAdminActions && (
+                                    <TableCell>
+                                        <Chip
+                                            label={set.is_active ? t('active') : t('inactive')}
+                                            color={set.is_active ? 'success' : 'default'}
+                                            size="small"
+                                        />
+                                    </TableCell>
+                                )}
+                                {showAdminActions && (
+                                    <TableCell>
+                                        {new Date(set.created_at).toLocaleDateString()}
+                                    </TableCell>
+                                )}
                                 <TableCell>
-                                    <Chip
-                                        label={set.is_active ? t('active') : t('inactive')}
-                                        color={set.is_active ? 'success' : 'default'}
-                                        size="small"
-                                    />
-                                </TableCell>
-                                <TableCell>
-                                    {new Date(set.created_at).toLocaleDateString()}
-                                </TableCell>
-                                <TableCell>
-                                    <IconButton
-                                        size="small"
-                                        onClick={() => handleEdit(set)}
-                                        disabled={loading}
-                                    >
-                                        <EditIcon />
-                                    </IconButton>
-                                    <IconButton
-                                        size="small"
-                                        onClick={() => handleDelete(set)}
-                                        disabled={loading || (set.protected && currentUser?.role !== 'root_admin')}
-                                        color="error"
-                                        title={set.protected && currentUser?.role !== 'root_admin' ? t('protected_language_set', 'Cannot delete root admin language set') : t('delete')}
-                                    >
-                                        <DeleteIcon />
-                                    </IconButton>
+                                    {showAdminActions && (
+                                        <>
+                                            <IconButton
+                                                size="small"
+                                                onClick={() => handleEdit(set)}
+                                                disabled={loading}
+                                            >
+                                                <EditIcon />
+                                            </IconButton>
+                                            <IconButton
+                                                size="small"
+                                                onClick={() => handleDelete(set)}
+                                                disabled={loading || (set.protected && currentUser?.role !== 'root_admin')}
+                                                color="error"
+                                                title={set.protected && currentUser?.role !== 'root_admin' ? t('protected_language_set', 'Cannot delete root admin language set') : t('delete')}
+                                            >
+                                                <DeleteIcon />
+                                            </IconButton>
+                                        </>
+                                    )}
                                     <Tooltip title={t('manage_ignored_categories', 'Manage ignored categories')} arrow>
                                         <span>
                                             <IconButton
@@ -440,7 +450,7 @@ export default function LanguageSetManagement({ currentUser, initialLanguageSets
                                             </IconButton>
                                         </span>
                                     </Tooltip>
-                                    {!set.is_default && (
+                                    {showAdminActions && !set.is_default && (
                                         <Tooltip title={t('make_default', 'Make default')} arrow>
                                             <IconButton
                                                 size="small"
@@ -461,8 +471,9 @@ export default function LanguageSetManagement({ currentUser, initialLanguageSets
                 </Table>
             </TableContainer>
 
-            {/* Create/Edit Dialog */}
-            <Dialog open={dialogOpen} onClose={handleClose} maxWidth="sm" fullWidth>
+            {/* Create/Edit Dialog - Admin Only */}
+            {showAdminActions && (
+                <Dialog open={dialogOpen} onClose={handleClose} maxWidth="sm" fullWidth>
                 <DialogTitle>
                     {editingSet ? t('edit_language_set') : t('create_language_set')}
                 </DialogTitle>
@@ -600,6 +611,7 @@ export default function LanguageSetManagement({ currentUser, initialLanguageSets
                     </Typography>
                 </Backdrop>
             </Dialog>
+            )}
 
             {/* Ignored Categories Dialog */}
             <Dialog open={ignoredCategoriesDialogOpen} onClose={() => setIgnoredCategoriesDialogOpen(false)} maxWidth="sm" fullWidth>

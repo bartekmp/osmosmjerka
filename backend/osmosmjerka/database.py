@@ -1,11 +1,12 @@
 import datetime
 import os
+import time
 import urllib.parse
-from typing import Any, Optional
+from typing import Any, Dict, List, Optional, Tuple
 
 from databases import Database
 from dotenv import load_dotenv
-from sqlalchemy import Boolean, Column, DateTime, Integer, MetaData, String, Table, Text, create_engine
+from sqlalchemy import Boolean, Column, DateTime, Integer, MetaData, String, Table, Text, create_engine, desc
 from sqlalchemy.sql import delete, func, insert, select, update
 
 # Load environment variables
@@ -71,6 +72,69 @@ user_ignored_categories_table = Table(
     Column("category", String, nullable=False),
 )
 
+# Define the user_statistics table for storing game statistics
+user_statistics_table = Table(
+    "user_statistics",
+    metadata,
+    Column("id", Integer, primary_key=True, index=True),
+    Column("user_id", Integer, nullable=False, index=True),
+    Column("language_set_id", Integer, nullable=False, index=True),
+    Column("games_started", Integer, nullable=False, default=0),
+    Column("games_completed", Integer, nullable=False, default=0),
+    Column("puzzles_solved", Integer, nullable=False, default=0),
+    Column("total_phrases_found", Integer, nullable=False, default=0),
+    Column("total_time_played_seconds", Integer, nullable=False, default=0),
+    Column("phrases_added", Integer, nullable=False, default=0),
+    Column("phrases_edited", Integer, nullable=False, default=0),
+    Column("last_played", DateTime, nullable=True),
+    Column("created_at", DateTime, nullable=False, server_default=func.now()),
+    Column("updated_at", DateTime, nullable=False, server_default=func.now()),
+)
+
+# Define the user_category_plays table for tracking favorite categories
+user_category_plays_table = Table(
+    "user_category_plays",
+    metadata,
+    Column("id", Integer, primary_key=True, index=True),
+    Column("user_id", Integer, nullable=False, index=True),
+    Column("language_set_id", Integer, nullable=False, index=True),
+    Column("category", String, nullable=False, index=True),
+    Column("plays_count", Integer, nullable=False, default=1),
+    Column("phrases_found", Integer, nullable=False, default=0),
+    Column("total_time_seconds", Integer, nullable=False, default=0),
+    Column("last_played", DateTime, nullable=False, server_default=func.now()),
+)
+
+# Define the game_sessions table for tracking individual game sessions
+game_sessions_table = Table(
+    "game_sessions",
+    metadata,
+    Column("id", Integer, primary_key=True, index=True),
+    Column("user_id", Integer, nullable=False, index=True),
+    Column("language_set_id", Integer, nullable=False, index=True),
+    Column("category", String, nullable=False),
+    Column("difficulty", String, nullable=False),
+    Column("grid_size", Integer, nullable=False),
+    Column("total_phrases", Integer, nullable=False),
+    Column("phrases_found", Integer, nullable=False, default=0),
+    Column("is_completed", Boolean, nullable=False, default=False),
+    Column("start_time", DateTime, nullable=False, server_default=func.now()),
+    Column("end_time", DateTime, nullable=True),
+    Column("duration_seconds", Integer, nullable=True),
+)
+
+# Define the global_settings table for application-wide settings
+global_settings_table = Table(
+    "global_settings",
+    metadata,
+    Column("id", Integer, primary_key=True, index=True),
+    Column("setting_key", String, nullable=False, unique=True),
+    Column("setting_value", String, nullable=False),
+    Column("description", Text, nullable=True),
+    Column("updated_at", DateTime, nullable=False, server_default=func.now()),
+    Column("updated_by", Integer, nullable=False),  # User ID of who made the change
+)
+
 
 class DatabaseManager:
     """Database manager class that encapsulates all database operations using hybrid approach"""
@@ -80,6 +144,8 @@ class DatabaseManager:
         self.database = None
         self.engine = None
         self._phrase_tables_cache = {}  # Cache for dynamically created phrase tables
+        self._statistics_cache = {}  # Cache for user statistics with TTL
+        self._statistics_cache_ttl = 300  # 5 minutes cache TTL
 
     def _serialize_datetimes(self, dict_obj) -> dict:
         serialized_dict = {}
@@ -494,27 +560,25 @@ class DatabaseManager:
             raise ValueError(f"Language set with ID {language_set_id} not found")
 
         phrase_table = self._get_phrase_table(language_set["name"])
-        
+
         # Get current phrases that need updating
-        select_query = select(phrase_table.c.id, phrase_table.c.categories).where(
-            phrase_table.c.id.in_(phrase_ids)
-        )
+        select_query = select(phrase_table.c.id, phrase_table.c.categories).where(phrase_table.c.id.in_(phrase_ids))
         phrases = await database.fetch_all(select_query)
-        
+
         affected_count = 0
         for phrase in phrases:
             current_categories = phrase["categories"] or ""
             current_cat_list = [cat.strip() for cat in current_categories.split() if cat.strip()]
-            
+
             # Only update if category doesn't already exist
             if category not in current_cat_list:
                 new_categories = " ".join(current_cat_list + [category])
-                update_query = update(phrase_table).where(
-                    phrase_table.c.id == phrase["id"]
-                ).values(categories=new_categories)
+                update_query = (
+                    update(phrase_table).where(phrase_table.c.id == phrase["id"]).values(categories=new_categories)
+                )
                 await database.execute(update_query)
                 affected_count += 1
-        
+
         return affected_count
 
     async def batch_remove_category(self, phrase_ids: list[int], category: str, language_set_id: int) -> int:
@@ -527,28 +591,26 @@ class DatabaseManager:
             raise ValueError(f"Language set with ID {language_set_id} not found")
 
         phrase_table = self._get_phrase_table(language_set["name"])
-        
+
         # Get current phrases that need updating
-        select_query = select(phrase_table.c.id, phrase_table.c.categories).where(
-            phrase_table.c.id.in_(phrase_ids)
-        )
+        select_query = select(phrase_table.c.id, phrase_table.c.categories).where(phrase_table.c.id.in_(phrase_ids))
         phrases = await database.fetch_all(select_query)
-        
+
         affected_count = 0
         for phrase in phrases:
             current_categories = phrase["categories"] or ""
             current_cat_list = [cat.strip() for cat in current_categories.split() if cat.strip()]
-            
+
             # Only update if category exists
             if category in current_cat_list:
                 new_cat_list = [cat for cat in current_cat_list if cat != category]
                 new_categories = " ".join(new_cat_list)
-                update_query = update(phrase_table).where(
-                    phrase_table.c.id == phrase["id"]
-                ).values(categories=new_categories)
+                update_query = (
+                    update(phrase_table).where(phrase_table.c.id == phrase["id"]).values(categories=new_categories)
+                )
                 await database.execute(update_query)
                 affected_count += 1
-        
+
         return affected_count
 
     async def get_categories_for_language_set(
@@ -780,6 +842,553 @@ class DatabaseManager:
         for k in result:
             result[k] = sorted(result[k])
         return result
+
+    # Statistics methods with caching
+
+    def _get_cache_key(self, prefix: str, user_id: int, language_set_id: Optional[int] = None) -> str:
+        """Generate cache key for statistics"""
+        if language_set_id is not None:
+            return f"{prefix}:{user_id}:{language_set_id}"
+        return f"{prefix}:{user_id}"
+
+    def _is_cache_valid(self, cache_entry: Dict) -> bool:
+        """Check if cache entry is still valid"""
+        return time.time() - cache_entry["timestamp"] < self._statistics_cache_ttl
+
+    def _invalidate_user_cache(self, user_id: int):
+        """Invalidate all cache entries for a user"""
+        keys_to_remove = [
+            key for key in self._statistics_cache.keys() if f":{user_id}:" in key or key.endswith(f":{user_id}")
+        ]
+        for key in keys_to_remove:
+            del self._statistics_cache[key]
+
+    async def start_game_session(
+        self, user_id: int, language_set_id: int, category: str, difficulty: str, grid_size: int, total_phrases: int
+    ) -> int:
+        """Start a new game session and return session ID"""
+        database = self._ensure_database()
+
+        # Insert new game session
+        query = insert(game_sessions_table).values(
+            user_id=user_id,
+            language_set_id=language_set_id,
+            category=category,
+            difficulty=difficulty,
+            grid_size=grid_size,
+            total_phrases=total_phrases,
+            phrases_found=0,
+            is_completed=False,
+        )
+        session_id = await database.execute(query)
+
+        # Update user statistics - games started
+        await self._update_user_statistics(user_id, language_set_id, games_started=1)
+
+        # Invalidate cache
+        self._invalidate_user_cache(user_id)
+
+        return session_id
+
+    async def update_game_progress(self, session_id: int, phrases_found: int):
+        """Update game progress for a session"""
+        database = self._ensure_database()
+
+        query = (
+            update(game_sessions_table)
+            .where(game_sessions_table.c.id == session_id)
+            .values(phrases_found=phrases_found)
+        )
+
+        await database.execute(query)
+
+    async def complete_game_session(self, session_id: int, phrases_found: int, duration_seconds: int):
+        """Complete a game session and update statistics"""
+        database = self._ensure_database()
+
+        # Get session details
+        session_query = select(game_sessions_table).where(game_sessions_table.c.id == session_id)
+        session = await database.fetch_one(session_query)
+
+        if not session:
+            return
+
+        user_id = session["user_id"]
+        language_set_id = session["language_set_id"]
+        category = session["category"]
+        total_phrases = session["total_phrases"]
+        is_completed = phrases_found == total_phrases
+
+        # Update game session
+        update_query = (
+            update(game_sessions_table)
+            .where(game_sessions_table.c.id == session_id)
+            .values(
+                phrases_found=phrases_found,
+                is_completed=is_completed,
+                end_time=func.now(),
+                duration_seconds=duration_seconds,
+            )
+        )
+        await database.execute(update_query)
+
+        # Update user statistics
+        stats_update = {"total_phrases_found": phrases_found, "total_time_played_seconds": duration_seconds}
+
+        if is_completed:
+            stats_update["games_completed"] = 1
+            stats_update["puzzles_solved"] = 1
+
+        await self._update_user_statistics(user_id, language_set_id, **stats_update)
+
+        # Update category plays
+        await self._update_category_plays(user_id, language_set_id, category, phrases_found, duration_seconds)
+
+        # Invalidate cache
+        self._invalidate_user_cache(user_id)
+
+    async def _update_user_statistics(self, user_id: int, language_set_id: int, **kwargs):
+        """Update user statistics with the provided values"""
+        database = self._ensure_database()
+
+        # Check if record exists
+        check_query = select(user_statistics_table).where(
+            (user_statistics_table.c.user_id == user_id) & (user_statistics_table.c.language_set_id == language_set_id)
+        )
+        existing = await database.fetch_one(check_query)
+
+        if existing:
+            # Update existing record
+            update_values = {"updated_at": func.now()}
+            for key, value in kwargs.items():
+                if key in [
+                    "games_started",
+                    "games_completed",
+                    "puzzles_solved",
+                    "total_phrases_found",
+                    "total_time_played_seconds",
+                    "phrases_added",
+                    "phrases_edited",
+                ]:
+                    update_values[key] = getattr(user_statistics_table.c, key) + value
+
+            if any(k in kwargs for k in ["games_completed", "puzzles_solved"]):
+                update_values["last_played"] = func.now()
+
+            query = (
+                update(user_statistics_table)
+                .where(
+                    (user_statistics_table.c.user_id == user_id)
+                    & (user_statistics_table.c.language_set_id == language_set_id)
+                )
+                .values(**update_values)
+            )
+
+            await database.execute(query)
+        else:
+            # Insert new record
+            insert_values = {
+                "user_id": user_id,
+                "language_set_id": language_set_id,
+                "games_started": kwargs.get("games_started", 0),
+                "games_completed": kwargs.get("games_completed", 0),
+                "puzzles_solved": kwargs.get("puzzles_solved", 0),
+                "total_phrases_found": kwargs.get("total_phrases_found", 0),
+                "total_time_played_seconds": kwargs.get("total_time_played_seconds", 0),
+                "phrases_added": kwargs.get("phrases_added", 0),
+                "phrases_edited": kwargs.get("phrases_edited", 0),
+            }
+
+            if any(k in kwargs for k in ["games_completed", "puzzles_solved"]):
+                insert_values["last_played"] = func.now()
+
+            query = insert(user_statistics_table).values(**insert_values)
+            await database.execute(query)
+
+    async def _update_category_plays(
+        self, user_id: int, language_set_id: int, category: str, phrases_found: int, duration_seconds: int
+    ):
+        """Update category play statistics"""
+        database = self._ensure_database()
+
+        # Check if record exists
+        check_query = select(user_category_plays_table).where(
+            (user_category_plays_table.c.user_id == user_id)
+            & (user_category_plays_table.c.language_set_id == language_set_id)
+            & (user_category_plays_table.c.category == category)
+        )
+        existing = await database.fetch_one(check_query)
+
+        if existing:
+            # Update existing record
+            query = (
+                update(user_category_plays_table)
+                .where(
+                    (user_category_plays_table.c.user_id == user_id)
+                    & (user_category_plays_table.c.language_set_id == language_set_id)
+                    & (user_category_plays_table.c.category == category)
+                )
+                .values(
+                    plays_count=user_category_plays_table.c.plays_count + 1,
+                    phrases_found=user_category_plays_table.c.phrases_found + phrases_found,
+                    total_time_seconds=user_category_plays_table.c.total_time_seconds + duration_seconds,
+                    last_played=func.now(),
+                )
+            )
+            await database.execute(query)
+        else:
+            # Insert new record
+            query = insert(user_category_plays_table).values(
+                user_id=user_id,
+                language_set_id=language_set_id,
+                category=category,
+                plays_count=1,
+                phrases_found=phrases_found,
+                total_time_seconds=duration_seconds,
+            )
+            await database.execute(query)
+
+    async def record_phrase_operation(self, user_id: int, language_set_id: int, operation: str):
+        """Record phrase add/edit operation"""
+        if operation not in ["added", "edited"]:
+            return
+
+        field_name = f"phrases_{operation}"
+        await self._update_user_statistics(user_id, language_set_id, **{field_name: 1})
+        self._invalidate_user_cache(user_id)
+
+    async def get_user_statistics(self, user_id: int, language_set_id: Optional[int] = None) -> Dict:
+        """Get user statistics with caching"""
+        cache_key = self._get_cache_key("user_stats", user_id, language_set_id)
+
+        # Check cache first
+        if cache_key in self._statistics_cache and self._is_cache_valid(self._statistics_cache[cache_key]):
+            return self._statistics_cache[cache_key]["data"]
+
+        database = self._ensure_database()
+
+        if language_set_id is not None:
+            # Get statistics for specific language set
+            query = select(user_statistics_table).where(
+                (user_statistics_table.c.user_id == user_id)
+                & (user_statistics_table.c.language_set_id == language_set_id)
+            )
+            stats = await database.fetch_one(query)
+
+            if stats:
+                result = dict(stats)
+                result = self._serialize_datetimes(result)
+            else:
+                result = {
+                    "user_id": user_id,
+                    "language_set_id": language_set_id,
+                    "games_started": 0,
+                    "games_completed": 0,
+                    "puzzles_solved": 0,
+                    "total_phrases_found": 0,
+                    "total_time_played_seconds": 0,
+                    "phrases_added": 0,
+                    "phrases_edited": 0,
+                    "last_played": None,
+                }
+        else:
+            # Get aggregated statistics across all language sets
+            query = select(
+                func.sum(user_statistics_table.c.games_started).label("games_started"),
+                func.sum(user_statistics_table.c.games_completed).label("games_completed"),
+                func.sum(user_statistics_table.c.puzzles_solved).label("puzzles_solved"),
+                func.sum(user_statistics_table.c.total_phrases_found).label("total_phrases_found"),
+                func.sum(user_statistics_table.c.total_time_played_seconds).label("total_time_played_seconds"),
+                func.sum(user_statistics_table.c.phrases_added).label("phrases_added"),
+                func.sum(user_statistics_table.c.phrases_edited).label("phrases_edited"),
+                func.max(user_statistics_table.c.last_played).label("last_played"),
+            ).where(user_statistics_table.c.user_id == user_id)
+
+            stats = await database.fetch_one(query)
+
+            if stats and stats["games_started"]:
+                result = {
+                    "user_id": user_id,
+                    "games_started": stats["games_started"] or 0,
+                    "games_completed": stats["games_completed"] or 0,
+                    "puzzles_solved": stats["puzzles_solved"] or 0,
+                    "total_phrases_found": stats["total_phrases_found"] or 0,
+                    "total_time_played_seconds": stats["total_time_played_seconds"] or 0,
+                    "phrases_added": stats["phrases_added"] or 0,
+                    "phrases_edited": stats["phrases_edited"] or 0,
+                    "last_played": stats["last_played"].isoformat() if stats["last_played"] else None,
+                }
+            else:
+                result = {
+                    "user_id": user_id,
+                    "games_started": 0,
+                    "games_completed": 0,
+                    "puzzles_solved": 0,
+                    "total_phrases_found": 0,
+                    "total_time_played_seconds": 0,
+                    "phrases_added": 0,
+                    "phrases_edited": 0,
+                    "last_played": None,
+                }
+
+        # Cache the result
+        self._statistics_cache[cache_key] = {"data": result, "timestamp": time.time()}
+
+        return result
+
+    async def get_user_favorite_categories(self, user_id: int, language_set_id: int, limit: int = 5) -> List[Dict]:
+        """Get user's favorite categories for a language set"""
+        cache_key = self._get_cache_key("fav_cats", user_id, language_set_id)
+
+        # Check cache first
+        if cache_key in self._statistics_cache and self._is_cache_valid(self._statistics_cache[cache_key]):
+            return self._statistics_cache[cache_key]["data"]
+
+        database = self._ensure_database()
+
+        query = (
+            select(
+                user_category_plays_table.c.category,
+                user_category_plays_table.c.plays_count,
+                user_category_plays_table.c.phrases_found,
+                user_category_plays_table.c.total_time_seconds,
+                user_category_plays_table.c.last_played,
+            )
+            .where(
+                (user_category_plays_table.c.user_id == user_id)
+                & (user_category_plays_table.c.language_set_id == language_set_id)
+            )
+            .order_by(desc(user_category_plays_table.c.plays_count))
+            .limit(limit)
+        )
+
+        rows = await database.fetch_all(query)
+        result = [self._serialize_datetimes(dict(row)) for row in rows]
+
+        # Cache the result
+        self._statistics_cache[cache_key] = {"data": result, "timestamp": time.time()}
+
+        return result
+
+    async def get_admin_statistics_overview(self) -> Dict:
+        """Get overview statistics for admin dashboard"""
+        cache_key = "admin_overview"
+
+        # Check cache first
+        if cache_key in self._statistics_cache and self._is_cache_valid(self._statistics_cache[cache_key]):
+            return self._statistics_cache[cache_key]["data"]
+
+        database = self._ensure_database()
+
+        # Get total users count
+        users_query = select(func.count(accounts_table.c.id)).where(accounts_table.c.is_active == True)
+        total_users = await database.fetch_val(users_query)
+
+        # Get total games statistics
+        games_query = select(
+            func.sum(user_statistics_table.c.games_started).label("total_games_started"),
+            func.sum(user_statistics_table.c.games_completed).label("total_games_completed"),
+            func.sum(user_statistics_table.c.total_phrases_found).label("total_phrases_found"),
+            func.sum(user_statistics_table.c.total_time_played_seconds).label("total_time_played"),
+        )
+        games_stats = await database.fetch_one(games_query)
+
+        # Get active users (played in last 30 days)
+        thirty_days_ago = datetime.datetime.now() - datetime.timedelta(days=30)
+        active_users_query = select(func.count(func.distinct(user_statistics_table.c.user_id))).where(
+            user_statistics_table.c.last_played >= thirty_days_ago
+        )
+        active_users = await database.fetch_val(active_users_query)
+
+        result = {
+            "total_users": total_users or 0,
+            "active_users_30d": active_users or 0,
+            "total_games_started": games_stats["total_games_started"] if games_stats else 0,
+            "total_games_completed": games_stats["total_games_completed"] if games_stats else 0,
+            "total_phrases_found": games_stats["total_phrases_found"] if games_stats else 0,
+            "total_time_played_hours": round((games_stats["total_time_played"] or 0) / 3600, 2) if games_stats else 0,
+        }
+
+        # Cache the result
+        self._statistics_cache[cache_key] = {"data": result, "timestamp": time.time()}
+
+        return result
+
+    async def get_statistics_by_language_set(self, language_set_id: Optional[int] = None) -> List[Dict]:
+        """Get statistics grouped by language set"""
+        cache_key = f"stats_by_langset:{language_set_id or 'all'}"
+
+        # Check cache first
+        if cache_key in self._statistics_cache and self._is_cache_valid(self._statistics_cache[cache_key]):
+            return self._statistics_cache[cache_key]["data"]
+
+        database = self._ensure_database()
+
+        # Join with language_sets table to get language set information
+        query = (
+            select(
+                language_sets_table.c.id,
+                language_sets_table.c.name,
+                language_sets_table.c.display_name,
+                func.sum(user_statistics_table.c.games_started).label("games_started"),
+                func.sum(user_statistics_table.c.games_completed).label("games_completed"),
+                func.sum(user_statistics_table.c.total_phrases_found).label("phrases_found"),
+                func.sum(user_statistics_table.c.total_time_played_seconds).label("time_played"),
+                func.count(func.distinct(user_statistics_table.c.user_id)).label("unique_players"),
+            )
+            .select_from(
+                language_sets_table.join(
+                    user_statistics_table,
+                    language_sets_table.c.id == user_statistics_table.c.language_set_id,
+                    isouter=True,
+                )
+            )
+            .group_by(language_sets_table.c.id, language_sets_table.c.name, language_sets_table.c.display_name)
+        )
+
+        if language_set_id is not None:
+            query = query.where(language_sets_table.c.id == language_set_id)
+
+        rows = await database.fetch_all(query)
+        result = []
+
+        for row in rows:
+            result.append(
+                {
+                    "language_set_id": row["id"],
+                    "language_set_name": row["name"],
+                    "language_set_display_name": row["display_name"],
+                    "games_started": row["games_started"] or 0,
+                    "games_completed": row["games_completed"] or 0,
+                    "phrases_found": row["phrases_found"] or 0,
+                    "time_played_hours": round((row["time_played"] or 0) / 3600, 2),
+                    "unique_players": row["unique_players"] or 0,
+                }
+            )
+
+        # Cache the result
+        self._statistics_cache[cache_key] = {"data": result, "timestamp": time.time()}
+
+        return result
+
+    async def get_user_statistics_list(self, language_set_id: Optional[int] = None, limit: int = 50) -> List[Dict]:
+        """Get statistics for all users, optionally filtered by language set"""
+        cache_key = f"user_stats_list:{language_set_id or 'all'}:{limit}"
+
+        # Check cache first
+        if cache_key in self._statistics_cache and self._is_cache_valid(self._statistics_cache[cache_key]):
+            return self._statistics_cache[cache_key]["data"]
+
+        database = self._ensure_database()
+
+        if language_set_id is not None:
+            # Get statistics for specific language set
+            query = (
+                select(
+                    accounts_table.c.id,
+                    accounts_table.c.username,
+                    user_statistics_table.c.language_set_id,
+                    user_statistics_table.c.games_started,
+                    user_statistics_table.c.games_completed,
+                    user_statistics_table.c.total_phrases_found,
+                    user_statistics_table.c.total_time_played_seconds,
+                    user_statistics_table.c.phrases_added,
+                    user_statistics_table.c.phrases_edited,
+                    user_statistics_table.c.last_played,
+                )
+                .select_from(
+                    accounts_table.join(user_statistics_table, accounts_table.c.id == user_statistics_table.c.user_id)
+                )
+                .where(
+                    (accounts_table.c.is_active == True) & (user_statistics_table.c.language_set_id == language_set_id)
+                )
+                .order_by(desc(user_statistics_table.c.games_completed))
+                .limit(limit)
+            )
+        else:
+            # Get aggregated statistics across all language sets
+            query = (
+                select(
+                    accounts_table.c.id,
+                    accounts_table.c.username,
+                    func.sum(user_statistics_table.c.games_started).label("games_started"),
+                    func.sum(user_statistics_table.c.games_completed).label("games_completed"),
+                    func.sum(user_statistics_table.c.total_phrases_found).label("total_phrases_found"),
+                    func.sum(user_statistics_table.c.total_time_played_seconds).label("total_time_played_seconds"),
+                    func.sum(user_statistics_table.c.phrases_added).label("phrases_added"),
+                    func.sum(user_statistics_table.c.phrases_edited).label("phrases_edited"),
+                    func.max(user_statistics_table.c.last_played).label("last_played"),
+                )
+                .select_from(
+                    accounts_table.join(
+                        user_statistics_table, accounts_table.c.id == user_statistics_table.c.user_id, isouter=True
+                    )
+                )
+                .where(accounts_table.c.is_active == True)
+                .group_by(accounts_table.c.id, accounts_table.c.username)
+                .order_by(desc(func.sum(user_statistics_table.c.games_completed)))
+                .limit(limit)
+            )
+
+        rows = await database.fetch_all(query)
+        result = [self._serialize_datetimes(dict(row)) for row in rows]
+
+        # Cache the result
+        self._statistics_cache[cache_key] = {"data": result, "timestamp": time.time()}
+
+        return result
+
+    # Global settings management methods
+    async def get_global_setting(self, setting_key: str, default_value: Optional[str] = None) -> Optional[str]:
+        """Get a global setting value by key"""
+        database = self._ensure_database()
+
+        query = select(global_settings_table.c.setting_value).where(global_settings_table.c.setting_key == setting_key)
+
+        result = await database.fetch_one(query)
+        return result["setting_value"] if result else default_value
+
+    async def set_global_setting(
+        self, setting_key: str, setting_value: str, description: Optional[str] = None, updated_by: int = 0
+    ) -> None:
+        """Set a global setting value"""
+        database = self._ensure_database()
+
+        # Check if setting exists
+        existing = await database.fetch_one(
+            select(global_settings_table.c.id).where(global_settings_table.c.setting_key == setting_key)
+        )
+
+        if existing:
+            # Update existing setting
+            query = (
+                update(global_settings_table)
+                .where(global_settings_table.c.setting_key == setting_key)
+                .values(setting_value=setting_value, updated_at=func.now(), updated_by=updated_by)
+            )
+            if description is not None:
+                query = query.values(description=description)
+        else:
+            # Insert new setting
+            query = insert(global_settings_table).values(
+                setting_key=setting_key, setting_value=setting_value, description=description, updated_by=updated_by
+            )
+
+        await database.execute(query)
+
+    async def is_statistics_enabled(self) -> bool:
+        """Check if statistics tracking is globally enabled"""
+        setting = await self.get_global_setting("statistics_enabled", "true")
+        return setting is not None and setting.lower() == "true"
+
+    async def clear_all_statistics(self) -> None:
+        """Clear all statistics data from all tables"""
+        database = self._ensure_database()
+
+        # Clear all statistics tables
+        await database.execute(delete(game_sessions_table))
+        await database.execute(delete(user_statistics_table))
+        await database.execute(delete(user_category_plays_table))
 
 
 # Create global database manager instance

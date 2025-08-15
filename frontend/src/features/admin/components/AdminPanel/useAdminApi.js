@@ -230,6 +230,14 @@ export function useAdminApi({ token, setRows, setTotalRows, setDashboard, setErr
         }
     }, [authHeader]);
 
+    const getWithAuth = useCallback(async (url) => {
+        const response = await fetch(url, { headers: authHeader });
+        if (!response.ok) {
+            throw new Error(`HTTP error! status: ${response.status}`);
+        }
+        return response.json();
+    }, [authHeader]);
+
     return { 
         fetchRows, 
         handleLogin, 
@@ -241,6 +249,7 @@ export function useAdminApi({ token, setRows, setTotalRows, setDashboard, setErr
         invalidateCategoriesCache,
         handleBatchDelete,
         handleBatchAddCategory,
-        handleBatchRemoveCategory
+        handleBatchRemoveCategory,
+        getWithAuth
     };
 }

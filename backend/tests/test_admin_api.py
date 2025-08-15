@@ -1,11 +1,13 @@
-import pytest
-import io
 import csv
-from unittest.mock import Mock, AsyncMock, patch
-from fastapi.testclient import TestClient
-from osmosmjerka.admin_api import router
-from osmosmjerka.auth import require_admin_access, require_root_admin, get_current_user
+import io
+from unittest.mock import AsyncMock, Mock, patch
+
+import pytest
 from fastapi import FastAPI, UploadFile
+from fastapi.testclient import TestClient
+
+from osmosmjerka.admin_api import router
+from osmosmjerka.auth import get_current_user, require_admin_access, require_root_admin
 
 app = FastAPI()
 app.include_router(router)
@@ -115,12 +117,14 @@ def test_get_all_rows(mock_get_count, mock_get_phrases, client, mock_admin_user)
     mock_get_count.assert_called_once_with(None, "A", "test")
 
 
+@patch("osmosmjerka.database.db_manager.record_phrase_operation")
 @patch("osmosmjerka.database.db_manager.add_phrase")
-def test_add_row(mock_add_phrase, client, mock_admin_user):
+def test_add_row(mock_add_phrase, mock_record_phrase_operation, client, mock_admin_user):
     """Test adding a new phrase/row"""
     # Override the dependency
     app.dependency_overrides[require_admin_access] = lambda: mock_admin_user
     mock_add_phrase.return_value = None
+    mock_record_phrase_operation.return_value = None
 
     row_data = {"phrase": "nuevo", "categories": "Spanish", "translation": "new"}
 
@@ -130,14 +134,17 @@ def test_add_row(mock_add_phrase, client, mock_admin_user):
     data = response.json()
     assert data["message"] == "Phrase added"
     mock_add_phrase.assert_called_once_with(1, "Spanish", "nuevo", "new")
+    mock_record_phrase_operation.assert_called_once_with(1, 1, "added")
 
 
+@patch("osmosmjerka.database.db_manager.record_phrase_operation")
 @patch("osmosmjerka.database.db_manager.update_phrase")
-def test_update_row(mock_update_phrase, client, mock_admin_user):
+def test_update_row(mock_update_phrase, mock_record_phrase_operation, client, mock_admin_user):
     """Test updating an existing phrase/row"""
     # Override the dependency
     app.dependency_overrides[require_admin_access] = lambda: mock_admin_user
     mock_update_phrase.return_value = None
+    mock_record_phrase_operation.return_value = None
 
     row_data = {"phrase": "updated", "categories": "Updated Category", "translation": "updated translation"}
 
@@ -147,6 +154,7 @@ def test_update_row(mock_update_phrase, client, mock_admin_user):
     data = response.json()
     assert data["message"] == "Phrase updated"
     mock_update_phrase.assert_called_once_with(1, 1, "Updated Category", "updated", "updated translation")
+    mock_record_phrase_operation.assert_called_once_with(1, 1, "edited")
 
 
 @patch("osmosmjerka.database.db_manager.delete_phrase")
@@ -180,14 +188,16 @@ def test_clear_db(mock_clear_all, client, mock_root_admin_user):
 
 
 # Test file upload functionality
+@patch("osmosmjerka.database.db_manager.record_phrase_operation")
 @patch("osmosmjerka.database.db_manager.fast_bulk_insert_phrases")
 @patch("osmosmjerka.admin_api.phrases.run_in_threadpool")
-def test_upload_csv_file(mock_threadpool, mock_bulk_insert, client, mock_admin_user):
+def test_upload_csv_file(mock_threadpool, mock_bulk_insert, mock_record_phrase_operation, client, mock_admin_user):
     """Test uploading CSV file with phrases"""
     # Override the dependency
     app.dependency_overrides[require_admin_access] = lambda: mock_admin_user
     mock_threadpool.return_value = None
     mock_bulk_insert.return_value = None
+    mock_record_phrase_operation.return_value = None
 
     # Create test CSV content
     csv_content = "categories;phrase;translation\nSpanish;hola;hello\nFrench;bonjour;hello"
@@ -200,14 +210,18 @@ def test_upload_csv_file(mock_threadpool, mock_bulk_insert, client, mock_admin_u
     mock_threadpool.assert_called_once()
 
 
+@patch("osmosmjerka.database.db_manager.record_phrase_operation")
 @patch("osmosmjerka.database.db_manager.fast_bulk_insert_phrases")
 @patch("osmosmjerka.admin_api.phrases.run_in_threadpool")
-def test_upload_csv_file_with_line_breaks(mock_threadpool, mock_bulk_insert, client, mock_admin_user):
+def test_upload_csv_file_with_line_breaks(
+    mock_threadpool, mock_bulk_insert, mock_record_phrase_operation, client, mock_admin_user
+):
     """Test uploading CSV file with translations containing line breaks"""
     # Override the dependency
     app.dependency_overrides[require_admin_access] = lambda: mock_admin_user
     mock_threadpool.return_value = None
     mock_bulk_insert.return_value = None
+    mock_record_phrase_operation.return_value = None
 
     # Create test CSV content with line breaks
     csv_content = 'categories;phrase;translation\nSpanish;hola;"hello\\nhi"\nFrench;bonjour;"hello<br>hi"'
@@ -571,19 +585,16 @@ def test_change_password_success(
 
 
 # Batch Operations Tests
-@patch('osmosmjerka.admin_api.batch_operations.db_manager')
+@patch("osmosmjerka.admin_api.batch_operations.db_manager")
 def test_batch_delete_rows_success(mock_db_manager, client, mock_admin_user):
     """Test successful batch deletion of rows"""
     app.dependency_overrides[require_admin_access] = lambda: mock_admin_user
-    
+
     # Mock successful batch deletion as async
     mock_db_manager.batch_delete_phrases = AsyncMock(return_value=3)
-    
-    response = client.post(
-        "/admin/batch/delete?language_set_id=1",
-        json={"row_ids": [1, 2, 3]}
-    )
-    
+
+    response = client.post("/admin/batch/delete?language_set_id=1", json={"row_ids": [1, 2, 3]})
+
     assert response.status_code == 200
     data = response.json()
     assert data["deleted_count"] == 3
@@ -591,34 +602,30 @@ def test_batch_delete_rows_success(mock_db_manager, client, mock_admin_user):
     mock_db_manager.batch_delete_phrases.assert_called_once_with([1, 2, 3], 1)
 
 
-@patch('osmosmjerka.admin_api.batch_operations.db_manager')
+@patch("osmosmjerka.admin_api.batch_operations.db_manager")
 def test_batch_delete_rows_empty_list(mock_db_manager, client, mock_admin_user):
     """Test batch deletion with empty row list"""
     app.dependency_overrides[require_admin_access] = lambda: mock_admin_user
-    
-    response = client.post(
-        "/admin/batch/delete?language_set_id=1",
-        json={"row_ids": []}
-    )
-    
+
+    response = client.post("/admin/batch/delete?language_set_id=1", json={"row_ids": []})
+
     assert response.status_code == 400
     data = response.json()
     assert data["error"] == "No rows selected for deletion"
 
 
-@patch('osmosmjerka.admin_api.batch_operations.db_manager')
+@patch("osmosmjerka.admin_api.batch_operations.db_manager")
 def test_batch_add_category_success(mock_db_manager, client, mock_admin_user):
     """Test successful batch addition of category"""
     app.dependency_overrides[require_admin_access] = lambda: mock_admin_user
-    
+
     # Mock successful batch category addition as async
     mock_db_manager.batch_add_category = AsyncMock(return_value=2)
-    
+
     response = client.post(
-        "/admin/batch/add-category?language_set_id=1",
-        json={"row_ids": [1, 2, 3], "category": "test_category"}
+        "/admin/batch/add-category?language_set_id=1", json={"row_ids": [1, 2, 3], "category": "test_category"}
     )
-    
+
     assert response.status_code == 200
     data = response.json()
     assert data["affected_count"] == 2
@@ -627,34 +634,30 @@ def test_batch_add_category_success(mock_db_manager, client, mock_admin_user):
     mock_db_manager.batch_add_category.assert_called_once_with([1, 2, 3], "test_category", 1)
 
 
-@patch('osmosmjerka.admin_api.batch_operations.db_manager')
+@patch("osmosmjerka.admin_api.batch_operations.db_manager")
 def test_batch_add_category_empty_category(mock_db_manager, client, mock_admin_user):
     """Test batch add category with empty category name"""
     app.dependency_overrides[require_admin_access] = lambda: mock_admin_user
-    
-    response = client.post(
-        "/admin/batch/add-category?language_set_id=1",
-        json={"row_ids": [1, 2], "category": "  "}
-    )
-    
+
+    response = client.post("/admin/batch/add-category?language_set_id=1", json={"row_ids": [1, 2], "category": "  "})
+
     assert response.status_code == 400
     data = response.json()
     assert data["error"] == "Category name cannot be empty"
 
 
-@patch('osmosmjerka.admin_api.batch_operations.db_manager')
+@patch("osmosmjerka.admin_api.batch_operations.db_manager")
 def test_batch_remove_category_success(mock_db_manager, client, mock_admin_user):
     """Test successful batch removal of category"""
     app.dependency_overrides[require_admin_access] = lambda: mock_admin_user
-    
+
     # Mock successful batch category removal as async
     mock_db_manager.batch_remove_category = AsyncMock(return_value=1)
-    
+
     response = client.post(
-        "/admin/batch/remove-category?language_set_id=1",
-        json={"row_ids": [1, 2, 3], "category": "old_category"}
+        "/admin/batch/remove-category?language_set_id=1", json={"row_ids": [1, 2, 3], "category": "old_category"}
     )
-    
+
     assert response.status_code == 200
     data = response.json()
     assert data["affected_count"] == 1
@@ -663,25 +666,18 @@ def test_batch_remove_category_success(mock_db_manager, client, mock_admin_user)
     mock_db_manager.batch_remove_category.assert_called_once_with([1, 2, 3], "old_category", 1)
 
 
-@patch('osmosmjerka.admin_api.batch_operations.db_manager')
+@patch("osmosmjerka.admin_api.batch_operations.db_manager")
 def test_batch_operations_unauthorized(mock_db_manager, client):
     """Test that batch operations require admin access"""
     # No auth override - should fail
-    
-    response = client.post(
-        "/admin/batch/delete?language_set_id=1",
-        json={"row_ids": [1, 2, 3]}
-    )
+
+    response = client.post("/admin/batch/delete?language_set_id=1", json={"row_ids": [1, 2, 3]})
     assert response.status_code == 401  # Unauthorized
-    
-    response = client.post(
-        "/admin/batch/add-category?language_set_id=1",
-        json={"row_ids": [1, 2], "category": "test"}
-    )
+
+    response = client.post("/admin/batch/add-category?language_set_id=1", json={"row_ids": [1, 2], "category": "test"})
     assert response.status_code == 401  # Unauthorized
-    
+
     response = client.post(
-        "/admin/batch/remove-category?language_set_id=1",
-        json={"row_ids": [1, 2], "category": "test"}
+        "/admin/batch/remove-category?language_set_id=1", json={"row_ids": [1, 2], "category": "test"}
     )
     assert response.status_code == 401  # Unauthorized
