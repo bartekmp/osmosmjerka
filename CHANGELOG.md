@@ -2,6 +2,23 @@
 
 <!-- version list -->
 
+## v1.22.0 (2025-08-15)
+
+### Bug Fixes
+
+- Disallow role changing for root admin ([#62](https://github.com/bartekmp/osmosmjerka/pull/62),
+  [`da912cd`](https://github.com/bartekmp/osmosmjerka/commit/da912cd8ce232ddd5ca69c5b384ccf747cabd8f6))
+
+### Feature
+
+- Game stats ([#62](https://github.com/bartekmp/osmosmjerka/pull/62),
+  [`da912cd`](https://github.com/bartekmp/osmosmjerka/commit/da912cd8ce232ddd5ca69c5b384ccf747cabd8f6))
+
+- Player statistics, detailed stats panel for admins, player stats breakdown in profile view
+  ([#62](https://github.com/bartekmp/osmosmjerka/pull/62),
+  [`da912cd`](https://github.com/bartekmp/osmosmjerka/commit/da912cd8ce232ddd5ca69c5b384ccf747cabd8f6))
+
+
 ## v1.21.0 (2025-08-14)
 
 ### Enhancement
