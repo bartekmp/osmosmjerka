@@ -6,6 +6,7 @@ from fastapi import APIRouter, Body, Depends, HTTPException, Query, Request, sta
 from fastapi.responses import JSONResponse, StreamingResponse
 
 from osmosmjerka.auth import get_current_user, verify_token
+from osmosmjerka.cache import cache_response, categories_cache, language_sets_cache, phrases_cache, rate_limit
 from osmosmjerka.database import db_manager
 from osmosmjerka.grid_generator import generate_grid
 from osmosmjerka.utils import export_to_docx, export_to_png
@@ -14,6 +15,7 @@ router = APIRouter(prefix="/api")
 
 
 @router.get("/language-sets")
+@cache_response(language_sets_cache, "language_sets")
 async def get_language_sets() -> JSONResponse:
     """Get all active language sets with default first"""
     language_sets = await db_manager.get_language_sets(active_only=True)
@@ -21,6 +23,8 @@ async def get_language_sets() -> JSONResponse:
 
 
 @router.get("/categories")
+@rate_limit(max_requests=30, window_seconds=60)  # 30 requests per minute
+@cache_response(categories_cache, "categories")
 async def get_all_categories(language_set_id: int = Query(None), *, request: Request) -> JSONResponse:
     """Get categories for a specific language set, applying user-specific ignored categories if authenticated"""
     user = None
@@ -63,6 +67,8 @@ def get_grid_size_and_num_phrases(selected: list, difficulty: str) -> tuple:
 
 
 @router.get("/phrases")
+@rate_limit(max_requests=20, window_seconds=60)  # 20 requests per minute for phrase generation
+@cache_response(phrases_cache, "phrases")
 async def get_phrases(
     category: str | None = None,
     difficulty: str = "medium",
@@ -133,6 +139,7 @@ async def get_phrases(
 
 
 @router.post("/export")
+@rate_limit(max_requests=5, window_seconds=60)  # 5 exports per minute
 async def export_puzzle(
     category: str = Body(...), grid: list = Body(...), phrases: list = Body(...), format: str = Body("docx")
 ) -> StreamingResponse:
@@ -162,6 +169,7 @@ async def export_puzzle(
 
 
 @router.get("/default-ignored-categories")
+@cache_response(categories_cache, "default_ignored")
 async def get_default_ignored_categories(language_set_id: int = Query(...)) -> JSONResponse:
     """Get default ignored categories for a language set"""
     try:

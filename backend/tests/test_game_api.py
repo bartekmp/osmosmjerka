@@ -1,8 +1,12 @@
 import pytest
+import os
 from unittest.mock import Mock, AsyncMock, patch
 from fastapi.testclient import TestClient
 from osmosmjerka.game_api import router, get_grid_size_and_num_phrases
 from fastapi import FastAPI
+
+# Set testing environment variable to disable rate limiting
+os.environ["TESTING"] = "true"
 
 app = FastAPI()
 app.include_router(router)

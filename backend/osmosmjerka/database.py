@@ -523,6 +523,33 @@ class DatabaseManager:
         )
         return await database.execute(query)
 
+    async def get_phrases_by_ids(self, phrase_ids: list[int], language_set_id: int) -> list[dict]:
+        """Get specific phrases by their IDs"""
+        database = self._ensure_database()
+
+        # Get language set info
+        language_set = await self.get_language_set_by_id(language_set_id)
+        if not language_set:
+            raise ValueError(f"Language set with ID {language_set_id} not found")
+
+        phrase_table = self._get_phrase_table(language_set["name"])
+        query = select(phrase_table).where(phrase_table.c.id.in_(phrase_ids))
+        result = await database.fetch_all(query)
+        return [dict(row) for row in result]
+
+    async def update_phrase_categories(self, phrase_id: int, categories: str, language_set_id: int):
+        """Update only the categories of a specific phrase"""
+        database = self._ensure_database()
+
+        # Get language set info
+        language_set = await self.get_language_set_by_id(language_set_id)
+        if not language_set:
+            raise ValueError(f"Language set with ID {language_set_id} not found")
+
+        phrase_table = self._get_phrase_table(language_set["name"])
+        query = update(phrase_table).where(phrase_table.c.id == phrase_id).values(categories=categories)
+        return await database.execute(query)
+
     async def delete_phrase(self, phrase_id: int, language_set_id: int):
         """Delete a phrase using dynamic table"""
         database = self._ensure_database()
@@ -548,7 +575,8 @@ class DatabaseManager:
         phrase_table = self._get_phrase_table(language_set["name"])
         query = delete(phrase_table).where(phrase_table.c.id.in_(phrase_ids))
         result = await database.execute(query)
-        return result
+        # Return the number of deleted rows or the length of phrase_ids if result is None
+        return getattr(result, "rowcount", len(phrase_ids)) if result else len(phrase_ids)
 
     async def batch_add_category(self, phrase_ids: list[int], category: str, language_set_id: int) -> int:
         """Add a category to multiple phrases using dynamic table"""
@@ -646,6 +674,66 @@ class DatabaseManager:
                 if cat.strip() and cat not in effective_ignored:
                     categories_set.add(cat.strip())
         return sorted(list(categories_set))
+
+    async def find_duplicate_phrases(self, language_set_id: int) -> list[dict]:
+        """Find duplicate phrases within a language set based on phrase text (case-insensitive)
+
+        Returns a list of duplicate groups, where each group contains phrases with the same text.
+        Each group is a dict with 'phrase_text' and 'duplicates' (list of phrase records).
+        """
+        database = self._ensure_database()
+
+        # Get language set info
+        language_set = await self.get_language_set_by_id(language_set_id)
+        if not language_set:
+            raise ValueError(f"Language set with ID {language_set_id} not found")
+
+        phrase_table = self._get_phrase_table(language_set["name"])
+
+        # Find phrases with duplicate text (case-insensitive)
+        # First, get all phrases with their lowercase phrase text for comparison
+        query = select(
+            phrase_table.c.id,
+            phrase_table.c.categories,
+            phrase_table.c.phrase,
+            phrase_table.c.translation,
+            func.lower(phrase_table.c.phrase).label("phrase_lower"),
+        )
+
+        all_phrases = await database.fetch_all(query)
+
+        # Group phrases by lowercase text
+        phrase_groups = {}
+        for phrase in all_phrases:
+            phrase_lower = phrase["phrase_lower"]
+            if phrase_lower not in phrase_groups:
+                phrase_groups[phrase_lower] = []
+            phrase_groups[phrase_lower].append(
+                {
+                    "id": phrase["id"],
+                    "categories": phrase["categories"],
+                    "phrase": phrase["phrase"],
+                    "translation": phrase["translation"],
+                }
+            )
+
+        # Filter to only groups with duplicates (more than 1 phrase)
+        duplicate_groups = []
+        for phrase_text, phrases in phrase_groups.items():
+            if len(phrases) > 1:
+                duplicate_groups.append({"phrase_text": phrase_text, "count": len(phrases), "duplicates": phrases})
+
+        # Sort by count descending, then by phrase text
+        duplicate_groups.sort(key=lambda x: (-x["count"], x["phrase_text"]))
+
+        return duplicate_groups
+
+    async def delete_phrases_by_ids(self, phrase_ids: list[int], language_set_id: int) -> int:
+        """Delete specific phrases by their IDs
+
+        This is an alias for batch_delete_phrases for consistency with the API naming.
+        """
+        return await self.batch_delete_phrases(phrase_ids, language_set_id)
 
     async def get_phrases_for_admin(
         self,
