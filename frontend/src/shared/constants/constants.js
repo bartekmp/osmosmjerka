@@ -63,5 +63,7 @@ export const API_ENDPOINTS = {
   ADMIN_MAKE_DEFAULT: (id) => `/admin/language-sets/${id}/make-default`,
   ADMIN_BATCH_DELETE: '/admin/batch/delete',
   ADMIN_BATCH_ADD_CATEGORY: '/admin/batch/add-category',
-  ADMIN_BATCH_REMOVE_CATEGORY: '/admin/batch/remove-category'
+  ADMIN_BATCH_REMOVE_CATEGORY: '/admin/batch/remove-category',
+  ADMIN_DUPLICATES: '/admin/duplicates',
+  ADMIN_PHRASES: '/admin/phrases'
 };

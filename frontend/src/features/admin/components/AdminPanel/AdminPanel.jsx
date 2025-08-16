@@ -32,6 +32,7 @@ import BatchResultDialog from './BatchResultDialog';
 import EditRowForm from './EditRowForm';
 import { isTokenExpired } from './helpers';
 import LanguageSetManagement from './LanguageSetManagement';
+import DuplicateManagement from './DuplicateManagement';
 import PageSizeSelector from './PageSizeSelector';
 import PaginationControls from './PaginationControls';
 import { useAdminApi } from './useAdminApi';
@@ -63,6 +64,7 @@ export default function AdminPanel({
     const [userProfile, setUserProfile] = useState(false);
     const [statisticsDashboard, setStatisticsDashboard] = useState(false);
     const [languageSetManagement, setLanguageSetManagement] = useState(false);
+    const [duplicateManagement, setDuplicateManagement] = useState(false);
     const [currentUser, setCurrentUser] = useState(null);
     const [categories, setCategories] = useState([]);
     const [languageSets, setLanguageSets] = useState([]);
@@ -201,7 +203,7 @@ export default function AdminPanel({
 
     useEffect(() => {
         // Only load categories when navigating to views that need them and language set is selected
-        const needsCategories = (!dashboard && !userManagement && !userProfile && !statisticsDashboard) || languageSetManagement;
+        const needsCategories = (!dashboard && !userManagement && !userProfile && !statisticsDashboard && !duplicateManagement) || languageSetManagement;
         if (isLogged && token && selectedLanguageSetId && needsCategories && !categoriesLoaded) {
             fetch(`${API_ENDPOINTS.ALL_CATEGORIES}?language_set_id=${selectedLanguageSetId}`, {
                 headers: {
@@ -215,7 +217,7 @@ export default function AdminPanel({
                 })
                 .catch(err => console.error('Failed to load categories:', err));
         }
-    }, [isLogged, token, selectedLanguageSetId, dashboard, userManagement, userProfile, statisticsDashboard, languageSetManagement, categoriesLoaded]);
+    }, [isLogged, token, selectedLanguageSetId, dashboard, userManagement, userProfile, statisticsDashboard, languageSetManagement, duplicateManagement, categoriesLoaded]);
 
     // Handlers for pagination and offset input, to avoid negative or excessive values
     const handleOffsetInput = (e) => {
@@ -539,6 +541,7 @@ export default function AdminPanel({
         setDashboard(true);
         setUserManagement(false);
         setLanguageSetManagement(false);
+        setDuplicateManagement(false);
         setUserProfile(false);
         setStatisticsDashboard(false);
     };
@@ -659,6 +662,18 @@ export default function AdminPanel({
                                 : t('manage_ignored_categories', 'Manage Ignored Categories')
                             }
                         </Button>
+                        {currentUser?.role === 'root_admin' && (
+                            <Button
+                                onClick={() => {
+                                    setDashboard(false);
+                                    setDuplicateManagement(true);
+                                }}
+                                variant="contained"
+                                color="error"
+                            >
+                                {t('duplicate_management', 'Duplicate Management')}
+                            </Button>
+                        )}
                         {(currentUser?.role === 'root_admin' || currentUser?.role === 'administrative') && (
                             <Button
                                 onClick={() => {
@@ -701,6 +716,7 @@ export default function AdminPanel({
                 showLogout={true}
                 onDashboard={() => {
                     setUserManagement(false);
+                    setDuplicateManagement(false);
                     setDashboard(true);
                 }}
                 onLogout={handleLogout}
@@ -721,6 +737,7 @@ export default function AdminPanel({
                 showLogout={true}
                 onDashboard={() => {
                     setStatisticsDashboard(false);
+                    setDuplicateManagement(false);
                     setDashboard(true);
                 }}
                 onLogout={handleLogout}
@@ -739,6 +756,7 @@ export default function AdminPanel({
                 showLogout={true}
                 onDashboard={() => {
                     setLanguageSetManagement(false);
+                    setDuplicateManagement(false);
                     setDashboard(true);
                 }}
                 onLogout={handleLogout}
@@ -765,6 +783,7 @@ export default function AdminPanel({
                 showLogout={true}
                 onDashboard={() => {
                     setUserProfile(false);
+                    setDuplicateManagement(false);
                     setDashboard(true);
                 }}
                 onLogout={handleLogout}
@@ -774,12 +793,42 @@ export default function AdminPanel({
         );
     }
 
+    // Duplicate Management View
+    if (duplicateManagement) {
+        return (
+            <AdminLayout
+                showBackToGame={true}
+                showDashboard={true}
+                showLogout={true}
+                onDashboard={() => {
+                    setDuplicateManagement(false);
+                    setDashboard(true);
+                }}
+                onLogout={handleLogout}
+            >
+                <Paper sx={{ p: 3 }}>
+                    <DuplicateManagement 
+                        currentUser={currentUser} 
+                        selectedLanguageSetId={selectedLanguageSetId}
+                    />
+                </Paper>
+            </AdminLayout>
+        );
+    }
+
     return (
         <AdminLayout
             showBackToGame={true}
             showDashboard={true}
             showLogout={true}
-            onDashboard={() => setDashboard(true)}
+            onDashboard={() => {
+                setDashboard(true);
+                setUserManagement(false);
+                setLanguageSetManagement(false);
+                setDuplicateManagement(false);
+                setUserProfile(false);
+                setStatisticsDashboard(false);
+            }}
             onLogout={handleLogout}
         >
             {/* Error overlay for no language sets */}
