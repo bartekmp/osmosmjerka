@@ -2,6 +2,27 @@
 
 <!-- version list -->
 
+## v1.23.0 (2025-08-16)
+
+### Bug Fixes
+
+- Phrases uploading ([#63](https://github.com/bartekmp/osmosmjerka/pull/63),
+  [`cd78a61`](https://github.com/bartekmp/osmosmjerka/commit/cd78a615fa16d896ed77d72bb115b11f1e300191))
+
+- Resolve problems with caching in unit tests
+  ([#63](https://github.com/bartekmp/osmosmjerka/pull/63),
+  [`cd78a61`](https://github.com/bartekmp/osmosmjerka/commit/cd78a615fa16d896ed77d72bb115b11f1e300191))
+
+### Feature
+
+- Duplicates management dashboard ([#63](https://github.com/bartekmp/osmosmjerka/pull/63),
+  [`cd78a61`](https://github.com/bartekmp/osmosmjerka/commit/cd78a615fa16d896ed77d72bb115b11f1e300191))
+
+- Rate limiting for certain API calls, caching for constant data
+  ([#63](https://github.com/bartekmp/osmosmjerka/pull/63),
+  [`cd78a61`](https://github.com/bartekmp/osmosmjerka/commit/cd78a615fa16d896ed77d72bb115b11f1e300191))
+
+
 ## v1.22.0 (2025-08-15)
 
 ### Bug Fixes
