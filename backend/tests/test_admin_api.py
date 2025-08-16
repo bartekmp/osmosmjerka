@@ -243,7 +243,7 @@ def test_upload_empty_file(client, mock_admin_user):
 
     assert response.status_code == 400
     data = response.json()
-    assert "Upload failed - no valid phrases found" in data["message"]
+    assert "File is empty or contains only whitespace" in data["error"]
 
 
 def test_upload_non_csv_file(client, mock_admin_user):
@@ -257,7 +257,7 @@ def test_upload_non_csv_file(client, mock_admin_user):
 
     assert response.status_code == 400
     data = response.json()
-    assert "Upload failed - no valid phrases found" in data["message"]
+    assert "Invalid file format" in data["error"]
 
 
 # Test export functionality
