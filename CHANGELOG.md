@@ -2,6 +2,24 @@
 
 <!-- version list -->
 
+## v1.24.0 (2025-08-18)
+
+### Bug Fixes
+
+- Admin statistics ([#65](https://github.com/bartekmp/osmosmjerka/pull/65),
+  [`f3197e3`](https://github.com/bartekmp/osmosmjerka/commit/f3197e34add6ba7387648a587fe2d23587ec1f83))
+
+### Enhancement
+
+- Add footer ([#65](https://github.com/bartekmp/osmosmjerka/pull/65),
+  [`f3197e3`](https://github.com/bartekmp/osmosmjerka/commit/f3197e34add6ba7387648a587fe2d23587ec1f83))
+
+### Feature
+
+- Footer ([#65](https://github.com/bartekmp/osmosmjerka/pull/65),
+  [`f3197e3`](https://github.com/bartekmp/osmosmjerka/commit/f3197e34add6ba7387648a587fe2d23587ec1f83))
+
+
 ## v1.23.4 (2025-08-17)
 
 ### Bug Fixes
