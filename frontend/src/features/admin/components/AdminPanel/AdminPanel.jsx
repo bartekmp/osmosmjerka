@@ -405,7 +405,9 @@ export default function AdminPanel({
         // Then save to server
         // If it's a new row, use POST; otherwise, use PUT to update
         const method = updatedRow.id ? 'PUT' : 'POST';
-        const url = updatedRow.id ? `/admin/row/${updatedRow.id}` : `/admin/row`;
+        const url = updatedRow.id 
+            ? `/admin/row/${updatedRow.id}?language_set_id=${selectedLanguageSetId}` 
+            : `/admin/row?language_set_id=${selectedLanguageSetId}`;
         const token = localStorage.getItem(STORAGE_KEYS.ADMIN_TOKEN);
         const headers = token
             ? { Authorization: 'Bearer ' + token, 'Content-Type': 'application/json' }
@@ -437,7 +439,7 @@ export default function AdminPanel({
                 ? { Authorization: 'Bearer ' + token }
                 : {};
 
-            fetch(`/admin/row/${id}`, {
+            fetch(`/admin/row/${id}?language_set_id=${selectedLanguageSetId}`, {
                 method: 'DELETE',
                 headers
             }).catch(err => {
@@ -978,7 +980,7 @@ export default function AdminPanel({
             <EditRowForm
                 editRow={editRow}
                 setEditRow={setEditRow}
-                handleSave={() => handleSave(editRow, () => selectedLanguageSetId && fetchRows(offset, limit, filterCategory, searchTerm, selectedLanguageSetId), setEditRow)}
+                handleSave={() => handleSave(editRow, () => selectedLanguageSetId && fetchRows(offset, limit, filterCategory, searchTerm, selectedLanguageSetId), setEditRow, selectedLanguageSetId)}
             />
             {/* Filter and Statistics */}
             <Paper sx={{ p: 3, mb: 3 }}>

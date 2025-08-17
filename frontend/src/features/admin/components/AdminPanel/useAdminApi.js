@@ -75,9 +75,11 @@ export function useAdminApi({ token, setRows, setTotalRows, setDashboard, setErr
             });
     }, [setToken, setIsLogged]);
 
-    const handleSave = useCallback((editRow, fetchRows, setEditRow) => {
+    const handleSave = useCallback((editRow, fetchRows, setEditRow, languageSetId) => {
         const method = editRow.id ? 'PUT' : 'POST';
-        const url = editRow.id ? `/admin/row/${editRow.id}` : `/admin/row`;
+        const url = editRow.id 
+            ? `/admin/row/${editRow.id}?language_set_id=${languageSetId}` 
+            : `/admin/row?language_set_id=${languageSetId}`;
         fetch(url, {
             method,
             headers: authHeader,
@@ -116,8 +118,8 @@ export function useAdminApi({ token, setRows, setTotalRows, setDashboard, setErr
             .then(() => fetchRows());
     }, [authHeader]);
 
-    const handleDelete = useCallback((id, fetchRows) => {
-        fetch(`/admin/row/${id}`, {
+    const handleDelete = useCallback((id, fetchRows, languageSetId) => {
+        fetch(`/admin/row/${id}?language_set_id=${languageSetId}`, {
             method: 'DELETE',
             headers: authHeader
         }).then(() => {
