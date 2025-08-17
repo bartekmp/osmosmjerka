@@ -2,6 +2,27 @@
 
 <!-- version list -->
 
+## v1.23.1 (2025-08-17)
+
+### Bug Fixes
+
+- Default ignored categories for non-logged in users
+  ([#64](https://github.com/bartekmp/osmosmjerka/pull/64),
+  [`38fb200`](https://github.com/bartekmp/osmosmjerka/commit/38fb200b34574f3dc28b0752d1986e0921cd8a1d))
+
+### Enhancement
+
+- Add lacking translations ([#64](https://github.com/bartekmp/osmosmjerka/pull/64),
+  [`38fb200`](https://github.com/bartekmp/osmosmjerka/commit/38fb200b34574f3dc28b0752d1986e0921cd8a1d))
+
+- Browse records pagination buttons, additional translations, ignored categories query
+  ([#64](https://github.com/bartekmp/osmosmjerka/pull/64),
+  [`38fb200`](https://github.com/bartekmp/osmosmjerka/commit/38fb200b34574f3dc28b0752d1986e0921cd8a1d))
+
+- Last and first page controls ([#64](https://github.com/bartekmp/osmosmjerka/pull/64),
+  [`38fb200`](https://github.com/bartekmp/osmosmjerka/commit/38fb200b34574f3dc28b0752d1986e0921cd8a1d))
+
+
 ## v1.23.0 (2025-08-16)
 
 ### Bug Fixes
