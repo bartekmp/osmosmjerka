@@ -42,10 +42,10 @@ import UserProfile from './UserProfile';
 import StatisticsDashboard from '../StatisticsDashboard/StatisticsDashboard';
 import './AdminPanel.css';
 
-export default function AdminPanel({ 
-    ignoredCategories = [], 
-    userIgnoredCategories = [], 
-    onUpdateUserIgnoredCategories = () => {} 
+export default function AdminPanel({
+    ignoredCategories = [],
+    userIgnoredCategories = [],
+    onUpdateUserIgnoredCategories = () => { }
 }) {
     const { t } = useTranslation();
     const [auth, setAuth] = useState({ user: '', pass: '' });
@@ -161,12 +161,11 @@ export default function AdminPanel({
         // Always load language sets when user logs in (needed for dashboard button logic)
         if (!languageSetsLoaded && currentUser) {
             // Use different endpoints based on user role
-            const endpoint = currentUser?.role === 'admin' || currentUser?.role === 'root_admin' 
-                ? API_ENDPOINTS.ADMIN_LANGUAGE_SETS 
+            const endpoint = currentUser?.role === 'admin' || currentUser?.role === 'root_admin'
+                ? API_ENDPOINTS.ADMIN_LANGUAGE_SETS
                 : API_ENDPOINTS.LANGUAGE_SETS;
-                
-            console.log('Loading language sets for user:', currentUser, 'using endpoint:', endpoint);
-                
+
+
             fetch(endpoint, {
                 headers: {
                     'Authorization': `Bearer ${token}`
@@ -405,8 +404,8 @@ export default function AdminPanel({
         // Then save to server
         // If it's a new row, use POST; otherwise, use PUT to update
         const method = updatedRow.id ? 'PUT' : 'POST';
-        const url = updatedRow.id 
-            ? `/admin/row/${updatedRow.id}?language_set_id=${selectedLanguageSetId}` 
+        const url = updatedRow.id
+            ? `/admin/row/${updatedRow.id}?language_set_id=${selectedLanguageSetId}`
             : `/admin/row?language_set_id=${selectedLanguageSetId}`;
         const token = localStorage.getItem(STORAGE_KEYS.ADMIN_TOKEN);
         const headers = token
@@ -659,7 +658,7 @@ export default function AdminPanel({
                             variant="contained"
                             color="warning"
                         >
-                            {currentUser?.role === 'admin' || currentUser?.role === 'root_admin' || currentUser?.role === 'administrative' 
+                            {currentUser?.role === 'admin' || currentUser?.role === 'root_admin' || currentUser?.role === 'administrative'
                                 ? t('language_sets_management')
                                 : t('manage_ignored_categories', 'Manage Ignored Categories')
                             }
@@ -764,8 +763,8 @@ export default function AdminPanel({
                 onLogout={handleLogout}
             >
                 <Paper sx={{ p: 3 }}>
-                    <LanguageSetManagement 
-                        currentUser={currentUser} 
+                    <LanguageSetManagement
+                        currentUser={currentUser}
                         initialLanguageSets={languageSets}
                         initialCategories={categories}
                         showAdminActions={currentUser?.role === 'admin' || currentUser?.role === 'root_admin' || currentUser?.role === 'administrative'}
@@ -809,8 +808,8 @@ export default function AdminPanel({
                 onLogout={handleLogout}
             >
                 <Paper sx={{ p: 3 }}>
-                    <DuplicateManagement 
-                        currentUser={currentUser} 
+                    <DuplicateManagement
+                        currentUser={currentUser}
                         selectedLanguageSetId={selectedLanguageSetId}
                     />
                 </Paper>
@@ -888,332 +887,332 @@ export default function AdminPanel({
                     </Box>
                 </Box>
             )}
-            
+
             {/* Browse Records Interface - Admin Only */}
             {(currentUser?.role === 'admin' || currentUser?.role === 'root_admin' || currentUser?.role === 'administrative') ? (
                 <>
                     <Typography variant="h4" component="h2" gutterBottom align="center">
                         {t('admin_panel')}
                     </Typography>
-            {/* Action Buttons */}
-            <Paper sx={{ p: 3, mb: 3 }}>
-                <Grid container spacing={2} justifyContent="center">
-                    <Grid item xs={6} sm={4} md={2}>
-                        <ResponsiveActionButton
-                            onClick={() => {
-                                if (selectedLanguageSetId) {
-                                    setReloadLoading(true);
-                                    fetchRows(offset, limit, filterCategory, searchTerm, selectedLanguageSetId);
-                                    setTimeout(() => setReloadLoading(false), 500);
-                                }
-                            }}
-                            loading={reloadLoading}
-                            icon="📊"
-                            desktopText={t('reload_data')}
-                            mobileText={t('reload')}
-                        />
-                    </Grid>
-                    <Grid item xs={6} sm={4} md={2}>
-                        <ResponsiveActionButton
-                            onClick={() => setEditRow({ categories: '', phrase: '', translation: '' })}
-                            color="secondary"
-                            icon="➕"
-                            desktopText={t('add_row')}
-                            mobileText={t('add')}
-                        />
-                    </Grid>
-                    <Grid item xs={6} sm={4} md={2}>
-                        <Box sx={{ height: '100%', display: 'flex' }}>
-                            <UploadForm selectedLanguageSetId={selectedLanguageSetId} onUpload={() => selectedLanguageSetId && fetchRows(offset, limit, filterCategory, searchTerm, selectedLanguageSetId)} />
-                        </Box>
-                    </Grid>
-                    <Grid item xs={6} sm={4} md={2}>
-                        <ResponsiveActionButton
-                            onClick={() => handleExportTxt(filterCategory)}
-                            variant="outlined"
-                            color="success"
-                            icon="💾"
-                            desktopText={t('download_phrases')}
-                            mobileText={t('download')}
-                        />
-                    </Grid>
-                    {/* Clear Database Button - Root Admin Only */}
-                    {currentUser?.role === 'root_admin' && (
-                        <Grid item xs={12} sm={4} md={2}>
-                            <ResponsiveActionButton
-                                onClick={handleClearDb}
-                                loading={clearLoading}
-                                icon="🗑️"
-                                desktopText={t('clear_database')}
-                                mobileText={t('clear')}
-                                sx={{
-                                    bgcolor: 'error.main',
-                                    color: 'white',
-                                    '&:hover': {
-                                        bgcolor: 'error.dark',
-                                    }
-                                }}
-                            />
-                            <Snackbar
-                                open={clearNotification.open}
-                                autoHideDuration={clearNotification.severity === 'success' ? clearNotification.autoHideDuration : null}
-                                onClose={handleClearClose}
-                                anchorOrigin={{ vertical: 'top', horizontal: 'center' }}
-                            >
-                                <Alert
-                                    severity={clearNotification.severity}
-                                    action={
-                                        <IconButton size="small" color="inherit" onClick={handleClearClose}>
-                                            <CloseIcon fontSize="small" />
-                                        </IconButton>
-                                    }
-                                    onClose={handleClearClose}
-                                >
-                                    {clearNotification.message}
-                                </Alert>
-                            </Snackbar>
+                    {/* Action Buttons */}
+                    <Paper sx={{ p: 3, mb: 3 }}>
+                        <Grid container spacing={2} justifyContent="center">
+                            <Grid item xs={6} sm={4} md={2}>
+                                <ResponsiveActionButton
+                                    onClick={() => {
+                                        if (selectedLanguageSetId) {
+                                            setReloadLoading(true);
+                                            fetchRows(offset, limit, filterCategory, searchTerm, selectedLanguageSetId);
+                                            setTimeout(() => setReloadLoading(false), 500);
+                                        }
+                                    }}
+                                    loading={reloadLoading}
+                                    icon="📊"
+                                    desktopText={t('reload_data')}
+                                    mobileText={t('reload')}
+                                />
+                            </Grid>
+                            <Grid item xs={6} sm={4} md={2}>
+                                <ResponsiveActionButton
+                                    onClick={() => setEditRow({ categories: '', phrase: '', translation: '' })}
+                                    color="secondary"
+                                    icon="➕"
+                                    desktopText={t('add_row')}
+                                    mobileText={t('add')}
+                                />
+                            </Grid>
+                            <Grid item xs={6} sm={4} md={2}>
+                                <Box sx={{ height: '100%', display: 'flex' }}>
+                                    <UploadForm selectedLanguageSetId={selectedLanguageSetId} onUpload={() => selectedLanguageSetId && fetchRows(offset, limit, filterCategory, searchTerm, selectedLanguageSetId)} />
+                                </Box>
+                            </Grid>
+                            <Grid item xs={6} sm={4} md={2}>
+                                <ResponsiveActionButton
+                                    onClick={() => handleExportTxt(filterCategory)}
+                                    variant="outlined"
+                                    color="success"
+                                    icon="💾"
+                                    desktopText={t('download_phrases')}
+                                    mobileText={t('download')}
+                                />
+                            </Grid>
+                            {/* Clear Database Button - Root Admin Only */}
+                            {currentUser?.role === 'root_admin' && (
+                                <Grid item xs={12} sm={4} md={2}>
+                                    <ResponsiveActionButton
+                                        onClick={handleClearDb}
+                                        loading={clearLoading}
+                                        icon="🗑️"
+                                        desktopText={t('clear_database')}
+                                        mobileText={t('clear')}
+                                        sx={{
+                                            bgcolor: 'error.main',
+                                            color: 'white',
+                                            '&:hover': {
+                                                bgcolor: 'error.dark',
+                                            }
+                                        }}
+                                    />
+                                    <Snackbar
+                                        open={clearNotification.open}
+                                        autoHideDuration={clearNotification.severity === 'success' ? clearNotification.autoHideDuration : null}
+                                        onClose={handleClearClose}
+                                        anchorOrigin={{ vertical: 'top', horizontal: 'center' }}
+                                    >
+                                        <Alert
+                                            severity={clearNotification.severity}
+                                            action={
+                                                <IconButton size="small" color="inherit" onClick={handleClearClose}>
+                                                    <CloseIcon fontSize="small" />
+                                                </IconButton>
+                                            }
+                                            onClose={handleClearClose}
+                                        >
+                                            {clearNotification.message}
+                                        </Alert>
+                                    </Snackbar>
+                                </Grid>
+                            )}
                         </Grid>
-                    )}
-                </Grid>
-            </Paper>
-            {/* Edit Row Form */}
-            <EditRowForm
-                editRow={editRow}
-                setEditRow={setEditRow}
-                handleSave={() => handleSave(editRow, () => selectedLanguageSetId && fetchRows(offset, limit, filterCategory, searchTerm, selectedLanguageSetId), setEditRow, selectedLanguageSetId)}
-            />
-            {/* Filter and Statistics */}
-            <Paper sx={{ p: 3, mb: 3 }}>
-                <Grid container spacing={3} alignItems="center">
-                    {/* Language Set Filter */}
-                    <Grid item xs={12} md={4}>
-                        <FormControl fullWidth sx={{ minWidth: 200 }}>
-                            <InputLabel>{t('filter_by_language_set')}</InputLabel>
-                            <Select
-                                value={selectedLanguageSetId || ''}
-                                label={t('filter_by_language_set')}
-                                onChange={e => {
-                                    const value = parseInt(e.target.value);
-                                    setSelectedLanguageSetId(value);
-                                    setOffset(0);
-                                    setFilterCategory(''); // Reset category filter when language set changes
-                                    // Save to localStorage
-                                    localStorage.setItem(STORAGE_KEYS.SELECTED_LANGUAGE_SET, value.toString());
-                                }}
-                            >
-                                {languageSets.map(set => (
-                                    <MenuItem key={set.id} value={set.id}>{set.display_name}</MenuItem>
-                                ))}
-                            </Select>
-                        </FormControl>
-                    </Grid>
+                    </Paper>
+                    {/* Edit Row Form */}
+                    <EditRowForm
+                        editRow={editRow}
+                        setEditRow={setEditRow}
+                        handleSave={() => handleSave(editRow, () => selectedLanguageSetId && fetchRows(offset, limit, filterCategory, searchTerm, selectedLanguageSetId), setEditRow, selectedLanguageSetId)}
+                    />
+                    {/* Filter and Statistics */}
+                    <Paper sx={{ p: 3, mb: 3 }}>
+                        <Grid container spacing={3} alignItems="center">
+                            {/* Language Set Filter */}
+                            <Grid item xs={12} md={4}>
+                                <FormControl fullWidth sx={{ minWidth: 200 }}>
+                                    <InputLabel>{t('filter_by_language_set')}</InputLabel>
+                                    <Select
+                                        value={selectedLanguageSetId || ''}
+                                        label={t('filter_by_language_set')}
+                                        onChange={e => {
+                                            const value = parseInt(e.target.value);
+                                            setSelectedLanguageSetId(value);
+                                            setOffset(0);
+                                            setFilterCategory(''); // Reset category filter when language set changes
+                                            // Save to localStorage
+                                            localStorage.setItem(STORAGE_KEYS.SELECTED_LANGUAGE_SET, value.toString());
+                                        }}
+                                    >
+                                        {languageSets.map(set => (
+                                            <MenuItem key={set.id} value={set.id}>{set.display_name}</MenuItem>
+                                        ))}
+                                    </Select>
+                                </FormControl>
+                            </Grid>
 
-                    {/* Category Filter */}
-                    <Grid item xs={12} md={4}>
-                        <FormControl fullWidth sx={{ minWidth: 200 }}>
-                            <InputLabel>{t('filter_by_category')}</InputLabel>
-                            <Select
-                                value={filterCategory}
-                                label={t('filter_by_category')}
-                                onChange={e => { setFilterCategory(e.target.value); setOffset(0); }}
-                            >
-                                <MenuItem value="">{`-- ${t('all_categories')} --`}</MenuItem>
-                                {categories.map(cat => (
-                                    <MenuItem key={cat} value={cat}>{cat}</MenuItem>
-                                ))}
-                            </Select>
-                        </FormControl>
-                    </Grid>
-                </Grid>
+                            {/* Category Filter */}
+                            <Grid item xs={12} md={4}>
+                                <FormControl fullWidth sx={{ minWidth: 200 }}>
+                                    <InputLabel>{t('filter_by_category')}</InputLabel>
+                                    <Select
+                                        value={filterCategory}
+                                        label={t('filter_by_category')}
+                                        onChange={e => { setFilterCategory(e.target.value); setOffset(0); }}
+                                    >
+                                        <MenuItem value="">{`-- ${t('all_categories')} --`}</MenuItem>
+                                        {categories.map(cat => (
+                                            <MenuItem key={cat} value={cat}>{cat}</MenuItem>
+                                        ))}
+                                    </Select>
+                                </FormControl>
+                            </Grid>
+                        </Grid>
 
-                {/* Ignored Categories Display - New Row */}
-                {((currentUser && selectedLanguageSetId) || ignoredCategories.length > 0 || userIgnoredCategories.length > 0) && (
-                    <Box sx={{ mt: 2 }}>
-                        <Button
-                            variant="outlined"
-                            size="small"
-                            onClick={() => setShowIgnoredCategories(!showIgnoredCategories)}
-                            startIcon={<ExpandMoreIcon
-                                style={{
-                                    transform: showIgnoredCategories ? 'rotate(180deg)' : 'rotate(0deg)',
-                                    transition: 'transform 0.2s'
-                                }}
-                            />}
-                            sx={{ mb: showIgnoredCategories ? 1 : 0 }}
-                        >
-                            {t('ignored_categories')} ({ignoredCategories.length + userIgnoredCategories.length})
-                        </Button>
-                        <Collapse in={showIgnoredCategories}>
-                            <Box sx={{ mt: 1 }}>
-                                {/* User ignored categories */}
-                                {currentUser && userIgnoredCategories.length > 0 && (
-                                    <Box sx={{ mb: 1 }}>
-                                        <Typography variant="caption" sx={{ fontWeight: 600, display: 'block', mb: 0.5 }}>
-                                            {t('your_ignored_categories', 'Your Ignored Categories')}
-                                        </Typography>
-                                        <Stack direction="row" spacing={0.5} flexWrap="wrap" useFlexGap>
-                                            {userIgnoredCategories.map(category => (
-                                                <Tooltip key={category} title={t('click_to_remove_ignored', 'Click to remove from ignored categories')}>
-                                                    <Chip
-                                                        label={category}
-                                                        size="small"
-                                                        color="warning"
-                                                        variant="filled"
-                                                        onClick={() => toggleIgnoredCategory(category)}
-                                                        sx={{
-                                                            cursor: 'pointer',
-                                                            textDecoration: 'line-through',
-                                                            mb: 0.5
-                                                        }}
-                                                    />
-                                                </Tooltip>
-                                            ))}
-                                        </Stack>
-                                    </Box>
-                                )}
-
-                                {/* Global ignored categories */}
-                                {ignoredCategories.length > 0 && (
-                                    <Box>
-                                        <Typography variant="caption" sx={{ fontWeight: 600, display: 'block', mb: 0.5 }}>
-                                            {t('global_ignored_categories', 'Global Ignored Categories')}
-                                        </Typography>
-                                        <Stack direction="row" spacing={0.5} flexWrap="wrap" useFlexGap>
-                                            {ignoredCategories.map(category => (
-                                                <Tooltip key={category} title={t('ignored_category_tooltip')}>
-                                                    <Chip
-                                                        label={category}
-                                                        size="small"
-                                                        color="default"
-                                                        variant="outlined"
-                                                        sx={{
-                                                            opacity: 0.7,
-                                                            textDecoration: 'line-through',
-                                                            mb: 0.5
-                                                        }}
-                                                    />
-                                                </Tooltip>
-                                            ))}
-                                        </Stack>
-                                    </Box>
-                                )}
-
-                                {/* Message when no categories are ignored yet */}
-                                {currentUser && ignoredCategories.length === 0 && userIgnoredCategories.length === 0 && categories.length > 0 && (
-                                    <Box sx={{ mb: 1 }}>
-                                        <Typography variant="caption" sx={{ fontStyle: 'italic', color: 'text.secondary' }}>
-                                            {t('no_ignored_categories_yet', 'No categories are ignored yet. Click on categories below to ignore them.')}
-                                        </Typography>
-                                    </Box>
-                                )}
-
-                                {/* Available categories for logged in users */}
-                                {currentUser && categories.length > 0 && (
+                        {/* Ignored Categories Display - New Row */}
+                        {((currentUser && selectedLanguageSetId) || ignoredCategories.length > 0 || userIgnoredCategories.length > 0) && (
+                            <Box sx={{ mt: 2 }}>
+                                <Button
+                                    variant="outlined"
+                                    size="small"
+                                    onClick={() => setShowIgnoredCategories(!showIgnoredCategories)}
+                                    startIcon={<ExpandMoreIcon
+                                        style={{
+                                            transform: showIgnoredCategories ? 'rotate(180deg)' : 'rotate(0deg)',
+                                            transition: 'transform 0.2s'
+                                        }}
+                                    />}
+                                    sx={{ mb: showIgnoredCategories ? 1 : 0 }}
+                                >
+                                    {t('ignored_categories')} ({ignoredCategories.length + userIgnoredCategories.length})
+                                </Button>
+                                <Collapse in={showIgnoredCategories}>
                                     <Box sx={{ mt: 1 }}>
-                                        <Typography variant="caption" sx={{ fontWeight: 600, display: 'block', mb: 0.5 }}>
-                                            {t('available_categories', 'Available Categories')} ({t('click_to_ignore', 'click to ignore')})
-                                        </Typography>
-                                        <Stack direction="row" spacing={0.5} flexWrap="wrap" useFlexGap>
-                                            {categories
-                                                .filter(cat => !userIgnoredCategories.includes(cat) && !ignoredCategories.includes(cat))
-                                                .map(category => (
-                                                    <Tooltip key={category} title={t('click_to_add_ignored', 'Click to add to ignored categories')}>
-                                                        <Chip
-                                                            label={category}
-                                                            size="small"
-                                                            color="primary"
-                                                            variant="outlined"
-                                                            onClick={() => toggleIgnoredCategory(category)}
-                                                            sx={{
-                                                                cursor: 'pointer',
-                                                                mb: 0.5
-                                                            }}
-                                                        />
-                                                    </Tooltip>
-                                                ))}
-                                        </Stack>
+                                        {/* User ignored categories */}
+                                        {currentUser && userIgnoredCategories.length > 0 && (
+                                            <Box sx={{ mb: 1 }}>
+                                                <Typography variant="caption" sx={{ fontWeight: 600, display: 'block', mb: 0.5 }}>
+                                                    {t('your_ignored_categories', 'Your Ignored Categories')}
+                                                </Typography>
+                                                <Stack direction="row" spacing={0.5} flexWrap="wrap" useFlexGap>
+                                                    {userIgnoredCategories.map(category => (
+                                                        <Tooltip key={category} title={t('click_to_remove_ignored', 'Click to remove from ignored categories')}>
+                                                            <Chip
+                                                                label={category}
+                                                                size="small"
+                                                                color="warning"
+                                                                variant="filled"
+                                                                onClick={() => toggleIgnoredCategory(category)}
+                                                                sx={{
+                                                                    cursor: 'pointer',
+                                                                    textDecoration: 'line-through',
+                                                                    mb: 0.5
+                                                                }}
+                                                            />
+                                                        </Tooltip>
+                                                    ))}
+                                                </Stack>
+                                            </Box>
+                                        )}
+
+                                        {/* Global ignored categories */}
+                                        {ignoredCategories.length > 0 && (
+                                            <Box>
+                                                <Typography variant="caption" sx={{ fontWeight: 600, display: 'block', mb: 0.5 }}>
+                                                    {t('global_ignored_categories', 'Global Ignored Categories')}
+                                                </Typography>
+                                                <Stack direction="row" spacing={0.5} flexWrap="wrap" useFlexGap>
+                                                    {ignoredCategories.map(category => (
+                                                        <Tooltip key={category} title={t('ignored_category_tooltip')}>
+                                                            <Chip
+                                                                label={category}
+                                                                size="small"
+                                                                color="default"
+                                                                variant="outlined"
+                                                                sx={{
+                                                                    opacity: 0.7,
+                                                                    textDecoration: 'line-through',
+                                                                    mb: 0.5
+                                                                }}
+                                                            />
+                                                        </Tooltip>
+                                                    ))}
+                                                </Stack>
+                                            </Box>
+                                        )}
+
+                                        {/* Message when no categories are ignored yet */}
+                                        {currentUser && ignoredCategories.length === 0 && userIgnoredCategories.length === 0 && categories.length > 0 && (
+                                            <Box sx={{ mb: 1 }}>
+                                                <Typography variant="caption" sx={{ fontStyle: 'italic', color: 'text.secondary' }}>
+                                                    {t('no_ignored_categories_yet', 'No categories are ignored yet. Click on categories below to ignore them.')}
+                                                </Typography>
+                                            </Box>
+                                        )}
+
+                                        {/* Available categories for logged in users */}
+                                        {currentUser && categories.length > 0 && (
+                                            <Box sx={{ mt: 1 }}>
+                                                <Typography variant="caption" sx={{ fontWeight: 600, display: 'block', mb: 0.5 }}>
+                                                    {t('available_categories', 'Available Categories')} ({t('click_to_ignore', 'click to ignore')})
+                                                </Typography>
+                                                <Stack direction="row" spacing={0.5} flexWrap="wrap" useFlexGap>
+                                                    {categories
+                                                        .filter(cat => !userIgnoredCategories.includes(cat) && !ignoredCategories.includes(cat))
+                                                        .map(category => (
+                                                            <Tooltip key={category} title={t('click_to_add_ignored', 'Click to add to ignored categories')}>
+                                                                <Chip
+                                                                    label={category}
+                                                                    size="small"
+                                                                    color="primary"
+                                                                    variant="outlined"
+                                                                    onClick={() => toggleIgnoredCategory(category)}
+                                                                    sx={{
+                                                                        cursor: 'pointer',
+                                                                        mb: 0.5
+                                                                    }}
+                                                                />
+                                                            </Tooltip>
+                                                        ))}
+                                                </Stack>
+                                            </Box>
+                                        )}
                                     </Box>
-                                )}
+                                </Collapse>
                             </Box>
-                        </Collapse>
-                    </Box>
-                )}
-            </Paper>
-            {/* Batch Operations Toolbar */}
-            {batchMode && (
-                <BatchOperationsToolbar
-                    selectedCount={selectedRows.length}
-                    onBatchDelete={handleBatchDeleteClick}
-                    onBatchAddCategory={handleBatchAddCategoryClick}
-                    onBatchRemoveCategory={handleBatchRemoveCategoryClick}
-                    disabled={batchLoading || selectedRows.length === 0}
-                />
-            )}
-            {/* Data Table */}
-            <AdminTable
-                rows={rows}
-                setEditRow={setEditRow}
-                onSaveRow={handleInlineSave}
-                onDeleteRow={handleInlineDelete}
-                totalRows={totalRows}
-                searchTerm={searchTerm}
-                onSearchChange={handleSearchChange}
-                isLoading={dataLoading}
-                batchMode={batchMode}
-                selectedRows={selectedRows}
-                onRowSelectionChange={handleRowSelectionChange}
-                onBatchModeToggle={handleBatchModeToggle}
-            />
-            {/* Pagination */}
-            <Box sx={{ mt: 3 }}>
-                <PaginationControls
-                    offset={offset}
-                    limit={limit}
-                    totalRows={totalRows}
-                    offsetInput={offsetInput}
-                    handleOffsetInput={handleOffsetInput}
-                    goToOffset={goToOffset}
-                    setOffset={setOffset}
-                    pageSizeSelector={
-                        <PageSizeSelector
-                            value={limit}
-                            onChange={handlePageSizeChange}
+                        )}
+                    </Paper>
+                    {/* Batch Operations Toolbar */}
+                    {batchMode && (
+                        <BatchOperationsToolbar
+                            selectedCount={selectedRows.length}
+                            onBatchDelete={handleBatchDeleteClick}
+                            onBatchAddCategory={handleBatchAddCategoryClick}
+                            onBatchRemoveCategory={handleBatchRemoveCategoryClick}
+                            disabled={batchLoading || selectedRows.length === 0}
                         />
-                    }
-                />
-            </Box>
-            {/* Error Display */}
-            {error && (
-                <Box sx={{ mt: 2, p: 2, bgcolor: 'error.light', borderRadius: 1 }}>
-                    <Typography color="error.contrastText">{error}</Typography>
-                </Box>
-            )}
+                    )}
+                    {/* Data Table */}
+                    <AdminTable
+                        rows={rows}
+                        setEditRow={setEditRow}
+                        onSaveRow={handleInlineSave}
+                        onDeleteRow={handleInlineDelete}
+                        totalRows={totalRows}
+                        searchTerm={searchTerm}
+                        onSearchChange={handleSearchChange}
+                        isLoading={dataLoading}
+                        batchMode={batchMode}
+                        selectedRows={selectedRows}
+                        onRowSelectionChange={handleRowSelectionChange}
+                        onBatchModeToggle={handleBatchModeToggle}
+                    />
+                    {/* Pagination */}
+                    <Box sx={{ mt: 3 }}>
+                        <PaginationControls
+                            offset={offset}
+                            limit={limit}
+                            totalRows={totalRows}
+                            offsetInput={offsetInput}
+                            handleOffsetInput={handleOffsetInput}
+                            goToOffset={goToOffset}
+                            setOffset={setOffset}
+                            pageSizeSelector={
+                                <PageSizeSelector
+                                    value={limit}
+                                    onChange={handlePageSizeChange}
+                                />
+                            }
+                        />
+                    </Box>
+                    {/* Error Display */}
+                    {error && (
+                        <Box sx={{ mt: 2, p: 2, bgcolor: 'error.light', borderRadius: 1 }}>
+                            <Typography color="error.contrastText">{error}</Typography>
+                        </Box>
+                    )}
 
-            {/* Batch Operation Dialogs */}
-            <BatchOperationDialog
-                open={batchDialog.open}
-                onClose={handleBatchDialogClose}
-                operation={batchDialog.operation}
-                selectedCount={selectedRows.length}
-                onConfirm={handleBatchConfirm}
-                availableCategories={categories}
-            />
+                    {/* Batch Operation Dialogs */}
+                    <BatchOperationDialog
+                        open={batchDialog.open}
+                        onClose={handleBatchDialogClose}
+                        operation={batchDialog.operation}
+                        selectedCount={selectedRows.length}
+                        onConfirm={handleBatchConfirm}
+                        availableCategories={categories}
+                    />
 
-            <BatchResultDialog
-                open={batchResult.open}
-                onClose={handleBatchResultClose}
-                operation={batchResult.operation}
-                result={batchResult.result}
-            />
-            </>) : (
+                    <BatchResultDialog
+                        open={batchResult.open}
+                        onClose={handleBatchResultClose}
+                        operation={batchResult.operation}
+                        result={batchResult.result}
+                    />
+                </>) : (
                 /* Regular users - Access Denied */
-                <Box sx={{ 
-                    display: 'flex', 
-                    flexDirection: 'column', 
-                    alignItems: 'center', 
-                    justifyContent: 'center', 
-                    minHeight: '400px', 
-                    textAlign: 'center' 
+                <Box sx={{
+                    display: 'flex',
+                    flexDirection: 'column',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    minHeight: '400px',
+                    textAlign: 'center'
                 }}>
                     <Typography variant="h5" gutterBottom color="error">
                         {t('access_denied', 'Access Denied')}
@@ -1231,9 +1230,9 @@ export default function AdminPanel({
             )}
 
             {/* Rate Limit Warning */}
-            <RateLimitWarning 
+            <RateLimitWarning
                 show={showFetchRateLimit}
-                onClose={() => {}} // Auto-closes via autoHideDuration
+                onClose={() => { }} // Auto-closes via autoHideDuration
                 message={t('admin.rateLimitWarning', 'Please wait before making another request. Data is being processed.')}
             />
         </AdminLayout>

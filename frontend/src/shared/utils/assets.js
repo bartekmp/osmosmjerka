@@ -16,31 +16,18 @@ export function getBaseUrl() {
     if (typeof window !== 'undefined') {
         // First check if VITE_BASE_PATH was injected at build time
         if (typeof __VITE_BASE_PATH__ !== 'undefined') {
-            if (!(typeof process !== 'undefined' && process.env && process.env.NODE_ENV === 'test')) {
-                console.log('Using build-time VITE_BASE_PATH:', __VITE_BASE_PATH__);
-            }
             return __VITE_BASE_PATH__;
         }
 
         // Check if we're in production mode by multiple indicators
-        const isProduction = 
+        const isProduction =
             // Check if current URL suggests we're being served from /static/
             window.location.pathname.startsWith('/static/') ||
             // Check traditional NODE_ENV
             (typeof process !== 'undefined' && process.env && process.env.NODE_ENV === 'production') ||
             // Check if we're NOT running on development ports
             (window.location.port !== '3000' && window.location.port !== '5173' && window.location.hostname !== 'localhost');
-        
-        if (!(typeof process !== 'undefined' && process.env && process.env.NODE_ENV === 'test')) {
-            console.log('getBaseUrl debug:', {
-                pathname: window.location.pathname,
-                hostname: window.location.hostname,
-                port: window.location.port,
-                isProduction,
-                resultingBase: isProduction ? '/static/' : '/'
-            });
-        }
-        
+
         return isProduction ? '/static/' : '/';
     }
 
@@ -53,8 +40,5 @@ export const getAssetUrl = (path) => {
     // Remove leading slash from path if present to avoid double slashes
     const cleanPath = path.startsWith('/') ? path.slice(1) : path;
     const finalUrl = `${baseUrl}${cleanPath}`;
-    if (!(typeof process !== 'undefined' && process.env && process.env.NODE_ENV === 'test')) {
-        console.log(`getAssetUrl: ${path} -> ${finalUrl}`);
-    }
     return finalUrl;
 };
