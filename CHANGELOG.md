@@ -2,6 +2,14 @@
 
 <!-- version list -->
 
+## v1.23.4 (2025-08-17)
+
+### Bug Fixes
+
+- Statistics, remove logs
+  ([`c0b5e58`](https://github.com/bartekmp/osmosmjerka/commit/c0b5e5893eadb567f482eb34dc26d94a3a619efa))
+
+
 ## v1.23.3 (2025-08-17)
 
 ### Bug Fixes
