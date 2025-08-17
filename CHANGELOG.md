@@ -2,6 +2,14 @@
 
 <!-- version list -->
 
+## v1.23.2 (2025-08-17)
+
+### Bug Fixes
+
+- Lacking language set id when editing, deleting or creating a new record
+  ([`1ed483f`](https://github.com/bartekmp/osmosmjerka/commit/1ed483f63c4ae983913bbaeb071146f560f944a7))
+
+
 ## v1.23.1 (2025-08-17)
 
 ### Bug Fixes
