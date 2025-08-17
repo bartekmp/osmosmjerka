@@ -2,6 +2,14 @@
 
 <!-- version list -->
 
+## v1.23.3 (2025-08-17)
+
+### Bug Fixes
+
+- Statistics gathering
+  ([`7def933`](https://github.com/bartekmp/osmosmjerka/commit/7def933e2ff3768846b4f8168985ba66a3806008))
+
+
 ## v1.23.2 (2025-08-17)
 
 ### Bug Fixes
