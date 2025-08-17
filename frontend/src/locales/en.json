@@ -143,6 +143,8 @@
     "hide_all_translations": "Hide all translations",
     "previous": "Previous",
     "next": "Next",
+    "first_page": "First Page",
+    "last_page": "Last Page",
     "offset": "Offset",
     "go_to_offset": "Go to offset",
     "go": "Go",
@@ -312,5 +314,13 @@
     "phrases_remaining_after_deletion": "{{count}} phrases remaining after deletion",
     "delete_selected_success": "Selected phrases deleted successfully",
     "duplicate_categories_removed": "duplicate categories removed",
-    "no_duplicate_categories_found": "no duplicate categories found"
+    "no_duplicate_categories_found": "no duplicate categories found",
+    "common.rateLimitWarning": "Please wait before making another request. The server is processing your previous request.",
+    "admin.rateLimitWarning": "Please wait before making another request. The server is processing your previous request.",
+    "profile_settings": "Profile Settings",
+    "your_statistics": "Your Statistics",
+    "select": "Select",
+    "unselect_all": "Unselect All",
+    "select_language_set_first": "Please select a language set first",
+    "merge_categories_success": "Categories merged successfully"
 }
