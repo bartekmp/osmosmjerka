@@ -18,6 +18,14 @@ export default function PaginationControls({
             <Grid container spacing={2} alignItems="center" justifyContent="space-between">
                 <Grid item xs={12} sm="auto" sx={{ display: 'flex', alignItems: 'center', gap: 2, flexWrap: 'wrap', justifyContent: { xs: 'center', sm: 'flex-start' } }}>
                     <Button
+                        variant="outlined"
+                        onClick={() => setOffset(0)}
+                        disabled={offset === 0}
+                        size="small"
+                    >
+                        {t('first_page')}
+                    </Button>
+                    <Button
                         variant="contained"
                         onClick={() => setOffset(Math.max(offset - limit, 0))}
                         disabled={offset === 0}
@@ -35,6 +43,14 @@ export default function PaginationControls({
                         size="small"
                     >
                         {t('next')}
+                    </Button>
+                    <Button
+                        variant="outlined"
+                        onClick={() => setOffset(Math.max(totalRows - limit, 0))}
+                        disabled={offset + limit >= totalRows}
+                        size="small"
+                    >
+                        {t('last_page')}
                     </Button>
                     <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, flexWrap: 'wrap' }}>
                         <Typography variant="body2">{t('go_to_offset')}:</Typography>
