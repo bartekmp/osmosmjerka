@@ -111,6 +111,36 @@ async def get_current_user(request: Request) -> dict:
         raise HTTPException(status_code=401, detail="Could not validate credentials")
 
 
+async def get_current_user_optional(request: Request) -> dict | None:
+    """
+    Get the current user from the request headers, return None if not authenticated.
+    Args:
+        request (Request): The FastAPI request object.
+    Returns:
+        dict | None: The user info (username, role, id) or None if not authenticated
+    """
+    token = request.headers.get("Authorization")
+    if not token or not token.startswith("Bearer "):
+        return None
+    token = token.split(" ", 1)[1]
+    try:
+        payload = jwt.decode(token, SECRET_KEY, algorithms=[ALGORITHM])
+        username = payload.get("sub")
+        role = payload.get("role")
+        user_id = payload.get("user_id")
+        if not isinstance(username, str) or not isinstance(role, str) or user_id is None:
+            return None
+        if username == ROOT_ADMIN_USERNAME and role == "root_admin" and user_id == 0:
+            return {"username": username, "role": "root_admin", "id": 0}
+        # Otherwise, look up in DB
+        account = await db_manager.get_account_by_username(username)
+        if not account or not account.get("is_active", False):
+            return None
+        return {"username": account["username"], "role": account["role"], "id": account["id"]}
+    except JWTError:
+        return None
+
+
 def require_role(required_role: str):
     """Dependency to require specific role"""
 

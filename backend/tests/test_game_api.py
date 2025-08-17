@@ -57,6 +57,14 @@ def test_get_default_ignored_categories(mock_get_default_ignored, client):
     assert set(ignored) == {"X", "Y", "Z"}
 
 
+def test_get_user_ignored_categories_no_auth(client):
+    """Test getting user ignored categories without authentication returns empty list"""
+    response = client.get("/api/user/ignored-categories?language_set_id=1")
+    assert response.status_code == 200
+    ignored = response.json()
+    assert ignored == []
+
+
 def test_get_grid_size_and_num_phrases_easy():
     size, num_phrases = get_grid_size_and_num_phrases([{"phrase": "a"}] * 10, "easy")
     assert size == 10 and num_phrases == 7
