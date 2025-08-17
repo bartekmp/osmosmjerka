@@ -498,7 +498,7 @@ const StatisticsDashboard = ({ token, setError: onError, currentUser }) => {
                   {t('detailed_statistics')} - {selectedUserDetail.user?.username || `User ${selectedUserDetail.statistics.user_id}`}
                 </Typography>
                 
-                {selectedUserDetail.favorite_categories.map((langSetData, index) => (
+                {(selectedUserDetail.favorite_categories || []).map((langSetData, index) => (
                   <Accordion key={index}>
                     <AccordionSummary expandIcon={<ExpandMoreIcon />}>
                       <Typography>
@@ -507,7 +507,7 @@ const StatisticsDashboard = ({ token, setError: onError, currentUser }) => {
                     </AccordionSummary>
                     <AccordionDetails>
                       <Box display="flex" flexWrap="wrap" gap={1}>
-                        {langSetData.categories.map((cat, catIndex) => (
+                        {(langSetData.categories || []).map((cat, catIndex) => (
                           <Chip
                             key={catIndex}
                             icon={<StarIcon />}
@@ -516,6 +516,11 @@ const StatisticsDashboard = ({ token, setError: onError, currentUser }) => {
                             color="primary"
                           />
                         ))}
+                        {(!langSetData.categories || langSetData.categories.length === 0) && (
+                          <Typography variant="body2" color="text.secondary">
+                            {t('no_favorite_categories', 'No favorite categories')}
+                          </Typography>
+                        )}
                       </Box>
                     </AccordionDetails>
                   </Accordion>

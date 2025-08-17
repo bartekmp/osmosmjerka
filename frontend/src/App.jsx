@@ -1,4 +1,5 @@
-import { Box, CircularProgress, Container, CssBaseline, ThemeProvider as MUIThemeProvider, Stack } from '@mui/material';
+import { Box, CircularProgress, Container, CssBaseline, ThemeProvider as MUIThemeProvider, Stack, Typography, IconButton } from '@mui/material';
+import GitHubIcon from '@mui/icons-material/GitHub';
 import axios from 'axios';
 import confetti from 'canvas-confetti';
 import React, { Suspense, lazy, useCallback, useEffect, useRef, useState } from 'react';
@@ -28,6 +29,7 @@ import { useDebouncedValue } from './hooks/useDebounce';
 import { loadPuzzle as loadPuzzleHelper, restoreGameState, saveGameState } from './helpers/appHelpers';
 import { API_ENDPOINTS, STORAGE_KEYS } from './shared/constants/constants';
 import { RateLimitWarning } from './shared/components/ui/RateLimitWarning';
+import packageJson from '../package.json';
 
 // Lazy load admin components
 const AdminPanel = lazy(() => import('./features').then(module => ({ default: module.AdminPanel })));
@@ -229,7 +231,7 @@ function AppContent() {
             // If user is root admin, check if statistics are explicitly disabled on server
             if (profileResponse.data.role === 'root_admin') {
                 try {
-                    const response = await axios.get(`${API_ENDPOINTS.ADMIN}/admin/settings/statistics-enabled`, {
+                    const response = await axios.get(`${API_ENDPOINTS.ADMIN}/settings/statistics-enabled`, {
                         headers: {
                             'Authorization': `Bearer ${token}`,
                             'Content-Type': 'application/json'
@@ -589,6 +591,51 @@ function AppContent() {
                         </Stack>
                     } />
                 </Routes>
+                
+                {/* Footer */}
+                <Box
+                    component="footer"
+                    sx={{
+                        mt: 4,
+                        py: 3,
+                        borderTop: 1,
+                        borderColor: 'divider',
+                        display: 'flex',
+                        alignItems: 'center',
+                        justifyContent: 'center',
+                        gap: 2
+                    }}
+                >
+                    <Typography 
+                        variant="body2" 
+                        color="text.secondary"
+                        component="a"
+                        href={`https://github.com/bartekmp/osmosmjerka/releases/tag/v${packageJson.version}`}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        sx={{ 
+                            textDecoration: 'none',
+                            color: 'text.secondary',
+                            '&:hover': {
+                                textDecoration: 'underline',
+                                color: 'primary.main'
+                            }
+                        }}
+                    >
+                        Osmosmjerka v{packageJson.version}
+                    </Typography>
+                    <Box sx={{ height: 20, width: 1, bgcolor: 'divider' }} />
+                    <IconButton
+                        size="small"
+                        href="https://github.com/bartekmp/osmosmjerka"
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        sx={{ color: 'text.secondary' }}
+                        aria-label="GitHub Repository"
+                    >
+                        <GitHubIcon fontSize="small" />
+                    </IconButton>
+                </Box>
             </Container>
 
             {/* Rate Limit Warning */}
