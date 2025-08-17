@@ -206,20 +206,46 @@ function AppContent() {
         const token = localStorage.getItem(STORAGE_KEYS.ADMIN_TOKEN);
         if (!token) {
             setStatisticsEnabled(false);
+            console.log('Statistics disabled: No authentication token found');
             return;
         }
 
         try {
-            const response = await axios.get(`${API_ENDPOINTS.ADMIN}/admin/settings/statistics-enabled`, {
+            // First, verify if the token is valid by checking user profile
+            const profileResponse = await axios.get(`${API_ENDPOINTS.USER_PROFILE}`, {
                 headers: {
                     'Authorization': `Bearer ${token}`,
                     'Content-Type': 'application/json'
                 }
             });
-            setStatisticsEnabled(response.data.enabled);
+            
+            if (!profileResponse.data) {
+                setStatisticsEnabled(false);
+                console.log('Statistics disabled: Invalid authentication token');
+                return;
+            }
+
+            console.log('Statistics check: Authenticated user found', profileResponse.data.role);
+
+            // If user is root admin, check if statistics are enabled on server
+            if (profileResponse.data.role === 'root_admin') {
+                const response = await axios.get(`${API_ENDPOINTS.ADMIN}/admin/settings/statistics-enabled`, {
+                    headers: {
+                        'Authorization': `Bearer ${token}`,
+                        'Content-Type': 'application/json'
+                    }
+                });
+                setStatisticsEnabled(response.data.enabled);
+                console.log('Statistics for root admin:', response.data.enabled ? 'enabled' : 'disabled');
+            } else {
+                // For regular and administrative users, statistics are enabled by default
+                setStatisticsEnabled(true);
+                console.log('Statistics enabled for user role:', profileResponse.data.role);
+            }
         } catch (error) {
-            // If error (e.g., unauthorized, settings not found), default to enabled for normal users
-            setStatisticsEnabled(true);
+            // If error (e.g., unauthorized, settings not found), disable statistics
+            setStatisticsEnabled(false);
+            console.log('Statistics disabled due to error:', error.message);
         }
     }, []);
 
@@ -285,7 +311,16 @@ function AppContent() {
     // Game session tracking functions
     const startGameSession = useCallback(async (category, difficulty, gridSize, totalPhrases) => {
         const token = localStorage.getItem(STORAGE_KEYS.ADMIN_TOKEN);
-        if (!token || !selectedLanguageSetId || !statisticsEnabled) return;
+        if (!token || !selectedLanguageSetId || !statisticsEnabled) {
+            console.log('Cannot start game session:', { 
+                hasToken: !!token, 
+                hasLanguageSet: !!selectedLanguageSetId, 
+                statisticsEnabled 
+            });
+            return;
+        }
+
+        console.log('Starting game session:', { category, difficulty, gridSize, totalPhrases });
 
         try {
             const response = await axios.post(`${API_ENDPOINTS.GAME}/game/start`, {
@@ -301,6 +336,7 @@ function AppContent() {
                 }
             });
 
+            console.log('Game session started successfully:', response.data.session_id);
             setGameSessionId(response.data.session_id);
             setGameStartTime(Date.now());
             setLastFoundCount(0);
@@ -313,7 +349,16 @@ function AppContent() {
 
     const updateGameProgress = useCallback(async (phrasesFound) => {
         const token = localStorage.getItem(STORAGE_KEYS.ADMIN_TOKEN);
-        if (!token || !gameSessionId || !statisticsEnabled) return;
+        if (!token || !gameSessionId || !statisticsEnabled) {
+            console.log('Cannot update game progress:', { 
+                hasToken: !!token, 
+                hasSessionId: !!gameSessionId, 
+                statisticsEnabled 
+            });
+            return;
+        }
+
+        console.log('Updating game progress:', { sessionId: gameSessionId, phrasesFound });
 
         try {
             await axios.put(`${API_ENDPOINTS.GAME}/game/progress`, {
@@ -325,6 +370,7 @@ function AppContent() {
                     'Content-Type': 'application/json'
                 }
             });
+            console.log('Game progress updated successfully');
         } catch (error) {
             console.error('Failed to update game progress:', error);
         }
@@ -332,7 +378,19 @@ function AppContent() {
 
     const completeGameSession = useCallback(async (phrasesFound, isCompleted) => {
         const token = localStorage.getItem(STORAGE_KEYS.ADMIN_TOKEN);
-        if (!token || !gameSessionId || !gameStartTime || sessionCompleted || completionInProgressRef.current || !statisticsEnabled) return;
+        if (!token || !gameSessionId || !gameStartTime || sessionCompleted || completionInProgressRef.current || !statisticsEnabled) {
+            console.log('Cannot complete game session:', { 
+                hasToken: !!token, 
+                hasSessionId: !!gameSessionId, 
+                hasStartTime: !!gameStartTime,
+                sessionCompleted,
+                completionInProgress: completionInProgressRef.current,
+                statisticsEnabled 
+            });
+            return;
+        }
+
+        console.log('Completing game session:', { sessionId: gameSessionId, phrasesFound, isCompleted });
 
         // Set flag to prevent duplicate calls
         completionInProgressRef.current = true;
@@ -351,6 +409,8 @@ function AppContent() {
                 }
             });
 
+            console.log('Game session completed successfully');
+
             // Reset session tracking
             setSessionCompleted(true);
             setGameSessionId(null);
@@ -368,6 +428,7 @@ function AppContent() {
         if (!found.includes(phrase)) {
             // Start game session on first found phrase (only if statistics are enabled)
             if (found.length === 0 && phrases.length > 0 && grid.length > 0 && selectedCategory && !gameSessionId && !sessionCompleted && statisticsEnabled) {
+                console.log('First phrase found - starting game session');
                 const gridSize = grid.length;
                 startGameSession(selectedCategory, difficulty, gridSize, phrases.length);
             }
