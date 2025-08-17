@@ -55,7 +55,7 @@ export const API_ENDPOINTS = {
   PHRASES: '/api/phrases',
   EXPORT: '/api/export',
   GAME: '/api', // Game API base URL
-  LANGUAGE_SETS: '/api/language-sets', // For regular users
+  ADMIN: '/admin', // Admin API base URL
   USER_PROFILE: '/admin/profile', // For all authenticated users
   ADMIN_STATUS: '/admin/status',
   ADMIN_CLEAR: '/admin/clear',
