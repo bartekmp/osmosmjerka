@@ -5,7 +5,7 @@ import re
 from fastapi import APIRouter, Body, Depends, HTTPException, Query, Request, status
 from fastapi.responses import JSONResponse, StreamingResponse
 
-from osmosmjerka.auth import get_current_user, verify_token
+from osmosmjerka.auth import get_current_user, get_current_user_optional, require_admin_access, verify_token
 from osmosmjerka.cache import cache_response, categories_cache, language_sets_cache, phrases_cache, rate_limit
 from osmosmjerka.database import db_manager
 from osmosmjerka.grid_generator import generate_grid
@@ -181,8 +181,12 @@ async def get_default_ignored_categories(language_set_id: int = Query(...)) -> J
 
 @router.get("/user/ignored-categories")
 async def get_user_ignored_categories(
-    language_set_id: int = Query(...), user=Depends(get_current_user)
+    language_set_id: int = Query(...), user=Depends(get_current_user_optional)
 ) -> JSONResponse:
+    if user is None:
+        # For non-authenticated users, return empty list (no personal ignored categories)
+        return JSONResponse([])
+
     cats = await db_manager.get_user_ignored_categories(user["id"], language_set_id)
     return JSONResponse(sorted(cats))
 

@@ -21,16 +21,6 @@ def client():
 
 
 @pytest.fixture
-def mock_admin_user():
-    return {"username": "admin", "role": "administrative", "id": 1, "is_active": True}
-
-
-@pytest.fixture
-def mock_root_admin_user():
-    return {"username": "root", "role": "root_admin", "id": 0, "is_active": True}
-
-
-@pytest.fixture
 def mock_regular_user():
     return {"username": "user", "role": "regular", "id": 2, "is_active": True}
 
