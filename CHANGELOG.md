@@ -2,6 +2,30 @@
 
 <!-- version list -->
 
+## v1.25.0 (2025-08-18)
+
+### Bug Fixes
+
+- Invalidate cache when puzzle refresh is requested
+  ([#66](https://github.com/bartekmp/osmosmjerka/pull/66),
+  [`2bf048b`](https://github.com/bartekmp/osmosmjerka/commit/2bf048b8d271f172fa9eb5a6e40e880f11aac254))
+
+### Enhancement
+
+- Add unit tests, allow to override system settings per user, update readme
+  ([#66](https://github.com/bartekmp/osmosmjerka/pull/66),
+  [`2bf048b`](https://github.com/bartekmp/osmosmjerka/commit/2bf048b8d271f172fa9eb5a6e40e880f11aac254))
+
+### Feature
+
+- Add scoring system, create settings page, add progressive hinting system, fix dashboard loading
+  ([#66](https://github.com/bartekmp/osmosmjerka/pull/66),
+  [`2bf048b`](https://github.com/bartekmp/osmosmjerka/commit/2bf048b8d271f172fa9eb5a6e40e880f11aac254))
+
+- Scoring system, new settings page ([#66](https://github.com/bartekmp/osmosmjerka/pull/66),
+  [`2bf048b`](https://github.com/bartekmp/osmosmjerka/commit/2bf048b8d271f172fa9eb5a6e40e880f11aac254))
+
+
 ## v1.24.0 (2025-08-18)
 
 ### Bug Fixes
