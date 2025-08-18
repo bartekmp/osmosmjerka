@@ -330,7 +330,7 @@ function AppContent() {
         // eslint-disable-next-line
     }, [restored, selectedCategory, difficulty]);
 
-    const loadPuzzle = (category, diff = difficulty) => {
+    const loadPuzzle = (category, diff = difficulty, refresh = false) => {
         setIsGridLoading(true);
         resetCelebration(); // Reset celebration state using hook
         
@@ -353,9 +353,14 @@ function AppContent() {
             setShowTranslations,
             setNotEnoughPhrases,
             setNotEnoughPhrasesMsg
-        }, t, selectedLanguageSetId).finally(() => {
+        }, t, selectedLanguageSetId, refresh).finally(() => {
             setIsGridLoading(false);
         });
+    };
+
+    // Create a separate refresh function for clarity
+    const refreshPuzzle = (category, diff = difficulty) => {
+        loadPuzzle(category, diff, true);
     };
 
     // Game session tracking functions
@@ -737,6 +742,7 @@ function AppContent() {
                                 setDifficulty={setDifficulty}
                                 availableDifficulties={availableDifficulties}
                                 loadPuzzle={loadPuzzle}
+                                refreshPuzzle={refreshPuzzle}
                                 selectedCategoryState={selectedCategory}
                                 difficultyState={difficulty}
                                 grid={grid}
@@ -751,6 +757,7 @@ function AppContent() {
                             <AllFoundMessage
                                 allFound={allFound}
                                 loadPuzzle={loadPuzzle}
+                                refreshPuzzle={refreshPuzzle}
                                 selectedCategory={selectedCategory}
                                 difficulty={difficulty}
                             />

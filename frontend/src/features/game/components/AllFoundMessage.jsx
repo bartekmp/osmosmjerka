@@ -2,7 +2,7 @@ import React from 'react';
 import { Box, Typography, Button } from '@mui/material';
 import { useTranslation } from 'react-i18next';
 
-const AllFoundMessage = ({ allFound, loadPuzzle, selectedCategory, difficulty }) => {
+const AllFoundMessage = ({ allFound, loadPuzzle, refreshPuzzle, selectedCategory, difficulty }) => {
     const { t } = useTranslation();
 
     if (!allFound) return null;
@@ -17,7 +17,7 @@ const AllFoundMessage = ({ allFound, loadPuzzle, selectedCategory, difficulty })
                 🎉 {t('all_phrases_found')} 🎊
             </Typography>
             <Button
-                onClick={() => loadPuzzle(selectedCategory, difficulty)}
+                onClick={() => refreshPuzzle(selectedCategory, difficulty)}
                 className="new-game-button"
             >
                 <Box component="span" className="new-game-text-desktop">

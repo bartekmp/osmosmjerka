@@ -74,6 +74,7 @@ async def get_phrases(
     category: str | None = None,
     difficulty: str = "medium",
     language_set_id: int = Query(None),
+    refresh: bool = Query(False, description="Force regeneration of puzzle, bypassing cache"),
     *,
     request: Request,
 ) -> JSONResponse:

@@ -71,7 +71,7 @@ export function saveGameState(state) {
 }
 
 // Load puzzle from API
-export function loadPuzzle(category, diff, setters, t, languageSetId = null) {
+export function loadPuzzle(category, diff, setters, t, languageSetId = null, refresh = false) {
     const {
         setSelectedCategory,
         setGrid,
@@ -90,6 +90,9 @@ export function loadPuzzle(category, diff, setters, t, languageSetId = null) {
     let apiUrl = `/api/phrases?category=${category}&difficulty=${diff}`;
     if (languageSetId) {
         apiUrl += `&language_set_id=${languageSetId}`;
+    }
+    if (refresh) {
+        apiUrl += `&refresh=true`;
     }
 
     return axios.get(apiUrl)
