@@ -14,6 +14,7 @@ const GameControls = ({
     setDifficulty,
     availableDifficulties,
     loadPuzzle,
+    refreshPuzzle,
     selectedCategoryState,
     difficultyState,
     grid,
@@ -95,7 +96,7 @@ const GameControls = ({
                 <Box className="buttons-container">
                     {/* Refresh button */}
                     <Button
-                        onClick={() => loadPuzzle(selectedCategoryState, difficultyState)}
+                        onClick={() => refreshPuzzle(selectedCategoryState, difficultyState)}
                         title={t('reload_puzzle')}
                         className="refresh-button control-action-button"
                     >

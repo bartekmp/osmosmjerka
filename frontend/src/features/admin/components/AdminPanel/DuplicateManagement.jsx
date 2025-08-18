@@ -102,7 +102,7 @@ export default function DuplicateManagement({ currentUser, selectedLanguageSetId
                 setTotalPages(1);
             }
         } catch (err) {
-            setError('Failed to load duplicates: ' + err.message);
+            setError(t('failed_to_load_duplicates', 'Failed to load duplicates: {{error}}', { error: err.message }));
         } finally {
             setLoading(false);
         }

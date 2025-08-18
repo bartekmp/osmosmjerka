@@ -40,6 +40,7 @@ import UploadForm from '../UploadForm';
 import UserManagement from './UserManagement';
 import UserProfile from './UserProfile';
 import StatisticsDashboard from '../StatisticsDashboard/StatisticsDashboard';
+import SystemSettings from '../SystemSettings/SystemSettings';
 import './AdminPanel.css';
 
 export default function AdminPanel({
@@ -60,9 +61,11 @@ export default function AdminPanel({
     const [error, setError] = useState("");
     const [isLogged, setIsLogged] = useState(false);
     const [dashboard, setDashboard] = useState(true);
+    const [browseRecords, setBrowseRecords] = useState(false);
     const [userManagement, setUserManagement] = useState(false);
     const [userProfile, setUserProfile] = useState(false);
     const [statisticsDashboard, setStatisticsDashboard] = useState(false);
+    const [systemSettings, setSystemSettings] = useState(false);
     const [languageSetManagement, setLanguageSetManagement] = useState(false);
     const [duplicateManagement, setDuplicateManagement] = useState(false);
     const [currentUser, setCurrentUser] = useState(null);
@@ -131,10 +134,14 @@ export default function AdminPanel({
 
     // Wrap fetchRows to handle loading state
     const fetchRows = useCallback((...args) => {
+        // Only fetch if we're actually browsing records
+        if (!browseRecords) {
+            return;
+        }
         setDataLoading(true);
         // Call original fetchRows and set up a listener for when data changes
         originalFetchRows(...args);
-    }, [originalFetchRows]);
+    }, [originalFetchRows, browseRecords]);
 
     // Clear loading state when rows change (indicating fetch completed)
     useEffect(() => {
@@ -202,7 +209,7 @@ export default function AdminPanel({
 
     useEffect(() => {
         // Only load categories when navigating to views that need them and language set is selected
-        const needsCategories = (!dashboard && !userManagement && !userProfile && !statisticsDashboard && !duplicateManagement) || languageSetManagement;
+        const needsCategories = browseRecords || languageSetManagement;
         if (isLogged && token && selectedLanguageSetId && needsCategories && !categoriesLoaded) {
             fetch(`${API_ENDPOINTS.ALL_CATEGORIES}?language_set_id=${selectedLanguageSetId}`, {
                 headers: {
@@ -216,7 +223,7 @@ export default function AdminPanel({
                 })
                 .catch(err => console.error('Failed to load categories:', err));
         }
-    }, [isLogged, token, selectedLanguageSetId, dashboard, userManagement, userProfile, statisticsDashboard, languageSetManagement, duplicateManagement, categoriesLoaded]);
+    }, [isLogged, token, selectedLanguageSetId, dashboard, userManagement, userProfile, statisticsDashboard, systemSettings, languageSetManagement, duplicateManagement, categoriesLoaded]);
 
     // Handlers for pagination and offset input, to avoid negative or excessive values
     const handleOffsetInput = (e) => {
@@ -326,13 +333,13 @@ export default function AdminPanel({
         setBatchResult({ open: false, operation: null, result: null });
     };
 
-    // Automatically fetch rows when logged in and dashboard is active
+    // Automatically fetch rows when logged in and browse records is active
     useEffect(() => {
-        if (isLogged && !dashboard && selectedLanguageSetId) {
+        if (isLogged && browseRecords && selectedLanguageSetId) {
             fetchRows(offset, limit, filterCategory, searchTerm, selectedLanguageSetId);
         }
         // eslint-disable-next-line
-    }, [offset, filterCategory, selectedLanguageSetId, limit]);
+    }, [browseRecords, offset, filterCategory, selectedLanguageSetId, limit]);
 
     // Clear selections when exiting batch mode
     useEffect(() => {
@@ -343,12 +350,12 @@ export default function AdminPanel({
 
     // Fetch rows when search term changes
     useEffect(() => {
-        if (isLogged && !dashboard && searchTerm !== undefined && selectedLanguageSetId) {
+        if (isLogged && browseRecords && searchTerm !== undefined && selectedLanguageSetId) {
             fetchRows(0, limit, filterCategory, searchTerm, selectedLanguageSetId);
             setOffset(0); // Reset to first page when searching
         }
         // eslint-disable-next-line
-    }, [searchTerm, filterCategory, selectedLanguageSetId, limit]);
+    }, [browseRecords, searchTerm, filterCategory, selectedLanguageSetId, limit]);
 
     // Check token on mount and after login
     useEffect(() => {
@@ -383,14 +390,14 @@ export default function AdminPanel({
 
     // When switching to Browse Phrases, auto-load first page
     useEffect(() => {
-        if (isLogged && !dashboard && !userManagement && !userProfile && !statisticsDashboard && !languageSetManagement && selectedLanguageSetId) {
+        if (isLogged && browseRecords && selectedLanguageSetId) {
             setReloadLoading(true);
             fetchRows(0, limit, filterCategory, searchTerm, selectedLanguageSetId);
             setOffset(0);
             setReloadLoading(false);
         }
         // eslint-disable-next-line
-    }, [isLogged, dashboard, userManagement, userProfile, statisticsDashboard, languageSetManagement, selectedLanguageSetId]);
+    }, [isLogged, browseRecords, selectedLanguageSetId]);
 
     // Handle inline save from table with optimistic updates
     const handleInlineSave = useCallback((updatedRow) => {
@@ -545,6 +552,19 @@ export default function AdminPanel({
         setDuplicateManagement(false);
         setUserProfile(false);
         setStatisticsDashboard(false);
+        setSystemSettings(false);
+    };
+
+    // Helper function to properly navigate back to dashboard
+    const goToDashboard = () => {
+        setBrowseRecords(false);
+        setUserManagement(false);
+        setLanguageSetManagement(false);
+        setDuplicateManagement(false);
+        setUserProfile(false);
+        setStatisticsDashboard(false);
+        setSystemSettings(false);
+        setDashboard(true);
     };
 
     if (!isLogged) {
@@ -630,6 +650,7 @@ export default function AdminPanel({
                                         setLanguageSetManagement(true);
                                     } else {
                                         setDashboard(false);
+                                        setBrowseRecords(true);
                                     }
                                 }}
                                 variant="contained"
@@ -687,6 +708,18 @@ export default function AdminPanel({
                                 {t('statistics_dashboard')}
                             </Button>
                         )}
+                        {(currentUser?.role === 'root_admin' || currentUser?.role === 'administrative') && (
+                            <Button
+                                onClick={() => {
+                                    setDashboard(false);
+                                    setSystemSettings(true);
+                                }}
+                                variant="contained"
+                                color="primary"
+                            >
+                                {t('admin.settings.title')}
+                            </Button>
+                        )}
                         <Button
                             onClick={() => {
                                 setDashboard(false);
@@ -715,11 +748,7 @@ export default function AdminPanel({
                 showBackToGame={true}
                 showDashboard={true}
                 showLogout={true}
-                onDashboard={() => {
-                    setUserManagement(false);
-                    setDuplicateManagement(false);
-                    setDashboard(true);
-                }}
+                onDashboard={goToDashboard}
                 onLogout={handleLogout}
             >
                 <Paper sx={{ p: 3 }}>
@@ -736,14 +765,25 @@ export default function AdminPanel({
                 showBackToGame={true}
                 showDashboard={true}
                 showLogout={true}
-                onDashboard={() => {
-                    setStatisticsDashboard(false);
-                    setDuplicateManagement(false);
-                    setDashboard(true);
-                }}
+                onDashboard={goToDashboard}
                 onLogout={handleLogout}
             >
                 <StatisticsDashboard token={token} setError={setError} currentUser={currentUser} />
+            </AdminLayout>
+        );
+    }
+
+    // System Settings View
+    if (systemSettings) {
+        return (
+            <AdminLayout
+                showBackToGame={true}
+                showDashboard={true}
+                showLogout={true}
+                onDashboard={goToDashboard}
+                onLogout={handleLogout}
+            >
+                <SystemSettings />
             </AdminLayout>
         );
     }
@@ -755,11 +795,7 @@ export default function AdminPanel({
                 showBackToGame={true}
                 showDashboard={true}
                 showLogout={true}
-                onDashboard={() => {
-                    setLanguageSetManagement(false);
-                    setDuplicateManagement(false);
-                    setDashboard(true);
-                }}
+                onDashboard={goToDashboard}
                 onLogout={handleLogout}
             >
                 <Paper sx={{ p: 3 }}>
@@ -782,11 +818,7 @@ export default function AdminPanel({
                 showBackToGame={true}
                 showDashboard={true}
                 showLogout={true}
-                onDashboard={() => {
-                    setUserProfile(false);
-                    setDuplicateManagement(false);
-                    setDashboard(true);
-                }}
+                onDashboard={goToDashboard}
                 onLogout={handleLogout}
             >
                 <UserProfile currentUser={currentUser} />
@@ -801,10 +833,7 @@ export default function AdminPanel({
                 showBackToGame={true}
                 showDashboard={true}
                 showLogout={true}
-                onDashboard={() => {
-                    setDuplicateManagement(false);
-                    setDashboard(true);
-                }}
+                onDashboard={goToDashboard}
                 onLogout={handleLogout}
             >
                 <Paper sx={{ p: 3 }}>
@@ -822,18 +851,11 @@ export default function AdminPanel({
             showBackToGame={true}
             showDashboard={true}
             showLogout={true}
-            onDashboard={() => {
-                setDashboard(true);
-                setUserManagement(false);
-                setLanguageSetManagement(false);
-                setDuplicateManagement(false);
-                setUserProfile(false);
-                setStatisticsDashboard(false);
-            }}
+            onDashboard={goToDashboard}
             onLogout={handleLogout}
         >
             {/* Error overlay for no language sets */}
-            {languageSets.length === 0 && !dashboard && !languageSetsLoading && (
+            {languageSets.length === 0 && browseRecords && !languageSetsLoading && (
                 <Box
                     sx={{
                         position: 'fixed',
@@ -880,7 +902,7 @@ export default function AdminPanel({
                         </Button>
                         <Button
                             variant="outlined"
-                            onClick={() => setDashboard(true)}
+                            onClick={goToDashboard}
                         >
                             {t('back_to_dashboard')}
                         </Button>
@@ -889,7 +911,8 @@ export default function AdminPanel({
             )}
 
             {/* Browse Records Interface - Admin Only */}
-            {(currentUser?.role === 'admin' || currentUser?.role === 'root_admin' || currentUser?.role === 'administrative') ? (
+            {browseRecords && (
+                (currentUser?.role === 'admin' || currentUser?.role === 'root_admin' || currentUser?.role === 'administrative') ? (
                 <>
                     <Typography variant="h4" component="h2" gutterBottom align="center">
                         {t('admin_panel')}
@@ -1222,12 +1245,12 @@ export default function AdminPanel({
                     </Typography>
                     <Button
                         variant="contained"
-                        onClick={() => setDashboard(true)}
+                        onClick={goToDashboard}
                     >
                         {t('back_to_dashboard')}
                     </Button>
                 </Box>
-            )}
+            ) )}
 
             {/* Rate Limit Warning */}
             <RateLimitWarning

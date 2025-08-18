@@ -1,0 +1,40 @@
+.timer-container {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 8px 16px;
+    margin: 4px 0;
+}
+
+.timer-display {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    transition: all 0.3s ease;
+    padding: 4px 8px;
+    border-radius: 8px;
+    background: rgba(0, 0, 0, 0.02);
+}
+
+.timer-display.active {
+    background: rgba(25, 118, 210, 0.08);
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+.dark-mode .timer-display {
+    background: rgba(255, 255, 255, 0.02);
+}
+
+.dark-mode .timer-display.active {
+    background: rgba(144, 202, 249, 0.08);
+}
+
+@media (max-width: 600px) {
+    .timer-container {
+        padding: 4px 8px;
+    }
+    
+    .timer-display {
+        font-size: 1rem;
+    }
+}

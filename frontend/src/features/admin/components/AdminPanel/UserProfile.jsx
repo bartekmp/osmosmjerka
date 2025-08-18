@@ -21,7 +21,12 @@ import {
     ListItem,
     ListItemText,
     LinearProgress,
-    useTheme
+    useTheme,
+    Switch,
+    FormControlLabel,
+    FormControl,
+    RadioGroup,
+    Radio
 } from '@mui/material';
 import {
     TrendingUp as TrendingUpIcon,
@@ -65,6 +70,10 @@ export default function UserProfile({ currentUser }) {
     const [statisticsLoading, setStatisticsLoading] = useState(true);
     const [statisticsError, setStatisticsError] = useState(null);
 
+    // Progressive hints user preference
+    const [progressiveHintsEnabled, setProgressiveHintsEnabled] = useState(null); // null = use global setting
+    const [progressiveHintsLoading, setProgressiveHintsLoading] = useState(false);
+
     const authHeader = {
         'Authorization': `Bearer ${localStorage.getItem('adminToken')}`,
         'Content-Type': 'application/json'
@@ -75,6 +84,7 @@ export default function UserProfile({ currentUser }) {
         fetchIgnoredSummary();
         fetchLanguageSets();
         loadStatistics();
+        loadProgressiveHintsPreference();
     }, []);
 
     const fetchProfile = async () => {
@@ -129,12 +139,66 @@ export default function UserProfile({ currentUser }) {
             if (response.ok) {
                 setStatistics(data);
             } else {
-                setStatisticsError(data.error || 'Failed to load statistics');
+                setStatisticsError(data.error || t('failed_to_load_statistics'));
             }
         } catch (err) {
             setStatisticsError(err.message);
         } finally {
             setStatisticsLoading(false);
+        }
+    };
+
+    const loadProgressiveHintsPreference = async () => {
+        try {
+            const response = await fetch('/api/user/preferences', {
+                headers: authHeader
+            });
+            const data = await response.json();
+            if (response.ok) {
+                const hintsPreference = data.progressive_hints_enabled;
+                // Convert string to boolean, null means use global setting
+                if (hintsPreference === 'true') {
+                    setProgressiveHintsEnabled(true);
+                } else if (hintsPreference === 'false') {
+                    setProgressiveHintsEnabled(false);
+                } else {
+                    setProgressiveHintsEnabled(null); // Use global setting
+                }
+            }
+        } catch (err) {
+            // Silent fail, use global setting
+            setProgressiveHintsEnabled(null);
+        }
+    };
+
+    const updateProgressiveHintsPreference = async (enabled) => {
+        setProgressiveHintsLoading(true);
+        try {
+            const response = await fetch('/api/user/preferences', {
+                method: 'PUT',
+                headers: authHeader,
+                body: JSON.stringify({
+                    preference_key: 'progressive_hints_enabled',
+                    preference_value: enabled === null ? '' : enabled.toString()
+                })
+            });
+            
+            if (response.ok) {
+                setProgressiveHintsEnabled(enabled);
+                showNotification(
+                    enabled === null 
+                        ? t('progressive_hints_preference_reset', 'Progressive hints preference reset to global setting')
+                        : t('progressive_hints_preference_updated', `Progressive hints ${enabled ? 'enabled' : 'disabled'} for your account`),
+                    'success'
+                );
+            } else {
+                const data = await response.json();
+                showNotification(data.error || t('failed_to_update_progressive_hints_preference', 'Failed to update progressive hints preference'), 'error');
+            }
+        } catch (err) {
+            showNotification(t('network_error', { message: err.message }), 'error');
+        } finally {
+            setProgressiveHintsLoading(false);
         }
     };
 
@@ -190,7 +254,7 @@ export default function UserProfile({ currentUser }) {
             });
 
             if (!response.ok) {
-                throw new Error('Failed to update ignored categories');
+                throw new Error(t('failed_to_update_ignored_categories'));
             }
 
             // Update the original state to reflect the saved changes
@@ -437,6 +501,44 @@ export default function UserProfile({ currentUser }) {
             <Paper sx={{ p: 3, mb: 3 }}>
                 <Typography variant="h6" gutterBottom>{t('profile_settings', 'Profile Settings')}</Typography>
                 <Divider sx={{ my: 2 }} />
+                
+                {/* Progressive Hints Setting */}
+                <Typography variant="subtitle1" sx={{ mb: 2 }}>{t('progressive_hints_setting', 'Progressive Hints Preference')}</Typography>
+                <Typography variant="body2" color="text.secondary" sx={{ mb: 2 }}>
+                    {t('progressive_hints_setting_description', 'Choose whether to enable progressive hints for your account. This setting overrides the global system setting.')}
+                </Typography>
+                <FormControl component="fieldset" sx={{ mb: 3 }}>
+                    <RadioGroup
+                        value={progressiveHintsEnabled === null ? 'global' : progressiveHintsEnabled.toString()}
+                        onChange={(e) => {
+                            const value = e.target.value;
+                            if (value === 'global') {
+                                updateProgressiveHintsPreference(null);
+                            } else {
+                                updateProgressiveHintsPreference(value === 'true');
+                            }
+                        }}
+                        disabled={progressiveHintsLoading}
+                    >
+                        <FormControlLabel 
+                            value="global" 
+                            control={<Radio />} 
+                            label={t('use_global_setting', 'Use global system setting')} 
+                        />
+                        <FormControlLabel 
+                            value="true" 
+                            control={<Radio />} 
+                            label={t('enable_progressive_hints', 'Enable progressive hints')} 
+                        />
+                        <FormControlLabel 
+                            value="false" 
+                            control={<Radio />} 
+                            label={t('disable_progressive_hints', 'Disable progressive hints')} 
+                        />
+                    </RadioGroup>
+                </FormControl>
+                <Divider sx={{ my: 2 }} />
+                
                 <Typography variant="subtitle1" sx={{ mb: 1 }}>{t('your_ignored_categories', 'Your Ignored Categories')}</Typography>
                 {Object.keys(modifiedIgnoredSummary).length === 0 && (
                     <Typography variant="body2" color="text.secondary" sx={{ mb: 2 }}>

@@ -16,7 +16,8 @@ const ScrabbleGrid = forwardRef(({
     onFound,
     disabled = false,
     isDarkMode = false,
-    showCelebration = false
+    showCelebration = false,
+    onHintUsed = null
 }, ref) => {
     const { t } = useTranslation();
 
@@ -25,6 +26,14 @@ const ScrabbleGrid = forwardRef(({
     const [blinkingCells, setBlinkingCells] = useState([]);
     const [celebrationCells, setCelebrationCells] = useState([]);
     const [, forceRender] = useState(0);
+    
+    // Progressive hint states
+    const [hintState, setHintState] = useState({
+        targetPhrase: null,
+        hintLevel: 0, // 0: no hint, 1: first letter, 2: direction arrow, 3: full outline
+        hintCells: [],
+        directionArrow: null
+    });
 
     // Custom hooks - MUST be called before any conditional returns
     const { isMouseDown, selectionStart, lastDirection, startSelection, endSelection } = useMouseSelection();
@@ -85,6 +94,104 @@ const ScrabbleGrid = forwardRef(({
             }, 1500);
         }, 10);
     }, [phrases]);
+
+    // Progressive hint methods
+    const showProgressiveHint = useCallback((isProgressiveMode = false) => {
+        // Clear any existing hints
+        setHintState({
+            targetPhrase: null,
+            hintLevel: 0,
+            hintCells: [],
+            directionArrow: null
+        });
+
+        // Find a random phrase that hasn't been found yet
+        const availablePhrases = phrases.filter(p => !found.includes(p.phrase));
+        if (availablePhrases.length === 0) return null;
+
+        const targetPhrase = availablePhrases[Math.floor(Math.random() * availablePhrases.length)];
+        
+        if (isProgressiveMode) {
+            // Progressive mode: start with first letter hint
+            const firstCoord = targetPhrase.coords[0];
+            setHintState(prev => ({
+                ...prev,
+                targetPhrase: targetPhrase,
+                hintLevel: 1,
+                hintCells: [firstCoord]
+            }));
+        } else {
+            // Classic mode: show full phrase immediately
+            setBlinkingCells([]);
+            setTimeout(() => {
+                setBlinkingCells(targetPhrase.coords);
+                blinkTimeoutRef.current = setTimeout(() => {
+                    setBlinkingCells([]);
+                }, 1500);
+            }, 10);
+        }
+
+        // Notify parent component about hint usage
+        if (onHintUsed) {
+            onHintUsed(targetPhrase.phrase);
+        }
+
+        return targetPhrase;
+    }, [phrases, found, onHintUsed]);
+
+    const advanceProgressiveHint = useCallback(() => {
+        setHintState(prev => {
+            if (!prev.targetPhrase || prev.hintLevel >= 3) return prev;
+
+            const newLevel = prev.hintLevel + 1;
+            
+            if (newLevel === 2) {
+                // Show direction arrow
+                const coords = prev.targetPhrase.coords;
+                const startCoord = coords[0];
+                const endCoord = coords[coords.length - 1];
+                
+                // Calculate direction
+                const deltaRow = endCoord[0] - startCoord[0];
+                const deltaCol = endCoord[1] - startCoord[1];
+                
+                let arrow = '→';
+                if (deltaRow > 0 && deltaCol === 0) arrow = '↓';
+                else if (deltaRow < 0 && deltaCol === 0) arrow = '↑';
+                else if (deltaRow === 0 && deltaCol > 0) arrow = '→';
+                else if (deltaRow === 0 && deltaCol < 0) arrow = '←';
+                else if (deltaRow > 0 && deltaCol > 0) arrow = '↘';
+                else if (deltaRow > 0 && deltaCol < 0) arrow = '↙';
+                else if (deltaRow < 0 && deltaCol > 0) arrow = '↗';
+                else if (deltaRow < 0 && deltaCol < 0) arrow = '↖';
+                
+                return {
+                    ...prev,
+                    hintLevel: newLevel,
+                    directionArrow: { coord: startCoord, symbol: arrow }
+                };
+            } else if (newLevel === 3) {
+                // Show full outline
+                return {
+                    ...prev,
+                    hintLevel: newLevel,
+                    hintCells: prev.targetPhrase.coords
+                };
+            }
+            
+            return prev;
+        });
+    }, []);
+
+    const clearHints = useCallback(() => {
+        setHintState({
+            targetPhrase: null,
+            hintLevel: 0,
+            hintCells: [],
+            directionArrow: null
+        });
+        setBlinkingCells([]);
+    }, []);
 
     // Selection methods
     const updateSelection = useCallback((targetRow, targetCol) => {
@@ -186,10 +293,13 @@ const ScrabbleGrid = forwardRef(({
         };
     }, [handleGlobalMouseMove, handleMouseUp]);
 
-    // Expose blink function to parent
+    // Expose blink function and hint methods to parent
     useImperativeHandle(ref, () => ({
-        blinkPhrase
-    }), [blinkPhrase]);
+        blinkPhrase,
+        showProgressiveHint,
+        advanceProgressiveHint,
+        clearHints
+    }), [blinkPhrase, showProgressiveHint, advanceProgressiveHint, clearHints]);
 
     // Early return for empty grid - AFTER all hooks have been called
     if (gridSize === 0) {
@@ -232,6 +342,12 @@ const ScrabbleGrid = forwardRef(({
                     const r = Math.floor(index / gridSize);
                     const c = index % gridSize;
 
+                    // Check if this cell is part of a hint
+                    const isHintCell = hintState.hintCells.some(([hr, hc]) => hr === r && hc === c);
+                    const hasDirectionArrow = hintState.directionArrow && 
+                        hintState.directionArrow.coord[0] === r && 
+                        hintState.directionArrow.coord[1] === c;
+
                     return (
                         <ScrabbleGridCell
                             key={`${r}-${c}`}
@@ -242,6 +358,9 @@ const ScrabbleGrid = forwardRef(({
                             isBlinking={blinkingCells.some(([br, bc]) => br === r && bc === c)}
                             isSelected={selected.some(([sr, sc]) => sr === r && sc === c)}
                             isCelebrating={isCelebrating(r, c)}
+                            isHintCell={isHintCell}
+                            directionArrow={hasDirectionArrow ? hintState.directionArrow.symbol : null}
+                            hintLevel={hintState.hintLevel}
                             handleMouseDown={handleMouseDown}
                             handleMouseEnter={handleMouseEnter}
                             cellSize={cellSize}

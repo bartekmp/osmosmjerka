@@ -117,6 +117,9 @@ def cache_response(cache_instance: AsyncLRUCache, key_prefix: str = ""):
     def decorator(func):
         @wraps(func)
         async def wrapper(*args, **kwargs):
+            # Check if refresh is requested to bypass cache
+            refresh_requested = kwargs.get('refresh', False)
+            
             # Generate cache key from function name and relevant parameters
             cache_key_parts = [key_prefix, func.__name__]
 
@@ -125,21 +128,26 @@ def cache_response(cache_instance: AsyncLRUCache, key_prefix: str = ""):
                 if isinstance(arg, (str, int, float, bool)):
                     cache_key_parts.append(str(arg))
 
-            # Add relevant parameters to cache key
+            # Add relevant parameters to cache key (excluding refresh parameter)
             for key, value in kwargs.items():
-                if isinstance(value, (str, int, float, bool)):
+                if key != 'refresh' and isinstance(value, (str, int, float, bool)):
                     cache_key_parts.append(f"{key}_{value}")
 
             cache_key = "_".join(filter(None, cache_key_parts))
 
-            # Try to get from cache
-            cached_result = cache_instance.get(cache_key)
-            if cached_result is not None:
-                return cached_result
+            # If refresh is not requested, try to get from cache
+            if not refresh_requested:
+                cached_result = cache_instance.get(cache_key)
+                if cached_result is not None:
+                    return cached_result
 
             # Execute function and cache result
             result = await func(*args, **kwargs)
-            cache_instance.set(cache_key, result)
+            
+            # Only cache if refresh was not requested (to avoid caching forced refreshes)
+            if not refresh_requested:
+                cache_instance.set(cache_key, result)
+            
             return result
 
         return wrapper

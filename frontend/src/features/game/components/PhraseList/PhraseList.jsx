@@ -2,7 +2,7 @@ import React, { useState, useRef } from 'react';
 import { useTranslation } from 'react-i18next';
 import './PhraseList.css';
 
-export default function PhraseList({ phrases, found, hidePhrases, setHidePhrases, allFound, showTranslations, setShowTranslations, disableShowPhrases, onPhraseClick }) {
+export default function PhraseList({ phrases, found, hidePhrases, setHidePhrases, allFound, showTranslations, setShowTranslations, disableShowPhrases, onPhraseClick, progressiveHintsEnabled = false }) {
     const { t } = useTranslation();
     const [blinkingPhrase, setBlinkingPhrase] = useState(null);
     const blinkTimeoutRef = useRef(null);
@@ -17,22 +17,25 @@ export default function PhraseList({ phrases, found, hidePhrases, setHidePhrases
     const buttonWidth = "7.2em";
 
     const handlePhraseClick = (phrase) => {
-        // Clear any existing timeout
-        if (blinkTimeoutRef.current) {
-            clearTimeout(blinkTimeoutRef.current);
+        // Only allow phrase clicking when progressive hints are disabled
+        if (!progressiveHintsEnabled) {
+            // Clear any existing timeout
+            if (blinkTimeoutRef.current) {
+                clearTimeout(blinkTimeoutRef.current);
+            }
+            
+            setBlinkingPhrase(phrase);
+            
+            // Also trigger grid blinking if callback is provided
+            if (onPhraseClick) {
+                onPhraseClick(phrase);
+            }
+            
+            // Remove the blinking after 3 blinks (1.5 seconds)
+            blinkTimeoutRef.current = setTimeout(() => {
+                setBlinkingPhrase(null);
+            }, 1500);
         }
-        
-        setBlinkingPhrase(phrase);
-        
-        // Also trigger grid blinking if callback is provided
-        if (onPhraseClick) {
-            onPhraseClick(phrase);
-        }
-        
-        // Remove the blinking after 3 blinks (1.5 seconds)
-        blinkTimeoutRef.current = setTimeout(() => {
-            setBlinkingPhrase(null);
-        }, 1500);
     };
 
     // Cleanup timeout on unmount
@@ -78,7 +81,7 @@ export default function PhraseList({ phrases, found, hidePhrases, setHidePhrases
                             className={`phrase-list-phrase${found.includes(phrase) ? ' found' : ''}${blinkingPhrase === phrase ? ' blinking' : ''}`}
                             onClick={() => handlePhraseClick(phrase)}
                             onTouchEnd={e => { e.preventDefault(); handlePhraseClick(phrase); }}
-                            style={{ cursor: 'pointer' }}
+                            style={{ cursor: progressiveHintsEnabled ? 'default' : 'pointer' }}
                         >
                             {phrase}
                         </span>

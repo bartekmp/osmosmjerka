@@ -11,7 +11,9 @@ export function restoreGameState(setters) {
         setDifficulty,
         setHidePhrases,
         setShowTranslations,
-        setRestored
+        setRestored,
+        setGameStartTime,
+        setCurrentElapsedTime
     } = setters;
 
     const saved = localStorage.getItem('osmosmjerkaGameState');
@@ -35,6 +37,20 @@ export function restoreGameState(setters) {
                 setDifficulty(state.difficulty || 'easy');
                 setHidePhrases(state.hidePhrases ?? false);
                 setShowTranslations(!!state.showTranslations);
+                
+                // Restore timer state if available
+                if (state.elapsedTimeSeconds !== undefined) {
+                    if (setCurrentElapsedTime) {
+                        setCurrentElapsedTime(state.elapsedTimeSeconds);
+                    }
+                    if (setGameStartTime) {
+                        // Set a start time that would result in the saved elapsed time
+                        const now = Date.now();
+                        const adjustedStartTime = now - (state.elapsedTimeSeconds * 1000);
+                        setGameStartTime(adjustedStartTime);
+                    }
+                }
+                
                 setRestored(true);
                 return;
             }
@@ -55,7 +71,7 @@ export function saveGameState(state) {
 }
 
 // Load puzzle from API
-export function loadPuzzle(category, diff, setters, t, languageSetId = null) {
+export function loadPuzzle(category, diff, setters, t, languageSetId = null, refresh = false) {
     const {
         setSelectedCategory,
         setGrid,
@@ -74,6 +90,9 @@ export function loadPuzzle(category, diff, setters, t, languageSetId = null) {
     let apiUrl = `/api/phrases?category=${category}&difficulty=${diff}`;
     if (languageSetId) {
         apiUrl += `&language_set_id=${languageSetId}`;
+    }
+    if (refresh) {
+        apiUrl += `&refresh=true`;
     }
 
     return axios.get(apiUrl)
