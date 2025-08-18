@@ -73,6 +73,43 @@ Export the current puzzle to `.docx`, `.pdf` or `.png` format using the Export b
 **Touch and Mouse Support**
 The game works seamlessly on both desktop and mobile devices with optimized touch interactions and responsive design.
 
+## Game Features
+
+### Progressive Hints System
+Osmosmjerka includes an advanced progressive hints system that provides graduated assistance to help players solve challenging puzzles. This feature can be controlled both globally by administrators and individually by each user.
+
+**How Progressive Hints Work:**
+- **Multi-level Assistance**: The hint system provides increasingly specific help through multiple levels
+- **First Letter Hints**: Initial hints reveal the first letter of hidden phrases in the grid
+- **Advanced Hints**: Subsequent hint levels may reveal additional letters or provide more specific guidance
+- **Limited Usage**: Players receive a set number of hints per game to maintain challenge balance
+- **Visual Feedback**: Hints are highlighted directly in the grid with clear visual indicators
+
+**Configuration Options:**
+- **Global Control**: Root administrators can enable or disable progressive hints system-wide through the System Settings panel
+- **User Preferences**: Individual users can override the global setting in their User Profile to enable/disable hints for their account specifically
+- **Flexible Override**: Users can choose to use the global setting, explicitly enable hints, or explicitly disable hints regardless of the global configuration
+
+### Scoring System
+The scoring system adds a competitive element to the word search experience, tracking player performance and providing achievement metrics.
+
+**How Scoring Works:**
+- **Performance Tracking**: The system monitors various gameplay metrics including completion time, hint usage, and accuracy
+- **Achievement Recognition**: Players earn scores based on their efficiency and skill in solving puzzles
+- **Progress Monitoring**: Long-term statistics help players track their improvement over time
+- **Comparative Analysis**: Scoring enables comparison between different gameplay sessions and difficulty levels
+
+**Scoring Configuration:**
+- **Global Toggle**: Root administrators can enable or disable the scoring system globally through the System Settings
+- **User Override**: Similar to progressive hints, users can override the global scoring setting in their personal profile
+- **Flexible Control**: The scoring system can be customized per user while maintaining system-wide defaults
+
+**Statistics and Analytics:**
+- **Game Completion Rates**: Track how many games are started versus completed
+- **Time Performance**: Monitor average completion times across different difficulty levels
+- **Hint Usage Patterns**: Analyze how frequently hints are used and at what stages
+- **Category Performance**: See which phrase categories are most challenging for users
+
 ## Multi-language Support
 
 Osmosmjerka features complete internationalization (i18n) support with currently three language options: English, Polish and Croatian.
@@ -201,6 +238,27 @@ Advanced organization system for managing multiple language collections:
 ![Main admin page](docs/assets/osmosmjerka-admin-view.png)
 
 The admin interface supports multiple categories per phrase (separated by spaces), making it easy to organize vocabulary by themes like "Toys Sport Nouns". The phrase field serves as the primary key, ensuring data integrity by preventing duplicates during imports.
+
+### System Settings
+Root administrators have access to system-wide configuration options that control global game behavior and features. These settings affect all users unless individually overridden in user profiles.
+
+**Global Game Features Configuration**
+- **Progressive Hints System**: Enable or disable the progressive hints feature system-wide
+- **Scoring System**: Control whether the scoring and statistics tracking system is active globally
+- **Feature Toggles**: Easily enable or disable major game features for all users
+
+**How Global Settings Work:**
+- **System-wide Control**: Root administrators can set default behavior for all users
+- **User Overrides**: Individual users can override global settings in their personal profiles
+- **Flexible Management**: Allows for gradual feature rollouts and A/B testing scenarios
+- **Immediate Effect**: Changes take effect immediately for all new game sessions
+
+**Setting Hierarchy:**
+1. **User Preference**: If a user has set a specific preference, it takes priority
+2. **Global Setting**: If no user preference is set, the global system setting is used
+3. **Default Behavior**: Fallback behavior if neither user nor global settings are configured
+
+The System Settings panel provides an intuitive interface for managing these configurations, with clear descriptions of each setting's impact and current status indicators.
 
 ## Language Sets
 

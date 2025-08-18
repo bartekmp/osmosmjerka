@@ -134,10 +134,14 @@ export default function AdminPanel({
 
     // Wrap fetchRows to handle loading state
     const fetchRows = useCallback((...args) => {
+        // Only fetch if we're actually browsing records
+        if (!browseRecords) {
+            return;
+        }
         setDataLoading(true);
         // Call original fetchRows and set up a listener for when data changes
         originalFetchRows(...args);
-    }, [originalFetchRows]);
+    }, [originalFetchRows, browseRecords]);
 
     // Clear loading state when rows change (indicating fetch completed)
     useEffect(() => {
@@ -335,7 +339,7 @@ export default function AdminPanel({
             fetchRows(offset, limit, filterCategory, searchTerm, selectedLanguageSetId);
         }
         // eslint-disable-next-line
-    }, [offset, filterCategory, selectedLanguageSetId, limit]);
+    }, [browseRecords, offset, filterCategory, selectedLanguageSetId, limit]);
 
     // Clear selections when exiting batch mode
     useEffect(() => {
@@ -351,7 +355,7 @@ export default function AdminPanel({
             setOffset(0); // Reset to first page when searching
         }
         // eslint-disable-next-line
-    }, [searchTerm, filterCategory, selectedLanguageSetId, limit]);
+    }, [browseRecords, searchTerm, filterCategory, selectedLanguageSetId, limit]);
 
     // Check token on mount and after login
     useEffect(() => {
@@ -907,7 +911,8 @@ export default function AdminPanel({
             )}
 
             {/* Browse Records Interface - Admin Only */}
-            {browseRecords && (currentUser?.role === 'admin' || currentUser?.role === 'root_admin' || currentUser?.role === 'administrative') ? (
+            {browseRecords && (
+                (currentUser?.role === 'admin' || currentUser?.role === 'root_admin' || currentUser?.role === 'administrative') ? (
                 <>
                     <Typography variant="h4" component="h2" gutterBottom align="center">
                         {t('admin_panel')}
@@ -1245,7 +1250,7 @@ export default function AdminPanel({
                         {t('back_to_dashboard')}
                     </Button>
                 </Box>
-            )}
+            ) )}
 
             {/* Rate Limit Warning */}
             <RateLimitWarning
