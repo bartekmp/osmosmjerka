@@ -266,6 +266,18 @@
     "overview": "Przegląd",
     "by_language_set": "Wg Zestawu Języków",
     "user_statistics": "Statystyki Użytkowników",
+    "high_scores": "Najlepsze Wyniki",
+    "rank": "Pozycja",
+    "player": "Gracz",
+    "score": "Wynik",
+    "completion": "Ukończenie",
+    "time": "Czas",
+    "hints_used": "Użyte Wskazówki",
+    "date": "Data",
+    "perfect": "Perfekcyjne",
+    "no_high_scores": "Brak dostępnych najlepszych wyników",
+    "all_difficulties": "Wszystkie Poziomy",
+    "limit": "Limit",
     "all_language_sets": "Wszystkie Zestawy Języków",
     "total_users": "Łączna Liczba Użytkowników",
     "active_users_30d": "Aktywni Użytkownicy (30 dni)",
@@ -273,6 +285,7 @@
     "unique_players": "Unikalnych Graczy",
     "time_played": "Czas Gry",
     "phrases_found": "Znalezionych Fraz",
+    "last_played": "Ostatnio Grane",
     "detailed_statistics": "Szczegółowe Statystyki",
     "plays": "gier",
     "completed": "Ukończone",
@@ -300,6 +313,9 @@
     "merge_categories_keep_this": "Scal wszystkie kategorie z duplikatów do tej frazy i usuń pozostałe",
     "merge_categories": "Scal kategorie",
     "merge_categories_failed": "Scalanie kategorii nie powiodło się: {{error}}",
+    "failed_to_load_duplicates": "Ładowanie duplikatów nie powiodło się: {{error}}",
+    "failed_to_load_statistics": "Ładowanie statystyk nie powiodło się",
+    "failed_to_update_ignored_categories": "Aktualizacja ignorowanych kategorii nie powiodła się",
     "delete_selected": "Usuń zaznaczone",
     "confirm_delete": "Potwierdź usunięcie",
     "delete_phrases_confirmation": "Czy na pewno chcesz usunąć {{count}} fraz?",
@@ -322,5 +338,49 @@
     "select": "Wybierz",
     "unselect_all": "Odznacz wszystkie",
     "select_language_set_first": "Proszę najpierw wybrać zestaw językowy",
-    "merge_categories_success": "Kategorie zostały pomyślnie połączone"
+    "merge_categories_success": "Kategorie zostały pomyślnie połączone",
+    "current_score": "Aktualny wynik",
+    "score_breakdown": "Rozkład wyniku",
+    "base_score": "Wynik podstawowy",
+    "difficulty_bonus": "Bonus trudności",
+    "time_bonus": "Bonus szybkości",
+    "completion_bonus": "Bonus ukończenia",
+    "hint_penalty": "Kara za podpowiedzi",
+    "phrases": "frazy",
+    "hints": "podpowiedzi",
+    "hints_penalty": "kara za {{count}} podpowiedź",
+    "hints_remaining": "pozostało {{count}} podpowiedzi",
+    "first_letter": "Pierwsza litera",
+    "direction_hint": "Kierunek",
+    "full_outline": "Pełny zarys",
+    "show_hint": "Pokaż podpowiedź",
+    "loading": "Ładowanie...",
+    "hint_tooltip": "Pokaż lokalizację losowej frazy",
+    "progressive_hint_tooltip": "Progresywna podpowiedź ({{remaining}} pozostało, poziom {{level}})",
+    "no_phrases_available": "Brak dostępnych fraz do podpowiedzi",
+    "no_hints_remaining": "Brak pozostałych podpowiedzi",
+    "admin": {
+        "settings": {
+            "title": "Ustawienia systemowe",
+            "description": "Skonfiguruj globalne funkcje systemu i ustawienia zbierania danych. Te ustawienia wpływają na wszystkich użytkowników.",
+            "gameFeatures": "Funkcje gry",
+            "dataCollection": "Zbieranie danych",
+            "scoring": {
+                "title": "System punktacji",
+                "description": "Włącz punktację gry z czasomierzem i śledzeniem wydajności. Użytkownicy mogą zastąpić to w swoich profilach."
+            },
+            "progressiveHints": {
+                "title": "Progresywne podpowiedzi",
+                "description": "Włącz zaawansowany system podpowiedzi z wieloma poziomami (pierwsza litera → kierunek → pełny zarys)."
+            },
+            "statistics": {
+                "title": "Zbieranie statystyk",
+                "description": "Zbieraj statystyki rozgrywki i dane sesji gry do analizy."
+            },
+            "loadError": "Nie udało się załadować ustawień systemowych",
+            "updateError": "Nie udało się zaktualizować ustawienia",
+            "updateSuccess": "Ustawienie zostało pomyślnie zaktualizowane",
+            "notice": "Uwaga: Zmiany wchodzą w życie natychmiast dla wszystkich użytkowników. Poszczególni użytkownicy mogą zastąpić ustawienia funkcji gry w swoich profilach."
+        }
+    }
 }

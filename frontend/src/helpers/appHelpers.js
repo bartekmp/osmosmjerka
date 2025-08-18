@@ -11,7 +11,9 @@ export function restoreGameState(setters) {
         setDifficulty,
         setHidePhrases,
         setShowTranslations,
-        setRestored
+        setRestored,
+        setGameStartTime,
+        setCurrentElapsedTime
     } = setters;
 
     const saved = localStorage.getItem('osmosmjerkaGameState');
@@ -35,6 +37,20 @@ export function restoreGameState(setters) {
                 setDifficulty(state.difficulty || 'easy');
                 setHidePhrases(state.hidePhrases ?? false);
                 setShowTranslations(!!state.showTranslations);
+                
+                // Restore timer state if available
+                if (state.elapsedTimeSeconds !== undefined) {
+                    if (setCurrentElapsedTime) {
+                        setCurrentElapsedTime(state.elapsedTimeSeconds);
+                    }
+                    if (setGameStartTime) {
+                        // Set a start time that would result in the saved elapsed time
+                        const now = Date.now();
+                        const adjustedStartTime = now - (state.elapsedTimeSeconds * 1000);
+                        setGameStartTime(adjustedStartTime);
+                    }
+                }
+                
                 setRestored(true);
                 return;
             }

@@ -129,7 +129,7 @@ export default function UserProfile({ currentUser }) {
             if (response.ok) {
                 setStatistics(data);
             } else {
-                setStatisticsError(data.error || 'Failed to load statistics');
+                setStatisticsError(data.error || t('failed_to_load_statistics'));
             }
         } catch (err) {
             setStatisticsError(err.message);
@@ -190,7 +190,7 @@ export default function UserProfile({ currentUser }) {
             });
 
             if (!response.ok) {
-                throw new Error('Failed to update ignored categories');
+                throw new Error(t('failed_to_update_ignored_categories'));
             }
 
             // Update the original state to reflect the saved changes

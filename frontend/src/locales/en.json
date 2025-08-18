@@ -266,6 +266,18 @@
     "overview": "Overview",
     "by_language_set": "By Language Set",
     "user_statistics": "User Statistics",
+    "high_scores": "High Scores",
+    "rank": "Rank",
+    "player": "Player",
+    "score": "Score",
+    "completion": "Completion",
+    "time": "Time",
+    "hints_used": "Hints Used",
+    "date": "Date",
+    "perfect": "Perfect",
+    "no_high_scores": "No high scores available",
+    "all_difficulties": "All Difficulties",
+    "limit": "Limit",
     "all_language_sets": "All Language Sets",
     "total_users": "Total Users",
     "active_users_30d": "Active Users (30 days)",
@@ -273,6 +285,7 @@
     "unique_players": "Unique Players",
     "time_played": "Time Played",
     "phrases_found": "Phrases Found",
+    "last_played": "Last Played",
     "detailed_statistics": "Detailed Statistics",
     "plays": "plays",
     "completed": "Completed",
@@ -300,6 +313,9 @@
     "merge_categories_keep_this": "Merge all categories from duplicates into this phrase and delete the others",
     "merge_categories": "Merge Categories",
     "merge_categories_failed": "Failed to merge categories: {{error}}",
+    "failed_to_load_duplicates": "Failed to load duplicates: {{error}}",
+    "failed_to_load_statistics": "Failed to load statistics",
+    "failed_to_update_ignored_categories": "Failed to update ignored categories",
     "delete_selected": "Delete Selected",
     "confirm_delete": "Confirm Delete",
     "delete_phrases_confirmation": "Are you sure you want to delete {{count}} phrase(s)?",
@@ -322,5 +338,49 @@
     "select": "Select",
     "unselect_all": "Unselect All",
     "select_language_set_first": "Please select a language set first",
-    "merge_categories_success": "Categories merged successfully"
+    "merge_categories_success": "Categories merged successfully",
+    "current_score": "Current Score",
+    "score_breakdown": "Score Breakdown",
+    "base_score": "Base Score",
+    "difficulty_bonus": "Difficulty Bonus",
+    "time_bonus": "Speed Bonus",
+    "completion_bonus": "Completion Bonus", 
+    "hint_penalty": "Hint Penalty",
+    "phrases": "phrases",
+    "hints": "hints",
+    "hints_penalty": "{{count}} hint penalty",
+    "hints_remaining": "{{count}} hints remaining",
+    "first_letter": "First Letter",
+    "direction_hint": "Direction",
+    "full_outline": "Full Outline",
+    "show_hint": "Show Hint",
+    "loading": "Loading...",
+    "hint_tooltip": "Show a random phrase location",
+    "progressive_hint_tooltip": "Progressive hint ({{remaining}} remaining, level {{level}})",
+    "no_phrases_available": "No phrases available for hints",
+    "no_hints_remaining": "No hints remaining",
+    "admin": {
+        "settings": {
+            "title": "System Settings",
+            "description": "Configure global system features and data collection settings. These settings affect all users.",
+            "gameFeatures": "Game Features",
+            "dataCollection": "Data Collection",
+            "scoring": {
+                "title": "Scoring System",
+                "description": "Enable game scoring with timer and performance tracking. Users can override this in their profiles."
+            },
+            "progressiveHints": {
+                "title": "Progressive Hints",
+                "description": "Enable advanced hint system with multiple levels (first letter → direction → full outline)."
+            },
+            "statistics": {
+                "title": "Statistics Collection",
+                "description": "Collect gameplay statistics and game session data for analysis."
+            },
+            "loadError": "Failed to load system settings",
+            "updateError": "Failed to update setting",
+            "updateSuccess": "Setting updated successfully",
+            "notice": "Note: Changes take effect immediately for all users. Individual users can override game feature settings in their profiles."
+        }
+    }
 }

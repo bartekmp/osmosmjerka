@@ -14,7 +14,10 @@ import {
     GameHeader,
     LoadingOverlay,
     PhraseList,
-    ScrabbleGrid
+    ScrabbleGrid,
+    Timer,
+    ScoreDisplay,
+    HintButton
 } from './features';
 import { NotEnoughPhrasesOverlay } from './shared';
 import './style.css';
@@ -81,9 +84,23 @@ function AppContent() {
     // Game session tracking for statistics
     const [gameSessionId, setGameSessionId] = useState(null);
     const [gameStartTime, setGameStartTime] = useState(null);
+    const [currentElapsedTime, setCurrentElapsedTime] = useState(0); // Track current elapsed time for saving
     const [lastFoundCount, setLastFoundCount] = useState(0);
     const [sessionCompleted, setSessionCompleted] = useState(false);
     const [statisticsEnabled, setStatisticsEnabled] = useState(true); // Default to true, will be checked from server
+
+    // Scoring system state
+    const [scoringEnabled, setScoringEnabled] = useState(true);
+    const [currentScore, setCurrentScore] = useState(0);
+    const [scoreBreakdown, setScoreBreakdown] = useState(null);
+    const [firstPhraseTime, setFirstPhraseTime] = useState(null);
+    const [timerResetTrigger, setTimerResetTrigger] = useState(0);
+
+    // Progressive hint system state
+    const [progressiveHintsEnabled, setProgressiveHintsEnabled] = useState(false);
+    const [hintsUsed, setHintsUsed] = useState(0);
+    const [remainingHints, setRemainingHints] = useState(3);
+    const [currentHintLevel, setCurrentHintLevel] = useState(0);
 
     // Debounced language set ID to prevent excessive API calls
     const debouncedLanguageSetId = useDebouncedValue(selectedLanguageSetId, 500);
@@ -130,7 +147,9 @@ function AppContent() {
             setDifficulty,
             setHidePhrases,
             setShowTranslations,
-            setRestored
+            setRestored,
+            setGameStartTime,
+            setCurrentElapsedTime
         });
         // eslint-disable-next-line
     }, []);
@@ -262,6 +281,31 @@ function AppContent() {
         }
     }, [checkStatisticsEnabled]);
 
+    // Check scoring and hint preferences
+    const checkUserPreferences = useCallback(async () => {
+        try {
+            // Check system-wide scoring preference (public endpoint)
+            const scoringResponse = await axios.get(`${API_ENDPOINTS.GAME}/system/scoring-enabled`);
+            setScoringEnabled(scoringResponse.data.enabled);
+
+            // Check system-wide progressive hints preference (public endpoint)
+            const hintsResponse = await axios.get(`${API_ENDPOINTS.GAME}/system/progressive-hints-enabled`);
+            setProgressiveHintsEnabled(hintsResponse.data.enabled);
+        } catch (error) {
+            console.error('Failed to check system preferences:', error);
+            setScoringEnabled(false);
+            setProgressiveHintsEnabled(false);
+        }
+    }, []);
+
+    // Check preferences on mount and auth changes
+    useEffect(() => {
+        const token = localStorage.getItem(STORAGE_KEYS.ADMIN_TOKEN);
+        if (token) {
+            checkUserPreferences();
+        }
+    }, [checkUserPreferences]);
+
     // Save state to localStorage on change, including showTranslations and selectedLanguageSetId
     useEffect(() => {
         saveGameState({
@@ -274,8 +318,9 @@ function AppContent() {
             allFound,
             showTranslations,
             selectedLanguageSetId,
+            elapsedTimeSeconds: currentElapsedTime, // Save tracked elapsed time
         });
-    }, [grid, phrases, found, selectedCategory, difficulty, hidePhrases, allFound, showTranslations, selectedLanguageSetId]);
+    }, [grid, phrases, found, selectedCategory, difficulty, hidePhrases, allFound, showTranslations, selectedLanguageSetId, currentElapsedTime]);
 
     useEffect(() => {
         if (!restored) return;
@@ -295,6 +340,9 @@ function AppContent() {
         setGameStartTime(null);
         setLastFoundCount(0);
         completionInProgressRef.current = false; // Reset completion flag for new puzzle
+        
+        // Reset scoring and hint state
+        resetGameState();
         
         loadPuzzleHelper(category, diff, {
             setSelectedCategory,
@@ -332,14 +380,17 @@ function AppContent() {
             });
 
             setGameSessionId(response.data.session_id);
-            setGameStartTime(Date.now());
+            // Only set gameStartTime if not already set (for restored games)
+            if (!gameStartTime) {
+                setGameStartTime(Date.now());
+            }
             setLastFoundCount(0);
             setSessionCompleted(false);
             completionInProgressRef.current = false; // Reset completion flag for new session
         } catch (error) {
             console.error('Failed to start game session:', error);
         }
-    }, [selectedLanguageSetId, statisticsEnabled]);
+    }, [selectedLanguageSetId, statisticsEnabled, gameStartTime]);
 
     const updateGameProgress = useCallback(async (phrasesFound) => {
         const token = localStorage.getItem(STORAGE_KEYS.ADMIN_TOKEN);
@@ -361,6 +412,37 @@ function AppContent() {
             console.error('Failed to update game progress:', error);
         }
     }, [gameSessionId, statisticsEnabled]);
+
+    const saveGameScore = useCallback(async (phrasesFound, durationSeconds, isCompleted) => {
+        const token = localStorage.getItem(STORAGE_KEYS.ADMIN_TOKEN);
+        if (!token || !gameSessionId || !scoringEnabled) return;
+
+        try {
+            const completionTime = isCompleted ? new Date().toISOString() : null;
+            
+            await axios.post(`${API_ENDPOINTS.GAME}/game/score`, {
+                session_id: gameSessionId,
+                language_set_id: selectedLanguageSetId,
+                category: selectedCategory,
+                difficulty: difficulty,
+                grid_size: grid.length,
+                total_phrases: phrases.length,
+                phrases_found: phrasesFound,
+                hints_used: hintsUsed,
+                duration_seconds: durationSeconds,
+                first_phrase_time: firstPhraseTime,
+                completion_time: completionTime
+            }, {
+                headers: {
+                    'Authorization': `Bearer ${token}`,
+                    'Content-Type': 'application/json'
+                }
+            });
+        } catch (error) {
+            console.error('Failed to save game score:', error);
+        }
+    }, [gameSessionId, scoringEnabled, selectedLanguageSetId, selectedCategory, difficulty, 
+        grid.length, phrases.length, hintsUsed, firstPhraseTime]);
 
     const completeGameSession = useCallback(async (phrasesFound, isCompleted) => {
         const token = localStorage.getItem(STORAGE_KEYS.ADMIN_TOKEN);
@@ -385,6 +467,11 @@ function AppContent() {
                 }
             });
 
+            // Save final score if scoring is enabled
+            if (scoringEnabled) {
+                await saveGameScore(phrasesFound, durationSeconds, isCompleted);
+            }
+
             // Reset session tracking
             setSessionCompleted(true);
             setGameSessionId(null);
@@ -396,26 +483,161 @@ function AppContent() {
             // Reset flag after completion (successful or failed)
             completionInProgressRef.current = false;
         }
-    }, [gameSessionId, gameStartTime, sessionCompleted, statisticsEnabled]);
+    }, [gameSessionId, gameStartTime, sessionCompleted, statisticsEnabled, scoringEnabled, saveGameScore]);
+
+    // Scoring system functions
+    const calculateCurrentScore = useCallback((phrasesFound, timePlayed) => {
+        if (!scoringEnabled) return 0;
+
+        const baseScore = phrasesFound * 100;
+        
+        // Difficulty multipliers
+        const difficultyMultipliers = {
+            easy: 1.0,
+            medium: 1.2,
+            hard: 1.5,
+            very_hard: 2.0
+        };
+        
+        const difficultyBonus = Math.floor(baseScore * (difficultyMultipliers[difficulty] - 1.0));
+        
+        // Time bonus (for ongoing games, no completion bonus yet)
+        let timeBonus = 0;
+        if (timePlayed > 0) {
+            const targetTimes = {
+                easy: 300,
+                medium: 600,
+                hard: 900,
+                very_hard: 1200
+            };
+            const targetTime = targetTimes[difficulty] || 600;
+            
+            if (timePlayed <= targetTime) {
+                const timeRatio = Math.max(0, (targetTime - timePlayed) / targetTime);
+                timeBonus = Math.floor(baseScore * 0.5 * timeRatio);
+            }
+        }
+        
+        const hintPenalty = hintsUsed * 50;
+        
+        return Math.max(0, baseScore + difficultyBonus + timeBonus - hintPenalty);
+    }, [scoringEnabled, difficulty, hintsUsed]);
+
+    const updateScore = useCallback((phrasesFound, timePlayed = 0) => {
+        if (!scoringEnabled) return;
+        
+        const score = calculateCurrentScore(phrasesFound, timePlayed);
+        setCurrentScore(score);
+    }, [scoringEnabled, calculateCurrentScore]);
+
+    // Hint system functions
+    const handleHintRequest = useCallback(async () => {
+        if (remainingHints <= 0 || !gridRef.current) return;
+
+        if (progressiveHintsEnabled) {
+            // Progressive hint mode
+            if (currentHintLevel === 0) {
+                // Start new progressive hint sequence
+                const targetPhrase = gridRef.current.showProgressiveHint(true);
+                if (targetPhrase) {
+                    setCurrentHintLevel(1);
+                    setRemainingHints(prev => prev - 1);
+                    setHintsUsed(prev => prev + 1);
+                }
+            } else {
+                // Advance to next hint level
+                gridRef.current.advanceProgressiveHint();
+                setCurrentHintLevel(prev => prev + 1);
+                setRemainingHints(prev => prev - 1);
+                setHintsUsed(prev => prev + 1);
+                
+                // Reset hint level after final hint
+                if (currentHintLevel >= 2) {
+                    setTimeout(() => {
+                        setCurrentHintLevel(0);
+                        if (gridRef.current) {
+                            gridRef.current.clearHints();
+                        }
+                    }, 3000);
+                }
+            }
+        } else {
+            // Classic hint mode
+            const targetPhrase = gridRef.current.showProgressiveHint(false);
+            if (targetPhrase) {
+                setHintsUsed(prev => prev + 1);
+                // No limit on classic hints, but still track usage for scoring
+            }
+        }
+    }, [remainingHints, progressiveHintsEnabled, currentHintLevel]);
+
+    const resetGameState = useCallback(() => {
+        setCurrentScore(0);
+        setScoreBreakdown(null);
+        setHintsUsed(0);
+        setRemainingHints(3);
+        setCurrentHintLevel(0);
+        setFirstPhraseTime(null);
+        setTimerResetTrigger(prev => prev + 1);
+        
+        if (gridRef.current) {
+            gridRef.current.clearHints();
+        }
+    }, []);
 
     const markFound = useCallback((phrase) => {
         if (!found.includes(phrase)) {
+            const newFoundList = [...found, phrase];
+            const newFoundCount = newFoundList.length;
+            
+            // Start timer on first found phrase
+            if (found.length === 0 && scoringEnabled) {
+                const now = new Date().toISOString();
+                setFirstPhraseTime(now);
+            }
+            
             // Start game session on first found phrase (only if statistics are enabled)
             if (found.length === 0 && phrases.length > 0 && grid.length > 0 && selectedCategory && !gameSessionId && !sessionCompleted && statisticsEnabled) {
                 const gridSize = grid.length;
                 startGameSession(selectedCategory, difficulty, gridSize, phrases.length);
             }
             
-            setFound([...found, phrase]);
+            setFound(newFoundList);
             confetti();
+            
+            // Clear any active hints when phrase is found
+            if (gridRef.current) {
+                gridRef.current.clearHints();
+            }
+            setCurrentHintLevel(0);
+            
+            // Update progress tracking
+            updateGameProgress(newFoundCount);
+            
+            // Update score if scoring is enabled
+            if (scoringEnabled && gameStartTime) {
+                const timePlayed = Math.floor((Date.now() - gameStartTime) / 1000);
+                updateScore(newFoundCount, timePlayed);
+            }
         }
-    }, [found, phrases.length, grid.length, selectedCategory, gameSessionId, sessionCompleted, difficulty, startGameSession, statisticsEnabled]);
+    }, [found, phrases.length, grid.length, selectedCategory, gameSessionId, sessionCompleted, 
+        difficulty, startGameSession, statisticsEnabled, scoringEnabled, gameStartTime, 
+        updateGameProgress, updateScore]);
 
     const handlePhraseClick = (phrase) => {
-        if (gridRef.current) {
+        // Only allow phrase clicking when progressive hints are disabled
+        if (!progressiveHintsEnabled && gridRef.current) {
             gridRef.current.blinkPhrase(phrase);
         }
     };
+
+    // Timer update callback
+    const handleTimerUpdate = useCallback((elapsedSeconds) => {
+        setCurrentElapsedTime(elapsedSeconds); // Track current elapsed time for saving
+        if (scoringEnabled && found.length > 0) {
+            updateScore(found.length, elapsedSeconds);
+        }
+    }, [scoringEnabled, found.length, updateScore]);
 
     // Game session tracking effects
     // Note: Game session now starts when first phrase is found (see markFound function)
@@ -563,6 +785,7 @@ function AppContent() {
                                         disabled={allFound}
                                         isDarkMode={isDarkMode}
                                         showCelebration={showCelebration}
+                                        onHintUsed={() => {}} // Placeholder - hint tracking is handled in handleHintRequest
                                     />
 
                                     <LoadingOverlay isLoading={isGridLoading} isDarkMode={isDarkMode} />
@@ -574,6 +797,49 @@ function AppContent() {
                                     />
                                 </Box>
                                 <Box sx={{ width: { xs: '100%', md: 320 }, maxWidth: 400, alignSelf: { xs: 'flex-start', md: 'flex-start' }, position: { md: 'relative' }, left: { md: '0' }, top: { md: '0' } }}>
+                                    {/* Timer and Score Display */}
+                                    {scoringEnabled && (
+                                        <Box sx={{ 
+                                            display: 'flex', 
+                                            flexDirection: { xs: 'row', sm: 'row' },
+                                            alignItems: 'center',
+                                            justifyContent: 'flex-start',
+                                            gap: 2,
+                                            mb: 2 
+                                        }}>
+                                            <Timer
+                                                isActive={found.length > 0 && !allFound && !isAdminRoute}
+                                                onTimeUpdate={handleTimerUpdate}
+                                                startTime={gameStartTime}
+                                                resetTrigger={timerResetTrigger}
+                                                showTimer={scoringEnabled}
+                                                currentElapsedTime={currentElapsedTime}
+                                            />
+                                            <ScoreDisplay
+                                                currentScore={currentScore}
+                                                scoreBreakdown={scoreBreakdown}
+                                                phrasesFound={found.length}
+                                                totalPhrases={phrases.length}
+                                                hintsUsed={hintsUsed}
+                                                showScore={scoringEnabled}
+                                                compact={true}
+                                            />
+                                        </Box>
+                                    )}
+                                    
+                                    {/* Hint Button - only show when progressive hints are enabled */}
+                                    {progressiveHintsEnabled && phrases.length > 0 && found.length < phrases.length && (
+                                        <HintButton
+                                            onHintRequest={handleHintRequest}
+                                            remainingHints={remainingHints}
+                                            isProgressiveMode={progressiveHintsEnabled}
+                                            disabled={allFound || phrases.length === 0}
+                                            currentHintLevel={currentHintLevel}
+                                            maxHints={3}
+                                            showHintButton={true}
+                                        />
+                                    )}
+                                    
                                     <PhraseList
                                         phrases={phrases}
                                         found={found}
@@ -584,6 +850,7 @@ function AppContent() {
                                         setShowTranslations={setShowTranslations}
                                         disableShowPhrases={notEnoughPhrases}
                                         onPhraseClick={handlePhraseClick}
+                                        progressiveHintsEnabled={progressiveHintsEnabled}
                                         t={t}
                                     />
                                 </Box>

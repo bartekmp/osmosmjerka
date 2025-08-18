@@ -75,6 +75,13 @@ const StatisticsDashboard = ({ token, setError: onError, currentUser }) => {
   const [languageSetStats, setLanguageSetStats] = useState([]);
   const [userStatistics, setUserStatistics] = useState([]);
   const [selectedUserDetail, setSelectedUserDetail] = useState(null);
+  const [highScores, setHighScores] = useState([]);
+
+  // High scores filters
+  const [highScoresLanguageSet, setHighScoresLanguageSet] = useState('');
+  const [highScoresCategory, setHighScoresCategory] = useState('');
+  const [highScoresDifficulty, setHighScoresDifficulty] = useState('');
+  const [highScoresLimit, setHighScoresLimit] = useState(50);
 
   // Root admin settings states
   const [statisticsEnabled, setStatisticsEnabled] = useState(true);
@@ -121,6 +128,22 @@ const StatisticsDashboard = ({ token, setError: onError, currentUser }) => {
     }
   };
 
+  const loadHighScores = async (langSetId = null, category = null, difficulty = null, limit = 50) => {
+    try {
+      const params = new URLSearchParams();
+      if (langSetId) params.append('language_set_id', langSetId);
+      if (category) params.append('category', category);
+      if (difficulty) params.append('difficulty', difficulty);
+      if (limit) params.append('limit', limit);
+      
+      const queryString = params.toString();
+      const data = await getWithAuth(`/admin/statistics/leaderboard${queryString ? `?${queryString}` : ''}`);
+      setHighScores(data);
+    } catch (err) {
+      setError(err.message);
+    }
+  };
+
   const loadUserDetail = async (userId) => {
     try {
       const params = selectedLanguageSet ? `?language_set_id=${selectedLanguageSet}` : '';
@@ -139,6 +162,24 @@ const StatisticsDashboard = ({ token, setError: onError, currentUser }) => {
 
   const handleTabChange = (event, newValue) => {
     setActiveTab(newValue);
+    // Load high scores when switching to high scores tab
+    if (newValue === 3) {
+      loadHighScores(
+        highScoresLanguageSet || null,
+        highScoresCategory || null,
+        highScoresDifficulty || null,
+        highScoresLimit
+      );
+    }
+  };
+
+  const handleHighScoresFilterChange = async () => {
+    await loadHighScores(
+      highScoresLanguageSet || null,
+      highScoresCategory || null,
+      highScoresDifficulty || null,
+      highScoresLimit
+    );
   };
 
   const formatTime = (seconds) => {
@@ -291,6 +332,7 @@ const StatisticsDashboard = ({ token, setError: onError, currentUser }) => {
         <Tab label={t('overview')} />
         <Tab label={t('by_language_set')} />
         <Tab label={t('user_statistics')} />
+        <Tab label={t('high_scores')} />
       </Tabs>
 
       {/* Overview Tab */}
@@ -528,6 +570,180 @@ const StatisticsDashboard = ({ token, setError: onError, currentUser }) => {
               </CardContent>
             </Card>
           )}
+        </Box>
+      )}
+
+      {/* High Scores Tab */}
+      {activeTab === 3 && (
+        <Box>
+          {/* Filters */}
+          <Grid container spacing={2} sx={{ mb: 3 }}>
+            <Grid item xs={12} sm={6} md={3}>
+              <FormControl fullWidth>
+                <InputLabel>{t('language_set')}</InputLabel>
+                <Select
+                  value={highScoresLanguageSet}
+                  onChange={(e) => {
+                    setHighScoresLanguageSet(e.target.value);
+                    setTimeout(handleHighScoresFilterChange, 100);
+                  }}
+                  label={t('language_set')}
+                >
+                  <MenuItem value="">{t('all_language_sets')}</MenuItem>
+                  {languageSets.map((langSet) => (
+                    <MenuItem key={langSet.id} value={langSet.id}>
+                      {langSet.display_name}
+                    </MenuItem>
+                  ))}
+                </Select>
+              </FormControl>
+            </Grid>
+            
+            <Grid item xs={12} sm={6} md={3}>
+              <FormControl fullWidth>
+                <InputLabel>{t('category')}</InputLabel>
+                <Select
+                  value={highScoresCategory}
+                  onChange={(e) => {
+                    setHighScoresCategory(e.target.value);
+                    setTimeout(handleHighScoresFilterChange, 100);
+                  }}
+                  label={t('category')}
+                >
+                  <MenuItem value="">{t('all_categories')}</MenuItem>
+                  {/* Categories would need to be loaded separately or extracted from existing data */}
+                </Select>
+              </FormControl>
+            </Grid>
+            
+            <Grid item xs={12} sm={6} md={3}>
+              <FormControl fullWidth>
+                <InputLabel>{t('difficulty')}</InputLabel>
+                <Select
+                  value={highScoresDifficulty}
+                  onChange={(e) => {
+                    setHighScoresDifficulty(e.target.value);
+                    setTimeout(handleHighScoresFilterChange, 100);
+                  }}
+                  label={t('difficulty')}
+                >
+                  <MenuItem value="">{t('all_difficulties')}</MenuItem>
+                  <MenuItem value="easy">{t('easy')}</MenuItem>
+                  <MenuItem value="medium">{t('medium')}</MenuItem>
+                  <MenuItem value="hard">{t('hard')}</MenuItem>
+                  <MenuItem value="very_hard">{t('very_hard')}</MenuItem>
+                </Select>
+              </FormControl>
+            </Grid>
+            
+            <Grid item xs={12} sm={6} md={3}>
+              <FormControl fullWidth>
+                <InputLabel>{t('limit')}</InputLabel>
+                <Select
+                  value={highScoresLimit}
+                  onChange={(e) => {
+                    setHighScoresLimit(e.target.value);
+                    setTimeout(handleHighScoresFilterChange, 100);
+                  }}
+                  label={t('limit')}
+                >
+                  <MenuItem value={25}>25</MenuItem>
+                  <MenuItem value={50}>50</MenuItem>
+                  <MenuItem value={100}>100</MenuItem>
+                  <MenuItem value={200}>200</MenuItem>
+                </Select>
+              </FormControl>
+            </Grid>
+          </Grid>
+
+          {/* High Scores Table */}
+          <TableContainer component={Paper}>
+            <Table>
+              <TableHead>
+                <TableRow>
+                  <TableCell>{t('rank')}</TableCell>
+                  <TableCell>{t('player')}</TableCell>
+                  <TableCell>{t('score')}</TableCell>
+                  <TableCell>{t('category')}</TableCell>
+                  <TableCell>{t('difficulty')}</TableCell>
+                  <TableCell>{t('completion')}</TableCell>
+                  <TableCell>{t('time')}</TableCell>
+                  <TableCell>{t('hints_used')}</TableCell>
+                  <TableCell>{t('date')}</TableCell>
+                </TableRow>
+              </TableHead>
+              <TableBody>
+                {highScores.map((score, index) => (
+                  <TableRow key={`${score.user_id}-${score.created_at}-${index}`}>
+                    <TableCell>
+                      <Box display="flex" alignItems="center">
+                        {index < 3 && (
+                          <StarIcon 
+                            sx={{ 
+                              mr: 1,
+                              color: index === 0 ? '#FFD700' : index === 1 ? '#C0C0C0' : '#CD7F32'
+                            }} 
+                          />
+                        )}
+                        #{index + 1}
+                      </Box>
+                    </TableCell>
+                    <TableCell>
+                      <Typography variant="body2" fontWeight="medium">
+                        {score.username}
+                      </Typography>
+                    </TableCell>
+                    <TableCell>
+                      <Typography variant="body2" fontWeight="bold" color="primary">
+                        {score.final_score?.toLocaleString() || 0}
+                      </Typography>
+                    </TableCell>
+                    <TableCell>{score.category}</TableCell>
+                    <TableCell>
+                      <Chip 
+                        label={score.difficulty} 
+                        size="small"
+                        color={
+                          score.difficulty === 'easy' ? 'success' :
+                          score.difficulty === 'medium' ? 'warning' :
+                          score.difficulty === 'hard' ? 'error' :
+                          'secondary'
+                        }
+                      />
+                    </TableCell>
+                    <TableCell>
+                      {score.phrases_found}/{score.total_phrases}
+                      {score.phrases_found === score.total_phrases && (
+                        <Chip label={t('perfect')} size="small" color="success" sx={{ ml: 1 }} />
+                      )}
+                    </TableCell>
+                    <TableCell>{formatTime(score.duration_seconds)}</TableCell>
+                    <TableCell>
+                      {score.hints_used > 0 ? (
+                        <Chip label={score.hints_used} size="small" color="warning" />
+                      ) : (
+                        <Chip label="0" size="small" color="success" />
+                      )}
+                    </TableCell>
+                    <TableCell>
+                      <Typography variant="body2" color="text.secondary">
+                        {score.created_at ? new Date(score.created_at).toLocaleDateString() : '-'}
+                      </Typography>
+                    </TableCell>
+                  </TableRow>
+                ))}
+                {highScores.length === 0 && (
+                  <TableRow>
+                    <TableCell colSpan={9} align="center">
+                      <Typography variant="body2" color="text.secondary">
+                        {t('no_high_scores')}
+                      </Typography>
+                    </TableCell>
+                  </TableRow>
+                )}
+              </TableBody>
+            </Table>
+          </TableContainer>
         </Box>
       )}
 
