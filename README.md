@@ -15,8 +15,6 @@ Each phrase includes translation into another language, making it an excellent t
 - **Batch Operations**: Efficient bulk editing with category management and multi-select actions
 - **Optimized Performance**: Smart API loading and reduced server requests for better user experience
 
-![Osmosmjerka game](docs/assets/osmosmjerka-game.gif)
-
 ## How it works
 Osmosmjerka consists of three layers - a frontend app in [React](https://react.dev/), a [Flask](https://flask.palletsprojects.com/en/stable/)-based HTTP server and a [PostgreSQL](https://www.postgresql.org/) database.
 The web app communicates with the server, which pulls data from the database and returns it via HTTP requests to the frontend.
@@ -25,6 +23,9 @@ You need to provide your own sets of phrases, either by inserting them directly 
 The phrases should have at least 3 characters, since less is going to make the hell of a game to find in a grid, however, the API will filter them out automatically.
 
 ## The game
+
+![Game](docs/assets/osmosmjerka-game.gif)
+
 The player needs to find phrases shown on the phrase list in the displayed grid. The phrases can be found vertically, horizontally, diagonally and with the reversed order of letters.
 The puzzle is generated based on the chosen theme and its size (currently there are four levels of difficulty).
 
@@ -46,7 +47,7 @@ The interface now supports multiple languages with complete internationalization
 **Dark Mode Support**
 Toggle between light and dark themes using the moon/sun button. The dark mode provides a comfortable viewing experience in low-light environments with carefully adjusted colors for all UI elements, including loading overlays and error messages.
 
-![Night mode](docs/assets/osmosmjerka-nightmode.gif)
+![Night mode](docs/assets/osmosmjerka-nightmode.png)
 
 **User Management System**
 A comprehensive user management system with role-based access control:
@@ -75,6 +76,8 @@ The game works seamlessly on both desktop and mobile devices with optimized touc
 
 ## Game Features
 
+![Game features](docs/assets/osmosmjerka-main-game-features.gif)
+
 ### Progressive Hints System
 Osmosmjerka includes an advanced progressive hints system that provides graduated assistance to help players solve challenging puzzles. This feature can be controlled both globally by administrators and individually by each user.
 
@@ -92,6 +95,8 @@ Osmosmjerka includes an advanced progressive hints system that provides graduate
 
 ### Scoring System
 The scoring system adds a competitive element to the word search experience, tracking player performance and providing achievement metrics.
+
+![Game statistics page](docs/assets/osmosmjerka-stats-dashboard.gif)
 
 **How Scoring Works:**
 - **Performance Tracking**: The system monitors various gameplay metrics including completion time, hint usage, and accuracy
@@ -124,6 +129,7 @@ The responsive design ensures that whether you're playing on a smartphone, table
 On mobile screens, some interface elements are reduced to minimum, to keep as much space for the playing area as possible.
 
 ## The admin page
+
 The admin page can be accessed via the `/admin` endpoint, which displays a login screen. The system supports multiple user roles with different access levels and provides comprehensive database management capabilities.
 
 For detailed information about all admin panel features and capabilities, see the [Admin Panel Features](#admin-panel-features) section below.
@@ -135,8 +141,6 @@ For detailed information about all admin panel features and capabilities, see th
 
 The login credentials for the root admin (username and password hash) must be provided via `.env` file (check the `.env.example` file) or the respective env variables before the application is started. Additional users can be created through the user management interface.
 
-![Admin page](docs/assets/osmosmjerka-admin.gif)
-
 ### How to generate admin's password hash
 Use this one-liner to convert your password into a hash, which then you can use to log into admin's page:
 ```bash
@@ -144,6 +148,8 @@ python3 -c "import bcrypt; import getpass; pwd=getpass.getpass('Password: ').enc
 ```
 
 ## Admin Panel Features
+
+![Main admin page](docs/assets/osmosmjerka-admin-view.png)
 
 The admin panel provides a comprehensive suite of tools for managing the word search database, user accounts, and system configuration. The interface is designed to be intuitive and efficient, with optimized performance and minimal server requests.
 
@@ -155,6 +161,9 @@ The main dashboard serves as the central hub for admin activities, providing qui
 - **User Profile**: Edit personal account settings and manage ignored categories
 
 ### Browse Records (Phrase Database Management)
+
+![Browse records page](docs/assets/osmosmjerka-admin.gif)
+
 The core database management interface provides powerful tools for working with phrase collections:
 
 **Data Browsing and Navigation**
@@ -195,6 +204,9 @@ The core database management interface provides powerful tools for working with 
 - Format preservation for easy re-import
 
 ### User Management
+
+![User management page](docs/assets/osmosmjerka-user-mgmt.gif)
+
 Comprehensive user account management system available to root administrators:
 
 **Account Management**
@@ -209,6 +221,9 @@ Comprehensive user account management system available to root administrators:
 - Granular permission system for secure operation
 
 **User Profiles**
+
+![User profile page](docs/assets/osmosmjerka-user-profile.png)
+
 - Customizable user descriptions and profile information
 - Individual password management and security settings
 - Personal ignored category preferences
@@ -218,6 +233,9 @@ Comprehensive user account management system available to root administrators:
 Advanced organization system for managing multiple language collections:
 
 **Language Set Configuration**
+
+![Language set management page](docs/assets/osmosmjerka-language-set-mgmt.gif)
+
 - Create and configure separate language collections
 - Set display names and descriptions for each language set
 - Define default ignored categories per language set
@@ -235,11 +253,12 @@ Advanced organization system for managing multiple language collections:
 - Language set filtering in all database operations
 - Automatic categorization and validation
 
-![Main admin page](docs/assets/osmosmjerka-admin-view.png)
-
 The admin interface supports multiple categories per phrase (separated by spaces), making it easy to organize vocabulary by themes like "Toys Sport Nouns". The phrase field serves as the primary key, ensuring data integrity by preventing duplicates during imports.
 
 ### System Settings
+
+![System settings page](docs/assets/osmosmjerka-system-settings.png)
+
 Root administrators have access to system-wide configuration options that control global game behavior and features. These settings affect all users unless individually overridden in user profiles.
 
 **Global Game Features Configuration**
@@ -261,6 +280,8 @@ Root administrators have access to system-wide configuration options that contro
 The System Settings panel provides an intuitive interface for managing these configurations, with clear descriptions of each setting's impact and current status indicators.
 
 ## Language Sets
+
+![Language set management page](docs/assets/osmosmjerka-language-set-mgmt.gif)
 
 Language Sets are an organizational feature that allows you to manage separate collections of phrases for different languages, themes, or learning objectives. This feature transforms Osmosmjerka from a simple word search game into a comprehensive language learning platform.
 
