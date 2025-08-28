@@ -365,7 +365,7 @@ The Language Set feature transforms Osmosmjerka into a flexible, scalable platfo
 cp .env.example .env
 ```
 3. Set the variables in the `.env` file. 
-The `ADMIN_` variables are used as the credentials to the administrator's page (the hash must be made with [bcrypt](https://github.com/pyca/bcrypt) `hashpw` and the secret is any string of your choice). The ignored categories allows you to filter out entries of certain categories from your database you don't want to be used in the game.
+The `ADMIN_` variables are used as the credentials to the administrator's page (the hash must be made with [bcrypt](https://github.com/pyca/bcrypt) like this: `bcrypt.hashpw(b"YOUR_PASSWORD", bcrypt.gensalt())` and the secret is any raw string of your choice). The ignored categories allows you to filter out entries of certain categories from your database you don't want to be used in the game.
 4. Deploy your PostgreSQL in K8s using the [example](/helpers/k8s-postgres.yaml) YAML or use your own existing instance. Create the database and user account, then fill the `POSTGRES_` variables in the `.env` file. The table will be created upon the first connection.
 5. Build the Docker image using:
 ```bash
