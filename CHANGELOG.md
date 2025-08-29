@@ -2,6 +2,14 @@
 
 <!-- version list -->
 
+## v1.25.1 (2025-08-29)
+
+### Enhancement
+
+- Update sqlalchemy dependency
+  ([`d1ba975`](https://github.com/bartekmp/osmosmjerka/commit/d1ba975ef3ddfbd2ae1d9aa50b04a20fe2ebcffc))
+
+
 ## v1.25.0 (2025-08-18)
 
 ### Bug Fixes
