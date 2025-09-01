@@ -2,6 +2,15 @@
 
 <!-- version list -->
 
+## v1.25.2 (2025-09-01)
+
+### Bug Fixes
+
+- Ensure the exact count of phrases is placed on the grid respecting the difficulty level
+  ([#67](https://github.com/bartekmp/osmosmjerka/pull/67),
+  [`cf295b0`](https://github.com/bartekmp/osmosmjerka/commit/cf295b0237396aac7bea1ded8ca9cee08b4cb6f1))
+
+
 ## v1.25.1 (2025-08-29)
 
 ### Enhancement
