@@ -67,6 +67,77 @@ def get_grid_size_and_num_phrases(selected: list, difficulty: str) -> tuple:
     return grid_size, num_phrases
 
 
+def _generate_grid_with_exact_phrase_count(all_phrases: list, grid_size: int, target_phrase_count: int) -> tuple:
+    """
+    Generate a grid with exactly the target number of phrases.
+    If not all phrases can be placed, try different combinations until we get the target count.
+    """
+    import itertools
+    
+    max_attempts = 50  # Limit attempts to avoid infinite loops
+    attempt = 0
+    best_grid = None
+    best_placed_phrases = []
+    
+    # First, try with a random selection as before
+    if len(all_phrases) > target_phrase_count:
+        selected_phrases = random.sample(all_phrases, target_phrase_count)
+    else:
+        selected_phrases = all_phrases.copy()
+        random.shuffle(selected_phrases)
+    
+    while attempt < max_attempts:
+        grid, placed_phrases = generate_grid(selected_phrases, grid_size)
+        
+        # Keep track of the best result so far
+        if len(placed_phrases) > len(best_placed_phrases):
+            best_grid = grid
+            best_placed_phrases = placed_phrases
+        
+        # If we got exactly the target number, we're done
+        if len(placed_phrases) == target_phrase_count:
+            return grid, placed_phrases
+        
+        # If we got fewer phrases than target, try with different phrases
+        if len(placed_phrases) < target_phrase_count:
+            # Calculate how many more phrases we need
+            phrases_needed = target_phrase_count - len(placed_phrases)
+            
+            # Get phrases that weren't placed
+            placed_phrase_texts = {p["phrase"] for p in placed_phrases}
+            unplaced_phrases = [p for p in all_phrases if p["phrase"] not in placed_phrase_texts]
+            
+            # If we have enough unplaced phrases, try replacing some phrases
+            if len(unplaced_phrases) >= phrases_needed and len(all_phrases) > target_phrase_count:
+                # Remove some phrases that were placed and add some that weren't
+                phrases_to_remove = min(3, len(placed_phrases))  # Remove a few placed phrases
+                phrases_to_add = min(phrases_needed + phrases_to_remove, len(unplaced_phrases))
+                
+                # Create new selection by keeping most placed phrases and adding unplaced ones
+                kept_phrases = random.sample([p for p in selected_phrases if p["phrase"] in placed_phrase_texts], 
+                                           max(0, target_phrase_count - phrases_to_add))
+                new_phrases = random.sample(unplaced_phrases, phrases_to_add)
+                selected_phrases = kept_phrases + new_phrases
+            else:
+                # Try with all available phrases if we don't have many options
+                selected_phrases = all_phrases.copy()
+                random.shuffle(selected_phrases)
+        
+        # If we got more phrases than target (shouldn't happen with current logic, but just in case)
+        elif len(placed_phrases) > target_phrase_count:
+            # Just trim the result to target count
+            return grid, placed_phrases[:target_phrase_count]
+        
+        attempt += 1
+    
+    # If we couldn't get the exact target, return the best result we achieved
+    # but ensure we don't return more than the target
+    if len(best_placed_phrases) > target_phrase_count:
+        best_placed_phrases = best_placed_phrases[:target_phrase_count]
+    
+    return best_grid if best_grid is not None else [], best_placed_phrases
+
+
 @router.get("/phrases")
 @rate_limit(max_requests=20, window_seconds=60)  # 20 requests per minute for phrase generation
 @cache_response(phrases_cache, "phrases")
@@ -128,14 +199,8 @@ async def get_phrases(
             status_code=status.HTTP_404_NOT_FOUND,
         )
 
-    if len(selected) > num_phrases:
-        selected = random.sample(selected, num_phrases)
-    else:
-        random.shuffle(selected)
-
-    # Generate the grid using selected phrases
-    result = generate_grid(selected, grid_size)
-    grid, placed_phrases = result
+    # Try to generate grid with exactly the required number of phrases
+    grid, placed_phrases = _generate_grid_with_exact_phrase_count(selected, grid_size, num_phrases)
 
     return JSONResponse({"grid": grid, "phrases": placed_phrases, "category": category})
 
