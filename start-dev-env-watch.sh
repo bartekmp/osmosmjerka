@@ -112,7 +112,11 @@ if [ ! -d ".venv" ]; then
 fi
 
 echo -e "${PURPLE}🐍 Activating virtual environment...${NC}"
-source .venv/bin/activate
+if [[ $OSTYPE == "msys" ]]; then
+    source .venv/Scripts/activate
+else 
+    source .venv/bin/activate
+fi
 
 # Install backend dependencies
 echo -e "${PURPLE}🐍 Installing backend dependencies...${NC}"
@@ -146,6 +150,11 @@ echo ""
 
 # Start backend server
 cd backend
-source ../.venv/bin/activate  # Ensure venv is active for uvicorn
+# Ensure venv is active for uvicorn
+if [[ $OSTYPE == "msys" ]]; then
+    source ../.venv/Scripts/activate
+else 
+    source ../.venv/bin/activate
+fi
 export DEVELOPMENT_MODE=true  # Enable development mode for backend
 uvicorn osmosmjerka.app:app --host 0.0.0.0 --port $BACKEND_PORT --reload --reload-dir .
