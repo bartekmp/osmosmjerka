@@ -65,5 +65,6 @@ export const API_ENDPOINTS = {
   ADMIN_BATCH_ADD_CATEGORY: '/admin/batch/add-category',
   ADMIN_BATCH_REMOVE_CATEGORY: '/admin/batch/remove-category',
   ADMIN_DUPLICATES: '/admin/duplicates',
-  ADMIN_PHRASES: '/admin/phrases'
+  ADMIN_PHRASES: '/admin/phrases',
+  ADMIN_UPLOAD_TEXT: '/admin/upload-text'
 };

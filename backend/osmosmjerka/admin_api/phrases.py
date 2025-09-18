@@ -2,6 +2,8 @@
 
 import csv
 import io
+import re
+from typing import Optional
 
 from fastapi import APIRouter, Depends, File, Query, Request, UploadFile, status
 from fastapi.responses import JSONResponse, StreamingResponse
@@ -14,62 +16,89 @@ from osmosmjerka.database import db_manager
 router = APIRouter()
 
 
-def _parse_phrases_csv(content: str) -> tuple[list[dict], str]:
-    """Parse semicolon-separated CSV content into phrase dicts with preserved line breaks.
+def _parse_phrases_csv(content: str, delimiter: Optional[str] = None) -> tuple[list[dict], str]:
+    """Parse delimited content into phrase dicts with preserved line breaks.
+
+    - Auto-detects delimiter from the first non-empty line if not provided.
+    - Supports header line like: categories<sep>phrase<sep>translation (defines the separator).
 
     Returns:
         tuple: (phrases_data, error_message) - error_message is empty string if successful
     """
-    # Use CSV reader to properly handle semicolon-separated values and preserve line breaks
-    lines = content.strip().split("\n")
+    content = content.replace("\r\n", "\n").replace("\r", "\n")
+    raw_lines = content.split("\n")
+    # Keep original for line number math
+    stripped_nonempty = [ln for ln in raw_lines if ln.strip()]
 
-    if not lines or not lines[0].strip():
+    if not stripped_nonempty:
         return [], "File is empty or contains only whitespace"
 
-    # Check if first line looks like it should be data but has wrong format
-    first_line = lines[0].strip()
-    if first_line and ";" not in first_line:
-        return (
-            [],
-            "Invalid file format. Expected semicolon-separated values (;). First line: '"
-            + first_line
-            + "'. Expected format: 'category;phrase;translation'",
-        )
+    # Determine delimiter
+    first_line = stripped_nonempty[0].strip().lstrip("\ufeff").lower()
+    detected_delim: str
+    if delimiter:
+        detected_delim = "\t" if delimiter == "tab" else delimiter
+    else:
+        candidates = [";", ",", "|", "\t"]
+        # Prefer explicit header pattern
+        detected_delim = None  # type: ignore
+        for d in candidates:
+            if f"categories{d}phrase{d}translation" in first_line or f"category{d}phrase{d}translation" in first_line:
+                detected_delim = d
+                break
+        if not detected_delim:
+            # Choose the delimiter with max count in first line among supported candidates
+            counts = {d: first_line.count(d) for d in candidates}
+            max_delim = max(counts, key=lambda d: counts[d])
+            if counts[max_delim] == 0:
+                # No supported delimiter found in the first line and no header match -> invalid format
+                return (
+                    [],
+                    "Invalid file format. Expected delimited values with one of: ';', ',', '|', or TAB. First line: '"
+                    + stripped_nonempty[0]
+                    + "'. Expected format: 'categories;phrase;translation'",
+                )
+            detected_delim = max_delim
 
-    # Parse first line to check column count
+    # Validate first line has at least 3 columns using detected delimiter
     try:
-        csv_reader = csv.reader([first_line], delimiter=";", quotechar='"')
+        csv_reader = csv.reader([stripped_nonempty[0]], delimiter=detected_delim, quotechar='"')
         first_parts = next(csv_reader)
         if len(first_parts) < 3:
             return (
                 [],
-                f"Invalid file format. Expected at least 3 columns (category;phrase;translation), but found {len(first_parts)} column(s) in first line. First line: '{first_line}'",
+                f"Invalid file format. Expected at least 3 columns (categories{detected_delim}phrase{detected_delim}translation), but found {len(first_parts)} column(s) in first line. First line: '{stripped_nonempty[0]}'",
             )
     except csv.Error as e:
-        return [], f"CSV parsing error in first line: {e}. Line: '{first_line}'"
+        return [], f"CSV parsing error in first line: {e}. Line: '{stripped_nonempty[0]}'"
 
-    # Skip header if present - only skip if it explicitly looks like a header
-    if lines and lines[0].lower().strip() in [
-        "categories;phrase;translation",
-        "category;phrase;translation",
-        "categories;phrases;translations",
-    ]:
-        lines = lines[1:]
-        if not lines:
-            return [], "File contains only header row. Please add data rows with format: category;phrase;translation"
+    # Build lines list and detect header presence (using detected delimiter)
+    lines = raw_lines[:]
+    header_patterns = {
+        f"categories{detected_delim}phrase{detected_delim}translation",
+        f"category{detected_delim}phrase{detected_delim}translation",
+        f"categories{detected_delim}phrases{detected_delim}translations",
+    }
+    first_nonempty_index = next((i for i, ln in enumerate(lines) if ln.strip()), 0)
+    header_present = lines and lines[first_nonempty_index].strip().lstrip("\ufeff").lower() in header_patterns
+    if header_present:
+        # Drop only that first non-empty header line; keep original newlines for correct numbering
+        del lines[first_nonempty_index]
+        if not any(ln.strip() for ln in lines):
+            return [], (
+                "File contains only header row. Please add data rows with format: "
+                f"categories{detected_delim}phrase{detected_delim}translation"
+            )
 
     phrases_data: list[dict] = []
     errors = []
 
-    for line_num, line in enumerate(
-        lines, start=2 if lines != content.strip().split("\n") else 1
-    ):  # Adjust line numbers based on header
-        if not line.strip():
-            continue
-
+    # Starting line number accounting for header
+    start_num = 2 if header_present else 1
+    effective_content_lines = [ln for ln in lines if ln.strip()]
+    for idx, line in enumerate(effective_content_lines, start=start_num):
         try:
-            # Use CSV reader with semicolon delimiter to properly parse fields
-            csv_reader = csv.reader([line], delimiter=";", quotechar='"')
+            csv_reader = csv.reader([line], delimiter=detected_delim, quotechar='"')
             parts = next(csv_reader)
 
             if len(parts) >= 3:
@@ -79,7 +108,7 @@ def _parse_phrases_csv(content: str) -> tuple[list[dict], str]:
 
                 if not categories or not phrase or not translation:
                     errors.append(
-                        f"Line {line_num}: Empty required field(s). All three fields (category, phrase, translation) must be non-empty"
+                        f"Line {idx}: Empty required field(s). All three fields (category, phrase, translation) must be non-empty"
                     )
                     continue
 
@@ -93,18 +122,50 @@ def _parse_phrases_csv(content: str) -> tuple[list[dict], str]:
 
                 phrases_data.append({"categories": categories, "phrase": phrase, "translation": translation})
             else:
-                errors.append(f"Line {line_num}: Expected 3 columns but found {len(parts)}. Line: '{line}'")
+                errors.append(f"Line {idx}: Expected 3 columns but found {len(parts)}. Line: '{line}'")
 
         except csv.Error as e:
-            errors.append(f"Line {line_num}: CSV parsing error: {e}")
+            errors.append(f"Line {idx}: CSV parsing error: {e}")
             continue
 
     if not phrases_data and errors:
         return [], f"No valid phrases found. Errors: {'; '.join(errors[:3])}{'...' if len(errors) > 3 else ''}"
     elif not phrases_data:
-        return [], "No valid phrases found. Please ensure your file has the format: category;phrase;translation"
+        return [], (
+            "No valid phrases found. Please ensure your file has the format: "
+            f"categories{detected_delim}phrase{detected_delim}translation"
+        )
 
     return phrases_data, ""
+
+
+def _extract_error_details(message: str) -> tuple[Optional[int], Optional[str]]:
+    """Try to extract first error line number and content from an error message string.
+
+    Returns (line_num, line_content) if found, else (None, None).
+    """
+    # Pattern like: "Line 5: ... Line: 'the raw line'"
+    m = re.search(r"Line\s+(\d+).*?Line:\s*'([^']*)'", message)
+    if m:
+        try:
+            return int(m.group(1)), m.group(2)
+        except Exception:
+            return None, m.group(2)
+
+    # Pattern like: "Line 5: ..." (without explicit raw line)
+    m2 = re.search(r"Line\s+(\d+):", message)
+    if m2:
+        try:
+            return int(m2.group(1)), None
+        except Exception:
+            return None, None
+
+    # For invalid format with first line content present in message
+    m3 = re.search(r"First line:\s*'([^']*)'", message)
+    if m3:
+        return 1, m3.group(1)
+
+    return None, None
 
 
 @router.get("/status")
@@ -197,7 +258,8 @@ async def upload(
         phrases_data, error_message = _parse_phrases_csv(content)
 
         if error_message:
-            return JSONResponse({"error": error_message}, status_code=status.HTTP_400_BAD_REQUEST)
+            ln, lc = _extract_error_details(error_message)
+            return JSONResponse({"error": error_message, "first_error_line_num": ln, "first_error_line": lc}, status_code=status.HTTP_400_BAD_REQUEST)
 
         if phrases_data:
             await run_in_threadpool(db_manager.fast_bulk_insert_phrases, language_set_id, phrases_data)
@@ -211,6 +273,42 @@ async def upload(
             return JSONResponse(
                 {"error": "Upload failed - no valid phrases found"}, status_code=status.HTTP_400_BAD_REQUEST
             )
+    except Exception as e:
+        return JSONResponse({"error": f"Upload failed: {str(e)}"}, status_code=status.HTTP_400_BAD_REQUEST)
+
+
+@router.post("/upload-text")
+async def upload_text(
+    request: Request, language_set_id: int = Query(...), user=Depends(require_admin_access)
+) -> JSONResponse:
+    """Upload phrases from raw text body.
+
+    Body JSON:
+    {
+        "content": "categories;phrase;translation\ncat1;hello;hola",
+        "separator": ";" | "," | "|" | "tab"   // optional, when omitted, auto-detect from first line
+    }
+    """
+    try:
+        payload = await request.json()
+        content = (payload.get("content") or "").strip()
+        if not content:
+            return JSONResponse({"error": "Content cannot be empty"}, status_code=status.HTTP_400_BAD_REQUEST)
+
+        sep = payload.get("separator")
+        phrases_data, error_message = _parse_phrases_csv(content, sep)
+
+        if error_message:
+            ln, lc = _extract_error_details(error_message)
+            return JSONResponse({"error": error_message, "first_error_line_num": ln, "first_error_line": lc}, status_code=status.HTTP_400_BAD_REQUEST)
+
+        if phrases_data:
+            await run_in_threadpool(db_manager.fast_bulk_insert_phrases, language_set_id, phrases_data)
+            for _ in range(len(phrases_data)):
+                await db_manager.record_phrase_operation(user["id"], language_set_id, "added")
+            return JSONResponse({"message": f"Uploaded {len(phrases_data)} phrases"}, status_code=status.HTTP_201_CREATED)
+        else:
+            return JSONResponse({"error": "Upload failed - no valid phrases found"}, status_code=status.HTTP_400_BAD_REQUEST)
     except Exception as e:
         return JSONResponse({"error": f"Upload failed: {str(e)}"}, status_code=status.HTTP_400_BAD_REQUEST)
 

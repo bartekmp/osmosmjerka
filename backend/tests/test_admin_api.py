@@ -250,6 +250,70 @@ def test_upload_non_csv_file(client, mock_admin_user):
     assert "Invalid file format" in data["error"]
 
 
+@patch("osmosmjerka.database.db_manager.record_phrase_operation")
+@patch("osmosmjerka.database.db_manager.fast_bulk_insert_phrases")
+@patch("osmosmjerka.admin_api.phrases.run_in_threadpool")
+def test_upload_csv_file_with_comma_separator(
+    mock_threadpool, mock_bulk_insert, mock_record_phrase_operation, client, mock_admin_user
+):
+    """Test uploading CSV content with comma delimiter using header to define separator"""
+    app.dependency_overrides[require_admin_access] = lambda: mock_admin_user
+    mock_threadpool.return_value = None
+    mock_bulk_insert.return_value = None
+    mock_record_phrase_operation.return_value = None
+
+    csv_content = "categories,phrase,translation\nSpanish,hola,hello\nFrench,bonjour,hello"
+    response = client.post("/admin/upload?language_set_id=1", files={"file": ("test.csv", csv_content, "text/csv")})
+
+    assert response.status_code == 201
+    data = response.json()
+    assert data["message"] == "Uploaded 2 phrases"
+
+
+@patch("osmosmjerka.database.db_manager.record_phrase_operation")
+@patch("osmosmjerka.database.db_manager.fast_bulk_insert_phrases")
+@patch("osmosmjerka.admin_api.phrases.run_in_threadpool")
+def test_upload_text_with_pipe_separator(
+    mock_threadpool, mock_bulk_insert, mock_record_phrase_operation, client, mock_admin_user
+):
+    """Test uploading raw text with explicit pipe separator"""
+    app.dependency_overrides[require_admin_access] = lambda: mock_admin_user
+    mock_threadpool.return_value = None
+    mock_bulk_insert.return_value = None
+    mock_record_phrase_operation.return_value = None
+
+    payload = {
+        "content": "categories|phrase|translation\nA|hello|hi\nB|bye|ciao",
+        "separator": "|"
+    }
+    response = client.post("/admin/upload-text?language_set_id=2", json=payload)
+
+    assert response.status_code == 201
+    data = response.json()
+    assert data["message"] == "Uploaded 2 phrases"
+
+
+@patch("osmosmjerka.database.db_manager.record_phrase_operation")
+@patch("osmosmjerka.database.db_manager.fast_bulk_insert_phrases")
+@patch("osmosmjerka.admin_api.phrases.run_in_threadpool")
+def test_upload_text_with_tab_separator_auto_detect(
+    mock_threadpool, mock_bulk_insert, mock_record_phrase_operation, client, mock_admin_user
+):
+    """Test uploading raw text with TAB delimiter and header auto-detection"""
+    app.dependency_overrides[require_admin_access] = lambda: mock_admin_user
+    mock_threadpool.return_value = None
+    mock_bulk_insert.return_value = None
+    mock_record_phrase_operation.return_value = None
+
+    header = "categories\tphrase\ttranslation"
+    content = header + "\ncat\thello\thi"
+    response = client.post("/admin/upload-text?language_set_id=3", json={"content": content})
+
+    assert response.status_code == 201
+    data = response.json()
+    assert data["message"] == "Uploaded 1 phrases"
+
+
 # Test export functionality
 @patch("osmosmjerka.database.db_manager.get_phrases")
 def test_export_data(mock_get_phrases, client, mock_admin_user):
