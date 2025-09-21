@@ -88,6 +88,8 @@
     "tab": "Tabulator",
     "upload_paste": "Wyślij wklejone",
     "paste_placeholder": "kategorie;fraza;tłumaczenie\nA;cześć;hej",
+    "preview": "Podgląd",
+    "uploading": "Wysyłanie...",
     "clear_database": "Wyczyść bazę danych",
     "clear": "Wyczyść",
     "filter_by_category": "Filtruj według kategorii",

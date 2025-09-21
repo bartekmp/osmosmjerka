@@ -159,6 +159,8 @@
     "tab": "Tab",
     "upload_paste": "Upload pasted",
     "paste_placeholder": "categories;phrase;translation\nA;hello;hi",
+    "preview": "Preview",
+    "uploading": "Uploading...",
     "last_login": "Last Login",
     "created": "Created",
     "edit_user": "Edit User",

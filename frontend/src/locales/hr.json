@@ -88,6 +88,8 @@
     "tab": "Tab",
     "upload_paste": "Pošalji zalijepljeno",
     "paste_placeholder": "kategorije;fraza;prijevod\nA;hello;bok",
+    "preview": "Pregled",
+    "uploading": "Šalje se...",
     "clear_database": "Očisti bazu podataka",
     "clear": "Očisti",
     "filter_by_category": "Filtriraj po kategoriji",
