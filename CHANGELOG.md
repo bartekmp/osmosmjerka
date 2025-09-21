@@ -2,6 +2,21 @@
 
 <!-- version list -->
 
+## v1.26.0 (2025-09-22)
+
+### Feature
+
+- Add input lines dialog ([#69](https://github.com/bartekmp/osmosmjerka/pull/69),
+  [`c1dbeae`](https://github.com/bartekmp/osmosmjerka/commit/c1dbeaefc9005a9571addcaf1380cedb433a1711))
+
+- Add multiline input feature to upload phrases adhoc
+  ([#69](https://github.com/bartekmp/osmosmjerka/pull/69),
+  [`c1dbeae`](https://github.com/bartekmp/osmosmjerka/commit/c1dbeaefc9005a9571addcaf1380cedb433a1711))
+
+- Multiline phrase upload dialog ([#69](https://github.com/bartekmp/osmosmjerka/pull/69),
+  [`c1dbeae`](https://github.com/bartekmp/osmosmjerka/commit/c1dbeaefc9005a9571addcaf1380cedb433a1711))
+
+
 ## v1.25.2 (2025-09-01)
 
 ### Bug Fixes
