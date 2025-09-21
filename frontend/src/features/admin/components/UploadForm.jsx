@@ -1,10 +1,11 @@
 import React from 'react';
 import axios from 'axios';
 import { useRef, useState } from 'react';
-import { Button, Box, Typography, CircularProgress, Snackbar, Alert, IconButton } from '@mui/material';
+import { Button, Box, Typography, CircularProgress, Snackbar, Alert, IconButton, Stack } from '@mui/material';
 import CloseIcon from '@mui/icons-material/Close';
 import { useTranslation } from 'react-i18next';
 import { ResponsiveText, STORAGE_KEYS } from '../../../shared';
+import PastePhraseDialog from './AdminPanel/PastePhraseDialog';
 
 export default function UploadForm({ onUpload, selectedLanguageSetId }) {
     const { t } = useTranslation();
@@ -16,6 +17,7 @@ export default function UploadForm({ onUpload, selectedLanguageSetId }) {
         severity: 'success', // 'success' or 'error'
         autoHideDuration: 3000, // ms, only for success
     });
+    const [pasteDialogOpen, setPasteDialogOpen] = useState(false);
 
     const getEffectiveLanguageSetId = () => {
         const fromProps = selectedLanguageSetId ?? null;
@@ -102,21 +104,50 @@ export default function UploadForm({ onUpload, selectedLanguageSetId }) {
                 style={{ display: 'none' }}
                 onChange={handleFileChange}
             />
-            <Button 
-                fullWidth 
-                variant="contained" 
-                color="info" 
-                onClick={handleButtonClick}
-                size="small"
-                disabled={loading}
-            >
-                <span style={{ marginRight: '4px' }}>📁</span>
-                <ResponsiveText 
-                    desktop={t('upload_phrases')} 
-                    mobile={t('upload')} 
-                />
-                {loading && <CircularProgress size={20} sx={{ ml: 1 }} />}
-            </Button>
+            <Stack direction={{ xs: 'column', sm: 'row' }} spacing={1}>
+                <Button 
+                    fullWidth 
+                    variant="contained" 
+                    color="info" 
+                    onClick={handleButtonClick}
+                    size="small"
+                    disabled={loading}
+                >
+                    <span style={{ marginRight: '4px' }}>📁</span>
+                    <ResponsiveText 
+                        desktop={t('upload_phrases', 'Upload phrases (file)')} 
+                        mobile={t('upload', 'Upload')} 
+                    />
+                    {loading && <CircularProgress size={20} sx={{ ml: 1 }} />}
+                </Button>
+                <Button
+                    fullWidth
+                    variant="outlined"
+                    color="secondary"
+                    size="small"
+                    onClick={() => setPasteDialogOpen(true)}
+                >
+                    <span style={{ marginRight: '4px' }}>📝</span>
+                    <ResponsiveText desktop={t('paste_phrases', 'Paste phrases')} mobile={t('paste', 'Paste')} />
+                </Button>
+            </Stack>
+
+            <PastePhraseDialog
+                open={pasteDialogOpen}
+                onClose={() => setPasteDialogOpen(false)}
+                onUpload={() => {
+                    setPasteDialogOpen(false);
+                    setNotification({
+                        open: true,
+                        message: t('upload_successful', 'Upload successful'),
+                        severity: 'success',
+                        autoHideDuration: 3000,
+                    });
+                    onUpload();
+                }}
+                selectedLanguageSetId={selectedLanguageSetId}
+            />
+
             <Snackbar
                 open={notification.open}
                 autoHideDuration={notification.severity === 'success' ? notification.autoHideDuration : null}
