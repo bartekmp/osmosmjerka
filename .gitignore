@@ -28,3 +28,4 @@ osmosmjerka-deployment.yaml
 db/
 
 build/
+coverage/
