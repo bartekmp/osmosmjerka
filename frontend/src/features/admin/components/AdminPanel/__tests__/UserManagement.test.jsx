@@ -1,4 +1,8 @@
 import { render, screen, fireEvent, waitFor } from '@testing-library/react';
+jest.mock('react-i18next', () => ({
+    ...jest.requireActual('react-i18next'),
+    useTranslation: () => ({ t: (key, _) => key })
+}));
 import UserManagement from '../UserManagement';
 
 // Mock fetch
@@ -69,7 +73,7 @@ describe('UserManagement', () => {
         });
 
         // Find and click edit button for root user (first row)
-        const editButtons = screen.getAllByRole('button', { name: /edit/i });
+        const editButtons = screen.getAllByRole('button', { name: /edit_user/i });
         fireEvent.click(editButtons[0]);
 
         // Wait for dialog to open and check that role select is disabled
@@ -91,7 +95,7 @@ describe('UserManagement', () => {
         });
 
         // Find and click edit button for admin user (second row)
-        const editButtons = screen.getAllByRole('button', { name: /edit/i });
+        const editButtons = screen.getAllByRole('button', { name: /edit_user/i });
         fireEvent.click(editButtons[1]);
 
         // Wait for dialog to open and check that role select is enabled
