@@ -9,7 +9,6 @@ jest.mock('axios');
 // Silence jsdom navigation errors by mocking navigation-related APIs
 let anchorClickSpy;
 let createObjectURLSpy;
-const originalLocation = window.location;
 
 beforeAll(() => {
     // Mock anchor click and URL.createObjectURL used for blob downloads
@@ -17,15 +16,11 @@ beforeAll(() => {
     if (URL && URL.createObjectURL) {
         createObjectURLSpy = jest.spyOn(URL, 'createObjectURL').mockReturnValue('blob:mock');
     }
-    // Mock window.location.assign if used
-    delete window.location;
-    window.location = { ...originalLocation, assign: jest.fn() };
 });
 
 afterAll(() => {
     anchorClickSpy && anchorClickSpy.mockRestore();
     createObjectURLSpy && createObjectURLSpy.mockRestore();
-    window.location = originalLocation;
 });
 
 test('renders Export button', () => {

@@ -21,10 +21,10 @@ Each phrase includes translation into another language, making it an excellent t
 - **Optimized Performance**: Smart API loading and reduced server requests for better user experience
 
 ## How it works
-Osmosmjerka consists of three layers - a frontend app in [React](https://react.dev/), a [Flask](https://flask.palletsprojects.com/en/stable/)-based HTTP server and a [PostgreSQL](https://www.postgresql.org/) database.
+Osmosmjerka consists of three layers - a frontend app in [React](https://react.dev/), a [FastAPI](https://fastapi.tiangolo.com/)-based HTTP server and a [PostgreSQL](https://www.postgresql.org/) database.
 The web app communicates with the server, which pulls data from the database and returns it via HTTP requests to the frontend.
 The database so far is expected to have a single table called `phrases`, which consists of three self-explaining columns `categories`, `phrase` and `translation`.
-You need to provide your own sets of phrases, either by inserting them directly to the database or use the *Upload Phrases* functionality on the admin page. The supported file formats are `.txt` and `.csv`, and the expected single-line format is `<categories>;<phrase>;<translation>`.
+You need to provide your own sets of phrases, either by inserting them directly to the database or use the *Upload Phrases* functionality on the admin page. The supported file formats are `.txt` and `.csv`, and the expected single-line format is `<categories>;<phrase>;<translation>`. You may want to use the copy-paste modal if preferred over the file method.
 The phrases should have at least 3 characters, since less is going to make the hell of a game to find in a grid, however, the API will filter them out automatically.
 
 ## The game
