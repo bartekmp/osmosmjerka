@@ -1,17 +1,14 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { useTranslation } from 'react-i18next';
 import { Box, Typography } from '@mui/material';
 import './Timer.css';
 
 const Timer = ({ 
-    isActive, 
-    onTimeUpdate, 
-    startTime = null, 
+    isActive,
+    onTimeUpdate,
     resetTrigger = 0,
     showTimer = true,
     currentElapsedTime = 0 
 }) => {
-    const { t } = useTranslation();
     const [elapsedTime, setElapsedTime] = useState(currentElapsedTime);
     const intervalRef = useRef(null);
     const elapsedSecondsRef = useRef(currentElapsedTime);

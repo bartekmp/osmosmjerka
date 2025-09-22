@@ -1,7 +1,7 @@
 import React from 'react';
 import axios from 'axios';
 import { useRef, useState } from 'react';
-import { Button, Box, Typography, CircularProgress, Snackbar, Alert, IconButton, Stack } from '@mui/material';
+import { Button, Box, CircularProgress, Snackbar, Alert, IconButton, Stack } from '@mui/material';
 import CloseIcon from '@mui/icons-material/Close';
 import { useTranslation } from 'react-i18next';
 import { ResponsiveText, STORAGE_KEYS } from '../../../shared';

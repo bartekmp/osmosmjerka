@@ -3,9 +3,6 @@ import {
     Box,
     Typography,
     Button,
-    Card,
-    CardContent,
-    CardActions,
     Chip,
     Alert,
     CircularProgress,
@@ -24,9 +21,7 @@ import {
     Accordion,
     AccordionSummary,
     AccordionDetails,
-    IconButton,
     Tooltip,
-    Divider,
     Pagination,
     FormControl,
     InputLabel,
@@ -36,7 +31,6 @@ import {
 import {
     ExpandMore as ExpandMoreIcon,
     Delete as DeleteIcon,
-    Visibility as ViewIcon,
     Warning as WarningIcon
 } from '@mui/icons-material';
 import { useTranslation } from 'react-i18next';
@@ -376,7 +370,7 @@ export default function DuplicateManagement({ currentUser, selectedLanguageSetId
                                     <Typography variant="body2">
                                         <strong>{t('remaining_phrases_info', 'Remaining Phrases:')}</strong>
                                     </Typography>
-                                    {operationResult.data.remaining_phrases.map((phrase, index) => (
+                                    {operationResult.data.remaining_phrases.map((phrase) => (
                                         <Typography key={phrase.id} variant="body2" sx={{ ml: 2 }}>
                                             • "{phrase.phrase}" - {phrase.categories} (ID: {phrase.id})
                                         </Typography>

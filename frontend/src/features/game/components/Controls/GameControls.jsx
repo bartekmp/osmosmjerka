@@ -13,7 +13,6 @@ const GameControls = ({
     difficulty,
     setDifficulty,
     availableDifficulties,
-    loadPuzzle,
     refreshPuzzle,
     selectedCategoryState,
     difficultyState,

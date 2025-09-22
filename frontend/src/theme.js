@@ -133,7 +133,6 @@ const createAppTheme = (isDarkMode = false) => createTheme({
             borderRadius: '4px',
             boxShadow: `1px 2px 0 ${isDarkMode ? '#6b5b3a' : '#b89c4e'}, 0 1px 0 ${isDarkMode ? '#5a5a5a' : '#fff'} inset`,
             cursor: 'pointer',
-            fontWeight: 500,
             background: isDarkMode ? '#4a4a4a' : '#EDEDED',
             color: isDarkMode ? '#e0e0e0' : '#333',
             fontFamily: '"Clear Sans", "Trebuchet MS", "Arial", sans-serif',

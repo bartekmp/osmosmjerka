@@ -1424,9 +1424,7 @@ class DatabaseManager:
                 .select_from(
                     accounts_table.join(user_statistics_table, accounts_table.c.id == user_statistics_table.c.user_id)
                 )
-                .where(
-                    (accounts_table.c.is_active) & (user_statistics_table.c.language_set_id == language_set_id)
-                )
+                .where((accounts_table.c.is_active) & (user_statistics_table.c.language_set_id == language_set_id))
                 .order_by(desc(user_statistics_table.c.games_completed))
                 .limit(limit)
             )

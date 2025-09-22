@@ -1,5 +1,3 @@
-import { getDirection } from './helpers';
-
 /**
  * Grid selection utilities - simplified and consolidated
  */
@@ -42,7 +40,11 @@ export class GridSelection {
     // Apply movement constraints based on established direction
     static applyDirectionConstraint(start, target, direction) {
         const [startRow, startCol] = start;
-        let [targetRow, targetCol] = target;
+        const [targetRow, targetCol] = target;
+
+        const deltaR = targetRow - startRow;
+        const deltaC = targetCol - startCol;
+        let maxDelta = 0;
 
         switch (direction) {
             case 'horizontal':
@@ -50,9 +52,7 @@ export class GridSelection {
             case 'vertical':
                 return [targetRow, startCol];
             case 'diagonal':
-                const deltaR = targetRow - startRow;
-                const deltaC = targetCol - startCol;
-                const maxDelta = Math.max(Math.abs(deltaR), Math.abs(deltaC));
+                maxDelta = Math.max(Math.abs(deltaR), Math.abs(deltaC));
                 return [
                     startRow + Math.sign(deltaR) * maxDelta,
                     startCol + Math.sign(deltaC) * maxDelta

@@ -8,13 +8,13 @@ import {
     TextField,
     Button,
     IconButton,
-    Typography,
     Autocomplete,
     Chip
 } from '@mui/material';
 import { Close as CloseIcon } from '@mui/icons-material';
 import { useTranslation } from 'react-i18next';
 import { fetchCategories, invalidateCategoriesCache } from '../../../../utils/categoriesApi';
+import PropTypes from 'prop-types';
 
 // Function to check for HTML tags
 const containsHTML = (text) => {
@@ -343,3 +343,11 @@ export default function EditPhraseDialog({
         </Dialog>
     );
 }
+
+
+EditPhraseDialog.propTypes = {
+  open: PropTypes.bool.isRequired,
+  row: PropTypes.object,
+  onClose: PropTypes.func.isRequired,
+  onSave: PropTypes.func.isRequired,
+};

@@ -43,7 +43,7 @@ export const SPACING = {
 /**
  * Helper function to create responsive text components
  */
-export const createResponsiveText = (desktopText, mobileText = null, mode = 'hideOnMobile') => {
+export const createResponsiveText = (desktopText, mobileText = null) => {
   if (!mobileText) {
     return desktopText;
   }

@@ -64,14 +64,14 @@ export default function PastePhraseDialog({
             }
             const first = lines[0].replace(/^\uFEFF/, '');
             const sep = (separator === 'auto') ? ([';', ',', '|', '\t'].find(d => first.includes(d)) || ';') : (separator === 'tab' ? '\t' : separator);
-            const hasHeader = /^(categories|category)\s*\Q${sep}\E\s*phrase\s*\Q${sep}\E\s*translation$/i.test(first);
+            const hasHeader = /^(categories|category)\s*Q${sep}E\s*phrase\s*Q${sep}E\s*translation$/i.test(first);
             const dataLines = hasHeader ? lines.slice(1) : lines;
             const parsed = dataLines.slice(0, 5).map(l => l.split(sep));
             // basic validation
             const bad = parsed.find(p => p.length < 3 || p.slice(0,3).some(x => !String(x).trim()));
             setPreviewRows(parsed.map(p => p.slice(0,3)));
             setPreviewError(bad ? t('operation_failed', 'Invalid row detected') : '');
-        } catch (e) {
+        } catch {
             setPreviewRows([]);
             setPreviewError(t('operation_failed', 'Preview failed'));
         }
@@ -96,7 +96,7 @@ export default function PastePhraseDialog({
                 content: pasteText,
                 ...(separator && separator !== 'auto' ? { separator } : {})
             };
-            const res = await axios.post(url, payload, { headers });
+            const _ = await axios.post(url, payload, { headers });
             
             // Success - close dialog and refresh data
             handleClose();

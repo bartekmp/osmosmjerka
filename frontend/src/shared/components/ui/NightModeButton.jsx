@@ -2,6 +2,7 @@ import React from 'react';
 import { Button } from '@mui/material';
 import { useThemeMode } from '../../../contexts/ThemeContext';
 import { useTranslation } from 'react-i18next';
+import PropTypes from 'prop-types';
 
 /**
  * NightModeButton - a reusable button for toggling dark/light mode.
@@ -30,3 +31,9 @@ export default function NightModeButton({ sx = {}, className = '', ...rest }) {
         </Button>
     );
 }
+
+
+NightModeButton.propTypes = {
+  sx: PropTypes.object,
+  className: PropTypes.string,
+};

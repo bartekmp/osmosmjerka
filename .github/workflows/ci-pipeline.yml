@@ -1,4 +1,4 @@
-name: Complete CI Pipeline
+name: CI
 
 on:
   pull_request:
@@ -71,8 +71,11 @@ jobs:
       - name: Run Python linting
         run: |
           echo "🔍 Checking Python code style..."
+          echo "🐍 Running flake8..."
           flake8 backend/ --max-line-length=120 --count --statistics
+          echo "🐍 Running black..."
           black --check backend/ --diff
+          echo "🐍 Running isort..."
           isort --check-only backend/ --diff
 
   lint-frontend:
@@ -136,7 +139,7 @@ jobs:
       - name: Run backend tests
         run: |
           echo "🧪 Running backend tests..."
-          pytest backend/tests/ -v --cov=backend --cov-report=xml
+          pytest
         env:
           DATABASE_URL: postgresql://postgres:testpass@localhost:5432/testdb
 
@@ -156,7 +159,7 @@ jobs:
       - name: Install dependencies
         run: |
           cd frontend
-          npm ci
+          npm i
 
       - name: Run frontend tests
         run: |

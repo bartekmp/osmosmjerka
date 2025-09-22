@@ -1,5 +1,5 @@
 import { useCallback } from 'react';
-import { getCellFromTouch, getDirection } from './helpers';
+import { getCellFromTouch } from './helpers';
 import { GridSelection } from './gridUtils';
 
 // Simplified coordinate calculation
@@ -37,7 +37,6 @@ export const useMovementHandlers = ({
     updateSelection,
     handlePhraseMatch,
     gridSize,
-    selected,
     setSelected
 }) => {
 

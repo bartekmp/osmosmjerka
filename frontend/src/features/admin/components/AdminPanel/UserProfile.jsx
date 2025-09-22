@@ -15,33 +15,21 @@ import {
     Divider,
     Grid,
     Card,
-    CardContent,
     CircularProgress,
-    List,
-    ListItem,
-    ListItemText,
     LinearProgress,
     useTheme,
-    Switch,
     FormControlLabel,
     FormControl,
     RadioGroup,
     Radio
 } from '@mui/material';
-import {
-    TrendingUp as TrendingUpIcon,
-    Timer as TimerIcon,
-    Star as StarIcon,
-    Edit as EditIcon,
-    Add as AddIcon,
-    EmojiEvents as TrophyIcon
-} from '@mui/icons-material';
+import { EmojiEvents as TrophyIcon } from '@mui/icons-material';
 import { useTranslation } from 'react-i18next';
 import { API_ENDPOINTS } from '@shared';
 
-export default function UserProfile({ currentUser }) {
+export default function UserProfile() {
     const { t } = useTranslation();
-    const theme = useTheme();
+    const _ = useTheme();
     
     const [profile, setProfile] = useState({
         username: '',
@@ -61,7 +49,7 @@ export default function UserProfile({ currentUser }) {
         message: '',
         severity: 'success'
     });
-    const [ignoredSummary, setIgnoredSummary] = useState({});
+    const [ignoredSummary, setIgnoredSummary] = useState({}); // eslint-disable-line no-unused-vars
     const [modifiedIgnoredSummary, setModifiedIgnoredSummary] = useState({});
     const [languageSets, setLanguageSets] = useState([]);
     
@@ -112,7 +100,7 @@ export default function UserProfile({ currentUser }) {
                 setIgnoredSummary(data);
                 setModifiedIgnoredSummary(data);
             }
-        } catch (e) {
+        } catch {
             // silent fail
         }
     };
@@ -124,7 +112,7 @@ export default function UserProfile({ currentUser }) {
                 const data = await res.json();
                 setLanguageSets(data);
             }
-        } catch (_) { /* ignore */ }
+        } catch { /* ignore */ }
     };
 
     const loadStatistics = async () => {
@@ -165,7 +153,7 @@ export default function UserProfile({ currentUser }) {
                     setProgressiveHintsEnabled(null); // Use global setting
                 }
             }
-        } catch (err) {
+        } catch {
             // Silent fail, use global setting
             setProgressiveHintsEnabled(null);
         }
@@ -269,7 +257,7 @@ export default function UserProfile({ currentUser }) {
             });
 
             showNotification(t('ignored_category_removed', 'Ignored category removed successfully'), 'success');
-        } catch (err) {
+        } catch {
             // Revert local state on error
             fetchIgnoredSummary();
             showNotification(t('failed_to_remove_ignored_category', 'Failed to remove ignored category'), 'error');

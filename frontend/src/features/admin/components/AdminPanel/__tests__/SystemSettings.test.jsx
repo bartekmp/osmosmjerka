@@ -1,4 +1,4 @@
-import { render, screen, fireEvent, waitFor } from '@testing-library/react';
+import { render, screen, waitFor } from '@testing-library/react';
 import { I18nextProvider } from 'react-i18next';
 import SystemSettings from '../../SystemSettings/SystemSettings';
 import i18n from '../../../../../i18n';
@@ -13,12 +13,6 @@ jest.mock('axios', () => ({
 }));
 
 const axios = require('axios');
-
-const mockSystemSettings = {
-    progressive_hints_enabled: true,
-    max_game_time: 300,
-    word_selection_algorithm: 'random'
-};
 
 // Mock localStorage
 const mockLocalStorage = {

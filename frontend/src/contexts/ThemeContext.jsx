@@ -2,6 +2,8 @@ import React, { createContext, useContext, useState, useEffect } from 'react';
 import { useTranslation } from 'react-i18next';
 import { STORAGE_KEYS } from '../shared/constants/constants';
 
+import PropTypes from 'prop-types';
+
 const ThemeContext = createContext();
 
 export const useThemeMode = () => {
@@ -13,7 +15,7 @@ export const useThemeMode = () => {
 };
 
 export const ThemeProvider = ({ children }) => {
-    const { t } = useTranslation(); // For possible future use in theme toggling UI
+    const { t: _t } = useTranslation(); // For possible future use in theme toggling UI
     const [isDarkMode, setIsDarkMode] = useState(() => {
         const saved = localStorage.getItem(STORAGE_KEYS.THEME);
         return saved ? JSON.parse(saved) : false;
@@ -34,4 +36,8 @@ export const ThemeProvider = ({ children }) => {
             {children}
         </ThemeContext.Provider>
     );
+};
+
+ThemeProvider.propTypes = {
+    children: PropTypes.node.isRequired,
 };

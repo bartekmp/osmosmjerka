@@ -124,7 +124,7 @@ async def get_admin_leaderboard(
     category: str = Query(None),
     difficulty: str = Query(None),
     limit: int = Query(50, ge=1, le=200),
-    user=Depends(require_admin_access)
+    user=Depends(require_admin_access),
 ) -> JSONResponse:
     """Get leaderboard for admin statistics dashboard"""
     try:

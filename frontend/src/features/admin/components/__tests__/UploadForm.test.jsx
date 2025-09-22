@@ -24,7 +24,7 @@ test('shows error on upload failure', async () => {
     axios.post.mockRejectedValue({ response: { data: { detail: 'Upload failed.' } } });
     const { container } = render(withI18n(<UploadForm onUpload={() => { }} />));
     // Try both possible button texts
-    let btn = screen.queryByText(/Upload Phrases/i) || screen.getByRole('button', { name: /upload/i });
+    const btn = screen.queryByText(/Upload Phrases/i) || screen.getByRole('button', { name: /upload/i });
     fireEvent.click(btn);
     // Simulate file selection
     const input = container.querySelector('input[type="file"]');

@@ -1,16 +1,8 @@
 import { render, screen, fireEvent, waitFor } from '@testing-library/react';
-import { I18nextProvider } from 'react-i18next';
 import UserManagement from '../UserManagement';
-import i18n from '../../../../../i18n';
 
 // Mock fetch
 global.fetch = jest.fn();
-
-const mockCurrentUser = {
-    id: 1,
-    username: 'admin',
-    role: 'root_admin'
-};
 
 const mockUsers = [
     {
@@ -67,14 +59,6 @@ describe('UserManagement', () => {
         });
     });
 
-    const renderComponent = () => {
-        return render(
-            <I18nextProvider i18n={i18n}>
-                <UserManagement currentUser={mockCurrentUser} />
-            </I18nextProvider>
-        );
-    };
-
     test('should disable role dropdown when editing root admin user', async () => {
         // Use root admin as current user to be able to edit other root admin
         render(<UserManagement currentUser={mockUsers[0]} />);
@@ -90,7 +74,7 @@ describe('UserManagement', () => {
 
         // Wait for dialog to open and check that role select is disabled
         await waitFor(() => {
-            expect(screen.getByText('Edit User')).toBeInTheDocument();
+            expect(screen.getByText('edit_user')).toBeInTheDocument();
         });
 
         // Look for the role select by looking for the input element with disabled attribute
@@ -112,7 +96,7 @@ describe('UserManagement', () => {
 
         // Wait for dialog to open and check that role select is enabled
         await waitFor(() => {
-            expect(screen.getByText('Edit User')).toBeInTheDocument();
+            expect(screen.getByText('edit_user')).toBeInTheDocument();
         });
 
         const roleInput = screen.getByDisplayValue('administrative');
@@ -128,12 +112,12 @@ describe('UserManagement', () => {
         });
 
         // Click create user button
-        const createButton = screen.getByRole('button', { name: /create user/i });
+        const createButton = screen.getByRole('button', { name: /create_user/i });
         fireEvent.click(createButton);
 
         // Wait for dialog to open
         await waitFor(() => {
-            expect(screen.getByText('Create New User')).toBeInTheDocument();
+            expect(screen.getByText('create_new_user')).toBeInTheDocument();
         });
 
         // Check that role select is enabled (should have default value 'regular')

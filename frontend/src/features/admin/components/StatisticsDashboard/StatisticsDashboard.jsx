@@ -33,7 +33,6 @@ import {
   DialogContent,
   DialogContentText,
   DialogActions,
-  Divider
 } from '@mui/material';
 import {
   ExpandMore as ExpandMoreIcon,

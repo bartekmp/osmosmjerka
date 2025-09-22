@@ -1,6 +1,7 @@
 import React from 'react';
 import { useTranslation } from 'react-i18next';
 import { MenuItem, Select, FormControl, Box } from '@mui/material';
+import PropTypes from 'prop-types';
 
 const LANGS = [
   { code: 'en', label: 'English', flag: '🇬🇧' },
@@ -64,3 +65,8 @@ export default function LanguageSwitcher({ sx = {}, ...props }) {
     </FormControl>
   );
 }
+
+
+LanguageSwitcher.propTypes = {
+  sx: PropTypes.object,
+};

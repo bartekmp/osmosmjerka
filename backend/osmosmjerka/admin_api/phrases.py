@@ -259,7 +259,10 @@ async def upload(
 
         if error_message:
             ln, lc = _extract_error_details(error_message)
-            return JSONResponse({"error": error_message, "first_error_line_num": ln, "first_error_line": lc}, status_code=status.HTTP_400_BAD_REQUEST)
+            return JSONResponse(
+                {"error": error_message, "first_error_line_num": ln, "first_error_line": lc},
+                status_code=status.HTTP_400_BAD_REQUEST,
+            )
 
         if phrases_data:
             await run_in_threadpool(db_manager.fast_bulk_insert_phrases, language_set_id, phrases_data)
@@ -300,15 +303,22 @@ async def upload_text(
 
         if error_message:
             ln, lc = _extract_error_details(error_message)
-            return JSONResponse({"error": error_message, "first_error_line_num": ln, "first_error_line": lc}, status_code=status.HTTP_400_BAD_REQUEST)
+            return JSONResponse(
+                {"error": error_message, "first_error_line_num": ln, "first_error_line": lc},
+                status_code=status.HTTP_400_BAD_REQUEST,
+            )
 
         if phrases_data:
             await run_in_threadpool(db_manager.fast_bulk_insert_phrases, language_set_id, phrases_data)
             for _ in range(len(phrases_data)):
                 await db_manager.record_phrase_operation(user["id"], language_set_id, "added")
-            return JSONResponse({"message": f"Uploaded {len(phrases_data)} phrases"}, status_code=status.HTTP_201_CREATED)
+            return JSONResponse(
+                {"message": f"Uploaded {len(phrases_data)} phrases"}, status_code=status.HTTP_201_CREATED
+            )
         else:
-            return JSONResponse({"error": "Upload failed - no valid phrases found"}, status_code=status.HTTP_400_BAD_REQUEST)
+            return JSONResponse(
+                {"error": "Upload failed - no valid phrases found"}, status_code=status.HTTP_400_BAD_REQUEST
+            )
     except Exception as e:
         return JSONResponse({"error": f"Upload failed: {str(e)}"}, status_code=status.HTTP_400_BAD_REQUEST)
 

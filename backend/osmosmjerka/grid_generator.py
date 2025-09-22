@@ -1,5 +1,5 @@
 import random
-from typing import List, Tuple, Dict, Optional
+from typing import Dict, List, Optional, Tuple
 
 
 def normalize_phrase(phrase: str) -> str:

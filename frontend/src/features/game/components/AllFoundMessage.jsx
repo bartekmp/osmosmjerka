@@ -2,7 +2,7 @@ import React from 'react';
 import { Box, Typography, Button } from '@mui/material';
 import { useTranslation } from 'react-i18next';
 
-const AllFoundMessage = ({ allFound, loadPuzzle, refreshPuzzle, selectedCategory, difficulty }) => {
+const AllFoundMessage = ({ allFound, _, refreshPuzzle, selectedCategory, difficulty }) => {
     const { t } = useTranslation();
 
     if (!allFound) return null;

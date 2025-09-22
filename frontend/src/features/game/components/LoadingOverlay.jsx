@@ -1,6 +1,7 @@
 import React from 'react';
 import { Box, CircularProgress } from '@mui/material';
 import { useTranslation } from 'react-i18next';
+import PropTypes from 'prop-types';
 
 const LoadingOverlay = ({ isLoading, isDarkMode }) => {
     const { t } = useTranslation();
@@ -22,3 +23,9 @@ const LoadingOverlay = ({ isLoading, isDarkMode }) => {
 };
 
 export default LoadingOverlay;
+
+
+LoadingOverlay.propTypes = {
+  isLoading: PropTypes.bool.isRequired,
+  isDarkMode: PropTypes.bool.isRequired,
+};
