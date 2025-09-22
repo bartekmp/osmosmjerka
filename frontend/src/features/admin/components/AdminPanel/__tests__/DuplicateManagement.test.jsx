@@ -42,13 +42,26 @@ const mockLocalStorage = {
 Object.defineProperty(window, 'localStorage', { value: mockLocalStorage });
 
 describe('DuplicateManagement', () => {
+    const originalConsoleError = console.error;
+    beforeAll(() => {
+        console.error = (...args) => {
+            const first = args[0];
+            if (typeof first === 'string' && first.includes('not wrapped in act(...')) {
+                return; // suppress noisy act() warning for this suite
+            }
+            originalConsoleError(...args);
+        };
+    });
+    afterAll(() => {
+        console.error = originalConsoleError;
+    });
     beforeEach(() => {
         fetch.mockClear();
         mockLocalStorage.getItem.mockClear();
     });
 
-    const renderComponent = (selectedLanguageSetId = 1) => {
-        return render(
+    const renderComponent = async (selectedLanguageSetId = 1) => {
+        const utils = render(
             <I18nextProvider i18n={i18n}>
                 <DuplicateManagement 
                     currentUser={mockCurrentUser} 
@@ -56,6 +69,17 @@ describe('DuplicateManagement', () => {
                 />
             </I18nextProvider>
         );
+        // Wait for any async effects (fetch + setState) to settle if fetch is invoked
+        try {
+            await waitFor(() => expect(fetch).toHaveBeenCalled());
+            // Additionally wait for potential loading spinner to disappear
+            await waitFor(() => {
+                expect(screen.queryByRole('progressbar')).not.toBeInTheDocument();
+            });
+        } catch {
+            // In some tests (e.g., access denied or no language set), fetch isn't called; ignore
+        }
+        return utils;
     };
 
     it('renders duplicate management interface for root admin', async () => {
@@ -65,11 +89,11 @@ describe('DuplicateManagement', () => {
                 duplicates: mockDuplicates,
                 total_count: 1,
                 total_pages: 1,
-                current_page: 1
+                page: 1
             })
         });
 
-        renderComponent();
+        await renderComponent();
 
         expect(screen.getByText('Duplicate Management')).toBeInTheDocument();
         
@@ -78,10 +102,10 @@ describe('DuplicateManagement', () => {
         });
     });
 
-    it('shows access denied for non-root admin', () => {
+    it('shows access denied for non-root admin', async () => {
         const nonRootUser = { username: 'testuser', role: 'admin' };
 
-        render(
+        await render(
             <I18nextProvider i18n={i18n}>
                 <DuplicateManagement 
                     currentUser={nonRootUser} 
@@ -93,8 +117,8 @@ describe('DuplicateManagement', () => {
         expect(screen.getByText('Access Denied')).toBeInTheDocument();
     });
 
-    it('prompts to select language set when none selected', () => {
-        renderComponent(null);
+    it('prompts to select language set when none selected', async () => {
+        await renderComponent(null);
 
         expect(screen.getByText(/Please select a language set first/)).toBeInTheDocument();
     });
@@ -106,11 +130,11 @@ describe('DuplicateManagement', () => {
                 duplicates: mockDuplicates,
                 total_count: 1,
                 total_pages: 1,
-                current_page: 1
+                page: 1
             })
         });
 
-        renderComponent();
+        await renderComponent();
 
         await waitFor(() => {
             expect(screen.getByText('Found 1 groups of duplicate phrases.')).toBeInTheDocument();
@@ -131,7 +155,7 @@ describe('DuplicateManagement', () => {
             })
         });
 
-        renderComponent();
+        await renderComponent();
 
         await waitFor(() => {
             expect(screen.getByText('No duplicate phrases found in this language set.')).toBeInTheDocument();
@@ -146,7 +170,7 @@ describe('DuplicateManagement', () => {
                     duplicates: mockDuplicates,
                     total_count: 1,
                     total_pages: 1,
-                    current_page: 1
+                    page: 1
                 })
             })
             .mockResolvedValueOnce({
@@ -155,11 +179,11 @@ describe('DuplicateManagement', () => {
                     duplicates: [],
                     total_count: 0,
                     total_pages: 0,
-                    current_page: 1
+                    page: 1
                 })
             });
 
-        renderComponent();
+        await renderComponent();
 
         await waitFor(() => {
             expect(screen.getByText('Found 1 groups of duplicate phrases.')).toBeInTheDocument();
@@ -180,11 +204,11 @@ describe('DuplicateManagement', () => {
                 duplicates: mockDuplicates,
                 total_count: 1,
                 total_pages: 1,
-                current_page: 1
+                page: 1
             })
         });
 
-        renderComponent();
+        await renderComponent();
 
         await waitFor(() => {
             expect(screen.getByText('Found 1 groups of duplicate phrases.')).toBeInTheDocument();

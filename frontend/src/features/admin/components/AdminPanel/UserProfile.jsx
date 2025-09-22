@@ -383,7 +383,7 @@ export default function UserProfile() {
                         </Typography>
                         
                         <Grid container spacing={3} sx={{ mb: 3 }}>
-                            <Grid item xs={12} sm={6} md={3}>
+                            <Grid size={{ xs: 12, sm: 6, md: 3 }}>
                                 <Card sx={{ textAlign: 'center', p: 2 }}>
                                     <Typography variant="h4" color="primary">
                                         {statistics.overall_statistics?.games_completed || 0}
@@ -394,7 +394,7 @@ export default function UserProfile() {
                                 </Card>
                             </Grid>
                             
-                            <Grid item xs={12} sm={6} md={3}>
+                            <Grid size={{ xs: 12, sm: 6, md: 3 }}>
                                 <Card sx={{ textAlign: 'center', p: 2 }}>
                                     <Typography variant="h4" color="success.main">
                                         {getCompletionRate(
@@ -416,7 +416,7 @@ export default function UserProfile() {
                                 </Card>
                             </Grid>
                             
-                            <Grid item xs={12} sm={6} md={3}>
+                            <Grid size={{ xs: 12, sm: 6, md: 3 }}>
                                 <Card sx={{ textAlign: 'center', p: 2 }}>
                                     <Typography variant="h4" color="info.main">
                                         {statistics.overall_statistics?.total_phrases_found || 0}
@@ -427,7 +427,7 @@ export default function UserProfile() {
                                 </Card>
                             </Grid>
                             
-                            <Grid item xs={12} sm={6} md={3}>
+                            <Grid size={{ xs: 12, sm: 6, md: 3 }}>
                                 <Card sx={{ textAlign: 'center', p: 2 }}>
                                     <Typography variant="h4" color="warning.main">
                                         {formatTime(statistics.overall_statistics?.total_time_played_seconds || 0)}
@@ -448,13 +448,13 @@ export default function UserProfile() {
                                 
                                 <Grid container spacing={2}>
                                     {statistics.language_set_statistics.map((langSet, index) => (
-                                        <Grid item xs={12} md={6} key={index}>
+                                        <Grid size={{ xs: 12, md: 6 }} key={index}>
                                             <Card sx={{ p: 2 }}>
                                                 <Typography variant="h6" gutterBottom>
                                                     {langSet.language_set_name}
                                                 </Typography>
                                                 <Grid container spacing={2}>
-                                                    <Grid item xs={6}>
+                                                    <Grid size={6}>
                                                         <Typography variant="body2" color="textSecondary">
                                                             {t('completed')}: {langSet.games_completed || 0}
                                                         </Typography>
@@ -462,7 +462,7 @@ export default function UserProfile() {
                                                             {t('phrases_found')}: {langSet.total_phrases_found || 0}
                                                         </Typography>
                                                     </Grid>
-                                                    <Grid item xs={6}>
+                                                    <Grid size={6}>
                                                         <Typography variant="body2" color="textSecondary">
                                                             {t('time_played')}: {formatTime(langSet.total_time_played_seconds || 0)}
                                                         </Typography>

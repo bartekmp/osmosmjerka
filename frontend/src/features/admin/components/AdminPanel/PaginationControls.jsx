@@ -16,7 +16,7 @@ export default function PaginationControls({
     return (
         <Box sx={{ mt: 2, p: 2, bgcolor: 'background.paper', borderRadius: 1 }}>
             <Grid container spacing={2} alignItems="center" justifyContent="space-between">
-                <Grid item xs={12} sm="auto" sx={{ display: 'flex', alignItems: 'center', gap: 2, flexWrap: 'wrap', justifyContent: { xs: 'center', sm: 'flex-start' } }}>
+                <Grid sx={{ width: { xs: '100%', sm: 'auto' }, display: 'flex', alignItems: 'center', gap: 2, flexWrap: 'wrap', justifyContent: { xs: 'center', sm: 'flex-start' } }}>
                     <Button
                         variant="outlined"
                         onClick={() => setOffset(0)}
@@ -75,7 +75,7 @@ export default function PaginationControls({
                     </Box>
                 </Grid>
                 {pageSizeSelector && (
-                    <Grid item xs={12} sm="auto" sx={{ display: 'flex', justifyContent: { xs: 'center', sm: 'flex-end' } }}>
+                    <Grid sx={{ width: { xs: '100%', sm: 'auto' }, display: 'flex', justifyContent: { xs: 'center', sm: 'flex-end' } }}>
                         {pageSizeSelector}
                     </Grid>
                 )}

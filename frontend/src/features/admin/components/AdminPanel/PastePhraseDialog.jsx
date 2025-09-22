@@ -33,6 +33,13 @@ export default function PastePhraseDialog({
     const [previewRows, setPreviewRows] = useState([]);
     const [previewError, setPreviewError] = useState('');
     const [error, setError] = useState('');
+    const [detectedSeparator, setDetectedSeparator] = useState(null); // one of ';', ',', '|', '\t'
+
+    // For UI examples:
+    // - Display (instructions): show a visible "<TAB>" when tab is selected
+    // - Input (placeholder): use a real tab char when tab is selected
+    const uiSepCharInput = separator === 'auto' ? ';' : (separator === 'tab' ? '\t' : separator);
+    const uiSepCharDisplay = separator === 'auto' ? ';' : (separator === 'tab' ? '<TAB>' : separator);
 
     const getEffectiveLanguageSetId = () => {
         const fromProps = selectedLanguageSetId ?? null;
@@ -50,36 +57,90 @@ export default function PastePhraseDialog({
         return true;
     };
 
-    const handlePasteTextChange = (val) => {
-        setPasteText(val);
+    const escapeRegExp = (s) => s.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+
+    // Detect a likely separator by checking counts across the first few non-empty lines
+    const detectSeparator = (lines) => {
+        const candidates = [';', ',', '|', '\t'];
+        const sample = lines.slice(0, 5);
+        let best = null;
+        let bestScore = -1;
+        for (const cand of candidates) {
+            // score by how many lines have at least 2 separators (=> 3 columns)
+            const score = sample.reduce((acc, l) => acc + ((l.split(cand).length - 1) >= 2 ? 1 : 0), 0);
+            if (score > bestScore) {
+                bestScore = score;
+                best = cand;
+            }
+        }
+        // require at least one line with two separators
+        return bestScore > 0 ? best : null;
+    };
+
+    const parseAndPreview = (val, sepSetting) => {
         setError('');
-        
-        // simple client-side preview parse
         try {
             const lines = val.split(/\r?\n/).filter(l => l.trim());
-            if (!lines.length) { 
-                setPreviewRows([]); 
-                setPreviewError(''); 
-                return; 
+            if (!lines.length) {
+                setPreviewRows([]);
+                setPreviewError('');
+                setDetectedSeparator(null);
+                return;
             }
+
             const first = lines[0].replace(/^\uFEFF/, '');
-            const sep = (separator === 'auto') ? ([';', ',', '|', '\t'].find(d => first.includes(d)) || ';') : (separator === 'tab' ? '\t' : separator);
-            const hasHeader = /^(categories|category)\s*Q${sep}E\s*phrase\s*Q${sep}E\s*translation$/i.test(first);
+            let sepChar = null;
+            let usedSepLabel = null; // what user selected or auto-detected (for messages)
+            if (sepSetting === 'auto') {
+                sepChar = detectSeparator(lines);
+                if (!sepChar) {
+                    setPreviewRows([]);
+                    setPreviewError(t('separator_not_detected', 'Could not detect a separator. Try selecting one.'));
+                    setDetectedSeparator(null);
+                    return;
+                }
+                usedSepLabel = (sepChar === '\t') ? 'tab' : sepChar;
+                setDetectedSeparator(sepChar);
+            } else {
+                sepChar = (sepSetting === 'tab') ? '\t' : sepSetting;
+                usedSepLabel = sepSetting;
+                setDetectedSeparator(null);
+                // Validate: ensure first line contains separator and produces >=3 columns
+                const parts = first.split(sepChar);
+                if (parts.length < 3) {
+                    setPreviewRows([]);
+                    setPreviewError(t('separator_mismatch', 'Input does not match the selected separator "{{sep}}".', { sep: usedSepLabel }));
+                    return;
+                }
+            }
+
+            // Optional header detection: categories, phrase, translation
+            const sepRe = new RegExp(`\\s*${escapeRegExp(sepChar)}\\s*`);
+            const headerPattern = new RegExp(`^(categories|category)${sepRe.source}phrase${sepRe.source}translation$`, 'i');
+            const hasHeader = headerPattern.test(first.replace(/\s+/g, ' ').trim());
             const dataLines = hasHeader ? lines.slice(1) : lines;
-            const parsed = dataLines.slice(0, 5).map(l => l.split(sep));
-            // basic validation
-            const bad = parsed.find(p => p.length < 3 || p.slice(0,3).some(x => !String(x).trim()));
-            setPreviewRows(parsed.map(p => p.slice(0,3)));
-            setPreviewError(bad ? t('operation_failed', 'Invalid row detected') : '');
+
+            const parsed = dataLines.slice(0, 5).map(l => l.split(sepChar));
+            const bad = parsed.find(p => p.length < 3 || p.slice(0, 3).some(x => !String(x).trim()));
+            setPreviewRows(parsed.map(p => p.slice(0, 3)));
+            setPreviewError(bad ? t('invalid_row_detected', 'Invalid row detected') : '');
         } catch {
             setPreviewRows([]);
             setPreviewError(t('operation_failed', 'Preview failed'));
+            setDetectedSeparator(null);
         }
+    };
+
+    const handlePasteTextChange = (val) => {
+        setPasteText(val);
+        parseAndPreview(val, separator);
     };
 
     const handleSubmit = async () => {
         if (!ensureLanguageSetSelected()) return;
         if (!pasteText.trim()) return;
+        // Do not submit when there is a preview error
+        if (previewError) return;
         
         setLoading(true);
         setError('');
@@ -92,9 +153,18 @@ export default function PastePhraseDialog({
             };
             const languageSetId = getEffectiveLanguageSetId();
             const url = `/admin/upload-text?language_set_id=${encodeURIComponent(languageSetId)}`;
+            // Decide which separator to send to backend
+            let payloadSeparator = null;
+            if (separator === 'auto') {
+                // prefer detected separator; if none, backend may try; still safer to block earlier
+                payloadSeparator = detectedSeparator ? (detectedSeparator === '\t' ? 'tab' : detectedSeparator) : null;
+            } else {
+                payloadSeparator = separator;
+            }
+
             const payload = {
                 content: pasteText,
-                ...(separator && separator !== 'auto' ? { separator } : {})
+                ...(payloadSeparator ? { separator: payloadSeparator } : {})
             };
             const _ = await axios.post(url, payload, { headers });
             
@@ -160,7 +230,16 @@ export default function PastePhraseDialog({
                 <Box sx={{ display: 'flex', flexDirection: 'column', gap: 3 }}>
                     {/* Instructions */}
                     <Typography variant="body2" color="text.secondary">
-                        {t('paste_instructions', 'Paste lines in the format: categories;phrase;translation. The first line can be the header defining the separator.')}
+                        {t(
+                            'paste_instructions_base',
+                            'Paste lines in the format: categories{{sep}}phrase{{sep}}translation.',
+                            { sep: uiSepCharDisplay }
+                        )}
+                        {separator === 'auto' ?
+                            ' ' + t(
+                                'paste_instructions_header_note',
+                                'The first line can be the header defining the separator.'
+                            ) : ''}
                     </Typography>
 
                     {/* Separator Selection */}
@@ -170,7 +249,12 @@ export default function PastePhraseDialog({
                             labelId="separator-label"
                             label={t('separator', 'Separator')}
                             value={separator}
-                            onChange={(e) => setSeparator(e.target.value)}
+                            onChange={(e) => {
+                                const newSep = e.target.value;
+                                setSeparator(newSep);
+                                // re-parse with new separator selection
+                                if (pasteText) parseAndPreview(pasteText, newSep);
+                            }}
                         >
                             <MenuItem value="auto">{t('auto_detect', 'Auto-detect')}</MenuItem>
                             <MenuItem value=";">;</MenuItem>
@@ -185,7 +269,10 @@ export default function PastePhraseDialog({
                         fullWidth
                         multiline
                         rows={12}
-                        placeholder={t('paste_placeholder', 'categories;phrase;translation\nA;hello;hi')}
+                        placeholder={t(
+                            'paste_placeholder',
+                            `categories${uiSepCharInput}phrase${uiSepCharInput}translation\nA${uiSepCharInput}hello${uiSepCharInput}hi`
+                        )}
                         value={pasteText}
                         onChange={(e) => handlePasteTextChange(e.target.value)}
                         variant="outlined"
@@ -217,6 +304,11 @@ export default function PastePhraseDialog({
                                 p: 1,
                                 fontFamily: 'monospace'
                             }}>
+                                {separator === 'auto' && detectedSeparator && (
+                                    <div style={{ marginBottom: 8 }}>
+                                        {t('detected_separator', 'Detected separator')}: {detectedSeparator === '\t' ? t('tab', 'Tab') : detectedSeparator}
+                                    </div>
+                                )}
                                 <div><b>{t('categories', 'Categories')} | {t('phrase', 'Phrase')} | {t('translation', 'Translation')}</b></div>
                                 {previewRows.map((r, i) => (
                                     <div key={i}>{(r[0]||'').toString()} | {(r[1]||'').toString()} | {(r[2]||'').toString()}</div>

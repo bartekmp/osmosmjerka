@@ -291,7 +291,7 @@ const StatisticsDashboard = ({ token, setError: onError, currentUser }) => {
             </Box>
             
             <Grid container spacing={2} alignItems="center">
-              <Grid item xs={12} md={6}>
+              <Grid size={{ xs: 12, md: 6 }}>
                 <FormControlLabel
                   control={
                     <Switch 
@@ -307,7 +307,7 @@ const StatisticsDashboard = ({ token, setError: onError, currentUser }) => {
                 </Typography>
               </Grid>
               
-              <Grid item xs={12} md={6}>
+              <Grid size={{ xs: 12, md: 6 }}>
                 <Button
                   variant="outlined"
                   color="error"
@@ -337,7 +337,7 @@ const StatisticsDashboard = ({ token, setError: onError, currentUser }) => {
       {/* Overview Tab */}
       {activeTab === 0 && overview && (
         <Grid container spacing={3}>
-          <Grid item xs={12} sm={6} md={3}>
+          <Grid size={{ xs: 12, sm: 6, md: 3 }}>
             <Card>
               <CardContent>
                 <Box display="flex" alignItems="center">
@@ -355,7 +355,7 @@ const StatisticsDashboard = ({ token, setError: onError, currentUser }) => {
             </Card>
           </Grid>
           
-          <Grid item xs={12} sm={6} md={3}>
+          <Grid size={{ xs: 12, sm: 6, md: 3 }}>
             <Card>
               <CardContent>
                 <Box display="flex" alignItems="center">
@@ -373,7 +373,7 @@ const StatisticsDashboard = ({ token, setError: onError, currentUser }) => {
             </Card>
           </Grid>
           
-          <Grid item xs={12} sm={6} md={3}>
+          <Grid size={{ xs: 12, sm: 6, md: 3 }}>
             <Card>
               <CardContent>
                 <Box display="flex" alignItems="center">
@@ -391,7 +391,7 @@ const StatisticsDashboard = ({ token, setError: onError, currentUser }) => {
             </Card>
           </Grid>
           
-          <Grid item xs={12} sm={6} md={3}>
+          <Grid size={{ xs: 12, sm: 6, md: 3 }}>
             <Card>
               <CardContent>
                 <Box display="flex" alignItems="center">
@@ -415,7 +415,7 @@ const StatisticsDashboard = ({ token, setError: onError, currentUser }) => {
       {activeTab === 1 && (
         <Grid container spacing={3}>
           {languageSetStats.map((stat) => (
-            <Grid item xs={12} md={6} key={stat.language_set_id}>
+            <Grid size={{ xs: 12, md: 6 }} key={stat.language_set_id}>
               <Card>
                 <CardContent>
                   <Typography variant="h6" gutterBottom>
@@ -423,7 +423,7 @@ const StatisticsDashboard = ({ token, setError: onError, currentUser }) => {
                   </Typography>
                   
                   <Grid container spacing={2}>
-                    <Grid item xs={6}>
+                    <Grid size={6}>
                       <Typography variant="body2" color="textSecondary">
                         {t('games_completed')}
                       </Typography>
@@ -432,7 +432,7 @@ const StatisticsDashboard = ({ token, setError: onError, currentUser }) => {
                       </Typography>
                     </Grid>
                     
-                    <Grid item xs={6}>
+                    <Grid size={6}>
                       <Typography variant="body2" color="textSecondary">
                         {t('unique_players')}
                       </Typography>
@@ -441,7 +441,7 @@ const StatisticsDashboard = ({ token, setError: onError, currentUser }) => {
                       </Typography>
                     </Grid>
                     
-                    <Grid item xs={6}>
+                    <Grid size={6}>
                       <Typography variant="body2" color="textSecondary">
                         {t('phrases_found')}
                       </Typography>
@@ -450,7 +450,7 @@ const StatisticsDashboard = ({ token, setError: onError, currentUser }) => {
                       </Typography>
                     </Grid>
                     
-                    <Grid item xs={6}>
+                    <Grid size={6}>
                       <Typography variant="body2" color="textSecondary">
                         {t('time_played')}
                       </Typography>
@@ -577,7 +577,7 @@ const StatisticsDashboard = ({ token, setError: onError, currentUser }) => {
         <Box>
           {/* Filters */}
           <Grid container spacing={2} sx={{ mb: 3 }}>
-            <Grid item xs={12} sm={6} md={3}>
+            <Grid size={{ xs: 12, sm: 6, md: 3 }}>
               <FormControl fullWidth>
                 <InputLabel>{t('language_set')}</InputLabel>
                 <Select
@@ -598,7 +598,7 @@ const StatisticsDashboard = ({ token, setError: onError, currentUser }) => {
               </FormControl>
             </Grid>
             
-            <Grid item xs={12} sm={6} md={3}>
+            <Grid size={{ xs: 12, sm: 6, md: 3 }}>
               <FormControl fullWidth>
                 <InputLabel>{t('category')}</InputLabel>
                 <Select
@@ -615,7 +615,7 @@ const StatisticsDashboard = ({ token, setError: onError, currentUser }) => {
               </FormControl>
             </Grid>
             
-            <Grid item xs={12} sm={6} md={3}>
+            <Grid size={{ xs: 12, sm: 6, md: 3 }}>
               <FormControl fullWidth>
                 <InputLabel>{t('difficulty')}</InputLabel>
                 <Select
@@ -635,7 +635,7 @@ const StatisticsDashboard = ({ token, setError: onError, currentUser }) => {
               </FormControl>
             </Grid>
             
-            <Grid item xs={12} sm={6} md={3}>
+            <Grid size={{ xs: 12, sm: 6, md: 3 }}>
               <FormControl fullWidth>
                 <InputLabel>{t('limit')}</InputLabel>
                 <Select
