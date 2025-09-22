@@ -1,0 +1,45 @@
+name: Branch and Commit Format Validation
+
+on:
+  pull_request:
+    branches: [ main, develop ]
+  push:
+    branches: [ main, develop ]
+
+jobs:
+  validate-format:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Set up Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: '3.11'
+
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install toml
+
+      - name: Validate branch and commit format
+        run: |
+          echo "🔍 Starting validation based on semantic release configuration..."
+          echo "📋 Checking pyproject.toml for allowed tags..."
+          python .github/scripts/validate_format.py
+        env:
+          GITHUB_REF: ${{ github.ref }}
+          GITHUB_EVENT_NAME: ${{ github.event_name }}
+          GITHUB_HEAD_REF: ${{ github.head_ref }}
+          GITHUB_BASE_REF: ${{ github.base_ref }}
+          GITHUB_SHA: ${{ github.sha }}
+
+      - name: Validation Success
+        if: success()
+        run: |
+          echo "✅ All validation checks passed!"
+          echo "🎉 Branch name and commit messages follow the required format."
+          echo "📚 See .github/README.md for more information about the validation rules."
