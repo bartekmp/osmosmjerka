@@ -2,6 +2,72 @@
 
 <!-- version list -->
 
+## v1.27.0 (2025-09-22)
+
+### Bug Fixes
+
+- Adapt ExportButton test
+  ([`6933457`](https://github.com/bartekmp/osmosmjerka/commit/69334570bf568d75ee005b8cfa0366a35e592528))
+
+- Remove failing mocks from test config
+  ([`a8f6ea9`](https://github.com/bartekmp/osmosmjerka/commit/a8f6ea9d43fe61b45be685420a9c2627a17cef5a))
+
+### Code Style
+
+- Apply lint fixes to backend ([#70](https://github.com/bartekmp/osmosmjerka/pull/70),
+  [`d173fe0`](https://github.com/bartekmp/osmosmjerka/commit/d173fe0279a3471252d1ca9a193629893ca31c45))
+
+- Get rid of all linter warnings and errors ([#70](https://github.com/bartekmp/osmosmjerka/pull/70),
+  [`d173fe0`](https://github.com/bartekmp/osmosmjerka/commit/d173fe0279a3471252d1ca9a193629893ca31c45))
+
+- Reformat files ([#70](https://github.com/bartekmp/osmosmjerka/pull/70),
+  [`d173fe0`](https://github.com/bartekmp/osmosmjerka/commit/d173fe0279a3471252d1ca9a193629893ca31c45))
+
+### Continuous Integration
+
+- Enforce branch/commit msg format, add new gh checks, reformat all files
+  ([#70](https://github.com/bartekmp/osmosmjerka/pull/70),
+  [`d173fe0`](https://github.com/bartekmp/osmosmjerka/commit/d173fe0279a3471252d1ca9a193629893ca31c45))
+
+- Enforce using branch name prefix and commit message formats that are in line with semantic release
+  definition from pyproject.toml ([#70](https://github.com/bartekmp/osmosmjerka/pull/70),
+  [`d173fe0`](https://github.com/bartekmp/osmosmjerka/commit/d173fe0279a3471252d1ca9a193629893ca31c45))
+
+- Fix the babel config file format ([#70](https://github.com/bartekmp/osmosmjerka/pull/70),
+  [`d173fe0`](https://github.com/bartekmp/osmosmjerka/commit/d173fe0279a3471252d1ca9a193629893ca31c45))
+
+- Modify frontend test cmdline ([#70](https://github.com/bartekmp/osmosmjerka/pull/70),
+  [`d173fe0`](https://github.com/bartekmp/osmosmjerka/commit/d173fe0279a3471252d1ca9a193629893ca31c45))
+
+- Reorg gh actions ([#70](https://github.com/bartekmp/osmosmjerka/pull/70),
+  [`d173fe0`](https://github.com/bartekmp/osmosmjerka/commit/d173fe0279a3471252d1ca9a193629893ca31c45))
+
+### Enhancement
+
+- Upgrade frontend packages
+  ([`eb19d33`](https://github.com/bartekmp/osmosmjerka/commit/eb19d330c711170d337d8087ed51c3f4fb35547a))
+
+### Feature
+
+- Separator detection convenience, update grid to muiv2
+  ([#71](https://github.com/bartekmp/osmosmjerka/pull/71),
+  [`dd87659`](https://github.com/bartekmp/osmosmjerka/commit/dd87659bc00a5c4fb016d45c791a90b80755de82))
+
+- Show detected separator in the multiline input modal
+  ([#71](https://github.com/bartekmp/osmosmjerka/pull/71),
+  [`dd87659`](https://github.com/bartekmp/osmosmjerka/commit/dd87659bc00a5c4fb016d45c791a90b80755de82))
+
+### Noissue
+
+- Rename commit validation readme
+  ([`a3f862a`](https://github.com/bartekmp/osmosmjerka/commit/a3f862ac7a935b00133cabcdca58bfca398b4ce0))
+
+### Testing
+
+- Remove test warnings ([#71](https://github.com/bartekmp/osmosmjerka/pull/71),
+  [`dd87659`](https://github.com/bartekmp/osmosmjerka/commit/dd87659bc00a5c4fb016d45c791a90b80755de82))
+
+
 ## v1.26.0 (2025-09-22)
 
 ### Feature
