@@ -2,7 +2,7 @@ import datetime
 import os
 import time
 import urllib.parse
-from typing import Any, Dict, List, Optional, Tuple
+from typing import Any, Dict, List, Optional
 
 from databases import Database
 from dotenv import load_dotenv
@@ -1517,13 +1517,14 @@ class DatabaseManager:
         await database.execute(delete(game_scores_table))
 
     # User preferences management methods
-    async def get_user_preference(self, user_id: int, preference_key: str, default_value: Optional[str] = None) -> Optional[str]:
+    async def get_user_preference(
+        self, user_id: int, preference_key: str, default_value: Optional[str] = None
+    ) -> Optional[str]:
         """Get a user preference value by key"""
         database = self._ensure_database()
 
         query = select(user_preferences_table.c.preference_value).where(
-            (user_preferences_table.c.user_id == user_id) & 
-            (user_preferences_table.c.preference_key == preference_key)
+            (user_preferences_table.c.user_id == user_id) & (user_preferences_table.c.preference_key == preference_key)
         )
 
         result = await database.fetch_one(query)
@@ -1536,8 +1537,8 @@ class DatabaseManager:
         # Check if preference exists
         existing = await database.fetch_one(
             select(user_preferences_table.c.id).where(
-                (user_preferences_table.c.user_id == user_id) & 
-                (user_preferences_table.c.preference_key == preference_key)
+                (user_preferences_table.c.user_id == user_id)
+                & (user_preferences_table.c.preference_key == preference_key)
             )
         )
 
@@ -1546,17 +1547,15 @@ class DatabaseManager:
             query = (
                 update(user_preferences_table)
                 .where(
-                    (user_preferences_table.c.user_id == user_id) & 
-                    (user_preferences_table.c.preference_key == preference_key)
+                    (user_preferences_table.c.user_id == user_id)
+                    & (user_preferences_table.c.preference_key == preference_key)
                 )
                 .values(preference_value=preference_value, updated_at=func.now())
             )
         else:
             # Insert new preference
             query = insert(user_preferences_table).values(
-                user_id=user_id,
-                preference_key=preference_key,
-                preference_value=preference_value
+                user_id=user_id, preference_key=preference_key, preference_value=preference_value
             )
 
         await database.execute(query)
@@ -1573,12 +1572,27 @@ class DatabaseManager:
         return {row["preference_key"]: row["preference_value"] for row in rows}
 
     # Scoring system methods
-    async def save_game_score(self, session_id: int, user_id: int, language_set_id: int, category: str, 
-                             difficulty: str, grid_size: int, total_phrases: int, phrases_found: int,
-                             hints_used: int, base_score: int, time_bonus: int, difficulty_bonus: int,
-                             streak_bonus: int, hint_penalty: int, final_score: int, duration_seconds: int,
-                             first_phrase_time: Optional[datetime.datetime] = None, 
-                             completion_time: Optional[datetime.datetime] = None) -> int:
+    async def save_game_score(
+        self,
+        session_id: int,
+        user_id: int,
+        language_set_id: int,
+        category: str,
+        difficulty: str,
+        grid_size: int,
+        total_phrases: int,
+        phrases_found: int,
+        hints_used: int,
+        base_score: int,
+        time_bonus: int,
+        difficulty_bonus: int,
+        streak_bonus: int,
+        hint_penalty: int,
+        final_score: int,
+        duration_seconds: int,
+        first_phrase_time: Optional[datetime.datetime] = None,
+        completion_time: Optional[datetime.datetime] = None,
+    ) -> int:
         """Save game score and return the score ID"""
         database = self._ensure_database()
 
@@ -1600,14 +1614,19 @@ class DatabaseManager:
             final_score=final_score,
             duration_seconds=duration_seconds,
             first_phrase_time=first_phrase_time,
-            completion_time=completion_time
+            completion_time=completion_time,
         )
 
         return await database.execute(query)
 
-    async def get_user_best_scores(self, user_id: int, language_set_id: Optional[int] = None, 
-                                  category: Optional[str] = None, difficulty: Optional[str] = None,
-                                  limit: int = 10) -> List[Dict[str, Any]]:
+    async def get_user_best_scores(
+        self,
+        user_id: int,
+        language_set_id: Optional[int] = None,
+        category: Optional[str] = None,
+        difficulty: Optional[str] = None,
+        limit: int = 10,
+    ) -> List[Dict[str, Any]]:
         """Get user's best scores with optional filters"""
         database = self._ensure_database()
 
@@ -1625,8 +1644,13 @@ class DatabaseManager:
         rows = await database.fetch_all(query)
         return [self._serialize_datetimes(dict(row)) for row in rows]
 
-    async def get_leaderboard(self, language_set_id: Optional[int] = None, category: Optional[str] = None,
-                             difficulty: Optional[str] = None, limit: int = 50) -> List[Dict[str, Any]]:
+    async def get_leaderboard(
+        self,
+        language_set_id: Optional[int] = None,
+        category: Optional[str] = None,
+        difficulty: Optional[str] = None,
+        limit: int = 50,
+    ) -> List[Dict[str, Any]]:
         """Get global leaderboard with optional filters"""
         database = self._ensure_database()
 
@@ -1641,11 +1665,9 @@ class DatabaseManager:
                 game_scores_table.c.phrases_found,
                 game_scores_table.c.total_phrases,
                 game_scores_table.c.hints_used,
-                game_scores_table.c.created_at
+                game_scores_table.c.created_at,
             )
-            .select_from(
-                game_scores_table.join(accounts_table, game_scores_table.c.user_id == accounts_table.c.id)
-            )
+            .select_from(game_scores_table.join(accounts_table, game_scores_table.c.user_id == accounts_table.c.id))
             .where(accounts_table.c.is_active == True)
         )
 
@@ -1671,10 +1693,10 @@ class DatabaseManager:
         """Check if scoring is enabled for a specific user (user preference overrides global)"""
         global_enabled = await self.is_scoring_enabled_globally()
         user_preference = await self.get_user_preference(user_id, "scoring_enabled")
-        
+
         if user_preference is not None:
             return user_preference.lower() == "true"
-        
+
         return global_enabled
 
     async def is_progressive_hints_enabled_globally(self) -> bool:
@@ -1686,10 +1708,10 @@ class DatabaseManager:
         """Check if progressive hints are enabled for a specific user"""
         global_enabled = await self.is_progressive_hints_enabled_globally()
         user_preference = await self.get_user_preference(user_id, "progressive_hints_enabled")
-        
+
         if user_preference is not None:
             return user_preference.lower() == "true"
-        
+
         return global_enabled
 
 

@@ -1,6 +1,6 @@
 import pytest
 import os
-from unittest.mock import Mock, AsyncMock, patch
+from unittest.mock import Mock, patch
 from fastapi.testclient import TestClient
 from osmosmjerka.game_api import router, get_grid_size_and_num_phrases
 from fastapi import FastAPI

@@ -1,5 +1,3 @@
-import pytest
-
 from osmosmjerka.grid_generator import generate_grid, normalize_phrase
 
 
@@ -205,23 +203,25 @@ def test_phrase_placement_quality():
 def test_find_intersections():
     """Test the find_intersections function"""
     from osmosmjerka.grid_generator import find_intersections
-    
+
     # Test basic intersection
     intersections = find_intersections("HELLO", "WORLD")
     assert (2, 3) in intersections  # L matches L
     assert (3, 3) in intersections  # L matches L
     assert (4, 1) in intersections  # O matches O
-    
+
     # Test no intersections
     intersections = find_intersections("ABC", "XYZ")
     assert len(intersections) == 0
-    
+
     # Test multiple same character intersections
     intersections = find_intersections("BOOK", "LOOK")
     expected = [(1, 1), (1, 2), (2, 1), (2, 2), (3, 3)]  # All O-O and K-K matches
     assert len(intersections) == len(expected)
     for intersection in expected:
         assert intersection in intersections
+
+
 def test_calculate_phrase_density():
     """Test the calculate_density_around_position function"""
     from osmosmjerka.grid_generator import calculate_density_around_position
@@ -249,7 +249,7 @@ def test_high_density_placement():
     """Test that the algorithm can achieve high phrase density in reasonably sized grids"""
     phrases = [
         {"phrase": "CAT", "translation": "KOT"},
-        {"phrase": "DOG", "translation": "PIES"},  
+        {"phrase": "DOG", "translation": "PIES"},
         {"phrase": "BIRD", "translation": "PTAK"},
         {"phrase": "FISH", "translation": "RYBA"},
         {"phrase": "MOUSE", "translation": "MYSZ"},
@@ -257,25 +257,29 @@ def test_high_density_placement():
         {"phrase": "SNAKE", "translation": "WĄŻ"},
         {"phrase": "TIGER", "translation": "TYGRYS"},
         {"phrase": "RABBIT", "translation": "KRÓLIK"},
-        {"phrase": "ELEPHANT", "translation": "SŁOŃ"}
+        {"phrase": "ELEPHANT", "translation": "SŁOŃ"},
     ]
-    
+
     grid, placed = generate_grid(phrases, size=None)  # Let algorithm determine size
-    
+
     # Should place all or most phrases (at least 8 out of 10)
     assert len(placed) >= 8, f"Should place at least 8 phrases, got {len(placed)}"
-    
+
     # Grid should not be excessively large - test for reasonable density
     grid_area = len(grid) * len(grid)
-    total_phrase_chars = sum(len(normalize_phrase(w["phrase"].replace(" ", "").upper())) for w in phrases[:len(placed)])
-    
+    total_phrase_chars = sum(
+        len(normalize_phrase(w["phrase"].replace(" ", "").upper())) for w in phrases[: len(placed)]
+    )
+
     # Density should be reasonable (at least 15% of grid filled with phrase characters)
     density = total_phrase_chars / grid_area
     assert density >= 0.15, f"Grid density too low: {density:.2%}, grid size: {len(grid)}x{len(grid)}"
-    
+
     # Grid shouldn't be too large for the given phrases
     max_phrase_len = max(len(normalize_phrase(w["phrase"].replace(" ", "").upper())) for w in phrases)
-    assert len(grid) <= max_phrase_len + 6, f"Grid too large: {len(grid)}x{len(grid)} for max phrase length {max_phrase_len}"
+    assert (
+        len(grid) <= max_phrase_len + 6
+    ), f"Grid too large: {len(grid)}x{len(grid)} for max phrase length {max_phrase_len}"
 
 
 def test_ten_phrases_in_reasonable_grid():
@@ -290,25 +294,25 @@ def test_ten_phrases_in_reasonable_grid():
         {"phrase": "WIND", "translation": "WIATR"},
         {"phrase": "TREE", "translation": "DRZEWO"},
         {"phrase": "FLOWER", "translation": "KWIAT"},
-        {"phrase": "GRASS", "translation": "TRAWA"}
+        {"phrase": "GRASS", "translation": "TRAWA"},
     ]
-    
+
     grid, placed = generate_grid(phrases, size=12)  # Fixed reasonable size
-    
+
     # Should place most phrases in a 12x12 grid
     assert len(placed) >= 8, f"Should place at least 8/10 phrases in 12x12 grid, got {len(placed)}"
-    
+
     # Verify grid is exactly 12x12
     assert len(grid) == 12
     assert all(len(row) == 12 for row in grid)
-    
+
     # Check for intersections - should have some
     all_coords = []
     for phrase_info in placed:
         all_coords.extend(phrase_info["coords"])
-    
+
     unique_positions = len(set(all_coords))
     total_positions = len(all_coords)
     intersections = total_positions - unique_positions
-    
+
     assert intersections > 0, "Should have at least some intersections for space efficiency"
