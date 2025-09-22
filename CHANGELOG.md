@@ -2,6 +2,19 @@
 
 <!-- version list -->
 
+## v1.27.1 (2025-09-23)
+
+### Enhancement
+
+- Check the commit authorship to match semrel
+  ([`688a809`](https://github.com/bartekmp/osmosmjerka/commit/688a80996f77d41056acdbb1bc998575c500c6db))
+
+### Noissue
+
+- Tolerate semantic release commits when validating
+  ([`59464ab`](https://github.com/bartekmp/osmosmjerka/commit/59464ab5a1fa1067e277aa4e590709d5290d0097))
+
+
 ## v1.27.0 (2025-09-22)
 
 ### Bug Fixes
