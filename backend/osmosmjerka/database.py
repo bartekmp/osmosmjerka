@@ -370,7 +370,7 @@ class DatabaseManager:
         database = self._ensure_database()
         query = select(language_sets_table)
         if active_only:
-            query = query.where(language_sets_table.c.is_active == True)
+            query = query.where(language_sets_table.c.is_active)
         # Default first, then by display name
         query = query.order_by(language_sets_table.c.is_default.desc(), language_sets_table.c.display_name)
         result = await database.fetch_all(query)
@@ -1306,7 +1306,7 @@ class DatabaseManager:
         database = self._ensure_database()
 
         # Get total users count
-        users_query = select(func.count(accounts_table.c.id)).where(accounts_table.c.is_active == True)
+        users_query = select(func.count(accounts_table.c.id)).where(accounts_table.c.is_active)
         total_users = await database.fetch_val(users_query)
 
         # Get total games statistics
@@ -1425,7 +1425,7 @@ class DatabaseManager:
                     accounts_table.join(user_statistics_table, accounts_table.c.id == user_statistics_table.c.user_id)
                 )
                 .where(
-                    (accounts_table.c.is_active == True) & (user_statistics_table.c.language_set_id == language_set_id)
+                    (accounts_table.c.is_active) & (user_statistics_table.c.language_set_id == language_set_id)
                 )
                 .order_by(desc(user_statistics_table.c.games_completed))
                 .limit(limit)
@@ -1449,7 +1449,7 @@ class DatabaseManager:
                         user_statistics_table, accounts_table.c.id == user_statistics_table.c.user_id, isouter=True
                     )
                 )
-                .where(accounts_table.c.is_active == True)
+                .where(accounts_table.c.is_active)
                 .group_by(accounts_table.c.id, accounts_table.c.username)
                 .order_by(desc(func.sum(user_statistics_table.c.games_completed)))
                 .limit(limit)
@@ -1668,7 +1668,7 @@ class DatabaseManager:
                 game_scores_table.c.created_at,
             )
             .select_from(game_scores_table.join(accounts_table, game_scores_table.c.user_id == accounts_table.c.id))
-            .where(accounts_table.c.is_active == True)
+            .where(accounts_table.c.is_active)
         )
 
         if language_set_id is not None:

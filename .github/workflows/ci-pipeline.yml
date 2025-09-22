@@ -91,7 +91,7 @@ jobs:
       - name: Install dependencies
         run: |
           cd frontend
-          npm ci
+          npm i
 
       - name: Run frontend linting
         run: |
