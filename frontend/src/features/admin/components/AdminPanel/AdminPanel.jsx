@@ -918,7 +918,7 @@ export default function AdminPanel({
                     {/* Action Buttons */}
                     <Paper sx={{ p: 3, mb: 3 }}>
                         <Grid container spacing={2} justifyContent="center">
-                            <Grid item xs={6} sm={4} md={2}>
+                            <Grid size={{ xs: 6, sm: 4, md: 2 }}>
                                 <ResponsiveActionButton
                                     onClick={() => {
                                         if (selectedLanguageSetId) {
@@ -933,7 +933,7 @@ export default function AdminPanel({
                                     mobileText={t('reload')}
                                 />
                             </Grid>
-                            <Grid item xs={6} sm={4} md={2}>
+                            <Grid size={{ xs: 6, sm: 4, md: 2 }}>
                                 <ResponsiveActionButton
                                     onClick={() => setEditRow({ categories: '', phrase: '', translation: '' })}
                                     color="secondary"
@@ -942,12 +942,12 @@ export default function AdminPanel({
                                     mobileText={t('add')}
                                 />
                             </Grid>
-                            <Grid item xs={6} sm={4} md={2}>
+                            <Grid size={{ xs: 6, sm: 4, md: 2 }}>
                                 <Box sx={{ height: '100%', display: 'flex' }}>
                                     <UploadForm selectedLanguageSetId={selectedLanguageSetId} onUpload={() => selectedLanguageSetId && fetchRows(offset, limit, filterCategory, searchTerm, selectedLanguageSetId)} />
                                 </Box>
                             </Grid>
-                            <Grid item xs={6} sm={4} md={2}>
+                            <Grid size={{ xs: 6, sm: 4, md: 2 }}>
                                 <ResponsiveActionButton
                                     onClick={() => handleExportTxt(filterCategory)}
                                     variant="outlined"
@@ -959,7 +959,7 @@ export default function AdminPanel({
                             </Grid>
                             {/* Clear Database Button - Root Admin Only */}
                             {currentUser?.role === 'root_admin' && (
-                                <Grid item xs={12} sm={4} md={2}>
+                                <Grid size={{ xs: 12, sm: 4, md: 2 }}>
                                     <ResponsiveActionButton
                                         onClick={handleClearDb}
                                         loading={clearLoading}
@@ -1006,7 +1006,7 @@ export default function AdminPanel({
                     <Paper sx={{ p: 3, mb: 3 }}>
                         <Grid container spacing={3} alignItems="center">
                             {/* Language Set Filter */}
-                            <Grid item xs={12} md={4}>
+                            <Grid size={{ xs: 12, md: 4 }}>
                                 <FormControl fullWidth sx={{ minWidth: 200 }}>
                                     <InputLabel>{t('filter_by_language_set')}</InputLabel>
                                     <Select
@@ -1029,7 +1029,7 @@ export default function AdminPanel({
                             </Grid>
 
                             {/* Category Filter */}
-                            <Grid item xs={12} md={4}>
+                            <Grid size={{ xs: 12, md: 4 }}>
                                 <FormControl fullWidth sx={{ minWidth: 200 }}>
                                     <InputLabel>{t('filter_by_category')}</InputLabel>
                                     <Select

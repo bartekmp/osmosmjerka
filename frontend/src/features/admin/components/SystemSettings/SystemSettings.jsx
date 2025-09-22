@@ -73,7 +73,6 @@ const SystemSettings = () => {
     const updateSetting = async (settingType, enabled) => {
         const token = localStorage.getItem(STORAGE_KEYS.ADMIN_TOKEN);
         if (!token) return;
-
         try {
             let endpoint;
             switch (settingType) {
@@ -147,7 +146,7 @@ const SystemSettings = () => {
 
             <Grid container spacing={3}>
                 {/* Game Features */}
-                <Grid item xs={12} md={6}>
+                <Grid size={{ xs: 12, md: 6 }}>
                     <Paper elevation={2} sx={{ p: 3 }}>
                         <Typography variant="h6" gutterBottom color="primary">
                             {t('admin.settings.gameFeatures')}
@@ -200,7 +199,7 @@ const SystemSettings = () => {
                 </Grid>
 
                 {/* Data Collection */}
-                <Grid item xs={12} md={6}>
+                <Grid size={{ xs: 12, md: 6 }}>
                     <Paper elevation={2} sx={{ p: 3 }}>
                         <Typography variant="h6" gutterBottom color="primary">
                             {t('admin.settings.dataCollection')}
