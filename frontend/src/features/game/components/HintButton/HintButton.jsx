@@ -11,7 +11,6 @@ const HintButton = ({
     isProgressiveMode = false,
     disabled = false,
     currentHintLevel = 0,
-    maxHints = 3,
     showHintButton = true
 }) => {
     const { t } = useTranslation();

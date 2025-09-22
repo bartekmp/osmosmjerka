@@ -8,6 +8,7 @@ import {
 import { Search as SearchIcon, Clear as ClearIcon } from '@mui/icons-material';
 import { useTranslation } from 'react-i18next';
 import { debounce } from 'lodash';
+import PropTypes from 'prop-types';
 
 export default function SearchBar({ 
     value = '', 
@@ -27,7 +28,7 @@ export default function SearchBar({
     }, [value]);
 
     // Debounce search term changes
-    // eslint-disable-next-line react-hooks/exhaustive-deps
+     
     const debouncedSearch = useCallback(
         debounce((searchValue) => {
             if (searchValue !== value) {
@@ -109,3 +110,13 @@ export default function SearchBar({
         />
     );
 }
+
+
+SearchBar.propTypes = {
+  value: PropTypes.string,
+  onChange: PropTypes.func.isRequired,
+  debounceTime: PropTypes.number,
+  placeholder: PropTypes.string,
+  fullWidth: PropTypes.bool,
+  size: PropTypes.string,
+};

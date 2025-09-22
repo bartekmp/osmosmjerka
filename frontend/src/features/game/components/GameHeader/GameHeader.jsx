@@ -11,7 +11,7 @@ const GameHeader = ({
     logoFilter,
     handleLogoClick,
     showCelebration,
-    isDarkMode
+    _
 }) => {
     const { t } = useTranslation();
 

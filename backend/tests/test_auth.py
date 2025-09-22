@@ -5,8 +5,6 @@ import pytest
 from fastapi import HTTPException, Request
 from jose import jwt
 
-from osmosmjerka import auth
-
 
 class DummyRequest(MagicMock):
     def __init__(self, token):

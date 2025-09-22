@@ -14,6 +14,7 @@ import {
     Divider
 } from '@mui/material';
 import { useTranslation } from 'react-i18next';
+import PropTypes from 'prop-types';
 
 export default function BatchOperationDialog({ 
     open, 
@@ -181,3 +182,13 @@ export default function BatchOperationDialog({
         </Dialog>
     );
 }
+
+
+BatchOperationDialog.propTypes = {
+  open: PropTypes.bool.isRequired,
+  onClose: PropTypes.func.isRequired,
+  operation: PropTypes.string.isRequired,
+  selectedCount: PropTypes.number.isRequired,
+  onConfirm: PropTypes.func.isRequired,
+  availableCategories: PropTypes.array.isRequired,
+};

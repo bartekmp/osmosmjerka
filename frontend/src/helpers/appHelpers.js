@@ -54,7 +54,10 @@ export function restoreGameState(setters) {
                 setRestored(true);
                 return;
             }
-        } catch { }
+        } catch (error) {
+            // Ignore JSON parsing errors
+            console.warn('Failed to parse stored game state:', error);
+        }
         localStorage.removeItem('osmosmjerkaGameState');
     }
     setRestored(true);

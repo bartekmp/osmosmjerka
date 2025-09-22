@@ -80,8 +80,17 @@ export default function PhraseList({ phrases, found, hidePhrases, setHidePhrases
                         <span 
                             className={`phrase-list-phrase${found.includes(phrase) ? ' found' : ''}${blinkingPhrase === phrase ? ' blinking' : ''}`}
                             onClick={() => handlePhraseClick(phrase)}
+                            onKeyDown={(e) => {
+                                if (e.key === 'Enter' || e.key === ' ') {
+                                    e.preventDefault();
+                                    handlePhraseClick(phrase);
+                                }
+                            }}
                             onTouchEnd={e => { e.preventDefault(); handlePhraseClick(phrase); }}
                             style={{ cursor: progressiveHintsEnabled ? 'default' : 'pointer' }}
+                            role="button"
+                            tabIndex={progressiveHintsEnabled ? -1 : 0}
+                            aria-label={`Highlight phrase: ${phrase}`}
                         >
                             {phrase}
                         </span>

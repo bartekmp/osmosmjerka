@@ -43,15 +43,11 @@ export const RateLimitWarning = ({
  * Component for showing loading state with optional rate limit warning
  */
 export const LoadingWithRateLimit = ({ 
-    isLoading, 
     showRateLimit, 
     onRateLimitClose, 
     children,
-    loadingMessage,
     rateLimitMessage 
 }) => {
-    const { t } = useTranslation();
-
     return (
         <>
             {children}

@@ -1,12 +1,12 @@
+import datetime
 import io
 import random
 import re
-import datetime
 
 from fastapi import APIRouter, Body, Depends, HTTPException, Query, Request, status
 from fastapi.responses import JSONResponse, StreamingResponse
 
-from osmosmjerka.auth import get_current_user, get_current_user_optional, require_admin_access, verify_token
+from osmosmjerka.auth import get_current_user, get_current_user_optional, verify_token
 from osmosmjerka.cache import cache_response, categories_cache, language_sets_cache, phrases_cache, rate_limit
 from osmosmjerka.database import db_manager
 from osmosmjerka.grid_generator import generate_grid
@@ -72,69 +72,69 @@ def _generate_grid_with_exact_phrase_count(all_phrases: list, grid_size: int, ta
     Generate a grid with exactly the target number of phrases.
     If not all phrases can be placed, try different combinations until we get the target count.
     """
-    import itertools
-    
     max_attempts = 50  # Limit attempts to avoid infinite loops
     attempt = 0
     best_grid = None
     best_placed_phrases = []
-    
+
     # First, try with a random selection as before
     if len(all_phrases) > target_phrase_count:
         selected_phrases = random.sample(all_phrases, target_phrase_count)
     else:
         selected_phrases = all_phrases.copy()
         random.shuffle(selected_phrases)
-    
+
     while attempt < max_attempts:
         grid, placed_phrases = generate_grid(selected_phrases, grid_size)
-        
+
         # Keep track of the best result so far
         if len(placed_phrases) > len(best_placed_phrases):
             best_grid = grid
             best_placed_phrases = placed_phrases
-        
+
         # If we got exactly the target number, we're done
         if len(placed_phrases) == target_phrase_count:
             return grid, placed_phrases
-        
+
         # If we got fewer phrases than target, try with different phrases
         if len(placed_phrases) < target_phrase_count:
             # Calculate how many more phrases we need
             phrases_needed = target_phrase_count - len(placed_phrases)
-            
+
             # Get phrases that weren't placed
             placed_phrase_texts = {p["phrase"] for p in placed_phrases}
             unplaced_phrases = [p for p in all_phrases if p["phrase"] not in placed_phrase_texts]
-            
+
             # If we have enough unplaced phrases, try replacing some phrases
             if len(unplaced_phrases) >= phrases_needed and len(all_phrases) > target_phrase_count:
                 # Remove some phrases that were placed and add some that weren't
                 phrases_to_remove = min(3, len(placed_phrases))  # Remove a few placed phrases
                 phrases_to_add = min(phrases_needed + phrases_to_remove, len(unplaced_phrases))
-                
+
                 # Create new selection by keeping most placed phrases and adding unplaced ones
-                kept_phrases = random.sample([p for p in selected_phrases if p["phrase"] in placed_phrase_texts], 
-                                           max(0, target_phrase_count - phrases_to_add))
+                kept_phrases = random.sample(
+                    [p for p in selected_phrases if p["phrase"] in placed_phrase_texts],
+                    max(0, target_phrase_count - phrases_to_add),
+                )
                 new_phrases = random.sample(unplaced_phrases, phrases_to_add)
                 selected_phrases = kept_phrases + new_phrases
             else:
                 # Try with all available phrases if we don't have many options
                 selected_phrases = all_phrases.copy()
                 random.shuffle(selected_phrases)
-        
+
         # If we got more phrases than target (shouldn't happen with current logic, but just in case)
         elif len(placed_phrases) > target_phrase_count:
             # Just trim the result to target count
             return grid, placed_phrases[:target_phrase_count]
-        
+
         attempt += 1
-    
+
     # If we couldn't get the exact target, return the best result we achieved
     # but ensure we don't return more than the target
     if len(best_placed_phrases) > target_phrase_count:
         best_placed_phrases = best_placed_phrases[:target_phrase_count]
-    
+
     return best_grid if best_grid is not None else [], best_placed_phrases
 
 
@@ -382,9 +382,7 @@ async def set_user_preference(body: dict = Body(...), user=Depends(get_current_u
         preference_value = body.get("preference_value")
 
         if not preference_key or preference_value is None:
-            return JSONResponse(
-                {"error": "Missing required fields: preference_key, preference_value"}, status_code=400
-            )
+            return JSONResponse({"error": "Missing required fields: preference_key, preference_value"}, status_code=400)
 
         if not isinstance(preference_key, str) or not isinstance(preference_value, str):
             return JSONResponse({"error": "preference_key and preference_value must be strings"}, status_code=400)
@@ -435,27 +433,34 @@ async def save_game_score(body: dict = Body(...), user=Depends(get_current_user)
         completion_time = body.get("completion_time")
 
         # Validate required fields and types
-        if (session_id is None or language_set_id is None or category is None or 
-            difficulty is None or grid_size is None or total_phrases is None or 
-            phrases_found is None or duration_seconds is None):
-            return JSONResponse(
-                {"error": "Missing required fields"}, status_code=400
-            )
+        if (
+            session_id is None
+            or language_set_id is None
+            or category is None
+            or difficulty is None
+            or grid_size is None
+            or total_phrases is None
+            or phrases_found is None
+            or duration_seconds is None
+        ):
+            return JSONResponse({"error": "Missing required fields"}, status_code=400)
 
         # Type validation
-        if (not isinstance(session_id, int) or not isinstance(language_set_id, int) or
-            not isinstance(grid_size, int) or not isinstance(total_phrases, int) or
-            not isinstance(phrases_found, int) or not isinstance(duration_seconds, int) or
-            not isinstance(hints_used, int) or not isinstance(category, str) or
-            not isinstance(difficulty, str)):
-            return JSONResponse(
-                {"error": "Invalid field types"}, status_code=400
-            )
+        if (
+            not isinstance(session_id, int)
+            or not isinstance(language_set_id, int)
+            or not isinstance(grid_size, int)
+            or not isinstance(total_phrases, int)
+            or not isinstance(phrases_found, int)
+            or not isinstance(duration_seconds, int)
+            or not isinstance(hints_used, int)
+            or not isinstance(category, str)
+            or not isinstance(difficulty, str)
+        ):
+            return JSONResponse({"error": "Invalid field types"}, status_code=400)
 
         # Calculate scoring
-        scoring_result = calculate_game_score(
-            difficulty, phrases_found, total_phrases, duration_seconds, hints_used
-        )
+        scoring_result = calculate_game_score(difficulty, phrases_found, total_phrases, duration_seconds, hints_used)
 
         # Convert datetime strings to datetime objects if provided
         first_phrase_dt = None
@@ -463,14 +468,14 @@ async def save_game_score(body: dict = Body(...), user=Depends(get_current_user)
         if first_phrase_time:
             try:
                 # Parse timezone-aware datetime and convert to naive UTC
-                dt_aware = datetime.datetime.fromisoformat(first_phrase_time.replace('Z', '+00:00'))
+                dt_aware = datetime.datetime.fromisoformat(first_phrase_time.replace("Z", "+00:00"))
                 first_phrase_dt = dt_aware.replace(tzinfo=None)
             except ValueError:
                 pass
         if completion_time:
             try:
                 # Parse timezone-aware datetime and convert to naive UTC
-                dt_aware = datetime.datetime.fromisoformat(completion_time.replace('Z', '+00:00'))
+                dt_aware = datetime.datetime.fromisoformat(completion_time.replace("Z", "+00:00"))
                 completion_dt = dt_aware.replace(tzinfo=None)
             except ValueError:
                 pass
@@ -494,14 +499,12 @@ async def save_game_score(body: dict = Body(...), user=Depends(get_current_user)
             final_score=scoring_result["final_score"],
             duration_seconds=duration_seconds,
             first_phrase_time=first_phrase_dt,
-            completion_time=completion_dt
+            completion_time=completion_dt,
         )
 
-        return JSONResponse({
-            "score_id": score_id,
-            "scoring_details": scoring_result,
-            "message": "Score saved successfully"
-        })
+        return JSONResponse(
+            {"score_id": score_id, "scoring_details": scoring_result, "message": "Score saved successfully"}
+        )
     except Exception as e:
         return JSONResponse({"error": str(e)}, status_code=500)
 
@@ -512,13 +515,11 @@ async def get_user_best_scores(
     category: str = Query(None),
     difficulty: str = Query(None),
     limit: int = Query(10),
-    user=Depends(get_current_user)
+    user=Depends(get_current_user),
 ) -> JSONResponse:
     """Get user's best scores"""
     try:
-        scores = await db_manager.get_user_best_scores(
-            user["id"], language_set_id, category, difficulty, limit
-        )
+        scores = await db_manager.get_user_best_scores(user["id"], language_set_id, category, difficulty, limit)
         return JSONResponse(scores)
     except Exception as e:
         return JSONResponse({"error": str(e)}, status_code=500)
@@ -529,7 +530,7 @@ async def get_leaderboard(
     language_set_id: int = Query(None),
     category: str = Query(None),
     difficulty: str = Query(None),
-    limit: int = Query(50)
+    limit: int = Query(50),
 ) -> JSONResponse:
     """Get global leaderboard"""
     try:
@@ -539,34 +540,30 @@ async def get_leaderboard(
         return JSONResponse({"error": str(e)}, status_code=500)
 
 
-def calculate_game_score(difficulty: str, phrases_found: int, total_phrases: int, 
-                        duration_seconds: int, hints_used: int) -> dict:
+def calculate_game_score(
+    difficulty: str, phrases_found: int, total_phrases: int, duration_seconds: int, hints_used: int
+) -> dict:
     """Calculate game score based on various factors"""
-    
+
     # Base score: 100 points per phrase found
     base_score = phrases_found * 100
-    
+
     # Difficulty multipliers
-    difficulty_multipliers = {
-        "easy": 1.0,
-        "medium": 1.2,
-        "hard": 1.5,
-        "very_hard": 2.0
-    }
+    difficulty_multipliers = {"easy": 1.0, "medium": 1.2, "hard": 1.5, "very_hard": 2.0}
     difficulty_bonus = int(base_score * (difficulty_multipliers.get(difficulty, 1.0) - 1.0))
-    
+
     # Time bonus (faster completion = higher bonus)
     # Maximum time bonus is 50% of base score for very fast completion
     if phrases_found == total_phrases and duration_seconds > 0:
         # Target times per difficulty (in seconds)
         target_times = {
-            "easy": 300,      # 5 minutes
-            "medium": 600,    # 10 minutes
-            "hard": 900,      # 15 minutes
-            "very_hard": 1200 # 20 minutes
+            "easy": 300,  # 5 minutes
+            "medium": 600,  # 10 minutes
+            "hard": 900,  # 15 minutes
+            "very_hard": 1200,  # 20 minutes
         }
         target_time = target_times.get(difficulty, 600)
-        
+
         if duration_seconds <= target_time:
             time_ratio = max(0, (target_time - duration_seconds) / target_time)
             time_bonus = int(base_score * 0.5 * time_ratio)
@@ -574,16 +571,16 @@ def calculate_game_score(difficulty: str, phrases_found: int, total_phrases: int
             time_bonus = 0
     else:
         time_bonus = 0
-    
+
     # Streak bonus for completing all phrases
     streak_bonus = 200 if phrases_found == total_phrases else 0
-    
+
     # Hint penalty: -50 points per hint used
     hint_penalty = hints_used * 50
-    
+
     # Calculate final score
     final_score = max(0, base_score + difficulty_bonus + time_bonus + streak_bonus - hint_penalty)
-    
+
     return {
         "base_score": base_score,
         "difficulty_bonus": difficulty_bonus,
@@ -591,7 +588,7 @@ def calculate_game_score(difficulty: str, phrases_found: int, total_phrases: int
         "streak_bonus": streak_bonus,
         "hint_penalty": hint_penalty,
         "final_score": final_score,
-        "hints_used": hints_used
+        "hints_used": hints_used,
     }
 
 

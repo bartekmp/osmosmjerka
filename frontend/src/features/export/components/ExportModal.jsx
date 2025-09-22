@@ -9,6 +9,7 @@ import {
     Backdrop
 } from '@mui/material';
 import { useTranslation } from 'react-i18next';
+import PropTypes from 'prop-types';
 
 export default function ExportModal({ open, onClose, onFormatSelect }) {
     const { t } = useTranslation();
@@ -135,3 +136,10 @@ export default function ExportModal({ open, onClose, onFormatSelect }) {
         </Modal>
     );
 }
+
+
+ExportModal.propTypes = {
+  open: PropTypes.bool.isRequired,
+  onClose: PropTypes.func.isRequired,
+  onFormatSelect: PropTypes.func.isRequired,
+};

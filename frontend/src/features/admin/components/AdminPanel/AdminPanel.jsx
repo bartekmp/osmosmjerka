@@ -41,6 +41,7 @@ import UserManagement from './UserManagement';
 import UserProfile from './UserProfile';
 import StatisticsDashboard from '../StatisticsDashboard/StatisticsDashboard';
 import SystemSettings from '../SystemSettings/SystemSettings';
+import PropTypes from 'prop-types';
 import './AdminPanel.css';
 
 export default function AdminPanel({
@@ -108,19 +109,16 @@ export default function AdminPanel({
         severity: 'success',
         autoHideDuration: 3000,
     });
-    const { isDarkMode, toggleDarkMode } = useThemeMode();
+    const { isDarkMode } = useThemeMode();
 
     const {
         fetchRows: originalFetchRows,
         handleLogin,
         handleSave,
         handleExportTxt,
-        clearDb,
-        handleDelete,
         handleBatchDelete,
         handleBatchAddCategory,
         handleBatchRemoveCategory,
-        isFetchingRows,
         showFetchRateLimit
     } = useAdminApi({
         token,
@@ -338,7 +336,7 @@ export default function AdminPanel({
         if (isLogged && browseRecords && selectedLanguageSetId) {
             fetchRows(offset, limit, filterCategory, searchTerm, selectedLanguageSetId);
         }
-        // eslint-disable-next-line
+         
     }, [browseRecords, offset, filterCategory, selectedLanguageSetId, limit]);
 
     // Clear selections when exiting batch mode
@@ -354,7 +352,7 @@ export default function AdminPanel({
             fetchRows(0, limit, filterCategory, searchTerm, selectedLanguageSetId);
             setOffset(0); // Reset to first page when searching
         }
-        // eslint-disable-next-line
+         
     }, [browseRecords, searchTerm, filterCategory, selectedLanguageSetId, limit]);
 
     // Check token on mount and after login
@@ -385,7 +383,7 @@ export default function AdminPanel({
                     localStorage.removeItem(STORAGE_KEYS.ADMIN_TOKEN);
                 });
         }
-        // eslint-disable-next-line
+         
     }, [token]);
 
     // When switching to Browse Phrases, auto-load first page
@@ -396,7 +394,7 @@ export default function AdminPanel({
             setOffset(0);
             setReloadLoading(false);
         }
-        // eslint-disable-next-line
+         
     }, [isLogged, browseRecords, selectedLanguageSetId]);
 
     // Handle inline save from table with optimistic updates
@@ -1261,3 +1259,9 @@ export default function AdminPanel({
         </AdminLayout>
     );
 }
+
+AdminPanel.propTypes = {
+    ignoredCategories: PropTypes.array,
+    userIgnoredCategories: PropTypes.array,
+    onUpdateUserIgnoredCategories: PropTypes.func,
+};

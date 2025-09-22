@@ -1,4 +1,4 @@
-import React, { useState, useMemo, useEffect, useCallback } from 'react';
+import React, { useState, useMemo, useCallback } from 'react';
 import {
     Table,
     TableBody,
@@ -23,18 +23,17 @@ import {
     flexRender,
     createColumnHelper
 } from '@tanstack/react-table';
-import { measureTextWidth, calculateMinColumnWidths } from './adminTableUtils';
+import { calculateMinColumnWidths } from './adminTableUtils';
 import EditPhraseDialog from './EditPhraseDialog';
 import TextViewDialog from './TextViewDialog';
 import SearchBar from './SearchBar';
 import TableRowActions from './TableRowActions';
 import TableNoRowsOverlay from './TableNoRowsOverlay';
 import { renderExpandableText } from './utils/renderHelpers';
-import { containsHTML, stripHTML } from './utils/validationUtils';
+import PropTypes from 'prop-types';
 
 export default function AdminTable({ 
     rows, 
-    setEditRow, 
     onSaveRow, 
     onDeleteRow, 
     totalRows, 
@@ -494,3 +493,18 @@ export default function AdminTable({
         </>
     );
 }
+
+AdminTable.propTypes = {
+    rows: PropTypes.array.isRequired,
+    _setEditRow: PropTypes.func,
+    onSaveRow: PropTypes.func.isRequired,
+    onDeleteRow: PropTypes.func.isRequired,
+    totalRows: PropTypes.number.isRequired,
+    searchTerm: PropTypes.string,
+    onSearchChange: PropTypes.func.isRequired,
+    isLoading: PropTypes.bool,
+    batchMode: PropTypes.bool,
+    selectedRows: PropTypes.array,
+    onRowSelectionChange: PropTypes.func.isRequired,
+    onBatchModeToggle: PropTypes.func.isRequired,
+};

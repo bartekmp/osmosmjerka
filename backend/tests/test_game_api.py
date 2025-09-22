@@ -1,9 +1,11 @@
-import pytest
 import os
-from unittest.mock import Mock, AsyncMock, patch
-from fastapi.testclient import TestClient
-from osmosmjerka.game_api import router, get_grid_size_and_num_phrases
+from unittest.mock import Mock, patch
+
+import pytest
 from fastapi import FastAPI
+from fastapi.testclient import TestClient
+
+from osmosmjerka.game_api import get_grid_size_and_num_phrases, router
 
 # Set testing environment variable to disable rate limiting
 os.environ["TESTING"] = "true"
@@ -299,8 +301,8 @@ def test_api_endpoints_exist():
 
 def test_imports_work():
     """Test that all necessary imports work correctly"""
-    from osmosmjerka.game_api import router
     from osmosmjerka.database import db_manager
+    from osmosmjerka.game_api import router
     from osmosmjerka.grid_generator import generate_grid
     from osmosmjerka.utils import export_to_docx, export_to_png
 
@@ -315,12 +317,12 @@ def test_imports_work():
 def test_game_api_integration():
     """Test that game API imports all required modules correctly"""
     from osmosmjerka.game_api import (
-        router,
-        get_grid_size_and_num_phrases,
-        generate_grid,
+        db_manager,
         export_to_docx,
         export_to_png,
-        db_manager,
+        generate_grid,
+        get_grid_size_and_num_phrases,
+        router,
     )
 
     assert router is not None

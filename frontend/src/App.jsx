@@ -70,7 +70,10 @@ function AppContent() {
             try {
                 const state = JSON.parse(saved);
                 return !!state.showTranslations;
-            } catch { }
+            } catch (error) {
+                // Ignore parsing errors
+                console.warn('Failed to parse stored game state:', error);
+            }
         }
         return false;
     });
@@ -113,7 +116,7 @@ function AppContent() {
     const allFound = phrases.length > 0 && found.length === phrases.length;
 
     // Use celebration hook
-    const { showCelebration, resetCelebration, celebrationTriggeredRef } = useCelebration(allFound, setLogoFilter);
+    const { showCelebration, resetCelebration } = useCelebration(allFound, setLogoFilter);
 
     // Memoized callback for language set changes to prevent unnecessary re-renders
     const handleLanguageSetChange = useCallback((languageSetId) => {
@@ -151,7 +154,7 @@ function AppContent() {
             setGameStartTime,
             setCurrentElapsedTime
         });
-        // eslint-disable-next-line
+         
     }, []);
 
     // Load default and user-specific ignored categories when language set changes
@@ -219,7 +222,6 @@ function AppContent() {
             }
             lastFetchedLanguageSetIdRef.current = null; // Reset on error to allow retry
         });
-        // eslint-disable-next-line
     }, [restored, debouncedLanguageSetId]);
 
     // Check if statistics are enabled on the server
@@ -260,12 +262,14 @@ function AppContent() {
                     if (response.data.enabled === false) {
                         setStatisticsEnabled(false);
                     }
-                } catch (settingsError) {
+                } catch (_settingsError) {
                     // If settings endpoint fails, keep statistics enabled (default behavior)
+                    console.warn('Failed to load statistics settings:', _settingsError);
                 }
             }
-        } catch (error) {
+        } catch (_error) {
             // If error (e.g., unauthorized, settings not found), disable statistics
+            console.warn('Failed to check statistics enabled status:', _error);
             setStatisticsEnabled(false);
         }
     }, []);
@@ -327,7 +331,6 @@ function AppContent() {
         if (selectedCategory && grid.length === 0) {
             loadPuzzle(selectedCategory, difficulty);
         }
-        // eslint-disable-next-line
     }, [restored, selectedCategory, difficulty]);
 
     const loadPuzzle = (category, diff = difficulty, refresh = false) => {
@@ -673,7 +676,7 @@ function AppContent() {
                 completeGameSession(currentFoundLength, false);
             }
         };
-    }, [selectedCategory, difficulty]); // Only reset when starting new game
+    }, [selectedCategory, difficulty, completeGameSession]); // Only reset when starting new game
 
     // Automatically reveal phrases when all are found
     useEffect(() => {

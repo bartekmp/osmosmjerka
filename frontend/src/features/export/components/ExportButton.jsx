@@ -1,7 +1,6 @@
 import React, { useState } from 'react';
 import axios from 'axios';
 import Button from '@mui/material/Button';
-import Box from '@mui/material/Box';
 import ExportModal from './ExportModal';
 import './ExportButton.css';
 import { useTranslation } from 'react-i18next';

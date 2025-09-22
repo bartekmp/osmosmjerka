@@ -1,5 +1,5 @@
 import React from 'react';
-import { Button, Box, CircularProgress } from '@mui/material';
+import { Button, CircularProgress } from '@mui/material';
 import ResponsiveText from './ResponsiveText';
 
 /**

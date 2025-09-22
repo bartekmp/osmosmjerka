@@ -1,9 +1,7 @@
-import csv
-import io
-from unittest.mock import AsyncMock, Mock, patch
+from unittest.mock import AsyncMock, patch
 
 import pytest
-from fastapi import FastAPI, UploadFile
+from fastapi import FastAPI
 from fastapi.testclient import TestClient
 
 from osmosmjerka.admin_api import router
@@ -282,10 +280,7 @@ def test_upload_text_with_pipe_separator(
     mock_bulk_insert.return_value = None
     mock_record_phrase_operation.return_value = None
 
-    payload = {
-        "content": "categories|phrase|translation\nA|hello|hi\nB|bye|ciao",
-        "separator": "|"
-    }
+    payload = {"content": "categories|phrase|translation\nA|hello|hi\nB|bye|ciao", "separator": "|"}
     response = client.post("/admin/upload-text?language_set_id=2", json=payload)
 
     assert response.status_code == 201

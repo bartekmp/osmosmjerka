@@ -83,7 +83,7 @@ def rate_limit(max_requests: int, window_seconds: int):
             # Skip rate limiting in test environment
             if os.getenv("TESTING") == "true":
                 return await func(*args, **kwargs)
-                
+
             # Extract user from request - user is typically passed as dependency
             user = None
             for arg in args:
@@ -118,8 +118,8 @@ def cache_response(cache_instance: AsyncLRUCache, key_prefix: str = ""):
         @wraps(func)
         async def wrapper(*args, **kwargs):
             # Check if refresh is requested to bypass cache
-            refresh_requested = kwargs.get('refresh', False)
-            
+            refresh_requested = kwargs.get("refresh", False)
+
             # Generate cache key from function name and relevant parameters
             cache_key_parts = [key_prefix, func.__name__]
 
@@ -130,7 +130,7 @@ def cache_response(cache_instance: AsyncLRUCache, key_prefix: str = ""):
 
             # Add relevant parameters to cache key (excluding refresh parameter)
             for key, value in kwargs.items():
-                if key != 'refresh' and isinstance(value, (str, int, float, bool)):
+                if key != "refresh" and isinstance(value, (str, int, float, bool)):
                     cache_key_parts.append(f"{key}_{value}")
 
             cache_key = "_".join(filter(None, cache_key_parts))
@@ -143,11 +143,11 @@ def cache_response(cache_instance: AsyncLRUCache, key_prefix: str = ""):
 
             # Execute function and cache result
             result = await func(*args, **kwargs)
-            
+
             # Only cache if refresh was not requested (to avoid caching forced refreshes)
             if not refresh_requested:
                 cache_instance.set(cache_key, result)
-            
+
             return result
 
         return wrapper

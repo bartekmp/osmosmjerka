@@ -48,7 +48,7 @@ const useCelebration = (allFound, setLogoFilter) => {
     useEffect(() => {
         if (!showCelebration) return;
         
-        let timeouts = [];
+        const timeouts = [];
         
         // Color filters array - copied to avoid dependency issues
         const colorFilters = [

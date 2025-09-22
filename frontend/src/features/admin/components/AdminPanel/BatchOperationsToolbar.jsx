@@ -6,6 +6,7 @@ import {
     Divider
 } from '@mui/material';
 import { useTranslation } from 'react-i18next';
+import PropTypes from 'prop-types';
 
 export default function BatchOperationsToolbar({ 
     selectedCount,
@@ -69,3 +70,12 @@ export default function BatchOperationsToolbar({
         </Box>
     );
 }
+
+
+BatchOperationsToolbar.propTypes = {
+  selectedCount: PropTypes.number.isRequired,
+  onBatchDelete: PropTypes.func.isRequired,
+  onBatchAddCategory: PropTypes.func.isRequired,
+  onBatchRemoveCategory: PropTypes.func.isRequired,
+  disabled: PropTypes.bool,
+};

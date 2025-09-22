@@ -1,5 +1,3 @@
-import { Typography } from '@mui/material';
-
 export function measureTextWidth(text, fontSize = '14px', fontFamily = 'Roboto, sans-serif') {
     const canvas = document.createElement('canvas');
     const context = canvas.getContext('2d');
@@ -24,7 +22,7 @@ export function calculateMinColumnWidths(filteredRows, t) {
         } else {
             try {
                 headerText = t(key);
-            } catch (err) {
+            } catch {
                 // Fallback to key name if translation fails
                 headerText = key.charAt(0).toUpperCase() + key.slice(1);
             }
