@@ -1,0 +1,50 @@
+pipeline {
+    agent any
+
+    parameters {
+        string(name: 'IMAGE_TAG', defaultValue: '', description: 'Image tag to promote to production (e.g., v1.25.3 or a git SHA). Required.')
+    }
+
+    environment {
+        IMAGE_NAME = 'osmosmjerka'
+        GITOPS_REPO = "${env.OSMOSMJERKA_GITOPS_REPO}"
+        GH_TOKEN = credentials('github_token')
+    }
+
+    stages {
+        stage('Validate Input') {
+            steps {
+                script {
+                    if (!params.IMAGE_TAG?.trim()) {
+                        error('IMAGE_TAG parameter is required for promotion.')
+                    }
+                }
+            }
+        }
+        stage('Promote to Prod') {
+            steps {
+                script {
+                    if (!env.GITOPS_REPO?.trim()) {
+                        error('GITOPS_REPO is not set. Configure OSMOSMJERKA_GITOPS_REPO in Jenkins env.')
+                    }
+                    sh 'rm -rf gitops-tmp'
+                    sh "git clone ${env.GITOPS_REPO} gitops-tmp"
+                    dir('gitops-tmp/k8s/overlays/prod') {
+                        sh "kustomize edit set image ${env.DOCKER_REGISTRY}/${IMAGE_NAME}=${env.DOCKER_REGISTRY}/${IMAGE_NAME}:${params.IMAGE_TAG}"
+                        sh 'git config user.email "ci@example.com"'
+                        sh 'git config user.name "CI Bot"'
+                        sh "git commit -am 'Promote prod image to ${params.IMAGE_TAG}' || echo 'No changes to commit'"
+                        sh 'git push'
+                    }
+                    sh 'rm -rf gitops-tmp'
+                }
+            }
+        }
+    }
+
+    post {
+        always {
+            cleanWs()
+        }
+    }
+}
