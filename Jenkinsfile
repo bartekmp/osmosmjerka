@@ -264,7 +264,7 @@ POSTGRES_DATABASE=${env.POSTGRES_DATABASE}
             }
         }
 
-        stage('Deploy to Argo CD') {
+        stage('Deploy to Argo CD (Staging)') {
             when {
                 branch 'main'
                 not { buildingTag() }
@@ -276,11 +276,11 @@ POSTGRES_DATABASE=${env.POSTGRES_DATABASE}
                     } else if (env.DEPLOY_TO_ARGOCD == 'true') {
                         sh 'rm -rf gitops-tmp'
                         sh "git clone ${env.GITOPS_REPO} gitops-tmp"
-                        dir('gitops-tmp/k8s/overlays/osmosmjerka') {
+                        dir('gitops-tmp/k8s/overlays/staging') {
                             sh "kustomize edit set image ${env.DOCKER_REGISTRY}/${IMAGE_NAME}=${env.DOCKER_REGISTRY}/${IMAGE_NAME}:${env.IMAGE_TAG}"
                             sh 'git config user.email "ci@example.com"'
                             sh 'git config user.name "CI Bot"'
-                            sh 'git commit -am "Update prod image to ${IMAGE_TAG}" || echo \"No changes to commit\"'
+                            sh 'git commit -am "Update staging image to ${IMAGE_TAG}" || echo \"No changes to commit\"'
                             sh 'git push'
                         }
                         sh 'rm -rf gitops-tmp'
