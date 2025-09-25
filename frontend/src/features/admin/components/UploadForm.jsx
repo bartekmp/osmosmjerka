@@ -1,10 +1,10 @@
 import React from 'react';
 import axios from 'axios';
 import { useRef, useState } from 'react';
-import { Button, Box, CircularProgress, Snackbar, Alert, IconButton, Stack } from '@mui/material';
+import { Snackbar, Alert, IconButton } from '@mui/material';
 import CloseIcon from '@mui/icons-material/Close';
 import { useTranslation } from 'react-i18next';
-import { ResponsiveText, STORAGE_KEYS } from '../../../shared';
+import { ResponsiveActionButton, STORAGE_KEYS } from '../../../shared';
 import PastePhraseDialog from './AdminPanel/PastePhraseDialog';
 
 export default function UploadForm({ onUpload, selectedLanguageSetId }) {
@@ -14,8 +14,8 @@ export default function UploadForm({ onUpload, selectedLanguageSetId }) {
     const [notification, setNotification] = useState({
         open: false,
         message: '',
-        severity: 'success', // 'success' or 'error'
-        autoHideDuration: 3000, // ms, only for success
+        severity: 'success',
+        autoHideDuration: 3000,
     });
     const [pasteDialogOpen, setPasteDialogOpen] = useState(false);
 
@@ -42,7 +42,7 @@ export default function UploadForm({ onUpload, selectedLanguageSetId }) {
 
     const handleButtonClick = () => {
         if (!ensureLanguageSetSelected()) return;
-        fileInputRef.current.click();
+        fileInputRef.current?.click();
     };
 
     const handleClose = () => setNotification((n) => ({ ...n, open: false }));
@@ -50,19 +50,20 @@ export default function UploadForm({ onUpload, selectedLanguageSetId }) {
     const handleFileChange = async (e) => {
         setNotification((n) => ({ ...n, open: false }));
         if (!ensureLanguageSetSelected()) {
-            e.target.value = "";
+            e.target.value = '';
             return;
         }
+
         setLoading(true);
-        const file = e.target.files[0];
+        const file = e.target.files?.[0];
         if (!file) {
             setLoading(false);
             return;
         }
+
         const formData = new FormData();
         formData.append('file', file);
 
-        // Get token from localStorage
         const token = localStorage.getItem('adminToken');
         const headers = token ? { Authorization: 'Bearer ' + token } : {};
         const languageSetId = getEffectiveLanguageSetId();
@@ -90,12 +91,12 @@ export default function UploadForm({ onUpload, selectedLanguageSetId }) {
             });
         } finally {
             setLoading(false);
-            e.target.value = ""; // allows selecting the same file again
+            e.target.value = '';
         }
     };
 
     return (
-        <Box sx={{ width: '100%', position: 'relative' }}>
+        <>
             <input
                 ref={fileInputRef}
                 type="file"
@@ -104,34 +105,26 @@ export default function UploadForm({ onUpload, selectedLanguageSetId }) {
                 style={{ display: 'none' }}
                 onChange={handleFileChange}
             />
-            <Stack direction={{ xs: 'column', sm: 'row' }} spacing={1}>
-                <Button 
-                    fullWidth 
-                    variant="contained" 
-                    color="info" 
-                    onClick={handleButtonClick}
-                    size="small"
-                    disabled={loading}
-                >
-                    <span style={{ marginRight: '4px' }}>📁</span>
-                    <ResponsiveText 
-                        desktop={t('upload_phrases', 'Upload phrases (file)')} 
-                        mobile={t('upload', 'Upload')} 
-                    />
-                    {loading && <CircularProgress size={20} sx={{ ml: 1 }} />}
-                </Button>
-                <Button
-                    fullWidth
-                    variant="outlined"
-                    color="secondary"
-                    size="small"
-                    onClick={() => setPasteDialogOpen(true)}
-                >
-                    <span style={{ marginRight: '4px' }}>📝</span>
-                    <ResponsiveText desktop={t('paste_phrases', 'Paste phrases')} mobile={t('paste', 'Paste')} />
-                </Button>
-            </Stack>
-
+            <ResponsiveActionButton
+                fullWidth={false}
+                onClick={handleButtonClick}
+                loading={loading}
+                icon="📁"
+                color="info"
+                desktopText={t('upload_phrases', 'Upload phrases (file)')}
+                mobileText={t('upload', 'Upload')}
+                sx={{ minWidth: { md: 200 } }}
+            />
+            <ResponsiveActionButton
+                fullWidth={false}
+                onClick={() => setPasteDialogOpen(true)}
+                variant="outlined"
+                color="secondary"
+                icon="📝"
+                desktopText={t('paste_phrases', 'Paste phrases')}
+                mobileText={t('paste', 'Paste')}
+                sx={{ minWidth: { md: 200 } }}
+            />
             <PastePhraseDialog
                 open={pasteDialogOpen}
                 onClose={() => setPasteDialogOpen(false)}
@@ -147,7 +140,6 @@ export default function UploadForm({ onUpload, selectedLanguageSetId }) {
                 }}
                 selectedLanguageSetId={selectedLanguageSetId}
             />
-
             <Snackbar
                 open={notification.open}
                 autoHideDuration={notification.severity === 'success' ? notification.autoHideDuration : null}
@@ -166,6 +158,6 @@ export default function UploadForm({ onUpload, selectedLanguageSetId }) {
                     {notification.message}
                 </Alert>
             </Snackbar>
-        </Box>
+        </>
     );
 }

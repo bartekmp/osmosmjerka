@@ -1,8 +1,8 @@
 #!/bin/bash
 
 # Osmosmjerka Advanced Development Script
-# Usage: ./dev-watch.sh
-# Access: http://localhost:3000 (frontend will proxy API calls to :8085)
+# Usage: ./start-dev-env-watch.sh
+# Access: http://localhost:3210 (frontend will proxy API calls to :8085)
 
 set -e  # Exit on any error
 
@@ -16,8 +16,41 @@ CYAN='\033[0;36m'
 NC='\033[0m' # No Color
 
 # Configuration
-FRONTEND_PORT=3000
+FRONTEND_PORT=3210
 BACKEND_PORT=8085
+
+DOTENV_BACKEND_PREFIX=()
+
+# Load environment variables for backend from .env if available
+if [ -f ".env" ]; then
+    if command -v dotenv &> /dev/null; then
+        echo -e "${CYAN}🌱 Using .env via dotenv CLI for backend server${NC}"
+        DOTENV_BACKEND_PREFIX=(dotenv -f ../.env run --)
+    else
+        echo -e "${YELLOW}⚠️  dotenv CLI not found, falling back to manual .env loading${NC}"
+        while IFS= read -r line || [ -n "$line" ]; do
+            if [[ -z "${line//[[:space:]]/}" || ${line:0:1} == "#" ]]; then
+                continue
+            fi
+            if [[ "$line" != *"="* ]]; then
+                continue
+            fi
+            key="${line%%=*}"
+            value="${line#*=}"
+            key="${key%%[[:space:]]*}"
+            key="${key##[[:space:]]*}"
+            value="${value#"${value%%[![:space:]]*}"}"
+            value="${value%"${value##*[![:space:]]}"}"
+            value="${value%$'\r'}"
+            if [[ (${value:0:1} == '"' && ${value: -1} == '"') || (${value:0:1} == "'" && ${value: -1} == "'") ]]; then
+                value="${value:1:-1}"
+            fi
+            export "$key=$value"
+        done < .env
+    fi
+else
+    echo -e "${YELLOW}⚠️  .env file not found, connecting to DB won't be possible!${NC}"
+fi
 
 # Function to cleanup background processes on exit
 cleanup() {
@@ -157,4 +190,10 @@ else
     source ../.venv/bin/activate
 fi
 export DEVELOPMENT_MODE=true  # Enable development mode for backend
-uvicorn osmosmjerka.app:app --host 0.0.0.0 --port $BACKEND_PORT --reload --reload-dir .
+BACKEND_CMD=(uvicorn osmosmjerka.app:app --host 0.0.0.0 --port $BACKEND_PORT --reload --reload-dir .)
+
+if [ ${#DOTENV_BACKEND_PREFIX[@]} -gt 0 ]; then
+    "${DOTENV_BACKEND_PREFIX[@]}" "${BACKEND_CMD[@]}"
+else
+    "${BACKEND_CMD[@]}"
+fi

@@ -1,3 +1,4 @@
+import logging
 import os
 from datetime import datetime, timedelta, timezone
 
@@ -15,6 +16,8 @@ load_dotenv()
 ROOT_ADMIN_USERNAME = os.getenv("ADMIN_USERNAME", "")
 ROOT_ADMIN_PASSWORD_HASH = os.getenv("ADMIN_PASSWORD_HASH", "")
 SECRET_KEY = os.getenv("ADMIN_SECRET_KEY", "")
+
+logger = logging.getLogger(__name__)
 
 ALGORITHM = "HS256"
 ACCESS_TOKEN_EXPIRE_MINUTES = 60
@@ -53,15 +56,26 @@ async def authenticate_user(username: str, password: str) -> dict | None:
     """Authenticate user against database or root admin credentials"""
     # Check if it's the root admin
     if username == ROOT_ADMIN_USERNAME and ROOT_ADMIN_PASSWORD_HASH:
-        if bcrypt.checkpw(password.encode("utf-8"), ROOT_ADMIN_PASSWORD_HASH.encode("utf-8")):
-            return {"username": username, "role": "root_admin", "id": 0}  # Special ID for root admin
+        try:
+            if bcrypt.checkpw(password.encode("utf-8"), ROOT_ADMIN_PASSWORD_HASH.encode("utf-8")):
+                return {"username": username, "role": "root_admin", "id": 0}  # Special ID for root admin
+        except ValueError as exc:
+            logger.error(
+                "Invalid ADMIN_PASSWORD_HASH configured; verify the bcrypt hash in your environment",
+                exc_info=False,
+            )
+            raise HTTPException(status_code=500, detail="Server misconfiguration: invalid admin password hash") from exc
 
     # Check database users
     account = await db_manager.get_account_by_username(username)
     if account and account.get("is_active", False):
-        if bcrypt.checkpw(password.encode("utf-8"), account["password_hash"].encode("utf-8")):
-            await db_manager.update_last_login(username)
-            return {"username": account["username"], "role": account["role"], "id": account["id"]}
+        try:
+            if bcrypt.checkpw(password.encode("utf-8"), account["password_hash"].encode("utf-8")):
+                await db_manager.update_last_login(username)
+                return {"username": account["username"], "role": account["role"], "id": account["id"]}
+        except ValueError:
+            logger.error("Invalid bcrypt hash stored for user '%s'", account.get("username"), exc_info=False)
+            return None
 
     return None
 

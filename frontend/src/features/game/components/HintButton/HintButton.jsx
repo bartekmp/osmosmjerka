@@ -81,7 +81,23 @@ const HintButton = ({
                             sx={{
                                 minWidth: '120px',
                                 fontSize: '0.9rem',
-                                textTransform: 'none'
+                                textTransform: 'none',
+                                color: 'common.white',
+                                '& .MuiButton-startIcon': {
+                                    color: 'inherit'
+                                },
+                                '& .MuiButton-startIcon svg': {
+                                    color: 'inherit'
+                                },
+                                '&.Mui-disabled': {
+                                    color: 'rgba(255,255,255,0.7)',
+                                    '& .MuiButton-startIcon': {
+                                        color: 'rgba(255,255,255,0.7)'
+                                    },
+                                    '& .MuiButton-startIcon svg': {
+                                        color: 'rgba(255,255,255,0.7)'
+                                    }
+                                }
                             }}
                         >
                             {isLoading ? t('loading') : getHintButtonText()}

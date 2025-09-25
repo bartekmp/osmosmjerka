@@ -75,23 +75,41 @@ export function useAdminApi({ token, setRows, setTotalRows, setDashboard, setErr
             });
     }, [setToken, setIsLogged]);
 
-    const handleSave = useCallback((editRow, fetchRows, setEditRow, languageSetId) => {
-        const method = editRow.id ? 'PUT' : 'POST';
-        const url = editRow.id 
-            ? `/admin/row/${editRow.id}?language_set_id=${languageSetId}` 
+    const handleSave = useCallback(async (row, refresh, onSuccess, languageSetId) => {
+        const method = row.id ? 'PUT' : 'POST';
+        const url = row.id
+            ? `/admin/row/${row.id}?language_set_id=${languageSetId}`
             : `/admin/row?language_set_id=${languageSetId}`;
-        fetch(url, {
+
+        const response = await fetch(url, {
             method,
             headers: authHeader,
-            body: JSON.stringify(editRow)
-        }).then(() => {
-            fetchRows();
-            if (editRow.id) {
-                setEditRow(null);
-            } else {
-                setEditRow({ categories: '', phrase: '', translation: '' });
-            }
+            body: JSON.stringify(row)
         });
+
+        if (!response.ok) {
+            let message = 'Failed to save row';
+            try {
+                const errorBody = await response.json();
+                message = errorBody?.message || errorBody?.detail || message;
+            } catch (error) {
+                if (process.env.NODE_ENV !== 'test') {
+                    console.debug('Failed to parse error response', error);
+                }
+                // Ignore JSON parsing errors and fall back to default message
+            }
+            throw new Error(message);
+        }
+
+        if (typeof refresh === 'function') {
+            refresh();
+        }
+
+        if (typeof onSuccess === 'function') {
+            onSuccess();
+        }
+
+        return response;
     }, [authHeader]);
 
     const handleExportTxt = useCallback((filterCategory) => {

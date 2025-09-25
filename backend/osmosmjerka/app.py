@@ -40,7 +40,7 @@ STATIC_FILE_EXTENSIONS = [
 
 # Check if we're in development mode
 DEVELOPMENT_MODE = os.getenv("DEVELOPMENT_MODE", "false").lower() == "true"
-FRONTEND_DEV_URL = "http://localhost:3000"
+FRONTEND_DEV_URL = "http://localhost:3210"
 
 
 # Initialize the FastAPI application

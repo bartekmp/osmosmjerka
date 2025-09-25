@@ -1,10 +1,10 @@
 /* Scrabble style buttons */
 button,
 .scrabble-btn {
-  background: #f9e7b3;
-  border: 2px solid #b89c4e;
+  background: #f2e8d6;
+  border: 2px solid #c7a24f;
   border-radius: 7px;
-  box-shadow: 1px 2px 0 #b89c4e, 0 1px 0 #fff inset;
+  box-shadow: 0 2px 3px rgba(0, 0, 0, 0.12), 0 1px 0 #fdf4e2 inset;
   color: #333;
   font-family: 'Arial Black', Arial, sans-serif;
   font-size: 1.1em;
@@ -29,8 +29,8 @@ button,
 
 button:active,
 .scrabble-btn:active {
-  background: #e6c97a;
-  box-shadow: 0 1px 0 #b89c4e inset;
+  background: #e7ce8a;
+  box-shadow: 0 1px 0 #c7a24f inset;
   transform: translateY(2px);
 }
 
@@ -42,9 +42,9 @@ button:active,
 
 button:disabled,
 .scrabble-btn:disabled {
-  background: #eee6c7;
-  color: #aaa;
-  border-color: #d1c18a;
+  background: #f6efdf;
+  color: #b3a680;
+  border-color: #dfd0a6;
   cursor: not-allowed;
   box-shadow: none;
 }

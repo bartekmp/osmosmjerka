@@ -25,12 +25,13 @@ const ResponsiveActionButton = ({
   variant = 'contained',
   color = undefined,
   size = 'small',
+  fullWidth = true,
   sx = {},
   ...props
 }) => {
   return (
     <Button
-      fullWidth
+      fullWidth={fullWidth}
       onClick={onClick}
       variant={variant}
       color={color}

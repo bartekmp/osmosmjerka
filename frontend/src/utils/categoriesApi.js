@@ -23,7 +23,9 @@ export const fetchCategories = async () => {
         cacheTimestamp = now;
         return categoriesCache;
     } catch (error) {
-        console.error('Error fetching categories:', error);
+        if (process.env.NODE_ENV !== 'test') {
+            console.error('Error fetching categories:', error);
+        }
         // Return empty array on error, but don't cache it
         return [];
     }
