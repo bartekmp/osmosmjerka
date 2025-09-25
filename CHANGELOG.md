@@ -2,6 +2,36 @@
 
 <!-- version list -->
 
+## v1.28.0 (2025-09-25)
+
+### Continuous Integration
+
+- Use multistage deployment, with staging and production environments, add the promotion pipeline
+  ([#73](https://github.com/bartekmp/osmosmjerka/pull/73),
+  [`c0f79bf`](https://github.com/bartekmp/osmosmjerka/commit/c0f79bfeb260ebfeb3ccbf7af5b7ae84df251e15))
+
+- Use multistage deployment, with staging and production environments, add the promotion pipeline
+  ([#72](https://github.com/bartekmp/osmosmjerka/pull/72),
+  [`fce19a6`](https://github.com/bartekmp/osmosmjerka/commit/fce19a6ca148dccbfee0baca3f3027ba995fb542))
+
+- Use staging environment before prod, switch to Flux from Argo, create local mirror of the prod DB
+  ([#73](https://github.com/bartekmp/osmosmjerka/pull/73),
+  [`c0f79bf`](https://github.com/bartekmp/osmosmjerka/commit/c0f79bfeb260ebfeb3ccbf7af5b7ae84df251e15))
+
+- Use staging environment, create a local mirror of the prod db when deploying to stage, switch from
+  Argo to Flux ([#73](https://github.com/bartekmp/osmosmjerka/pull/73),
+  [`c0f79bf`](https://github.com/bartekmp/osmosmjerka/commit/c0f79bfeb260ebfeb3ccbf7af5b7ae84df251e15))
+
+### Feature
+
+- Implement new way of adding a new row, remove EditRowForm entirely, polish animations, tone down
+  day theme background ([#74](https://github.com/bartekmp/osmosmjerka/pull/74),
+  [`1548eff`](https://github.com/bartekmp/osmosmjerka/commit/1548eff83bb90449b2387d2f5a732324cb63c94d))
+
+- Improve the day light mode theme ([#74](https://github.com/bartekmp/osmosmjerka/pull/74),
+  [`1548eff`](https://github.com/bartekmp/osmosmjerka/commit/1548eff83bb90449b2387d2f5a732324cb63c94d))
+
+
 ## v1.27.1 (2025-09-23)
 
 ### Enhancement
