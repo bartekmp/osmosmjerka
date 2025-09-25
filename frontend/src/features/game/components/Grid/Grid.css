@@ -5,12 +5,12 @@
     display: flex;
     align-items: center;
     justify-content: center;
-    border: 2px solid #b89c4e;
+    border: 3px solid #c7a24f;
     border-radius: 4px;
-    box-shadow: 1px 2px 0 #b89c4e, 0 1px 0 #fff inset;
+    box-shadow: 0 2px 3px rgba(0, 0, 0, 0.12), 0 1px 0 #fdf4e2 inset;
     cursor: pointer;
     font-weight: bold;
-    background: #EDEDED;
+    background: #f2e8d6;
     color: #333;
     font-family: 'Clear Sans', 'Trebuchet MS', 'Arial', sans-serif;
     letter-spacing: 0.03em;
@@ -26,7 +26,7 @@
 
 /* Dark mode styles */
 [data-theme="dark"] .grid-cell {
-    border: 2px solid #6b5b3a;
+    border: 3px solid #6b5b3a;
     box-shadow: 1px 2px 0 #6b5b3a, 0 1px 0 #5a5a5a inset;
     background: #4a4a4a;
     color: #e0e0e0;
@@ -34,8 +34,8 @@
 
 /* Cell states */
 .grid-cell.selected {
-    background: #b3e5ff !important;
-    color: #222 !important;
+    background: #cde8f6 !important;
+    color: #1e2b33 !important;
     z-index: 2;
 }
 
@@ -45,7 +45,7 @@
 }
 
 .grid-cell.found {
-    background: #e6c97a;
+    background: #e7ce8a;
 }
 
 [data-theme="dark"] .grid-cell.found {
@@ -74,7 +74,7 @@
 
     0%,
     100% {
-        background: #EDEDED;
+    background: #f2e8d6;
         color: #333;
     }
 
@@ -102,7 +102,7 @@
 
     0%,
     100% {
-        background: #EDEDED;
+    background: #f2e8d6;
         color: #333;
         transform: scale(1);
     }

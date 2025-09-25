@@ -93,6 +93,9 @@ export function useAdminApi({ token, setRows, setTotalRows, setDashboard, setErr
                 const errorBody = await response.json();
                 message = errorBody?.message || errorBody?.detail || message;
             } catch (error) {
+                if (process.env.NODE_ENV !== 'test') {
+                    console.debug('Failed to parse error response', error);
+                }
                 // Ignore JSON parsing errors and fall back to default message
             }
             throw new Error(message);

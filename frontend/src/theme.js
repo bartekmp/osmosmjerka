@@ -1,5 +1,11 @@
 import { createTheme } from '@mui/material/styles';
 
+const LIGHT_CELL_BORDER = '#c7a24f';
+const LIGHT_CELL_BACKGROUND = '#f2e8d6';
+const LIGHT_CELL_INNER_HIGHLIGHT = '#fdf4e2';
+const LIGHT_CELL_SELECTED = '#cde8f6';
+const LIGHT_CELL_FOUND = '#e7ce8a';
+
 const createAppTheme = (isDarkMode = false) => createTheme({
   palette: {
     mode: isDarkMode ? 'dark' : 'light',
@@ -129,11 +135,13 @@ const createAppTheme = (isDarkMode = false) => createTheme({
             display: 'flex',
             alignItems: 'center',
             justifyContent: 'center',
-            border: `2px solid ${isDarkMode ? '#6b5b3a' : '#b89c4e'}`,
+            border: `3px solid ${isDarkMode ? '#6b5b3a' : LIGHT_CELL_BORDER}`,
             borderRadius: '4px',
-            boxShadow: `1px 2px 0 ${isDarkMode ? '#6b5b3a' : '#b89c4e'}, 0 1px 0 ${isDarkMode ? '#5a5a5a' : '#fff6ed'} inset`,
+            boxShadow: isDarkMode
+              ? `1px 2px 0 #6b5b3a, 0 1px 0 #5a5a5a inset`
+              : `0 2px 3px rgba(0,0,0,0.12), 0 1px 0 ${LIGHT_CELL_INNER_HIGHLIGHT} inset`,
             cursor: 'pointer',
-            background: isDarkMode ? '#4a4a4a' : '#e8dcc6',
+            background: isDarkMode ? '#4a4a4a' : LIGHT_CELL_BACKGROUND,
             color: isDarkMode ? '#e0e0e0' : '#333',
             fontFamily: '"Clear Sans", "Trebuchet MS", "Arial", sans-serif',
             letterSpacing: '0.03em',
@@ -142,10 +150,10 @@ const createAppTheme = (isDarkMode = false) => createTheme({
             lineHeight: 1,
             fontWeight: 'bold',
             '&.selected': {
-              background: isDarkMode ? '#5a6b8a' : '#b3e5ff',
+              background: isDarkMode ? '#5a6b8a' : LIGHT_CELL_SELECTED,
             },
             '&.found': {
-              background: isDarkMode ? '#6b5b3a' : '#e6c97a',
+              background: isDarkMode ? '#6b5b3a' : LIGHT_CELL_FOUND,
             },
           },
         },
@@ -241,14 +249,14 @@ const createAppTheme = (isDarkMode = false) => createTheme({
       styleOverrides: {
         item: {
           '&.grid-cell': {
-            border: '2px solid #b89c4e',
+            border: `3px solid ${LIGHT_CELL_BORDER}`,
             aspectRatio: '1 / 1',
             textAlign: 'center',
             borderRadius: '4px',
-            boxShadow: '1px 2px 0 #b89c4e, 0 1px 0 #fff6ed inset',
+            boxShadow: `0 2px 3px rgba(0,0,0,0.12), 0 1px 0 ${LIGHT_CELL_INNER_HIGHLIGHT} inset`,
             cursor: 'pointer',
             fontWeight: 500,
-            background: '#e8dcc6',
+            background: LIGHT_CELL_BACKGROUND,
             color: '#333',
             fontFamily: '"Clear Sans", "Trebuchet MS", "Arial", sans-serif',
             fontSize: '1.35em',
@@ -258,10 +266,10 @@ const createAppTheme = (isDarkMode = false) => createTheme({
             padding: '0.4em',
             lineHeight: 1,
             '&.selected': {
-              background: '#b3e5ff',
+              background: LIGHT_CELL_SELECTED,
             },
             '&.found': {
-              background: '#e6c97a',
+              background: LIGHT_CELL_FOUND,
             },
           },
         },
