@@ -282,30 +282,49 @@ POSTGRES_DATABASE=${env.POSTGRES_DATABASE}
 
                             // Generate new DB clone job for this version
                             echo "Creating database clone job for version ${env.IMAGE_TAG}"
-                            sh """
-                                # Delete any existing clone job first
-                                kubectl delete job -n osmosmjerka-staging -l app.kubernetes.io/name=db-clone --ignore-not-found=true
 
-                                # Create new clone job with version-specific name
-                                sed 's/VERSION_PLACEHOLDER/${env.IMAGE_TAG}/g' db-clone-job-template.yaml > db-clone-job-${env.IMAGE_TAG}.yaml
+                            def cloneJobFile = "db-clone-job-${env.IMAGE_TAG}.yaml"
 
-                                # Apply the new clone job
-                                kubectl apply -f db-clone-job-${env.IMAGE_TAG}.yaml
+                            sh "sed 's/VERSION_PLACEHOLDER/${env.IMAGE_TAG}/g' db-clone-job-template.yaml > ${cloneJobFile}"
 
-                                # Wait for clone job to complete (with timeout)
-                                echo "Waiting for database clone to complete..."
-                                kubectl wait --for=condition=complete --timeout=600s job/clone-prod-to-staging-${env.IMAGE_TAG} -n osmosmjerka-staging || {
-                                    echo "Clone job timed out or failed, checking status..."
-                                    kubectl describe job clone-prod-to-staging-${env.IMAGE_TAG} -n osmosmjerka-staging
-                                    kubectl logs -l job-name=clone-prod-to-staging-${env.IMAGE_TAG} -n osmosmjerka-staging --tail=50 || true
-                                    exit 1
+                            try {
+                                withCredentials([
+                                    file(credentialsId: 'osmosmjerka-staging-kubeconfig', variable: 'KUBECONFIG_FILE')
+                                ]) {
+                                    withEnv([
+                                        "CLONE_JOB_FILE=${cloneJobFile}",
+                                        "CLONE_JOB_VERSION=${env.IMAGE_TAG}",
+                                        "KUBE_NAMESPACE=osmosmjerka-staging"
+                                    ]) {
+                                        sh '''
+                                            set -euo pipefail
+                                            trap 'rm -f "$CLONE_JOB_FILE"' EXIT
+
+                                            export KUBECONFIG="$KUBECONFIG_FILE"
+
+                                            # Delete any existing clone job first
+                                            kubectl delete job -n "$KUBE_NAMESPACE" -l app.kubernetes.io/name=db-clone --ignore-not-found=true
+
+                                            # Apply the new clone job
+                                            kubectl apply -f "$CLONE_JOB_FILE"
+
+                                            # Wait for clone job to complete (with timeout)
+                                            echo "Waiting for database clone to complete..."
+                                            kubectl wait --for=condition=complete --timeout=600s "job/clone-prod-to-staging-$CLONE_JOB_VERSION" -n "$KUBE_NAMESPACE" || {
+                                                echo "Clone job timed out or failed, checking status..."
+                                                kubectl describe job "clone-prod-to-staging-$CLONE_JOB_VERSION" -n "$KUBE_NAMESPACE"
+                                                kubectl logs -l job-name="clone-prod-to-staging-$CLONE_JOB_VERSION" -n "$KUBE_NAMESPACE" --tail=50 || true
+                                                exit 1
+                                            }
+
+                                            echo "Database clone completed successfully!"
+                                        '''
+                                    }
                                 }
-
-                                echo "Database clone completed successfully!"
-
-                                # Clean up the temporary job file
-                                rm -f db-clone-job-${env.IMAGE_TAG}.yaml
-                            """
+                            } finally {
+                                // Safety cleanup in case the trap did not execute
+                                sh "rm -f ${cloneJobFile}"
+                            }
 
                             sh 'git config user.email "ci@example.com"'
                             sh 'git config user.name "CI Bot"'
