@@ -12,8 +12,8 @@ const createAppTheme = (isDarkMode = false) => createTheme({
       main: isDarkMode ? '#6b5b3a' : '#e6c97a',
     },
     background: {
-      default: isDarkMode ? '#2a2a2a' : '#fafafa',
-      paper: isDarkMode ? '#3a3a3a' : '#ffffff',
+      default: isDarkMode ? '#2a2a2a' : '#f4efe4',
+      paper: isDarkMode ? '#3a3a3a' : '#fff8ec',
     },
     text: {
       primary: isDarkMode ? '#e0e0e0' : '#333333',
@@ -119,7 +119,7 @@ const createAppTheme = (isDarkMode = false) => createTheme({
       styleOverrides: {
         root: {
           '&.grid-container': {
-            backgroundColor: isDarkMode ? '#3a3a3a' : '#f5f5f5',
+            backgroundColor: isDarkMode ? '#3a3a3a' : '#f4efe4',
             borderRadius: '8px',
             boxShadow: isDarkMode ? '0 4px 8px rgba(0,0,0,0.3)' : '0 4px 8px rgba(0,0,0,0.1)',
             padding: '4px',
@@ -131,9 +131,9 @@ const createAppTheme = (isDarkMode = false) => createTheme({
             justifyContent: 'center',
             border: `2px solid ${isDarkMode ? '#6b5b3a' : '#b89c4e'}`,
             borderRadius: '4px',
-            boxShadow: `1px 2px 0 ${isDarkMode ? '#6b5b3a' : '#b89c4e'}, 0 1px 0 ${isDarkMode ? '#5a5a5a' : '#fff'} inset`,
+            boxShadow: `1px 2px 0 ${isDarkMode ? '#6b5b3a' : '#b89c4e'}, 0 1px 0 ${isDarkMode ? '#5a5a5a' : '#fff6ed'} inset`,
             cursor: 'pointer',
-            background: isDarkMode ? '#4a4a4a' : '#EDEDED',
+            background: isDarkMode ? '#4a4a4a' : '#e8dcc6',
             color: isDarkMode ? '#e0e0e0' : '#333',
             fontFamily: '"Clear Sans", "Trebuchet MS", "Arial", sans-serif',
             letterSpacing: '0.03em',
@@ -158,7 +158,7 @@ const createAppTheme = (isDarkMode = false) => createTheme({
           '&.admin-table': {
             borderCollapse: 'separate',
             borderSpacing: 0,
-            background: isDarkMode ? '#3a3a3a' : '#fff',
+            background: isDarkMode ? '#3a3a3a' : '#fff8f0',
             borderRadius: '8px',
             overflow: 'hidden',
             boxShadow: isDarkMode ? '0 2px 8px rgba(0,0,0,0.3)' : '0 2px 8px rgba(0,0,0,0.1)',
@@ -186,7 +186,7 @@ const createAppTheme = (isDarkMode = false) => createTheme({
           '&.admin-cell': {
             border: `1px solid ${isDarkMode ? '#555' : '#ddd'}`,
             fontFamily: '"Clear Sans", "Trebuchet MS", "Arial", sans-serif',
-            backgroundColor: isDarkMode ? '#3a3a3a' : '#fff',
+            backgroundColor: isDarkMode ? '#3a3a3a' : '#fff8f0',
             color: isDarkMode ? '#e0e0e0' : '#333',
             padding: '8px 12px',
           },
@@ -245,10 +245,10 @@ const createAppTheme = (isDarkMode = false) => createTheme({
             aspectRatio: '1 / 1',
             textAlign: 'center',
             borderRadius: '4px',
-            boxShadow: '1px 2px 0 #b89c4e, 0 1px 0 #fff inset',
+            boxShadow: '1px 2px 0 #b89c4e, 0 1px 0 #fff6ed inset',
             cursor: 'pointer',
             fontWeight: 500,
-            background: '#EDEDED',
+            background: '#e8dcc6',
             color: '#333',
             fontFamily: '"Clear Sans", "Trebuchet MS", "Arial", sans-serif',
             fontSize: '1.35em',

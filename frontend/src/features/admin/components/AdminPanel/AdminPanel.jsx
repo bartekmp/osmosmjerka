@@ -29,7 +29,6 @@ import AdminTable from './AdminTable';
 import BatchOperationDialog from './BatchOperationDialog';
 import BatchOperationsToolbar from './BatchOperationsToolbar';
 import BatchResultDialog from './BatchResultDialog';
-import EditRowForm from './EditRowForm';
 import { isTokenExpired } from './helpers';
 import LanguageSetManagement from './LanguageSetManagement';
 import DuplicateManagement from './DuplicateManagement';
@@ -58,7 +57,8 @@ export default function AdminPanel({
         const saved = localStorage.getItem(STORAGE_KEYS.ADMIN_PAGE_SIZE);
         return saved ? parseInt(saved) : 20;
     });
-    const [editRow, setEditRow] = useState(null);
+    const [newRow, setNewRow] = useState(null);
+    const [isSavingNewRow, setIsSavingNewRow] = useState(false);
     const [error, setError] = useState("");
     const [isLogged, setIsLogged] = useState(false);
     const [dashboard, setDashboard] = useState(true);
@@ -119,6 +119,7 @@ export default function AdminPanel({
         handleBatchDelete,
         handleBatchAddCategory,
         handleBatchRemoveCategory,
+        invalidateCategoriesCache,
         showFetchRateLimit
     } = useAdminApi({
         token,
@@ -397,6 +398,58 @@ export default function AdminPanel({
          
     }, [isLogged, browseRecords, selectedLanguageSetId]);
 
+    const handleStartAddRow = useCallback(() => {
+        if (!selectedLanguageSetId || newRow) {
+            return;
+        }
+        setNewRow({ categories: '', phrase: '', translation: '' });
+        setError('');
+    }, [selectedLanguageSetId, newRow]);
+
+    const handleNewRowFieldChange = useCallback((field, value) => {
+        setNewRow(prev => (prev ? { ...prev, [field]: value } : prev));
+    }, []);
+
+    const handleCancelNewRow = useCallback(() => {
+        setNewRow(null);
+    }, []);
+
+    const handleConfirmNewRow = useCallback(async () => {
+        if (!newRow || !selectedLanguageSetId) {
+            return;
+        }
+
+        const payload = {
+            categories: newRow.categories?.trim() || '',
+            phrase: newRow.phrase?.trim() || '',
+            translation: newRow.translation?.trim() || ''
+        };
+
+        if (!payload.categories || !payload.phrase || !payload.translation) {
+            return;
+        }
+
+        const refreshRows = () => fetchRows(offset, limit, filterCategory, searchTerm, selectedLanguageSetId);
+
+        try {
+            setIsSavingNewRow(true);
+            setError('');
+            await handleSave(payload, refreshRows, () => {
+                setNewRow(null);
+                invalidateCategoriesCache();
+            }, selectedLanguageSetId);
+        } catch (err) {
+            setError(err?.message || t('failed_to_save_row', 'Failed to save row'));
+        } finally {
+            setIsSavingNewRow(false);
+        }
+    }, [newRow, selectedLanguageSetId, fetchRows, offset, limit, filterCategory, searchTerm, handleSave, invalidateCategoriesCache, t]);
+
+    useEffect(() => {
+        setNewRow(null);
+        setIsSavingNewRow(false);
+    }, [browseRecords, selectedLanguageSetId]);
+
     // Handle inline save from table with optimistic updates
     const handleInlineSave = useCallback((updatedRow) => {
         // Optimistically update the local state first
@@ -623,7 +676,7 @@ export default function AdminPanel({
     }
 
     // Dashboard view
-    if (dashboard && !editRow) {
+    if (dashboard) {
         return (
             <AdminLayout
                 maxWidth="md"
@@ -917,91 +970,79 @@ export default function AdminPanel({
                     </Typography>
                     {/* Action Buttons */}
                     <Paper sx={{ p: 3, mb: 3 }}>
-                        <Grid container spacing={2} justifyContent="center">
-                            <Grid size={{ xs: 6, sm: 4, md: 2 }}>
+                        <Stack
+                            direction={{ xs: 'column', lg: 'row' }}
+                            spacing={2}
+                            alignItems={{ xs: 'stretch', lg: 'center' }}
+                            justifyContent="flex-start"
+                            sx={{ flexWrap: { xs: 'wrap', lg: 'nowrap' } }}
+                        >
+                            <ResponsiveActionButton
+                                fullWidth={false}
+                                onClick={() => {
+                                    if (selectedLanguageSetId) {
+                                        setReloadLoading(true);
+                                        fetchRows(offset, limit, filterCategory, searchTerm, selectedLanguageSetId);
+                                        setTimeout(() => setReloadLoading(false), 500);
+                                    }
+                                }}
+                                loading={reloadLoading}
+                                icon="📊"
+                                desktopText={t('reload_data')}
+                                mobileText={t('reload')}
+                                sx={{ minWidth: { md: 180 } }}
+                            />
+                            <UploadForm
+                                selectedLanguageSetId={selectedLanguageSetId}
+                                onUpload={() => selectedLanguageSetId && fetchRows(offset, limit, filterCategory, searchTerm, selectedLanguageSetId)}
+                            />
+                            <ResponsiveActionButton
+                                fullWidth={false}
+                                onClick={() => handleExportTxt(filterCategory)}
+                                variant="outlined"
+                                color="success"
+                                icon="💾"
+                                desktopText={t('download_phrases')}
+                                mobileText={t('download')}
+                                sx={{ minWidth: { md: 200 } }}
+                            />
+                            {currentUser?.role === 'root_admin' && (
                                 <ResponsiveActionButton
-                                    onClick={() => {
-                                        if (selectedLanguageSetId) {
-                                            setReloadLoading(true);
-                                            fetchRows(offset, limit, filterCategory, searchTerm, selectedLanguageSetId);
-                                            setTimeout(() => setReloadLoading(false), 500);
+                                    fullWidth={false}
+                                    onClick={handleClearDb}
+                                    loading={clearLoading}
+                                    icon="🗑️"
+                                    desktopText={t('clear_database')}
+                                    mobileText={t('clear')}
+                                    sx={{
+                                        bgcolor: 'error.main',
+                                        color: 'white',
+                                        '&:hover': {
+                                            bgcolor: 'error.dark',
                                         }
                                     }}
-                                    loading={reloadLoading}
-                                    icon="📊"
-                                    desktopText={t('reload_data')}
-                                    mobileText={t('reload')}
                                 />
-                            </Grid>
-                            <Grid size={{ xs: 6, sm: 4, md: 2 }}>
-                                <ResponsiveActionButton
-                                    onClick={() => setEditRow({ categories: '', phrase: '', translation: '' })}
-                                    color="secondary"
-                                    icon="➕"
-                                    desktopText={t('add_row')}
-                                    mobileText={t('add')}
-                                />
-                            </Grid>
-                            <Grid size={{ xs: 6, sm: 4, md: 2 }}>
-                                <Box sx={{ height: '100%', display: 'flex' }}>
-                                    <UploadForm selectedLanguageSetId={selectedLanguageSetId} onUpload={() => selectedLanguageSetId && fetchRows(offset, limit, filterCategory, searchTerm, selectedLanguageSetId)} />
-                                </Box>
-                            </Grid>
-                            <Grid size={{ xs: 6, sm: 4, md: 2 }}>
-                                <ResponsiveActionButton
-                                    onClick={() => handleExportTxt(filterCategory)}
-                                    variant="outlined"
-                                    color="success"
-                                    icon="💾"
-                                    desktopText={t('download_phrases')}
-                                    mobileText={t('download')}
-                                />
-                            </Grid>
-                            {/* Clear Database Button - Root Admin Only */}
-                            {currentUser?.role === 'root_admin' && (
-                                <Grid size={{ xs: 12, sm: 4, md: 2 }}>
-                                    <ResponsiveActionButton
-                                        onClick={handleClearDb}
-                                        loading={clearLoading}
-                                        icon="🗑️"
-                                        desktopText={t('clear_database')}
-                                        mobileText={t('clear')}
-                                        sx={{
-                                            bgcolor: 'error.main',
-                                            color: 'white',
-                                            '&:hover': {
-                                                bgcolor: 'error.dark',
-                                            }
-                                        }}
-                                    />
-                                    <Snackbar
-                                        open={clearNotification.open}
-                                        autoHideDuration={clearNotification.severity === 'success' ? clearNotification.autoHideDuration : null}
-                                        onClose={handleClearClose}
-                                        anchorOrigin={{ vertical: 'top', horizontal: 'center' }}
-                                    >
-                                        <Alert
-                                            severity={clearNotification.severity}
-                                            action={
-                                                <IconButton size="small" color="inherit" onClick={handleClearClose}>
-                                                    <CloseIcon fontSize="small" />
-                                                </IconButton>
-                                            }
-                                            onClose={handleClearClose}
-                                        >
-                                            {clearNotification.message}
-                                        </Alert>
-                                    </Snackbar>
-                                </Grid>
                             )}
-                        </Grid>
+                        </Stack>
+                        <Snackbar
+                            open={clearNotification.open}
+                            autoHideDuration={clearNotification.severity === 'success' ? clearNotification.autoHideDuration : null}
+                            onClose={handleClearClose}
+                            anchorOrigin={{ vertical: 'top', horizontal: 'center' }}
+                        >
+                            <Alert
+                                severity={clearNotification.severity}
+                                action={
+                                    <IconButton size="small" color="inherit" onClick={handleClearClose}>
+                                        <CloseIcon fontSize="small" />
+                                    </IconButton>
+                                }
+                                onClose={handleClearClose}
+                            >
+                                {clearNotification.message}
+                            </Alert>
+                        </Snackbar>
                     </Paper>
-                    {/* Edit Row Form */}
-                    <EditRowForm
-                        editRow={editRow}
-                        setEditRow={setEditRow}
-                        handleSave={() => handleSave(editRow, () => selectedLanguageSetId && fetchRows(offset, limit, filterCategory, searchTerm, selectedLanguageSetId), setEditRow, selectedLanguageSetId)}
-                    />
                     {/* Filter and Statistics */}
                     <Paper sx={{ p: 3, mb: 3 }}>
                         <Grid container spacing={3} alignItems="center">
@@ -1172,7 +1213,6 @@ export default function AdminPanel({
                     {/* Data Table */}
                     <AdminTable
                         rows={rows}
-                        setEditRow={setEditRow}
                         onSaveRow={handleInlineSave}
                         onDeleteRow={handleInlineDelete}
                         totalRows={totalRows}
@@ -1183,6 +1223,14 @@ export default function AdminPanel({
                         selectedRows={selectedRows}
                         onRowSelectionChange={handleRowSelectionChange}
                         onBatchModeToggle={handleBatchModeToggle}
+                        onAddNewRow={handleStartAddRow}
+                        newRow={newRow}
+                        onNewRowChange={handleNewRowFieldChange}
+                        onCancelNewRow={handleCancelNewRow}
+                        onConfirmNewRow={handleConfirmNewRow}
+                        isSavingNewRow={isSavingNewRow}
+                        canAddNewRow={Boolean(isLogged && selectedLanguageSetId)}
+                        categoryOptions={categories}
                     />
                     {/* Pagination */}
                     <Box sx={{ mt: 3 }}>

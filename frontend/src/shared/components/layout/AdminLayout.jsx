@@ -60,7 +60,7 @@ const AdminLayout = ({
           <AdminButton
             onClick={onLogout}
             color="secondary"
-            desktopText={t('logout')}
+            desktopText={`🚪 ${t('logout')}`}
             mobileText="🚪"
           />
         )}

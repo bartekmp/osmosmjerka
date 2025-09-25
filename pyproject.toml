@@ -12,7 +12,7 @@ dependencies = [
     "python-dotenv==1.1.1",
     "python-jose[cryptography]==3.5.0",
     "python-multipart==0.0.20",
-    "uvicorn==0.35.0",
+    "uvicorn[standard]==0.35.0",
     "reportlab==4.4.3",
     "pillow==11.3.0",
     "asyncpg==0.30.0",
