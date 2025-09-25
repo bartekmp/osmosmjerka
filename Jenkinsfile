@@ -2,7 +2,7 @@ pipeline {
     agent any
 
     parameters {
-        booleanParam(name: 'DEPLOY_TO_ARGOCD', defaultValue: true, description: 'Deploy to ArgoCD after build? Set to false to skip deployment.')
+        booleanParam(name: 'TRIGGER_GITOPS_CD', defaultValue: true, description: 'Update GitOps repo after build? Set to false to skip deployment.')
         booleanParam(name: 'SKIP_IMAGE_PUSH', defaultValue: false, description: 'Skip Docker image push? Set to false to skip.')
     }
 
@@ -22,7 +22,7 @@ pipeline {
         POSTGRES_USER = credentials('osmosmjerka-db-user')
         POSTGRES_PASSWORD = credentials('osmosmjerka-db-password')
 
-        DEPLOY_TO_ARGOCD_PARAM = "${params.DEPLOY_TO_ARGOCD.toString()}"
+        TRIGGER_GITOPS_CD_PARAM = "${params.TRIGGER_GITOPS_CD.toString()}"
         SKIP_IMAGE_PUSH_PARAM = "${params.SKIP_IMAGE_PUSH.toString()}"
         GH_TOKEN = credentials('github_token')
     }
@@ -152,11 +152,11 @@ pipeline {
             }
             steps {
                 script {
-                    env.DEPLOY_TO_ARGOCD = env.DEPLOY_TO_ARGOCD_PARAM ?: 'false'
+                    env.TRIGGER_GITOPS_CD = env.TRIGGER_GITOPS_CD_PARAM ?: 'false'
                     env.SKIP_IMAGE_PUSH = env.SKIP_IMAGE_PUSH_PARAM ?: 'false'
                     env.IS_NEW_RELEASE = 'true'
 
-                    echo "Initial DEPLOY_TO_ARGOCD value: ${env.DEPLOY_TO_ARGOCD}"
+                    echo "Initial TRIGGER_GITOPS_CD value: ${env.TRIGGER_GITOPS_CD}"
                     echo "Initial SKIP_IMAGE_PUSH value: ${env.SKIP_IMAGE_PUSH}"
                     echo "Initial IS_NEW_RELEASE value: ${env.IS_NEW_RELEASE}"
 
@@ -171,18 +171,18 @@ pipeline {
                     echo "Semantic-release exit code: ${exitCode}"
                     if (exitCode == 0) {
                         echo "Branch: New version released successfully"
-                        env.DEPLOY_TO_ARGOCD = 'true'
+                        env.TRIGGER_GITOPS_CD = 'true'
                         env.SKIP_IMAGE_PUSH = 'false'
                         env.IS_NEW_RELEASE = 'true'
-                        echo "Set DEPLOY_TO_ARGOCD to: ${env.DEPLOY_TO_ARGOCD}"
+                        echo "Set TRIGGER_GITOPS_CD to: ${env.TRIGGER_GITOPS_CD}"
                         echo "Set SKIP_IMAGE_PUSH to: ${env.SKIP_IMAGE_PUSH}"
                         echo "Set IS_NEW_RELEASE to: ${env.IS_NEW_RELEASE}"
                     } else if (exitCode == 2) {
-                        echo "Branch: No release necessary or already released, setting DEPLOY_TO_ARGOCD to false"
-                        env.DEPLOY_TO_ARGOCD = 'false'
+                        echo "Branch: No release necessary or already released, setting TRIGGER_GITOPS_CD to false"
+                        env.TRIGGER_GITOPS_CD = 'false'
                         env.SKIP_IMAGE_PUSH = 'true'
                         env.IS_NEW_RELEASE = 'false'
-                        echo "Set DEPLOY_TO_ARGOCD to: ${env.DEPLOY_TO_ARGOCD}"
+                        echo "Set TRIGGER_GITOPS_CD to: ${env.TRIGGER_GITOPS_CD}"
                         echo "Set SKIP_IMAGE_PUSH to: ${env.SKIP_IMAGE_PUSH}"
                         echo "Set IS_NEW_RELEASE to: ${env.IS_NEW_RELEASE}"
                         env.IMAGE_TAG = "v999.0.0-dev"
@@ -264,7 +264,7 @@ POSTGRES_DATABASE=${env.POSTGRES_DATABASE}
             }
         }
 
-        stage('Deploy to Argo CD (Staging)') {
+        stage('Deploy with GitOps (staging and prod)') {
             when {
                 branch 'main'
                 not { buildingTag() }
@@ -272,20 +272,49 @@ POSTGRES_DATABASE=${env.POSTGRES_DATABASE}
             steps {
                 script {
                     if (!env.GITOPS_REPO?.trim()) {
-                        echo 'Skipping deployment to ArgoCD because GITOPS_REPO is not set.'
-                    } else if (env.DEPLOY_TO_ARGOCD == 'true') {
+                        echo 'Skipping GitOps deployment because GITOPS_REPO is not set.'
+                    } else if (env.TRIGGER_GITOPS_CD == 'true') {
                         sh 'rm -rf gitops-tmp'
                         sh "git clone ${env.GITOPS_REPO} gitops-tmp"
+                        // staging bump
                         dir('gitops-tmp/k8s/overlays/staging') {
                             sh "kustomize edit set image ${env.DOCKER_REGISTRY}/${IMAGE_NAME}=${env.DOCKER_REGISTRY}/${IMAGE_NAME}:${env.IMAGE_TAG}"
+
+                            // Generate new DB clone job for this version
+                            echo "Creating database clone job for version ${env.IMAGE_TAG}"
+                            sh """
+                                # Delete any existing clone job first
+                                kubectl delete job -n osmosmjerka-staging -l app.kubernetes.io/name=db-clone --ignore-not-found=true
+
+                                # Create new clone job with version-specific name
+                                sed 's/VERSION_PLACEHOLDER/${env.IMAGE_TAG}/g' db-clone-job-template.yaml > db-clone-job-${env.IMAGE_TAG}.yaml
+
+                                # Apply the new clone job
+                                kubectl apply -f db-clone-job-${env.IMAGE_TAG}.yaml
+
+                                # Wait for clone job to complete (with timeout)
+                                echo "Waiting for database clone to complete..."
+                                kubectl wait --for=condition=complete --timeout=600s job/clone-prod-to-staging-${env.IMAGE_TAG} -n osmosmjerka-staging || {
+                                    echo "Clone job timed out or failed, checking status..."
+                                    kubectl describe job clone-prod-to-staging-${env.IMAGE_TAG} -n osmosmjerka-staging
+                                    kubectl logs -l job-name=clone-prod-to-staging-${env.IMAGE_TAG} -n osmosmjerka-staging --tail=50 || true
+                                    exit 1
+                                }
+
+                                echo "Database clone completed successfully!"
+
+                                # Clean up the temporary job file
+                                rm -f db-clone-job-${env.IMAGE_TAG}.yaml
+                            """
+
                             sh 'git config user.email "ci@example.com"'
                             sh 'git config user.name "CI Bot"'
-                            sh 'git commit -am "Update staging image to ${IMAGE_TAG}" || echo \"No changes to commit\"'
-                            sh 'git push'
+                            sh 'git commit -am "osmosmjerka(staging): image ${IMAGE_TAG} with fresh DB clone" || echo \"No changes to commit\"'
                         }
+                        dir('gitops-tmp') { sh 'git push' }
                         sh 'rm -rf gitops-tmp'
                     } else {
-                        echo 'Skipping deployment to ArgoCD.'
+                        echo 'Skipping GitOps deployment.'
                     }
                 }
             }
@@ -299,7 +328,7 @@ POSTGRES_DATABASE=${env.POSTGRES_DATABASE}
                 sh "docker rm ${env.DOCKER_REGISTRY}/${IMAGE_NAME}:${versionTag} || true"
                 sh 'rm -f .env || true'
                 sh 'rm -rf gitops-tmp || true'
-                sh 'rm -rf frontend/node_modules backend/.venv'
+                sh 'rm -rf frontend/node_modules backend/.venv || true'
             }
             cleanWs()
         }
