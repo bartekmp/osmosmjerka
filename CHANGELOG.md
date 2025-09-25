@@ -2,6 +2,14 @@
 
 <!-- version list -->
 
+## v1.28.2 (2025-09-26)
+
+### Bug Fixes
+
+- Setup the k8s secret for prod db cloning
+  ([`357e1fe`](https://github.com/bartekmp/osmosmjerka/commit/357e1fe8174c29baadf4f5645f5d4d7734cb60ea))
+
+
 ## v1.28.1 (2025-09-25)
 
 ### Bug Fixes
