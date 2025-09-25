@@ -309,7 +309,7 @@ POSTGRES_DATABASE=${env.POSTGRES_DATABASE}
 
                             sh 'git config user.email "ci@example.com"'
                             sh 'git config user.name "CI Bot"'
-                            sh 'git commit -am "osmosmjerka(staging): image ${IMAGE_TAG} with fresh DB clone" || echo \"No changes to commit\"'
+                            sh 'git commit -am "osmosmjerka(staging): image ${IMAGE_TAG}" || echo \"No changes to commit\"'
                         }
                         dir('gitops-tmp') { sh 'git push' }
                         sh 'rm -rf gitops-tmp'

@@ -1,7 +1,7 @@
 <div align="center">
-  <img src="frontend/public/android-chrome-192x192.png" alt="Osmosmjerka Logo" width="128" height="128"> <h1 style="font-family: 'Roboto Mono', 'Clear Sans', monospace, sans-serif; font-weight: 700; letter-spacing: 2px; margin: 16px 0;">Osmosmjerka</h1>
+  <img src="frontend/public/android-chrome-192x192.png" alt="Osmosmjerka Logo" width="128" height="128"> <h1 style="font-family: 'Roboto Mono', 'Clear Sans', monospace, sans-serif; font-weight: 700; letter-spacing: 2px; margin: 16px 0;"><a href="https://osmosmjerka.app">Osmosmjerka</a></h1>
   
-  **[🎮 Live Demo](https://osmosmjerka.lel.lu/)** - use `demo` login and password
+  **[🎮 Live Demo](https://osmosmjerka.app/)** - use `demo` login and password
 </div>
 
 [Osmosmjerka](https://hr.wikipedia.org/wiki/Osmosmjerka) (*Croatian word for eight-direction word search puzzle*) is a feature-rich web-based [word search](https://en.wikipedia.org/wiki/Word_search) game with language learning capabilities.
