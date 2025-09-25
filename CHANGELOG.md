@@ -2,6 +2,15 @@
 
 <!-- version list -->
 
+## v1.28.1 (2025-09-25)
+
+### Bug Fixes
+
+- Use the kubeconfig during deployment stage in jenkinsfile for staging
+  ([#75](https://github.com/bartekmp/osmosmjerka/pull/75),
+  [`0c6e33a`](https://github.com/bartekmp/osmosmjerka/commit/0c6e33a8441d4e43b89920e532964eed0af58403))
+
+
 ## v1.28.0 (2025-09-25)
 
 ### Continuous Integration
