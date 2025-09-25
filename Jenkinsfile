@@ -294,13 +294,28 @@ POSTGRES_DATABASE=${env.POSTGRES_DATABASE}
                                     withEnv([
                                         "CLONE_JOB_FILE=${cloneJobFile}",
                                         "CLONE_JOB_VERSION=${env.IMAGE_TAG}",
-                                        "KUBE_NAMESPACE=osmosmjerka-staging"
+                                        "KUBE_NAMESPACE=osmosmjerka-staging",
+                                        "PROD_DB_HOST=${env.POSTGRES_HOST}",
+                                        "PROD_DB_PORT=${env.POSTGRES_PORT}",
+                                        "PROD_DB_USER=${env.POSTGRES_USER}",
+                                        "PROD_DB_PASSWORD=${env.POSTGRES_PASSWORD}",
+                                        "PROD_DB_NAME=${env.POSTGRES_DATABASE}"
                                     ]) {
                                         sh '''
                                             set -euo pipefail
                                             trap 'rm -f "$CLONE_JOB_FILE"' EXIT
 
                                             export KUBECONFIG="$KUBECONFIG_FILE"
+
+                                            # Ensure prod credentials secret is up to date
+                                            kubectl create secret generic prod-db-access \
+                                                --namespace "$KUBE_NAMESPACE" \
+                                                --from-literal=PROD_DB_HOST="$PROD_DB_HOST" \
+                                                --from-literal=PROD_DB_PORT="$PROD_DB_PORT" \
+                                                --from-literal=PROD_DB_USER="$PROD_DB_USER" \
+                                                --from-literal=PROD_DB_PASSWORD="$PROD_DB_PASSWORD" \
+                                                --from-literal=PROD_DB_NAME="$PROD_DB_NAME" \
+                                                --dry-run=client -o yaml | kubectl apply -f -
 
                                             # Delete any existing clone job first
                                             kubectl delete job -n "$KUBE_NAMESPACE" -l app.kubernetes.io/name=db-clone --ignore-not-found=true
