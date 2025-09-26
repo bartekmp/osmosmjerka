@@ -2,6 +2,15 @@
 
 <!-- version list -->
 
+## v1.28.4 (2025-09-26)
+
+### Bugfix
+
+- The refresh button and category/difficulty dropdowns are disabled when no language set is
+  available ([#77](https://github.com/bartekmp/osmosmjerka/pull/77),
+  [`33eb8aa`](https://github.com/bartekmp/osmosmjerka/commit/33eb8aa54fa5fae1714903ffa725dd5089526f20))
+
+
 ## v1.28.3 (2025-09-26)
 
 ### Bugfix
