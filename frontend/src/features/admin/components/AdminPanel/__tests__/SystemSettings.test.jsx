@@ -22,12 +22,19 @@ const mockLocalStorage = {
 };
 Object.defineProperty(window, 'localStorage', { value: mockLocalStorage });
 
+let consoleErrorSpy;
+
 describe('SystemSettings', () => {
     beforeEach(() => {
         fetch.mockClear();
         axios.get.mockClear();
         axios.put.mockClear();
         mockLocalStorage.getItem.mockClear();
+        consoleErrorSpy = jest.spyOn(console, 'error').mockImplementation(() => {});
+    });
+
+    afterEach(() => {
+        consoleErrorSpy.mockRestore();
     });
 
     const renderComponent = () => {
@@ -58,6 +65,13 @@ describe('SystemSettings', () => {
 
         await waitFor(() => {
             expect(screen.getByText('common.loading')).toBeInTheDocument();
+        });
+
+        await waitFor(() => {
+            expect(console.error).toHaveBeenCalledWith(
+                expect.stringContaining('Failed to load system settings'),
+                expect.any(Error)
+            );
         });
     });
 });
