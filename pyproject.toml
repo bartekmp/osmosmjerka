@@ -37,10 +37,12 @@ dev = [
 
 [tool.setuptools.packages.find]
 where = ["."]
+include = ["backend", "backend.*"]
+exclude = ["backend.tests", "backend.tests.*"]
 
 [tool.pytest.ini_options]
 addopts = "-ra"
-testpaths = ["tests"]
+testpaths = ["backend/tests", "tests"]
 python_files = "test_*.py"
 python_classes = "Test*"
 python_functions = "test_*"
@@ -50,7 +52,6 @@ requires = ["setuptools>=61", "setuptools_scm"]
 build-backend = "setuptools.build_meta"
 
 [tool.setuptools]
-py-modules = ["backend.osmosmjerka"]
 include-package-data = true
 
 [tool.setuptools_scm]
