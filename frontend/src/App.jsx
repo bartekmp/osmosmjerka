@@ -586,8 +586,10 @@ function AppContent() {
         setRemainingHints(3);
         setCurrentHintLevel(0);
         setFirstPhraseTime(null);
+        setCurrentElapsedTime(0);
+        setFound([]);
         setTimerResetTrigger(prev => prev + 1);
-        
+
         if (gridRef.current) {
             gridRef.current.clearHints();
         }
