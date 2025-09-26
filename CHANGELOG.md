@@ -2,6 +2,15 @@
 
 <!-- version list -->
 
+## v1.28.3 (2025-09-26)
+
+### Bugfix
+
+- Always reset the score and the timer when reloading new puzzle
+  ([#76](https://github.com/bartekmp/osmosmjerka/pull/76),
+  [`ce50360`](https://github.com/bartekmp/osmosmjerka/commit/ce50360b221fb95aa049a106d5414b57b945234d))
+
+
 ## v1.28.2 (2025-09-26)
 
 ### Bug Fixes
