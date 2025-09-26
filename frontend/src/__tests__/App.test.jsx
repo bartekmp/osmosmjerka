@@ -59,6 +59,9 @@ afterEach(() => {
 
 test('renders profile link', async () => {
     axios.get.mockImplementation((url) => {
+        if (typeof url === 'string' && url.startsWith('/api/language-sets')) {
+            return Promise.resolve({ data: [{ id: 1, display_name: 'Default', description: '' }] });
+        }
         if (typeof url === 'string' && url.startsWith('/api/default-ignored-categories')) {
             return Promise.resolve({ data: [] });
         }
@@ -77,6 +80,9 @@ test('renders profile link', async () => {
 
 test('shows not enough phrases overlay', async () => {
     axios.get.mockImplementation((url) => {
+        if (typeof url === 'string' && url.startsWith('/api/language-sets')) {
+            return Promise.resolve({ data: [{ id: 1, display_name: 'Default', description: '' }] });
+        }
         if (typeof url === 'string' && url.startsWith('/api/default-ignored-categories')) {
             return Promise.resolve({ data: [] });
         }
@@ -110,6 +116,9 @@ test('shows not enough phrases overlay', async () => {
 
     // Find and click the refresh button to trigger puzzle loading
     const refreshButton = await screen.findByTitle(/reload puzzle/i);
+    await waitFor(() => {
+        expect(refreshButton).not.toBeDisabled();
+    });
 
     // Use act to ensure all state updates are processed
     await act(async () => {
@@ -125,6 +134,9 @@ test('shows not enough phrases overlay', async () => {
 
 test('renders category selector', async () => {
     axios.get.mockImplementation((url) => {
+        if (typeof url === 'string' && url.startsWith('/api/language-sets')) {
+            return Promise.resolve({ data: [{ id: 1, display_name: 'Default', description: '' }] });
+        }
         if (typeof url === 'string' && url.startsWith('/api/categories')) {
             return Promise.resolve({ data: ['A', 'B'] });
         }
@@ -141,6 +153,9 @@ test('renders category selector', async () => {
 
 test('renders reload button', async () => {
     axios.get.mockImplementation((url) => {
+        if (typeof url === 'string' && url.startsWith('/api/language-sets')) {
+            return Promise.resolve({ data: [{ id: 1, display_name: 'Default', description: '' }] });
+        }
         if (typeof url === 'string' && url.startsWith('/api/default-ignored-categories')) {
             return Promise.resolve({ data: [] });
         }
@@ -178,6 +193,9 @@ test('resets timer and score when refreshing the puzzle', async () => {
         if (typeof url === 'string' && url.includes('/system/progressive-hints-enabled')) {
             return Promise.resolve({ data: { enabled: false } });
         }
+        if (typeof url === 'string' && url.startsWith('/api/language-sets')) {
+            return Promise.resolve({ data: [{ id: 1, display_name: 'Default', description: '' }] });
+        }
         if (typeof url === 'string' && url.startsWith('/api/categories')) {
             return Promise.resolve({ data: ['TestCategory'] });
         }
@@ -198,6 +216,9 @@ test('resets timer and score when refreshing the puzzle', async () => {
     });
 
     const refreshButton = await screen.findByTitle(/reload puzzle/i);
+    await waitFor(() => {
+        expect(refreshButton).not.toBeDisabled();
+    });
     await act(async () => {
         fireEvent.click(refreshButton);
     });

@@ -7,9 +7,14 @@ test('renders all categories and selects the correct one', () => {
     const categories = ['A', 'B', 'C'];
     const onSelect = jest.fn();
     render(withI18n(<CategorySelector categories={categories} selected="B" onSelect={onSelect} />));
-    expect(screen.getByRole('combobox')).toBeInTheDocument();
-    expect(screen.getByDisplayValue('B')).toBeInTheDocument();
-    const input = screen.getByDisplayValue('B');
-    fireEvent.change(input, { target: { value: 'C' } });
+    const select = screen.getByDisplayValue('B');
+    fireEvent.change(select, { target: { value: 'C' } });
     expect(onSelect).toHaveBeenCalledWith('C');
+});
+
+test('disables selector when categories are unavailable', () => {
+    const onSelect = jest.fn();
+    render(withI18n(<CategorySelector categories={[]} selected="" onSelect={onSelect} />));
+    const combobox = screen.getByRole('combobox');
+    expect(combobox).toHaveAttribute('aria-disabled', 'true');
 });

@@ -25,6 +25,12 @@ const GameControls = ({
 }) => {
     const { t } = useTranslation();
 
+    const hasLanguageSet = Boolean(selectedLanguageSetId);
+    const hasCategories = Array.isArray(visibleCategories) && visibleCategories.length > 0;
+    const categoryDisabled = !hasLanguageSet || !hasCategories;
+    const difficultyDisabled = categoryDisabled;
+    const refreshDisabled = categoryDisabled || !selectedCategoryState;
+
     return (
         <>
             {/* Mobile menu toggle button (burger / close), always shown on mobile */}
@@ -74,8 +80,9 @@ const GameControls = ({
                         categories={visibleCategories}
                         selected={selectedCategory}
                         onSelect={cat => setSelectedCategory(cat)}
+                        disabled={categoryDisabled}
                     />
-                    <FormControl fullWidth size="small">
+                    <FormControl fullWidth size="small" disabled={difficultyDisabled}>
                         <InputLabel>{t('difficulty')}</InputLabel>
                         <Select
                             value={difficulty}
@@ -98,6 +105,7 @@ const GameControls = ({
                         onClick={() => refreshPuzzle(selectedCategoryState, difficultyState)}
                         title={t('reload_puzzle')}
                         className="refresh-button control-action-button"
+                        disabled={refreshDisabled}
                     >
                         <ResponsiveText desktop={'🔄 ' + t('refresh')} mobile="🔄" />
                     </Button>
