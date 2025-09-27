@@ -19,7 +19,7 @@ import {
     ScoreDisplay,
     HintButton
 } from './features';
-import { NotEnoughPhrasesOverlay } from './shared';
+import { NotEnoughPhrasesOverlay, SplashScreen } from './shared';
 import './style.css';
 import createAppTheme from './theme';
 
@@ -38,6 +38,9 @@ import packageJson from '../package.json';
 const AdminPanel = lazy(() => import('./features').then(module => ({ default: module.AdminPanel })));
 const UserManagement = lazy(() => import('./features').then(module => ({ default: module.UserManagement })));
 const UserProfile = lazy(() => import('./features').then(module => ({ default: module.UserProfile })));
+
+const SPLASH_EXIT_DURATION = 600;
+const SPLASH_MIN_VISIBLE_DURATION = 1200;
 
 function AppContent() {
     const { t } = useTranslation();
@@ -84,6 +87,12 @@ function AppContent() {
     const [panelOpen, setPanelOpen] = useState(false);
     const [showRateLimit, setShowRateLimit] = useState(false);
 
+    const [languageSetsStatus, setLanguageSetsStatus] = useState('pending');
+    const [categoriesStatus, setCategoriesStatus] = useState('pending');
+    const [gridStatus, setGridStatus] = useState('pending');
+    const [initialLoadComplete, setInitialLoadComplete] = useState(false);
+    const [showSplash, setShowSplash] = useState(true);
+
     // Game session tracking for statistics
     const [gameSessionId, setGameSessionId] = useState(null);
     const [gameStartTime, setGameStartTime] = useState(null);
@@ -111,6 +120,7 @@ function AppContent() {
     // Refs to prevent duplicate API calls in StrictMode
     const lastFetchedLanguageSetIdRef = useRef(null);
     const completionInProgressRef = useRef(false);
+    const splashShownAtRef = useRef(Date.now());
 
     // Winning condition: all phrases found
     const allFound = phrases.length > 0 && found.length === phrases.length;
@@ -135,6 +145,15 @@ function AppContent() {
         setLastFoundCount(0);
     }, []);
 
+    const handleLanguageSetStatusChange = useCallback((status) => {
+        setLanguageSetsStatus(status);
+
+        if (status === 'empty' || status === 'error') {
+            setCategoriesStatus(prev => (prev === 'pending' ? status : prev));
+            setGridStatus(prev => (prev === 'pending' ? status : prev));
+        }
+    }, []);
+
     // Apply theme data attribute to body
     useEffect(() => {
         document.body.setAttribute('data-theme', isDarkMode ? 'dark' : 'light');
@@ -152,7 +171,8 @@ function AppContent() {
             setShowTranslations,
             setRestored,
             setGameStartTime,
-            setCurrentElapsedTime
+            setCurrentElapsedTime,
+            setGridStatus
         });
          
     }, []);
@@ -204,8 +224,15 @@ function AppContent() {
             categoriesUrl += `?language_set_id=${debouncedLanguageSetId}`;
         }
 
+        setCategoriesStatus('pending');
         axios.get(categoriesUrl).then(res => {
             setCategories(res.data);
+            if (res.data.length === 0) {
+                setCategoriesStatus('empty');
+                setGridStatus('empty');
+                return;
+            }
+            setCategoriesStatus('success');
             // Automatically select a random category if none is selected and no game is loaded
             if (res.data.length > 0 && !selectedCategory && grid.length === 0) {
                 const randomIndex = Math.floor(Math.random() * res.data.length);
@@ -216,6 +243,8 @@ function AppContent() {
             }
         }).catch(err => {
             console.error('Error loading categories:', err);
+            setCategoriesStatus('error');
+            setGridStatus('error');
             if (err.response?.status === 429) {
                 setShowRateLimit(true);
                 setTimeout(() => setShowRateLimit(false), 4000);
@@ -223,6 +252,41 @@ function AppContent() {
             lastFetchedLanguageSetIdRef.current = null; // Reset on error to allow retry
         });
     }, [restored, debouncedLanguageSetId]);
+
+    useEffect(() => {
+        if (initialLoadComplete || !restored) {
+            return;
+        }
+
+        const statuses = [languageSetsStatus, categoriesStatus, gridStatus];
+        const isWaiting = statuses.some(status => status === 'pending');
+
+        if (isWaiting) {
+            return;
+        }
+
+        const elapsed = Date.now() - splashShownAtRef.current;
+        if (elapsed >= SPLASH_MIN_VISIBLE_DURATION) {
+            setInitialLoadComplete(true);
+            return;
+        }
+
+        const timeout = setTimeout(() => setInitialLoadComplete(true), SPLASH_MIN_VISIBLE_DURATION - elapsed);
+        return () => clearTimeout(timeout);
+    }, [languageSetsStatus, categoriesStatus, gridStatus, initialLoadComplete, restored]);
+
+    useEffect(() => {
+        if (!restored || !initialLoadComplete) {
+            if (!showSplash) {
+                splashShownAtRef.current = Date.now();
+            }
+            setShowSplash(true);
+            return;
+        }
+
+        const timeout = setTimeout(() => setShowSplash(false), SPLASH_EXIT_DURATION);
+        return () => clearTimeout(timeout);
+    }, [initialLoadComplete, restored, showSplash]);
 
     // Check if statistics are enabled on the server
     const checkStatisticsEnabled = useCallback(async () => {
@@ -335,6 +399,7 @@ function AppContent() {
 
     const loadPuzzle = (category, diff = difficulty, refresh = false) => {
         setIsGridLoading(true);
+        setGridStatus('pending');
         resetCelebration(); // Reset celebration state using hook
         
         // Reset session tracking state when loading a new puzzle
@@ -347,7 +412,7 @@ function AppContent() {
         // Reset scoring and hint state
         resetGameState();
         
-        loadPuzzleHelper(category, diff, {
+        return loadPuzzleHelper(category, diff, {
             setSelectedCategory,
             setGrid,
             setPhrases,
@@ -356,7 +421,17 @@ function AppContent() {
             setShowTranslations,
             setNotEnoughPhrases,
             setNotEnoughPhrasesMsg
-        }, t, selectedLanguageSetId, refresh).finally(() => {
+        }, t, selectedLanguageSetId, refresh).then((result) => {
+            if (result?.status === 'error') {
+                setGridStatus('error');
+            } else if (result?.status === 'empty') {
+                setGridStatus('empty');
+            } else {
+                setGridStatus('success');
+            }
+        }).catch(() => {
+            setGridStatus('error');
+        }).finally(() => {
             setIsGridLoading(false);
         });
     };
@@ -703,6 +778,14 @@ function AppContent() {
     return (
         <MUIThemeProvider theme={createAppTheme(isDarkMode)}>
             <CssBaseline />
+            {showSplash && (
+                <SplashScreen
+                    open={!initialLoadComplete}
+                    messageKey="loading_game"
+                    isDarkMode={isDarkMode}
+                    exitDuration={SPLASH_EXIT_DURATION}
+                />
+            )}
             <Container maxWidth="xl" sx={{ minHeight: '100vh', py: 2, position: 'relative' }}>
                 {/* Top controls row for admin routes only */}
                 {isAdminRoute && <AdminControls />}
@@ -756,6 +839,7 @@ function AppContent() {
                                 notEnoughPhrases={notEnoughPhrases}
                                 selectedLanguageSetId={selectedLanguageSetId}
                                 onLanguageSetChange={handleLanguageSetChange}
+                                onLanguageSetStatusChange={handleLanguageSetStatusChange}
                             />
 
                             {/* All Found Message */}

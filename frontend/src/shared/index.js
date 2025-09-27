@@ -13,6 +13,7 @@ export { default as LanguageSwitcher } from './components/ui/LanguageSwitcher';
 export { default as NightModeButton } from './components/ui/NightModeButton';
 export { default as LanguageSetSelector } from './components/ui/LanguageSetSelector';
 export { default as NotEnoughPhrasesOverlay } from './components/ui/NotEnoughPhrasesOverlay';
+export { default as SplashScreen } from './components/ui/SplashScreen';
 
 // Utilities
 export * from './utils/responsive';

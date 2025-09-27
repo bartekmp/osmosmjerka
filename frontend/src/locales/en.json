@@ -381,6 +381,7 @@
     "full_outline": "Full Outline",
     "show_hint": "Show Hint",
     "loading": "Loading...",
+    "loading_game": "Loading Osmosmjerka...",
     "hint_tooltip": "Show a random phrase location",
     "progressive_hint_tooltip": "Progressive hint ({{remaining}} remaining, level {{level}})",
     "no_phrases_available": "No phrases available for hints",

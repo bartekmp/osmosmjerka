@@ -21,7 +21,8 @@ const GameControls = ({
     isLoading,
     notEnoughPhrases,
     selectedLanguageSetId,
-    onLanguageSetChange
+    onLanguageSetChange,
+    onLanguageSetStatusChange
 }) => {
     const { t } = useTranslation();
 
@@ -74,6 +75,7 @@ const GameControls = ({
                             selectedLanguageSetId={selectedLanguageSetId}
                             onLanguageSetChange={onLanguageSetChange}
                             size="small"
+                            onStatusChange={onLanguageSetStatusChange}
                         />
                     )}
                     <CategorySelector

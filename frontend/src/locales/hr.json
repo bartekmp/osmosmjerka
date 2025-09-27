@@ -381,6 +381,7 @@
     "full_outline": "Potpuni obris",
     "show_hint": "Pokaži savjet",
     "loading": "Učitava...",
+    "loading_game": "Učitavanje Osmosmjerke...",
     "hint_tooltip": "Pokaži lokaciju nasumične fraze",
     "progressive_hint_tooltip": "Postupni savjet ({{remaining}} preostalo, razina {{level}})",
     "no_phrases_available": "Nema dostupnih fraza za savjete",
