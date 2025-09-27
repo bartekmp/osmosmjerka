@@ -386,6 +386,7 @@
     "progressive_hint_tooltip": "Progressive hint ({{remaining}} remaining, level {{level}})",
     "no_phrases_available": "No phrases available for hints",
     "no_hints_remaining": "No hints remaining",
+    "no_hints": "No hints",
     "admin": {
         "settings": {
             "title": "System Settings",
