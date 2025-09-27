@@ -2,6 +2,15 @@
 
 <!-- version list -->
 
+## v1.29.1 (2025-09-27)
+
+### Enhancement
+
+- When all hints are used, display "no hints" text, prolong the hint time to 5 sec
+  ([#79](https://github.com/bartekmp/osmosmjerka/pull/79),
+  [`25811ef`](https://github.com/bartekmp/osmosmjerka/commit/25811efaa0e9ff55d0fd8c64e2f745ebc8bd6477))
+
+
 ## v1.29.0 (2025-09-27)
 
 ### Feature
