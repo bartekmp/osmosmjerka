@@ -9,7 +9,8 @@ const LanguageSetSelector = ({
     onLanguageSetChange,
     disabled = false,
     size = 'small',
-    variant = 'outlined'
+    variant = 'outlined',
+    onStatusChange = null
 }) => {
     const { t } = useTranslation();
     const [languageSets, setLanguageSets] = useState([]);
@@ -25,11 +26,20 @@ const LanguageSetSelector = ({
 
             try {
                 setLoading(true);
+                if (onStatusChange) {
+                    onStatusChange('pending');
+                }
                 const response = await axios.get(API_ENDPOINTS.LANGUAGE_SETS);
                 setLanguageSets(response.data);
+                if (onStatusChange) {
+                    onStatusChange(response.data.length > 0 ? 'success' : 'empty');
+                }
             } catch (err) {
                 console.error('Failed to fetch language sets:', err);
                 setError(t('language_set_loading_failed', 'Failed to load language sets'));
+                if (onStatusChange) {
+                    onStatusChange('error');
+                }
                 fetchedRef.current = false; // Reset on error to allow retry
             } finally {
                 setLoading(false);
@@ -37,7 +47,7 @@ const LanguageSetSelector = ({
         };
 
         fetchLanguageSets();
-    }, []); // Only run once on mount
+    }, [onStatusChange, t]);
 
     // Handle default selection in a separate effect
     useEffect(() => {

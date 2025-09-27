@@ -13,7 +13,8 @@ export function restoreGameState(setters) {
         setShowTranslations,
         setRestored,
         setGameStartTime,
-        setCurrentElapsedTime
+        setCurrentElapsedTime,
+        setGridStatus
     } = setters;
 
     const saved = localStorage.getItem('osmosmjerkaGameState');
@@ -51,6 +52,9 @@ export function restoreGameState(setters) {
                     }
                 }
                 
+                if (setGridStatus) {
+                    setGridStatus('success');
+                }
                 setRestored(true);
                 return;
             }
@@ -116,6 +120,7 @@ export function loadPuzzle(category, diff, setters, t, languageSetId = null, ref
                 setShowTranslations(false);
             }
             localStorage.removeItem('osmosmjerkaGameState');
+            return { status: 'success', data: res.data };
         })
         .catch(err => {
             // Handle server errors with structured response
@@ -144,5 +149,6 @@ export function loadPuzzle(category, diff, setters, t, languageSetId = null, ref
             setFound([]);
             setHidePhrases(true);
             setShowTranslations(false);
+            return { status: 'error', error: err };
         });
 }

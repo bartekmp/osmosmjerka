@@ -381,6 +381,7 @@
     "full_outline": "Pełny zarys",
     "show_hint": "Pokaż podpowiedź",
     "loading": "Ładowanie...",
+    "loading_game": "Ładowanie Osmosmjerki...",
     "hint_tooltip": "Pokaż lokalizację losowej frazy",
     "progressive_hint_tooltip": "Progresywna podpowiedź ({{remaining}} pozostało, poziom {{level}})",
     "no_phrases_available": "Brak dostępnych fraz do podpowiedzi",
