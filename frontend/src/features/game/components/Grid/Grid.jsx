@@ -9,6 +9,8 @@ import { getDirection, isStraightLine } from './helpers';
 import { useGridSize, useMouseSelection } from './hooks';
 import { useMovementHandlers } from './movementHandlers';
 
+const HINT_DISPLAY_DURATION_MS = 5000;
+
 const ScrabbleGrid = forwardRef(({
     grid,
     phrases,
@@ -91,7 +93,7 @@ const ScrabbleGrid = forwardRef(({
             setBlinkingCells(phraseData.coords);
             blinkTimeoutRef.current = setTimeout(() => {
                 setBlinkingCells([]);
-            }, 1500);
+            }, HINT_DISPLAY_DURATION_MS);
         }, 10);
     }, [phrases]);
 
@@ -127,7 +129,7 @@ const ScrabbleGrid = forwardRef(({
                 setBlinkingCells(targetPhrase.coords);
                 blinkTimeoutRef.current = setTimeout(() => {
                     setBlinkingCells([]);
-                }, 1500);
+                }, HINT_DISPLAY_DURATION_MS);
             }, 10);
         }
 

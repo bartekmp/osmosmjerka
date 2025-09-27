@@ -386,6 +386,7 @@
     "progressive_hint_tooltip": "Postupni savjet ({{remaining}} preostalo, razina {{level}})",
     "no_phrases_available": "Nema dostupnih fraza za savjete",
     "no_hints_remaining": "Nema više savjeta",
+    "no_hints": "Nema savjeta",
     "admin": {
         "settings": {
             "title": "Sistemske postavke",

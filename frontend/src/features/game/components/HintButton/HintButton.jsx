@@ -32,6 +32,10 @@ const HintButton = ({
     };
 
     const getHintButtonText = () => {
+        if (remainingHints <= 0) {
+            return t('no_hints');
+        }
+
         if (isProgressiveMode) {
             if (currentHintLevel === 0) return t('first_letter');
             if (currentHintLevel === 1) return t('direction_hint');
