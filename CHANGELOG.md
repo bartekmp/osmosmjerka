@@ -2,6 +2,15 @@
 
 <!-- version list -->
 
+## v1.29.0 (2025-09-27)
+
+### Feature
+
+- Add splash screen when loading the game main page
+  ([#78](https://github.com/bartekmp/osmosmjerka/pull/78),
+  [`9d0f1f6`](https://github.com/bartekmp/osmosmjerka/commit/9d0f1f63c8ba99bd6706b37512858d2a5bd0c815))
+
+
 ## v1.28.4 (2025-09-26)
 
 ### Bugfix
