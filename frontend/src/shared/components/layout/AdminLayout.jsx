@@ -1,5 +1,5 @@
 import React from 'react';
-import { Container, Box } from '@mui/material';
+import { Container, Box, Chip, Avatar } from '@mui/material';
 import { useTranslation } from 'react-i18next';
 import AdminButton from '../ui/AdminButton';
 import { SPACING } from '../../utils/responsive';
@@ -22,9 +22,11 @@ const AdminLayout = ({
   showLogout = false,
   onDashboard,
   onLogout,
-  maxWidth = 'xl'
+  maxWidth = 'xl',
+  currentUser = null
 }) => {
   const { t } = useTranslation();
+  const username = currentUser?.username?.trim();
 
   return (
     <Container maxWidth={maxWidth} sx={{ py: 4 }}>
@@ -57,12 +59,31 @@ const AdminLayout = ({
         </Box>
         
         {showLogout && (
-          <AdminButton
-            onClick={onLogout}
-            color="secondary"
-            desktopText={`🚪 ${t('logout')}`}
-            mobileText="🚪"
-          />
+          <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.5, flexWrap: 'wrap', justifyContent: 'flex-end' }}>
+            {username && (
+              <Chip
+                label={username}
+                variant="outlined"
+                avatar={(
+                  <Avatar sx={{ bgcolor: 'primary.main', color: 'primary.contrastText', width: 28, height: 28, fontSize: '1rem' }}>
+                    👤
+                  </Avatar>
+                )}
+                sx={{
+                  height: 36,
+                  fontSize: '0.9rem',
+                  fontWeight: 500,
+                  letterSpacing: '0.02em'
+                }}
+              />
+            )}
+            <AdminButton
+              onClick={onLogout}
+              color="secondary"
+              desktopText={`🚪 ${t('logout')}`}
+              mobileText="🚪"
+            />
+          </Box>
         )}
       </Box>
       

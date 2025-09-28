@@ -326,9 +326,9 @@ export default function AdminTable({
         const baseColumns = [
             columnHelper.accessor('id', {
                 header: 'ID',
-                size: 80,
-                minSize: minColumnWidths.id || 60,
-                maxSize: 120,
+                size: 70,
+                minSize: 50,
+                maxSize: 90,
                 enableResizing: true,
                 cell: info => info.getValue()
             }),
@@ -359,9 +359,9 @@ export default function AdminTable({
             columnHelper.display({
                 id: 'actions',
                 header: t('actions'),
-                size: 140,
-                minSize: 140,
-                maxSize: 140,
+                size: 110,
+                minSize: 100,
+                maxSize: 120,
                 enableResizing: false,
                 cell: info => {
                     const row = info.row.original;
@@ -503,7 +503,7 @@ export default function AdminTable({
                     {(onBatchModeToggle || onAddNewRow) && (
                         <Stack
                             direction="row"
-                            spacing={1}
+                            spacing={1.5}
                             sx={{ flexWrap: 'wrap', alignItems: 'center' }}
                         >
                             {onBatchModeToggle && (
@@ -522,6 +522,9 @@ export default function AdminTable({
                                     variant="contained"
                                     color="secondary"
                                     size="small"
+                                    aria-label={t('add_row')}
+                                    title={t('add_row')}
+                                    startIcon={<span aria-hidden="true">➕</span>}
                                     onClick={() => {
                                         if (!canAddNewRow || Boolean(newRow)) {
                                             return;
@@ -537,7 +540,6 @@ export default function AdminTable({
                                         }
                                     }}
                                     disabled={!canAddNewRow || Boolean(newRow)}
-                                    startIcon={<span aria-hidden="true">➕</span>}
                                 >
                                     {t('add_row')}
                                 </Button>
@@ -861,24 +863,50 @@ export default function AdminTable({
                                                 key={`new-${columnId}`}
                                                 sx={{ width: widthPercentage }}
                                             >
-                                                <Stack direction="row" spacing={1} justifyContent="center">
+                                                <Stack direction="row" spacing={1.5} justifyContent="center">
                                                     <Button
                                                         size="small"
-                                                        variant="contained"
+                                                        variant="text"
                                                         color="success"
+                                                        aria-label={t('add')}
+                                                        title={t('add')}
+                                                        sx={{
+                                                            minWidth: 0,
+                                                            width: 36,
+                                                            height: 36,
+                                                            px: 0,
+                                                            display: 'flex',
+                                                            alignItems: 'center',
+                                                            justifyContent: 'center',
+                                                            fontSize: '1.1rem',
+                                                            lineHeight: 1
+                                                        }}
                                                         onClick={handleConfirmClick}
                                                         disabled={!isNewRowValid || isSavingNewRow || !newRow || newRowPhase !== 'editing'}
                                                     >
-                                                        {t('add')}
+                                                        <span aria-hidden="true">✅</span>
                                                     </Button>
                                                     <Button
                                                         size="small"
-                                                        variant="contained"
+                                                        variant="text"
                                                         color="error"
+                                                        aria-label={t('cancel')}
+                                                        title={t('cancel')}
+                                                        sx={{
+                                                            minWidth: 0,
+                                                            width: 36,
+                                                            height: 36,
+                                                            px: 0,
+                                                            display: 'flex',
+                                                            alignItems: 'center',
+                                                            justifyContent: 'center',
+                                                            fontSize: '1.1rem',
+                                                            lineHeight: 1
+                                                        }}
                                                         onClick={handleCancelClick}
                                                         disabled={isSavingNewRow || !newRow}
                                                     >
-                                                        {t('cancel')}
+                                                        <span aria-hidden="true">❌</span>
                                                     </Button>
                                                 </Stack>
                                             </TableCell>

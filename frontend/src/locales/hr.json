@@ -388,6 +388,16 @@
     "no_hints_remaining": "Nema više savjeta",
     "no_hints": "Nema savjeta",
     "admin": {
+        "dashboard": {
+            "sections": {
+                "records": "Zapisi i sadržaj",
+                "users": "Alati za korisnike i račune",
+                "system": "Uvidi i postavke"
+            }
+        },
+        "records": {
+            "title": "Pregled zapisa"
+        },
         "settings": {
             "title": "Sistemske postavke",
             "description": "Konfiguriraj globalne sistemske značajke i postavke prikupljanja podataka. Ove postavke utječu na sve korisnike.",

@@ -14,17 +14,21 @@ export default function TableRowActions({
             <Button
                 size="small"
                 onClick={() => onEdit(row)}
-                sx={{ minWidth: '60px', fontSize: '0.75rem' }}
+                aria-label={t('edit')}
+                title={t('edit')}
+                sx={{ minWidth: 0, width: 36, height: 36, fontSize: '1.1rem', lineHeight: 1 }}
             >
-                {t('edit')}
+                ✏️
             </Button>
             <Button
                 size="small"
                 onClick={() => onDelete(row)}
                 color="error"
-                sx={{ minWidth: '60px', fontSize: '0.75rem' }}
+                aria-label={t('delete')}
+                title={t('delete')}
+                sx={{ minWidth: 0, width: 36, height: 36, fontSize: '1.1rem', lineHeight: 1 }}
             >
-                {t('delete')}
+                🗑️
             </Button>
         </Box>
     );

@@ -11,9 +11,13 @@ const GameHeader = ({
     logoFilter,
     handleLogoClick,
     showCelebration,
-    _
+    currentUser
 }) => {
     const { t } = useTranslation();
+    const username = currentUser?.username?.trim();
+    const baseEmoji = '👤';
+    const profileDesktopLabel = username ? `${baseEmoji} ${username}` : `${baseEmoji} ${t('profile')}`;
+    const profileMobileLabel = baseEmoji;
 
     return (
         <Box sx={{
@@ -123,16 +127,18 @@ const GameHeader = ({
                 <Button
                     component={Link}
                     to="/admin"
+                    title={profileDesktopLabel}
                     sx={{
                         display: 'flex', // Show on all screen sizes
                         minWidth: { xs: 36, sm: 44, md: 48 },
                         height: { xs: 36, sm: 44, md: 48 },
                         minHeight: { xs: 36, sm: 44, md: 48 },
                         fontSize: { sm: '0.8rem', md: '0.9rem' },
-                        px: { xs: 0.5, sm: 0.75, md: 1 }
+                        px: { xs: 0.5, sm: 0.75, md: 1 },
+                        textTransform: 'none'
                     }}
                 >
-                    <ResponsiveText desktop={t('profile')} mobile="👤" />
+                    <ResponsiveText desktop={profileDesktopLabel} mobile={profileMobileLabel} />
                 </Button>
                 <NightModeButton
                     sx={{

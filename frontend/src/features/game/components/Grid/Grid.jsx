@@ -19,7 +19,8 @@ const ScrabbleGrid = forwardRef(({
     disabled = false,
     isDarkMode = false,
     showCelebration = false,
-    onHintUsed = null
+    onHintUsed = null,
+    onGridInteraction = null
 }, ref) => {
     const { t } = useTranslation();
 
@@ -251,6 +252,20 @@ const ScrabbleGrid = forwardRef(({
         handleGlobalMouseMove
     } = movementHandlers;
 
+    const handleCellMouseDown = useCallback((r, c) => {
+        if (onGridInteraction) {
+            onGridInteraction();
+        }
+        handleMouseDown(r, c);
+    }, [onGridInteraction, handleMouseDown]);
+
+    const handleGridTouchStart = useCallback((event) => {
+        if (onGridInteraction) {
+            onGridInteraction();
+        }
+        handleTouchStart(event);
+    }, [onGridInteraction, handleTouchStart]);
+
     // Utility functions
     const isCelebrating = useCallback((r, c) => {
         return celebrationCells.some(([cr, cc]) => cr === r && cc === c);
@@ -324,7 +339,7 @@ const ScrabbleGrid = forwardRef(({
                         setSelected([]);
                     }
                 }}
-                onTouchStart={handleTouchStart}
+                onTouchStart={handleGridTouchStart}
                 onTouchMove={handleTouchMove}
                 onTouchEnd={handleTouchEnd}
                 onTouchCancel={handleTouchEnd}
@@ -363,7 +378,7 @@ const ScrabbleGrid = forwardRef(({
                             isHintCell={isHintCell}
                             directionArrow={hasDirectionArrow ? hintState.directionArrow.symbol : null}
                             hintLevel={hintState.hintLevel}
-                            handleMouseDown={handleMouseDown}
+                            handleMouseDown={handleCellMouseDown}
                             handleMouseEnter={handleMouseEnter}
                             cellSize={cellSize}
                         />

@@ -8,6 +8,7 @@ import {
     Chip,
     Collapse,
     Container,
+    Divider,
     FormControl,
     Grid,
     IconButton,
@@ -604,6 +605,7 @@ export default function AdminPanel({
         setUserProfile(false);
         setStatisticsDashboard(false);
         setSystemSettings(false);
+        window.dispatchEvent(new window.Event('admin-auth-changed'));
     };
 
     // Helper function to properly navigate back to dashboard
@@ -677,113 +679,188 @@ export default function AdminPanel({
 
     // Dashboard view
     if (dashboard) {
+        const role = currentUser?.role;
+        const canManageRecords = ['admin', 'root_admin', 'administrative'].includes(role);
+        const canManageAdvanced = ['root_admin', 'administrative'].includes(role);
+        const isRootAdmin = role === 'root_admin';
+
+        const recordsButtons = [];
+
+        if (canManageRecords) {
+            recordsButtons.push(
+                <Button
+                    key="browse-records"
+                    onClick={() => {
+                        if (languageSetsLoading) return;
+                        if (languageSets.length === 0) {
+                            setDashboard(false);
+                            setLanguageSetManagement(true);
+                        } else {
+                            setDashboard(false);
+                            setBrowseRecords(true);
+                        }
+                    }}
+                    variant="contained"
+                    disabled={languageSetsLoading}
+                >
+                    {t('browse_phrases')}
+                </Button>
+            );
+        }
+
+        recordsButtons.push(
+            <Button
+                key="language-sets"
+                onClick={() => {
+                    setDashboard(false);
+                    setLanguageSetManagement(true);
+                }}
+                variant="contained"
+                color="warning"
+            >
+                {canManageRecords
+                    ? t('language_sets_management')
+                    : t('manage_ignored_categories', 'Manage Ignored Categories')}
+            </Button>
+        );
+
+        if (isRootAdmin) {
+            recordsButtons.push(
+                <Button
+                    key="duplicate-management"
+                    onClick={() => {
+                        setDashboard(false);
+                        setDuplicateManagement(true);
+                    }}
+                    variant="contained"
+                    color="error"
+                >
+                    {t('duplicate_management', 'Duplicate Management')}
+                </Button>
+            );
+        }
+
+        const userButtons = [];
+
+        if (canManageAdvanced) {
+            userButtons.push(
+                <Button
+                    key="user-management"
+                    onClick={() => {
+                        setDashboard(false);
+                        setUserManagement(true);
+                    }}
+                    variant="contained"
+                    color="secondary"
+                >
+                    {t('user_management')}
+                </Button>
+            );
+        }
+
+        userButtons.push(
+            <Button
+                key="user-profile"
+                onClick={() => {
+                    setDashboard(false);
+                    setUserProfile(true);
+                }}
+                variant="contained"
+                color="info"
+            >
+                {t('your_profile')}
+            </Button>
+        );
+
+        const systemButtons = [];
+
+        if (canManageAdvanced) {
+            systemButtons.push(
+                <Button
+                    key="statistics-dashboard"
+                    onClick={() => {
+                        setDashboard(false);
+                        setStatisticsDashboard(true);
+                    }}
+                    variant="contained"
+                    color="success"
+                >
+                    {t('statistics_dashboard')}
+                </Button>
+            );
+
+            systemButtons.push(
+                <Button
+                    key="system-settings"
+                    onClick={() => {
+                        setDashboard(false);
+                        setSystemSettings(true);
+                    }}
+                    variant="contained"
+                    color="primary"
+                >
+                    {t('admin.settings.title')}
+                </Button>
+            );
+        }
+
+        const sections = [
+            {
+                key: 'records',
+                title: t('admin.dashboard.sections.records', 'Records & Content'),
+                buttons: recordsButtons
+            },
+            {
+                key: 'users',
+                title: t('admin.dashboard.sections.users', 'User & Account Tools'),
+                buttons: userButtons
+            },
+            {
+                key: 'system',
+                title: t('admin.dashboard.sections.system', 'Insights & Settings'),
+                buttons: systemButtons
+            }
+        ].filter(section => section.buttons.length > 0);
+
         return (
             <AdminLayout
                 maxWidth="md"
                 showBackToGame={true}
                 showLogout={true}
                 onLogout={handleLogout}
+                currentUser={currentUser}
             >
-                <Paper sx={{ p: 4, borderRadius: 2 }}>
-                    <Typography variant="h4" component="h2" gutterBottom align="center">
+                <Paper sx={{ p: 4, borderRadius: 2, display: 'flex', flexDirection: 'column', gap: 3 }}>
+                    <Typography variant="h4" component="h2">
                         {t('admin_dashboard')}
                     </Typography>
-                    <Typography variant="body1" align="center" sx={{ mb: 3 }}>
+                    <Typography variant="body1" sx={{ color: 'text.secondary' }}>
                         {t('welcome_user', { username: currentUser?.username, role: currentUser?.role })}
                     </Typography>
-                    <Box sx={{ display: 'flex', gap: 2, justifyContent: 'center', flexWrap: 'wrap', mt: 3 }}>
-                        {(currentUser?.role === 'admin' || currentUser?.role === 'root_admin' || currentUser?.role === 'administrative') && (
-                            <Button
-                                onClick={() => {
-                                    if (languageSetsLoading) return;
-                                    if (languageSets.length === 0) {
-                                        setDashboard(false);
-                                        setLanguageSetManagement(true);
-                                    } else {
-                                        setDashboard(false);
-                                        setBrowseRecords(true);
-                                    }
-                                }}
-                                variant="contained"
-                                disabled={languageSetsLoading}
-                            >
-                                {t('browse_phrases')}
-                            </Button>
-                        )}
-                        {(currentUser?.role === 'root_admin' || currentUser?.role === 'administrative') && (
-                            <Button
-                                onClick={() => {
-                                    setDashboard(false);
-                                    setUserManagement(true);
-                                }}
-                                variant="contained"
-                                color="secondary"
-                            >
-                                {t('user_management')}
-                            </Button>
-                        )}
-                        <Button
-                            onClick={() => {
-                                setDashboard(false);
-                                setLanguageSetManagement(true);
-                            }}
-                            variant="contained"
-                            color="warning"
-                        >
-                            {currentUser?.role === 'admin' || currentUser?.role === 'root_admin' || currentUser?.role === 'administrative'
-                                ? t('language_sets_management')
-                                : t('manage_ignored_categories', 'Manage Ignored Categories')
-                            }
-                        </Button>
-                        {currentUser?.role === 'root_admin' && (
-                            <Button
-                                onClick={() => {
-                                    setDashboard(false);
-                                    setDuplicateManagement(true);
-                                }}
-                                variant="contained"
-                                color="error"
-                            >
-                                {t('duplicate_management', 'Duplicate Management')}
-                            </Button>
-                        )}
-                        {(currentUser?.role === 'root_admin' || currentUser?.role === 'administrative') && (
-                            <Button
-                                onClick={() => {
-                                    setDashboard(false);
-                                    setStatisticsDashboard(true);
-                                }}
-                                variant="contained"
-                                color="success"
-                            >
-                                {t('statistics_dashboard')}
-                            </Button>
-                        )}
-                        {(currentUser?.role === 'root_admin' || currentUser?.role === 'administrative') && (
-                            <Button
-                                onClick={() => {
-                                    setDashboard(false);
-                                    setSystemSettings(true);
-                                }}
-                                variant="contained"
-                                color="primary"
-                            >
-                                {t('admin.settings.title')}
-                            </Button>
-                        )}
-                        <Button
-                            onClick={() => {
-                                setDashboard(false);
-                                setUserProfile(true);
-                            }}
-                            variant="contained"
-                            color="info"
-                        >
-                            {t('your_profile')}
-                        </Button>
-                    </Box>
+
+                    <Stack spacing={4} sx={{ mt: 1 }}>
+                        {sections.map(section => (
+                            <Box key={section.key}>
+                                <Typography variant="h6" sx={{ fontWeight: 600, mb: 1 }}>
+                                    {section.title}
+                                </Typography>
+                                <Divider sx={{ mb: 2, maxWidth: { xs: '100%', sm: 480 } }} />
+                                <Stack
+                                    direction="row"
+                                    spacing={1.5}
+                                    flexWrap="wrap"
+                                    useFlexGap
+                                    justifyContent="flex-start"
+                                    alignItems="center"
+                                >
+                                    {section.buttons}
+                                </Stack>
+                            </Box>
+                        ))}
+                    </Stack>
+
                     {error && (
-                        <Box sx={{ mt: 2, p: 2, bgcolor: 'error.light', borderRadius: 1 }}>
+                        <Box sx={{ mt: 1, p: 2, bgcolor: 'error.light', borderRadius: 1 }}>
                             <Typography color="error.contrastText">{error}</Typography>
                         </Box>
                     )}
@@ -801,6 +878,7 @@ export default function AdminPanel({
                 showLogout={true}
                 onDashboard={goToDashboard}
                 onLogout={handleLogout}
+                currentUser={currentUser}
             >
                 <Paper sx={{ p: 3 }}>
                     <UserManagement currentUser={currentUser} />
@@ -818,6 +896,7 @@ export default function AdminPanel({
                 showLogout={true}
                 onDashboard={goToDashboard}
                 onLogout={handleLogout}
+                currentUser={currentUser}
             >
                 <StatisticsDashboard token={token} setError={setError} currentUser={currentUser} />
             </AdminLayout>
@@ -833,6 +912,7 @@ export default function AdminPanel({
                 showLogout={true}
                 onDashboard={goToDashboard}
                 onLogout={handleLogout}
+                currentUser={currentUser}
             >
                 <SystemSettings />
             </AdminLayout>
@@ -848,6 +928,7 @@ export default function AdminPanel({
                 showLogout={true}
                 onDashboard={goToDashboard}
                 onLogout={handleLogout}
+                currentUser={currentUser}
             >
                 <Paper sx={{ p: 3 }}>
                     <LanguageSetManagement
@@ -871,6 +952,7 @@ export default function AdminPanel({
                 showLogout={true}
                 onDashboard={goToDashboard}
                 onLogout={handleLogout}
+                currentUser={currentUser}
             >
                 <UserProfile currentUser={currentUser} />
             </AdminLayout>
@@ -886,6 +968,7 @@ export default function AdminPanel({
                 showLogout={true}
                 onDashboard={goToDashboard}
                 onLogout={handleLogout}
+                currentUser={currentUser}
             >
                 <Paper sx={{ p: 3 }}>
                     <DuplicateManagement
@@ -904,6 +987,7 @@ export default function AdminPanel({
             showLogout={true}
             onDashboard={goToDashboard}
             onLogout={handleLogout}
+            currentUser={currentUser}
         >
             {/* Error overlay for no language sets */}
             {languageSets.length === 0 && browseRecords && !languageSetsLoading && (
@@ -965,11 +1049,23 @@ export default function AdminPanel({
             {browseRecords && (
                 (currentUser?.role === 'admin' || currentUser?.role === 'root_admin' || currentUser?.role === 'administrative') ? (
                 <>
-                    <Typography variant="h4" component="h2" gutterBottom align="center">
-                        {t('admin_panel')}
-                    </Typography>
                     {/* Action Buttons */}
-                    <Paper sx={{ p: 3, mb: 3 }}>
+                    <Paper
+                        sx={{
+                            p: 3,
+                            mb: 3,
+                            display: 'flex',
+                            flexDirection: 'column',
+                            gap: 2
+                        }}
+                    >
+                        <Typography
+                            variant="h5"
+                            component="h2"
+                            sx={{ fontWeight: 600 }}
+                        >
+                            {t('admin.records.title', 'Browse Records')}
+                        </Typography>
                         <Stack
                             direction={{ xs: 'column', lg: 'row' }}
                             spacing={2}

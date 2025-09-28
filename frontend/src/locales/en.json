@@ -388,6 +388,16 @@
     "no_hints_remaining": "No hints remaining",
     "no_hints": "No hints",
     "admin": {
+        "dashboard": {
+            "sections": {
+                "records": "Records & Content",
+                "users": "User & Account Tools",
+                "system": "Insights & Settings"
+            }
+        },
+        "records": {
+            "title": "Browse Records"
+        },
         "settings": {
             "title": "System Settings",
             "description": "Configure global system features and data collection settings. These settings affect all users.",

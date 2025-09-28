@@ -14,19 +14,64 @@
     padding: 4px 8px;
     border-radius: 8px;
     background: rgba(0, 0, 0, 0.02);
+    border: 2px solid rgba(25, 118, 210, 0.2);
 }
 
 .timer-display.active {
     background: rgba(25, 118, 210, 0.08);
     box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+    border-color: rgba(25, 118, 210, 0.45);
+}
+
+.timer-display.paused {
+    background: rgba(255, 152, 0, 0.1);
+    border-color: rgba(255, 152, 0, 0.45);
+}
+
+.timer-display.resume-blink {
+    animation: timerResumeBlink 0.4s ease-in-out 0s 3;
+    background: linear-gradient(135deg, rgba(255, 223, 0, 0.35), rgba(255, 255, 255, 0.05));
+    box-shadow: 0 0 8px rgba(255, 215, 0, 0.4);
+    border-color: rgba(255, 215, 0, 0.8);
+}
+
+@keyframes timerResumeBlink {
+    0%, 100% {
+        opacity: 1;
+        box-shadow: 0 0 8px rgba(255, 215, 0, 0.3);
+        transform: scale(1);
+    }
+    50% {
+        opacity: 0.6;
+        box-shadow: 0 0 16px rgba(255, 215, 0, 0.7);
+        transform: scale(1.03);
+    }
+}
+
+.timer-display:focus-visible {
+    outline: 2px solid currentColor;
+    outline-offset: 3px;
 }
 
 .dark-mode .timer-display {
     background: rgba(255, 255, 255, 0.02);
+    border: 2px solid rgba(255, 255, 255, 0.12);
 }
 
 .dark-mode .timer-display.active {
     background: rgba(144, 202, 249, 0.08);
+    border-color: rgba(144, 202, 249, 0.55);
+}
+
+.dark-mode .timer-display.paused {
+    background: rgba(255, 183, 77, 0.15);
+    border-color: rgba(255, 183, 77, 0.6);
+}
+
+.dark-mode .timer-display.resume-blink {
+    background: linear-gradient(135deg, rgba(255, 223, 0, 0.35), rgba(255, 236, 179, 0.15));
+    box-shadow: 0 0 12px rgba(255, 215, 0, 0.55);
+    border-color: rgba(255, 215, 0, 0.85);
 }
 
 @media (max-width: 600px) {

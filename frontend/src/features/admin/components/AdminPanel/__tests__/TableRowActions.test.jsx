@@ -32,8 +32,8 @@ describe('TableRowActions', () => {
             />
         );
         
-        expect(screen.getByText(/edit/i)).toBeInTheDocument();
-        expect(screen.getByText(/delete/i)).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: /edit/i })).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: /delete/i })).toBeInTheDocument();
     });
     
     test('calls onEdit with row when edit button is clicked', () => {
@@ -46,7 +46,7 @@ describe('TableRowActions', () => {
             />
         );
         
-        fireEvent.click(screen.getByText(/edit/i));
+    fireEvent.click(screen.getByRole('button', { name: /edit/i }));
         expect(mockEdit).toHaveBeenCalledWith(testRow);
     });
     
@@ -60,7 +60,7 @@ describe('TableRowActions', () => {
             />
         );
         
-        fireEvent.click(screen.getByText(/delete/i));
+    fireEvent.click(screen.getByRole('button', { name: /delete/i }));
         expect(mockDelete).toHaveBeenCalledWith(testRow);
     });
 });

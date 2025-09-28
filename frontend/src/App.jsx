@@ -86,6 +86,8 @@ function AppContent() {
     const [isGridLoading, setIsGridLoading] = useState(false);
     const [panelOpen, setPanelOpen] = useState(false);
     const [showRateLimit, setShowRateLimit] = useState(false);
+    const [currentUser, setCurrentUser] = useState(null);
+    const [isPaused, setIsPaused] = useState(false);
 
     const [languageSetsStatus, setLanguageSetsStatus] = useState('pending');
     const [categoriesStatus, setCategoriesStatus] = useState('pending');
@@ -124,6 +126,7 @@ function AppContent() {
 
     // Winning condition: all phrases found
     const allFound = phrases.length > 0 && found.length === phrases.length;
+    const isTimerActive = found.length > 0 && !allFound && !isAdminRoute && !isPaused;
 
     // Use celebration hook
     const { showCelebration, resetCelebration } = useCelebration(allFound, setLogoFilter);
@@ -172,7 +175,8 @@ function AppContent() {
             setRestored,
             setGameStartTime,
             setCurrentElapsedTime,
-            setGridStatus
+            setGridStatus,
+            setIsPaused
         });
          
     }, []);
@@ -288,66 +292,71 @@ function AppContent() {
         return () => clearTimeout(timeout);
     }, [initialLoadComplete, restored, showSplash]);
 
-    // Check if statistics are enabled on the server
-    const checkStatisticsEnabled = useCallback(async () => {
+    const fetchAuthenticatedUser = useCallback(async () => {
         const token = localStorage.getItem(STORAGE_KEYS.ADMIN_TOKEN);
+
         if (!token) {
-            setStatisticsEnabled(false);
-            return;
+            setCurrentUser(null);
+            return null;
         }
 
         try {
-            // First, verify if the token is valid by checking user profile
             const profileResponse = await axios.get(`${API_ENDPOINTS.USER_PROFILE}`, {
                 headers: {
                     'Authorization': `Bearer ${token}`,
                     'Content-Type': 'application/json'
                 }
             });
-            
+
             if (!profileResponse.data) {
-                setStatisticsEnabled(false);
-                return;
+                setCurrentUser(null);
+                return null;
             }
 
-            // For all users, enable statistics by default
-            setStatisticsEnabled(true);
-
-            // If user is root admin, check if statistics are explicitly disabled on server
-            if (profileResponse.data.role === 'root_admin') {
-                try {
-                    const response = await axios.get(`${API_ENDPOINTS.ADMIN}/settings/statistics-enabled`, {
-                        headers: {
-                            'Authorization': `Bearer ${token}`,
-                            'Content-Type': 'application/json'
-                        }
-                    });
-                    // Only disable if explicitly set to false
-                    if (response.data.enabled === false) {
-                        setStatisticsEnabled(false);
-                    }
-                } catch (_settingsError) {
-                    // If settings endpoint fails, keep statistics enabled (default behavior)
-                    console.warn('Failed to load statistics settings:', _settingsError);
-                }
-            }
-        } catch (_error) {
-            // If error (e.g., unauthorized, settings not found), disable statistics
-            console.warn('Failed to check statistics enabled status:', _error);
-            setStatisticsEnabled(false);
+            setCurrentUser(profileResponse.data);
+            return profileResponse.data;
+        } catch (error) {
+            console.warn('Failed to load authenticated user profile:', error);
+            setCurrentUser(null);
+            return null;
         }
     }, []);
 
-    // Check statistics enabled status on component mount and when auth changes
-    useEffect(() => {
-        checkStatisticsEnabled();
-        
-        // Also check when auth token changes
-        const token = localStorage.getItem(STORAGE_KEYS.ADMIN_TOKEN);
-        if (token) {
-            checkStatisticsEnabled();
+    // Check if statistics are enabled on the server
+    const checkStatisticsEnabled = useCallback(async () => {
+        const userProfile = await fetchAuthenticatedUser();
+        if (!userProfile) {
+            setStatisticsEnabled(false);
+            return;
         }
-    }, [checkStatisticsEnabled]);
+
+        // For all users, enable statistics by default
+        setStatisticsEnabled(true);
+
+        // If user is root admin, check if statistics are explicitly disabled on server
+        if (userProfile.role === 'root_admin') {
+            const token = localStorage.getItem(STORAGE_KEYS.ADMIN_TOKEN);
+            if (!token) {
+                return;
+            }
+
+            try {
+                const response = await axios.get(`${API_ENDPOINTS.ADMIN}/settings/statistics-enabled`, {
+                    headers: {
+                        'Authorization': `Bearer ${token}`,
+                        'Content-Type': 'application/json'
+                    }
+                });
+                // Only disable if explicitly set to false
+                if (response.data.enabled === false) {
+                    setStatisticsEnabled(false);
+                }
+            } catch (_settingsError) {
+                // If settings endpoint fails, keep statistics enabled (default behavior)
+                console.warn('Failed to load statistics settings:', _settingsError);
+            }
+        }
+    }, [fetchAuthenticatedUser]);
 
     // Check scoring and hint preferences
     const checkUserPreferences = useCallback(async () => {
@@ -366,6 +375,11 @@ function AppContent() {
         }
     }, []);
 
+    // Check statistics enabled status on component mount and when auth changes
+    useEffect(() => {
+        checkStatisticsEnabled();
+    }, [checkStatisticsEnabled]);
+
     // Check preferences on mount and auth changes
     useEffect(() => {
         const token = localStorage.getItem(STORAGE_KEYS.ADMIN_TOKEN);
@@ -373,6 +387,22 @@ function AppContent() {
             checkUserPreferences();
         }
     }, [checkUserPreferences]);
+
+    useEffect(() => {
+        const handleAuthChanged = () => {
+            checkStatisticsEnabled();
+            const token = localStorage.getItem(STORAGE_KEYS.ADMIN_TOKEN);
+            if (token) {
+                checkUserPreferences();
+            } else {
+                setScoringEnabled(false);
+                setProgressiveHintsEnabled(false);
+            }
+        };
+
+        window.addEventListener('admin-auth-changed', handleAuthChanged);
+        return () => window.removeEventListener('admin-auth-changed', handleAuthChanged);
+    }, [checkStatisticsEnabled, checkUserPreferences]);
 
     // Save state to localStorage on change, including showTranslations and selectedLanguageSetId
     useEffect(() => {
@@ -387,8 +417,9 @@ function AppContent() {
             showTranslations,
             selectedLanguageSetId,
             elapsedTimeSeconds: currentElapsedTime, // Save tracked elapsed time
+            isPaused
         });
-    }, [grid, phrases, found, selectedCategory, difficulty, hidePhrases, allFound, showTranslations, selectedLanguageSetId, currentElapsedTime]);
+    }, [grid, phrases, found, selectedCategory, difficulty, hidePhrases, allFound, showTranslations, selectedLanguageSetId, currentElapsedTime, isPaused]);
 
     useEffect(() => {
         if (!restored) return;
@@ -664,6 +695,7 @@ function AppContent() {
         setCurrentElapsedTime(0);
         setFound([]);
         setTimerResetTrigger(prev => prev + 1);
+        setIsPaused(false);
 
         if (gridRef.current) {
             gridRef.current.clearHints();
@@ -723,6 +755,25 @@ function AppContent() {
             updateScore(found.length, elapsedSeconds);
         }
     }, [scoringEnabled, found.length, updateScore]);
+
+    const handlePauseToggle = useCallback(() => {
+        if (found.length === 0 || allFound) {
+            return;
+        }
+        setIsPaused(prev => !prev);
+    }, [found.length, allFound]);
+
+    const handleGridInteraction = useCallback(() => {
+        if (isPaused) {
+            setIsPaused(false);
+        }
+    }, [isPaused]);
+
+    useEffect(() => {
+        if (allFound) {
+            setIsPaused(false);
+        }
+    }, [allFound]);
 
     // Game session tracking effects
     // Note: Game session now starts when first phrase is found (see markFound function)
@@ -818,6 +869,7 @@ function AppContent() {
                                 handleLogoClick={handleLogoClick}
                                 showCelebration={showCelebration}
                                 isDarkMode={isDarkMode}
+                                currentUser={currentUser}
                             />
 
                             <GameControls
@@ -882,6 +934,7 @@ function AppContent() {
                                         isDarkMode={isDarkMode}
                                         showCelebration={showCelebration}
                                         onHintUsed={() => {}} // Placeholder - hint tracking is handled in handleHintRequest
+                                        onGridInteraction={handleGridInteraction}
                                     />
 
                                     <LoadingOverlay isLoading={isGridLoading} isDarkMode={isDarkMode} />
@@ -901,15 +954,19 @@ function AppContent() {
                                             alignItems: 'center',
                                             justifyContent: 'flex-start',
                                             gap: 2,
-                                            mb: 2 
+                                            mb: 2,
+                                            flexWrap: 'wrap'
                                         }}>
                                             <Timer
-                                                isActive={found.length > 0 && !allFound && !isAdminRoute}
+                                                isActive={isTimerActive}
+                                                isPaused={isPaused}
                                                 onTimeUpdate={handleTimerUpdate}
                                                 startTime={gameStartTime}
                                                 resetTrigger={timerResetTrigger}
                                                 showTimer={scoringEnabled}
                                                 currentElapsedTime={currentElapsedTime}
+                                                onTogglePause={handlePauseToggle}
+                                                canPause={found.length > 0 && !allFound}
                                             />
                                             <ScoreDisplay
                                                 currentScore={currentScore}

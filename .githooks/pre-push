@@ -1,0 +1,76 @@
+#!/usr/bin/env bash
+
+set -Eeuo pipefail
+
+if [[ -n "${SKIP_LOCAL_CI:-}" ]]; then
+  printf '\033[1;94m[pre-push]\033[0m SKIP_LOCAL_CI set; skipping local CI checks.\n'
+  exit 0
+fi
+
+info() {
+  printf '\033[1;94m[pre-push]\033[0m %s\n' "$1"
+}
+
+error() {
+  printf '\033[1;31m[pre-push]\033[0m %s\n' "$1" >&2
+}
+
+command_exists() {
+  command -v "$1" >/dev/null 2>&1
+}
+
+REPO_ROOT="$(git rev-parse --show-toplevel 2>/dev/null || pwd)"
+cd "$REPO_ROOT"
+
+# Resolve Python executable
+if [[ -n "${PYTHON_BIN:-}" ]]; then
+  if ! command_exists "$PYTHON_BIN"; then
+    error "Configured PYTHON_BIN='$PYTHON_BIN' is not executable."
+    exit 1
+  fi
+else
+  if command_exists python3; then
+    PYTHON_BIN=python3
+  elif command_exists python; then
+    PYTHON_BIN=python
+  else
+    error "Python 3 is required. Install project dependencies with 'pip install -e .[dev]'."
+    exit 1
+  fi
+fi
+
+# Validate branch & commit format (mirrors CI validate-format job)
+BRANCH_NAME="$(git rev-parse --abbrev-ref HEAD 2>/dev/null || echo '')"
+if [[ -z "$BRANCH_NAME" || "$BRANCH_NAME" == "HEAD" ]]; then
+  info "Detached HEAD detected; skipping branch name validation but checking commit format."
+  GITHUB_EVENT_NAME=push "$PYTHON_BIN" .github/scripts/validate_format.py
+else
+  info "Validating branch and commit format..."
+  GITHUB_EVENT_NAME=push \
+  GITHUB_REF="refs/heads/$BRANCH_NAME" \
+  "$PYTHON_BIN" .github/scripts/validate_format.py
+fi
+
+# Python linting
+info "Running Python linters (flake8, black, isort)..."
+for tool in flake8 black isort; do
+  if ! command_exists "$tool"; then
+    error "Missing '$tool'. Install with 'pip install -e .[dev]'."
+    exit 1
+  fi
+done
+
+flake8 backend/ --max-line-length=120 --count --statistics
+black --check backend/ --diff
+isort --check-only backend/ --diff
+
+# Frontend linting
+info "Running frontend lint (npm run lint)..."
+if ! command_exists npm; then
+  error "npm is required. Install Node.js >= 18 and run 'npm install' inside frontend/."
+  exit 1
+fi
+
+( cd frontend && npm run lint )
+
+info "All local checks passed. Proceeding with push."

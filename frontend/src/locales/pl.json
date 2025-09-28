@@ -388,6 +388,16 @@
     "no_hints_remaining": "Brak pozostałych podpowiedzi",
     "no_hints": "Brak podpowiedzi",
     "admin": {
+        "dashboard": {
+            "sections": {
+                "records": "Rekordy i treści",
+                "users": "Narzędzia użytkowników i kont",
+                "system": "Analizy i ustawienia"
+            }
+        },
+        "records": {
+            "title": "Przegląd rekordów"
+        },
         "settings": {
             "title": "Ustawienia systemowe",
             "description": "Skonfiguruj globalne funkcje systemu i ustawienia zbierania danych. Te ustawienia wpływają na wszystkich użytkowników.",

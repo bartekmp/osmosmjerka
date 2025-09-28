@@ -64,6 +64,7 @@ export function useAdminApi({ token, setRows, setTotalRows, setDashboard, setErr
                     setIsLogged(true);
                     setCurrentUser(data.user);
                     setError("");
+                    window.dispatchEvent(new window.Event('admin-auth-changed'));
                 } else {
                     setError(data.detail || "Login failed");
                     setIsLogged(false);

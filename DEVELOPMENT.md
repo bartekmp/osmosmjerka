@@ -24,6 +24,24 @@ This project supports both development and production environments with differen
 ./start-dev-env-watch.sh
 ```
 
+### Local CI parity hook
+
+To mirror the GitHub Actions checks before every push, enable the bundled git hooks once per clone:
+
+```bash
+git config core.hooksPath .githooks
+```
+
+After this, every `git push` will run:
+
+- Branch and commit format validation (`.github/scripts/validate_format.py`)
+- Python linters: `flake8`, `black --check`, `isort --check-only`
+- Frontend lint (`npm run lint`)
+
+Make sure you have the development dependencies installed (`pip install -e .[dev]` and `npm install` in `frontend/`).
+
+> Need to bypass the hook temporarily? Use `SKIP_LOCAL_CI=1 git push` or `git push --no-verify`.
+
 ## Production Mode
 
 **Configuration:**
