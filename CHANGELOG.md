@@ -2,6 +2,25 @@
 
 <!-- version list -->
 
+## v1.30.0 (2025-09-28)
+
+### Feature
+
+- Local pre-push CI parity hook for lint and format checks
+  ([`0ea4167`](https://github.com/bartekmp/osmosmjerka/commit/0ea4167b7292205f521c47d8ce8cceea0c2e6ddc))
+
+- Timer pause persistence with click-to-toggle UX
+  ([`0ea4167`](https://github.com/bartekmp/osmosmjerka/commit/0ea4167b7292205f521c47d8ce8cceea0c2e6ddc))
+
+### Improvement
+
+- Added admin dashboard i18n entries across locales
+  ([`0ea4167`](https://github.com/bartekmp/osmosmjerka/commit/0ea4167b7292205f521c47d8ce8cceea0c2e6ddc))
+
+- Admin dashboard grouping, username chip, refreshed browse records title
+  ([`0ea4167`](https://github.com/bartekmp/osmosmjerka/commit/0ea4167b7292205f521c47d8ce8cceea0c2e6ddc))
+
+
 ## v1.29.1 (2025-09-27)
 
 ### Enhancement
