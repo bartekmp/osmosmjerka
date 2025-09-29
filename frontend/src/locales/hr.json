@@ -115,7 +115,7 @@
     "copied_successfully": "Kopirano u međuspremnik!",
     "copy_failed": "Kopiranje teksta nije uspjelo",
     "close": "Zatvori",
-    "admin_login": "Prijava administratora",
+    "admin_login": "Prijava",
     "session_expired": "Sesija je istekla, prijavite se ponovno.",
     "welcome_user": "Dobrodošli, {{username}} ({{role}})",
     "confirm_clear_db": "Jeste li sigurni da želite obrisati SVE podatke? Ova radnja je nepovratna!",

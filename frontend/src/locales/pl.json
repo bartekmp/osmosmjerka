@@ -115,7 +115,7 @@
     "copied_successfully": "Skopiowano do schowka!",
     "copy_failed": "Nie udało się skopiować tekstu",
     "close": "Zamknij",
-    "admin_login": "Logowanie administratora",
+    "admin_login": "Logowanie",
     "session_expired": "Sesja wygasła, zaloguj się ponownie.",
     "welcome_user": "Witaj, {{username}} ({{role}})",
     "confirm_clear_db": "Czy na pewno chcesz usunąć WSZYSTKIE dane? Tej operacji nie można cofnąć!",

@@ -280,6 +280,13 @@ function AppContent() {
     }, [languageSetsStatus, categoriesStatus, gridStatus, initialLoadComplete, restored]);
 
     useEffect(() => {
+        if (isAdminRoute) {
+            if (showSplash) {
+                setShowSplash(false);
+            }
+            return;
+        }
+
         if (!restored || !initialLoadComplete) {
             if (!showSplash) {
                 splashShownAtRef.current = Date.now();
@@ -290,7 +297,7 @@ function AppContent() {
 
         const timeout = setTimeout(() => setShowSplash(false), SPLASH_EXIT_DURATION);
         return () => clearTimeout(timeout);
-    }, [initialLoadComplete, restored, showSplash]);
+    }, [initialLoadComplete, isAdminRoute, restored, showSplash]);
 
     const fetchAuthenticatedUser = useCallback(async () => {
         const token = localStorage.getItem(STORAGE_KEYS.ADMIN_TOKEN);
@@ -812,6 +819,7 @@ function AppContent() {
     }, [allFound]);
 
     const visibleCategories = categories.filter(cat => !ignoredCategories.includes(cat) && !userIgnoredCategories.includes(cat));
+    const shouldShowSplash = !isAdminRoute && showSplash;
 
     // Auto-adjust difficulty if current one becomes unavailable
     React.useEffect(() => {
@@ -829,7 +837,7 @@ function AppContent() {
     return (
         <MUIThemeProvider theme={createAppTheme(isDarkMode)}>
             <CssBaseline />
-            {showSplash && (
+            {shouldShowSplash && (
                 <SplashScreen
                     open={!initialLoadComplete}
                     messageKey="loading_game"
