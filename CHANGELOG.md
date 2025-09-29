@@ -2,6 +2,15 @@
 
 <!-- version list -->
 
+## v1.30.1 (2025-09-29)
+
+### Bug
+
+- Do not show splashscreen when directly accessing admin pages URL
+  ([#80](https://github.com/bartekmp/osmosmjerka/pull/80),
+  [`81e8424`](https://github.com/bartekmp/osmosmjerka/commit/81e84241543e3a3d2c1cf980f8e3392b5c241b52))
+
+
 ## v1.30.0 (2025-09-28)
 
 ### Feature
