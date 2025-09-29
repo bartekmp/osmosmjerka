@@ -99,7 +99,7 @@
     "copied_successfully": "Copied to clipboard!",
     "copy_failed": "Failed to copy text",
     "close": "Close",
-    "admin_login": "Admin Login",
+    "admin_login": "Login",
     "session_expired": "Session expired, please log in again.",
     "welcome_user": "Welcome, {{username}} ({{role}})",
     "confirm_clear_db": "Are you sure you want to delete ALL data? This action cannot be undone!",
