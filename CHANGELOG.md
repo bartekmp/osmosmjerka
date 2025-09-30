@@ -2,6 +2,15 @@
 
 <!-- version list -->
 
+## v1.31.0 (2025-09-30)
+
+### Feature
+
+- Improved control panel in the admin dashboard
+  ([#81](https://github.com/bartekmp/osmosmjerka/pull/81),
+  [`87a5fc3`](https://github.com/bartekmp/osmosmjerka/commit/87a5fc332d28850c9518d9404e1cdca4b1d82614))
+
+
 ## v1.30.1 (2025-09-29)
 
 ### Bug
