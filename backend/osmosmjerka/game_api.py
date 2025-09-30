@@ -10,6 +10,15 @@ from osmosmjerka.auth import get_current_user, get_current_user_optional, verify
 from osmosmjerka.cache import cache_response, categories_cache, language_sets_cache, phrases_cache, rate_limit
 from osmosmjerka.database import db_manager
 from osmosmjerka.grid_generator import generate_grid
+from osmosmjerka.scoring_rules import (
+    BASE_POINTS_PER_PHRASE,
+    COMPLETION_BONUS_POINTS,
+    DIFFICULTY_MULTIPLIERS,
+    HINT_PENALTY_PER_HINT,
+    MAX_TIME_BONUS_RATIO,
+    TARGET_TIMES_SECONDS,
+    get_scoring_rules,
+)
 from osmosmjerka.utils import export_to_docx, export_to_png
 
 router = APIRouter(prefix="/api")
@@ -545,40 +554,28 @@ def calculate_game_score(
 ) -> dict:
     """Calculate game score based on various factors"""
 
-    # Base score: 100 points per phrase found
-    base_score = phrases_found * 100
+    # Base score: constant points per phrase found
+    base_score = phrases_found * BASE_POINTS_PER_PHRASE
 
-    # Difficulty multipliers
-    difficulty_multipliers = {"easy": 1.0, "medium": 1.2, "hard": 1.5, "very_hard": 2.0}
-    difficulty_bonus = int(base_score * (difficulty_multipliers.get(difficulty, 1.0) - 1.0))
+    # Difficulty multipliers determine the size of the bonus.
+    difficulty_multiplier = DIFFICULTY_MULTIPLIERS.get(difficulty, DIFFICULTY_MULTIPLIERS["easy"])
+    difficulty_bonus = int(base_score * (difficulty_multiplier - 1.0))
 
-    # Time bonus (faster completion = higher bonus)
-    # Maximum time bonus is 50% of base score for very fast completion
+    # Time bonus (faster completion = higher bonus).
+    time_bonus = 0
     if phrases_found == total_phrases and duration_seconds > 0:
-        # Target times per difficulty (in seconds)
-        target_times = {
-            "easy": 300,  # 5 minutes
-            "medium": 600,  # 10 minutes
-            "hard": 900,  # 15 minutes
-            "very_hard": 1200,  # 20 minutes
-        }
-        target_time = target_times.get(difficulty, 600)
+        target_time = TARGET_TIMES_SECONDS.get(difficulty, TARGET_TIMES_SECONDS["medium"])
+        if target_time > 0 and duration_seconds <= target_time:
+            time_ratio = max(0.0, (target_time - duration_seconds) / target_time)
+            time_bonus = int(base_score * MAX_TIME_BONUS_RATIO * time_ratio)
 
-        if duration_seconds <= target_time:
-            time_ratio = max(0, (target_time - duration_seconds) / target_time)
-            time_bonus = int(base_score * 0.5 * time_ratio)
-        else:
-            time_bonus = 0
-    else:
-        time_bonus = 0
+    # Completion bonus for finding all phrases in the puzzle.
+    streak_bonus = COMPLETION_BONUS_POINTS if phrases_found == total_phrases else 0
 
-    # Streak bonus for completing all phrases
-    streak_bonus = 200 if phrases_found == total_phrases else 0
+    # Hint penalty: fixed deduction per hint used.
+    hint_penalty = hints_used * HINT_PENALTY_PER_HINT
 
-    # Hint penalty: -50 points per hint used
-    hint_penalty = hints_used * 50
-
-    # Calculate final score
+    # Calculate final score.
     final_score = max(0, base_score + difficulty_bonus + time_bonus + streak_bonus - hint_penalty)
 
     return {
@@ -590,6 +587,15 @@ def calculate_game_score(
         "final_score": final_score,
         "hints_used": hints_used,
     }
+
+
+@router.get("/system/scoring-rules")
+async def get_system_scoring_rules() -> JSONResponse:
+    """Public endpoint exposing the current scoring rules."""
+    try:
+        return JSONResponse(get_scoring_rules())
+    except Exception as e:  # pragma: no cover - defensive guard
+        return JSONResponse({"error": str(e)}, status_code=500)
 
 
 @router.get("/system/scoring-enabled")

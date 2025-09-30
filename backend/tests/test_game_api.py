@@ -67,6 +67,19 @@ def test_get_user_ignored_categories_no_auth(client):
     assert ignored == []
 
 
+def test_get_scoring_rules(client):
+    """Scoring rules should be exposed through a public endpoint."""
+    response = client.get("/api/system/scoring-rules")
+    assert response.status_code == 200
+
+    rules = response.json()
+    assert rules["base_points_per_phrase"] == 100
+    assert set(rules["difficulty_multipliers"].keys()) == {"easy", "medium", "hard", "very_hard"}
+    assert rules["completion_bonus_points"] == 200
+    assert rules["hint_penalty_per_hint"] == 50
+    assert "time_bonus" in rules and "target_times_seconds" in rules["time_bonus"]
+
+
 def test_get_grid_size_and_num_phrases_easy():
     size, num_phrases = get_grid_size_and_num_phrases([{"phrase": "a"}] * 10, "easy")
     assert size == 10 and num_phrases == 7
