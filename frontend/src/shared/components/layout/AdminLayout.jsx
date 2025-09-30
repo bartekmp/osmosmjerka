@@ -1,5 +1,7 @@
 import React from 'react';
 import { Container, Box, Chip, Avatar } from '@mui/material';
+import useMediaQuery from '@mui/material/useMediaQuery';
+import { useTheme } from '@mui/material/styles';
 import { useTranslation } from 'react-i18next';
 import AdminButton from '../ui/AdminButton';
 import { SPACING } from '../../utils/responsive';
@@ -27,6 +29,30 @@ const AdminLayout = ({
 }) => {
   const { t } = useTranslation();
   const username = currentUser?.username?.trim();
+  const theme = useTheme();
+  const isCompactLogout = useMediaQuery(theme.breakpoints.down('sm'));
+
+  const logoutButtonSx = {
+    bgcolor: '#FACC15',
+    color: '#111827',
+    '&:hover': {
+      bgcolor: '#DC2626',
+      color: '#F9FAFB'
+    },
+    ...(isCompactLogout
+      ? {
+          width: 'auto',
+          minWidth: 64,
+          px: 1.25,
+          height: 40,
+          fontSize: '0.85rem'
+        }
+      : {
+          minWidth: 120,
+          px: 2,
+          fontSize: '0.95rem'
+        })
+  };
 
   return (
     <Container maxWidth={maxWidth} sx={{ py: 4 }}>
@@ -45,15 +71,17 @@ const AdminLayout = ({
           {showBackToGame && (
             <AdminButton
               to="/"
-              desktopText={`⇇ ${t('back_to_game')}`}
-              mobileText="🏠"
+              desktopText={`🎮 ${t('back_to_game')}`}
+              tabletText={t('game_short', 'Game')}
+              mobileText="🎮"
             />
           )}
           {showDashboard && (
             <AdminButton
               onClick={onDashboard}
-              desktopText={`← ${t('dashboard')}`}
-              mobileText="⬅️"
+              desktopText={`🛠️ ${t('dashboard')}`}
+              tabletText={t('dashboard_short', 'Admin')}
+              mobileText="🛠️"
             />
           )}
         </Box>
@@ -82,6 +110,7 @@ const AdminLayout = ({
               color="secondary"
               desktopText={`🚪 ${t('logout')}`}
               mobileText="🚪"
+              sx={logoutButtonSx}
             />
           </Box>
         )}

@@ -4,10 +4,11 @@ import { useRef, useState } from 'react';
 import { Snackbar, Alert, IconButton } from '@mui/material';
 import CloseIcon from '@mui/icons-material/Close';
 import { useTranslation } from 'react-i18next';
+import PropTypes from 'prop-types';
 import { ResponsiveActionButton, STORAGE_KEYS } from '../../../shared';
 import PastePhraseDialog from './AdminPanel/PastePhraseDialog';
 
-export default function UploadForm({ onUpload, selectedLanguageSetId }) {
+export default function UploadForm({ onUpload, selectedLanguageSetId, compact = false, forceMobileText = false }) {
     const { t } = useTranslation();
     const fileInputRef = useRef();
     const [loading, setLoading] = useState(false);
@@ -95,6 +96,8 @@ export default function UploadForm({ onUpload, selectedLanguageSetId }) {
         }
     };
 
+    const buttonSx = (compact || forceMobileText) ? {} : { minWidth: { md: 200 } };
+
     return (
         <>
             <input
@@ -113,7 +116,11 @@ export default function UploadForm({ onUpload, selectedLanguageSetId }) {
                 color="info"
                 desktopText={t('upload_phrases', 'Upload phrases (file)')}
                 mobileText={t('upload', 'Upload')}
-                sx={{ minWidth: { md: 200 } }}
+                compact={compact}
+                forceMobileText={forceMobileText}
+                tooltip={t('upload_phrases', 'Upload phrases (file)')}
+                ariaLabel={t('upload_phrases', 'Upload phrases (file)')}
+                sx={buttonSx}
             />
             <ResponsiveActionButton
                 fullWidth={false}
@@ -123,7 +130,11 @@ export default function UploadForm({ onUpload, selectedLanguageSetId }) {
                 icon="📝"
                 desktopText={t('paste_phrases', 'Paste phrases')}
                 mobileText={t('paste', 'Paste')}
-                sx={{ minWidth: { md: 200 } }}
+                compact={compact}
+                forceMobileText={forceMobileText}
+                tooltip={t('paste_phrases', 'Paste phrases')}
+                ariaLabel={t('paste_phrases', 'Paste phrases')}
+                sx={buttonSx}
             />
             <PastePhraseDialog
                 open={pasteDialogOpen}
@@ -161,3 +172,16 @@ export default function UploadForm({ onUpload, selectedLanguageSetId }) {
         </>
     );
 }
+
+UploadForm.propTypes = {
+    onUpload: PropTypes.func.isRequired,
+    selectedLanguageSetId: PropTypes.oneOfType([PropTypes.number, PropTypes.oneOf([null])]),
+    compact: PropTypes.bool,
+    forceMobileText: PropTypes.bool
+};
+
+UploadForm.defaultProps = {
+    selectedLanguageSetId: null,
+    compact: false,
+    forceMobileText: false
+};
