@@ -2,6 +2,14 @@
 
 <!-- version list -->
 
+## v1.32.0 (2025-09-30)
+
+### Feature
+
+- Score counting rules and points breakdown ([#82](https://github.com/bartekmp/osmosmjerka/pull/82),
+  [`8e03ce6`](https://github.com/bartekmp/osmosmjerka/commit/8e03ce60298316f4a47546dba385677ddd2277c7))
+
+
 ## v1.31.0 (2025-09-30)
 
 ### Feature
