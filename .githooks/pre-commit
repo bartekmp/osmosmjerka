@@ -3,16 +3,16 @@
 set -Eeuo pipefail
 
 if [[ -n "${SKIP_LOCAL_CI:-}" ]]; then
-  printf '\033[1;94m[pre-push]\033[0m SKIP_LOCAL_CI set; skipping local CI checks.\n'
+  printf '\033[1;94m[pre-commit]\033[0m SKIP_LOCAL_CI set; skipping local CI checks.\n'
   exit 0
 fi
 
 info() {
-  printf '\033[1;94m[pre-push]\033[0m %s\n' "$1"
+  printf '\033[1;94m[pre-commit]\033[0m %s\n' "$1"
 }
 
 error() {
-  printf '\033[1;31m[pre-push]\033[0m %s\n' "$1" >&2
+  printf '\033[1;31m[pre-commit]\033[0m %s\n' "$1" >&2
 }
 
 command_exists() {
@@ -73,4 +73,4 @@ fi
 
 ( cd frontend && npm run lint )
 
-info "All local checks passed. Proceeding with push."
+info "All local checks passed. Proceeding with commit."

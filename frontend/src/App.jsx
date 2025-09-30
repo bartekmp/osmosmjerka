@@ -42,6 +42,27 @@ const UserProfile = lazy(() => import('./features').then(module => ({ default: m
 const SPLASH_EXIT_DURATION = 600;
 const SPLASH_MIN_VISIBLE_DURATION = 1200;
 
+const DEFAULT_SCORING_RULES = {
+    base_points_per_phrase: 100,
+    completion_bonus_points: 0,
+    difficulty_multipliers: {
+        easy: 1.0,
+        medium: 1.2,
+        hard: 1.5,
+        very_hard: 2.0
+    },
+    hint_penalty_per_hint: 50,
+    time_bonus: {
+        max_ratio: 0.5,
+        target_times_seconds: {
+            easy: 300,
+            medium: 600,
+            hard: 900,
+            very_hard: 1200
+        }
+    }
+};
+
 function AppContent() {
     const { t } = useTranslation();
     const location = useLocation();
@@ -107,8 +128,11 @@ function AppContent() {
     const [scoringEnabled, setScoringEnabled] = useState(true);
     const [currentScore, setCurrentScore] = useState(0);
     const [scoreBreakdown, setScoreBreakdown] = useState(null);
+    const [scoringRules, setScoringRules] = useState(null);
+    const [scoringRulesStatus, setScoringRulesStatus] = useState('idle');
     const [firstPhraseTime, setFirstPhraseTime] = useState(null);
     const [timerResetTrigger, setTimerResetTrigger] = useState(0);
+    const scoreDialogOpenerRef = useRef(null);
 
     // Progressive hint system state
     const [progressiveHintsEnabled, setProgressiveHintsEnabled] = useState(false);
@@ -377,10 +401,26 @@ function AppContent() {
             setProgressiveHintsEnabled(hintsResponse.data.enabled);
         } catch (error) {
             console.error('Failed to check system preferences:', error);
-            setScoringEnabled(false);
+            setScoringEnabled(true);
             setProgressiveHintsEnabled(false);
         }
     }, []);
+
+    const loadScoringRules = useCallback(async ({ force = false } = {}) => {
+        if (!force && scoringRulesStatus === 'loading') {
+            return;
+        }
+
+        setScoringRulesStatus('loading');
+        try {
+            const response = await axios.get(`${API_ENDPOINTS.GAME}/system/scoring-rules`);
+            setScoringRules(response.data);
+            setScoringRulesStatus('loaded');
+        } catch (error) {
+            console.error('Failed to load scoring rules:', error);
+            setScoringRulesStatus('error');
+        }
+    }, [scoringRulesStatus]);
 
     // Check statistics enabled status on component mount and when auth changes
     useEffect(() => {
@@ -389,27 +429,28 @@ function AppContent() {
 
     // Check preferences on mount and auth changes
     useEffect(() => {
-        const token = localStorage.getItem(STORAGE_KEYS.ADMIN_TOKEN);
-        if (token) {
-            checkUserPreferences();
-        }
+        checkUserPreferences();
     }, [checkUserPreferences]);
 
     useEffect(() => {
         const handleAuthChanged = () => {
             checkStatisticsEnabled();
-            const token = localStorage.getItem(STORAGE_KEYS.ADMIN_TOKEN);
-            if (token) {
-                checkUserPreferences();
-            } else {
-                setScoringEnabled(false);
-                setProgressiveHintsEnabled(false);
-            }
+            checkUserPreferences();
         };
 
         window.addEventListener('admin-auth-changed', handleAuthChanged);
         return () => window.removeEventListener('admin-auth-changed', handleAuthChanged);
     }, [checkStatisticsEnabled, checkUserPreferences]);
+
+    useEffect(() => {
+        if (!scoringEnabled) {
+            return;
+        }
+
+        if (scoringRulesStatus === 'idle' || (scoringRulesStatus === 'error' && !scoringRules)) {
+            loadScoringRules();
+        }
+    }, [loadScoringRules, scoringEnabled, scoringRules, scoringRulesStatus]);
 
     // Save state to localStorage on change, including showTranslations and selectedLanguageSetId
     useEffect(() => {
@@ -541,7 +582,7 @@ function AppContent() {
         try {
             const completionTime = isCompleted ? new Date().toISOString() : null;
             
-            await axios.post(`${API_ENDPOINTS.GAME}/game/score`, {
+            const response = await axios.post(`${API_ENDPOINTS.GAME}/game/score`, {
                 session_id: gameSessionId,
                 language_set_id: selectedLanguageSetId,
                 category: selectedCategory,
@@ -559,11 +600,45 @@ function AppContent() {
                     'Content-Type': 'application/json'
                 }
             });
+
+            const scoringDetails = response?.data?.scoring_details;
+            if (scoringDetails) {
+                const totalFoundPhrases = found.length;
+                const basePointsPerPhrase = scoringRules?.base_points_per_phrase ?? (totalFoundPhrases > 0 ? Math.round(scoringDetails.base_score / totalFoundPhrases) : 0);
+                const perPhraseBreakdown = isCompleted ? found.map((phraseText, index) => ({
+                    id: `${index}-${phraseText}`,
+                    phrase: phraseText,
+                    points: basePointsPerPhrase
+                })) : [];
+
+                setScoreBreakdown({
+                    ...scoringDetails,
+                    per_phrase: perPhraseBreakdown,
+                    hints_used: hintsUsed,
+                    hint_penalty_per_hint: scoringRules?.hint_penalty_per_hint ?? 50,
+                    duration_seconds: durationSeconds,
+                    difficulty,
+                    total_phrases: phrases.length,
+                    phrases_found: totalFoundPhrases
+                });
+
+                setCurrentScore(scoringDetails.final_score);
+            }
         } catch (error) {
             console.error('Failed to save game score:', error);
         }
     }, [gameSessionId, scoringEnabled, selectedLanguageSetId, selectedCategory, difficulty, 
-        grid.length, phrases.length, hintsUsed, firstPhraseTime]);
+        grid.length, phrases.length, hintsUsed, firstPhraseTime, found, scoringRules]);
+
+    const registerScoreDialogOpener = useCallback((fn) => {
+        scoreDialogOpenerRef.current = typeof fn === 'function' ? fn : null;
+    }, []);
+
+    const openScoreBreakdownDialog = useCallback(() => {
+        if (scoreDialogOpenerRef.current) {
+            scoreDialogOpenerRef.current();
+        }
+    }, []);
 
     const completeGameSession = useCallback(async (phrasesFound, isCompleted) => {
         const token = localStorage.getItem(STORAGE_KEYS.ADMIN_TOKEN);
@@ -644,12 +719,103 @@ function AppContent() {
         return Math.max(0, baseScore + difficultyBonus + timeBonus - hintPenalty);
     }, [scoringEnabled, difficulty, hintsUsed]);
 
+    const buildFallbackScoreBreakdown = useCallback(() => {
+        const rules = scoringRules ?? DEFAULT_SCORING_RULES;
+        const basePoints = rules.base_points_per_phrase ?? DEFAULT_SCORING_RULES.base_points_per_phrase;
+        const multiplierMap = rules.difficulty_multipliers ?? DEFAULT_SCORING_RULES.difficulty_multipliers;
+        const multiplier = multiplierMap?.[difficulty] ?? 1;
+        const hintPenaltyPerHint = rules.hint_penalty_per_hint ?? DEFAULT_SCORING_RULES.hint_penalty_per_hint;
+        const timeBonusConfig = rules.time_bonus ?? DEFAULT_SCORING_RULES.time_bonus;
+        const baseScore = basePoints * found.length;
+        const difficultyBonus = Math.floor(baseScore * (multiplier - 1));
+
+        const elapsedSeconds = currentElapsedTime;
+        let timeBonus = 0;
+        if (elapsedSeconds > 0) {
+            const targetTimes = timeBonusConfig?.target_times_seconds ?? DEFAULT_SCORING_RULES.time_bonus.target_times_seconds;
+            const targetTime = targetTimes?.[difficulty];
+            const maxRatio = timeBonusConfig?.max_ratio ?? DEFAULT_SCORING_RULES.time_bonus.max_ratio;
+            if (targetTime && elapsedSeconds <= targetTime) {
+                const timeRatio = Math.max(0, (targetTime - elapsedSeconds) / targetTime);
+                timeBonus = Math.round(baseScore * maxRatio * timeRatio);
+            }
+        }
+
+        const hintPenalty = hintPenaltyPerHint * hintsUsed;
+        const completionBonus = allFound ? (rules.completion_bonus_points ?? DEFAULT_SCORING_RULES.completion_bonus_points ?? 0) : 0;
+        const finalScore = Math.max(0, baseScore + difficultyBonus + timeBonus + completionBonus - hintPenalty);
+
+        const perPhraseEntries = found.map((phraseValue, index) => {
+            const phraseObj = phrases.find((item) => {
+                if (item && typeof item === 'object') {
+                    return item.phrase === phraseValue;
+                }
+                return item === phraseValue;
+            });
+            const phraseLabel = (phraseObj && phraseObj.phrase) ? phraseObj.phrase : phraseValue;
+            const phraseId = (phraseObj && phraseObj.id !== undefined) ? phraseObj.id : `${phraseLabel}-${index}`;
+            const phrasePoints = Math.max(0, Math.round(basePoints * multiplier));
+            return {
+                id: phraseId,
+                phrase: phraseLabel,
+                points: phrasePoints
+            };
+        });
+
+        return {
+            base_score: baseScore,
+            difficulty_bonus: difficultyBonus,
+            time_bonus: timeBonus,
+            streak_bonus: completionBonus,
+            hint_penalty: hintPenalty,
+            final_score: finalScore,
+            per_phrase: perPhraseEntries,
+            hints_used: hintsUsed,
+            hint_penalty_per_hint: hintPenaltyPerHint,
+            duration_seconds: elapsedSeconds,
+            difficulty,
+            total_phrases: phrases.length,
+            phrases_found: found.length,
+            source: 'local'
+        };
+    }, [scoringRules, difficulty, found, phrases, currentElapsedTime, hintsUsed, allFound]);
+
     const updateScore = useCallback((phrasesFound, timePlayed = 0) => {
         if (!scoringEnabled) return;
         
         const score = calculateCurrentScore(phrasesFound, timePlayed);
         setCurrentScore(score);
     }, [scoringEnabled, calculateCurrentScore]);
+
+    useEffect(() => {
+        if (!scoringEnabled || !allFound) {
+            return;
+        }
+
+        setScoreBreakdown((current) => {
+            if (current && current.source !== 'local') {
+                return current;
+            }
+
+            const fallbackBreakdown = buildFallbackScoreBreakdown();
+            if (current && current.source === 'local') {
+                const isSame = (
+                    current.final_score === fallbackBreakdown.final_score &&
+                    current.base_score === fallbackBreakdown.base_score &&
+                    current.difficulty_bonus === fallbackBreakdown.difficulty_bonus &&
+                    current.time_bonus === fallbackBreakdown.time_bonus &&
+                    current.hint_penalty === fallbackBreakdown.hint_penalty &&
+                    current.streak_bonus === fallbackBreakdown.streak_bonus &&
+                    (current.per_phrase?.length ?? 0) === (fallbackBreakdown.per_phrase?.length ?? 0)
+                );
+                if (isSame) {
+                    return current;
+                }
+            }
+
+            return fallbackBreakdown;
+        });
+    }, [scoringEnabled, allFound, buildFallbackScoreBreakdown]);
 
     // Hint system functions
     const handleHintRequest = useCallback(async () => {
@@ -909,6 +1075,8 @@ function AppContent() {
                                 refreshPuzzle={refreshPuzzle}
                                 selectedCategory={selectedCategory}
                                 difficulty={difficulty}
+                                canShowBreakdown={scoringEnabled && !!scoreBreakdown}
+                                onShowBreakdown={openScoreBreakdownDialog}
                             />
 
                             {/* Main Game Area */}
@@ -984,6 +1152,10 @@ function AppContent() {
                                                 hintsUsed={hintsUsed}
                                                 showScore={scoringEnabled}
                                                 compact={true}
+                                                scoringRules={scoringRules}
+                                                scoringRulesStatus={scoringRulesStatus}
+                                                onReloadScoringRules={() => loadScoringRules({ force: true })}
+                                                registerDialogOpener={registerScoreDialogOpener}
                                             />
                                         </Box>
                                     )}

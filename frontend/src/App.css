@@ -282,6 +282,40 @@
     }
 }
 
+.all-found-trigger {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    padding: 8px 16px;
+    border-radius: 12px;
+    text-align: center;
+    transition: background-color 0.2s ease, border-color 0.2s ease, box-shadow 0.2s ease;
+}
+
+.all-found-trigger-clickable {
+    border: 1px solid rgba(25, 118, 210, 0.35);
+    cursor: pointer;
+    user-select: none;
+    box-shadow: 0 0 0 rgba(0, 0, 0, 0);
+}
+
+.all-found-trigger-clickable:hover {
+    background-color: rgba(25, 118, 210, 0.08);
+    border-color: rgba(25, 118, 210, 0.55);
+    box-shadow: 0 4px 12px rgba(25, 118, 210, 0.12);
+}
+
+.dark-mode .all-found-trigger-clickable:hover {
+    background-color: rgba(144, 202, 249, 0.12);
+    border-color: rgba(144, 202, 249, 0.55);
+    box-shadow: 0 4px 12px rgba(144, 202, 249, 0.15);
+}
+
+.all-found-trigger-clickable:focus-visible {
+    outline: 2px solid rgba(25, 118, 210, 0.55);
+    outline-offset: 2px;
+}
+
 .new-game-button {
     display: flex;
     align-items: center;
