@@ -13,6 +13,7 @@ import { RESPONSIVE_TEXT_DISPLAY } from '../../utils/responsive';
  */
 const ResponsiveText = ({ 
   desktop, 
+  tablet = null,
   mobile = null, 
   component = Box, 
   sx = {},
@@ -20,7 +21,7 @@ const ResponsiveText = ({
 }) => {
   const Component = component;
   
-  if (!mobile) {
+  if (!mobile && !tablet) {
     return (
       <Component component="span" sx={sx} {...props}>
         {desktop}
@@ -28,22 +29,60 @@ const ResponsiveText = ({
     );
   }
 
+  if (!tablet) {
+    return (
+      <>
+        <Component 
+          component="span" 
+          sx={{ ...RESPONSIVE_TEXT_DISPLAY.hideOnMobile, ...sx }} 
+          {...props}
+        >
+          {desktop}
+        </Component>
+        {mobile && (
+          <Component 
+            component="span" 
+            sx={{ ...RESPONSIVE_TEXT_DISPLAY.hideOnDesktop, ...sx }} 
+            {...props}
+          >
+            {mobile}
+          </Component>
+        )}
+      </>
+    );
+  }
+
   return (
     <>
       <Component 
         component="span" 
-        sx={{ ...RESPONSIVE_TEXT_DISPLAY.hideOnMobile, ...sx }} 
+        sx={{ 
+          display: { xs: 'none', sm: 'none', md: 'inline' },
+          ...sx
+        }} 
         {...props}
       >
         {desktop}
       </Component>
-      <Component 
-        component="span" 
-        sx={{ ...RESPONSIVE_TEXT_DISPLAY.hideOnDesktop, ...sx }} 
+      <Component
+        component="span"
+        sx={{
+          display: { xs: 'none', sm: 'inline', md: 'none' },
+          ...sx
+        }}
         {...props}
       >
-        {mobile}
+        {tablet}
       </Component>
+      {mobile && (
+        <Component 
+          component="span" 
+          sx={{ display: { xs: 'inline', sm: 'none', md: 'none' }, ...sx }} 
+          {...props}
+        >
+          {mobile}
+        </Component>
+      )}
     </>
   );
 };

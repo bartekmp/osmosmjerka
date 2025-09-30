@@ -16,7 +16,11 @@ export const RESPONSIVE_BUTTON_STYLES = {
   },
   admin: {
     height: 48,
-    minWidth: 72
+    minWidth: 72,
+    px: { xs: 1.5, md: 2.5 },
+    fontSize: { xs: '0.85rem', sm: '0.9rem', md: '1rem' },
+    maxWidth: { xs: 140, sm: 180, md: 'unset' },
+    textTransform: 'none'
   }
 };
 

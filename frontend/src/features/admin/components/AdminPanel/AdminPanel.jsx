@@ -1,30 +1,32 @@
 import { useThemeMode } from '@contexts/ThemeContext';
 import CloseIcon from '@mui/icons-material/Close';
-import ExpandMoreIcon from '@mui/icons-material/ExpandMore';
+import UnfoldLessIcon from '@mui/icons-material/UnfoldLess';
+import UnfoldMoreIcon from '@mui/icons-material/UnfoldMore';
+import TranslateIcon from '@mui/icons-material/Translate';
+import CategoryIcon from '@mui/icons-material/Category';
+import VisibilityOffIcon from '@mui/icons-material/VisibilityOff';
 import {
     Alert,
+    Badge,
     Box,
     Button,
     Chip,
     Collapse,
     Container,
     Divider,
-    FormControl,
-    Grid,
     IconButton,
-    InputLabel,
     MenuItem,
     Paper,
-    Select,
     Snackbar,
     Stack,
     TextField,
     Tooltip,
     Typography
 } from '@mui/material';
+import InputAdornment from '@mui/material/InputAdornment';
 import { AdminButton, AdminLayout, API_ENDPOINTS, ResponsiveActionButton, STORAGE_KEYS } from '@shared';
 import { RateLimitWarning } from '@shared/components/ui/RateLimitWarning';
-import { useCallback, useEffect, useState } from 'react';
+import { useCallback, useEffect, useLayoutEffect, useRef, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import AdminTable from './AdminTable';
 import BatchOperationDialog from './BatchOperationDialog';
@@ -43,6 +45,23 @@ import StatisticsDashboard from '../StatisticsDashboard/StatisticsDashboard';
 import SystemSettings from '../SystemSettings/SystemSettings';
 import PropTypes from 'prop-types';
 import './AdminPanel.css';
+
+const CONTROL_BAR_BREAKPOINTS = {
+    compact: 1000,
+    full: 1280
+};
+
+const computeControlBarMode = (width) => {
+    if (width <= CONTROL_BAR_BREAKPOINTS.compact) {
+        return 'compact';
+    }
+    if (width <= CONTROL_BAR_BREAKPOINTS.full) {
+        return 'short';
+    }
+    return 'full';
+};
+
+export { computeControlBarMode };
 
 export default function AdminPanel({
     ignoredCategories = [],
@@ -84,9 +103,108 @@ export default function AdminPanel({
     const [totalRows, setTotalRows] = useState(0);
     const [offsetInput, setOffsetInput] = useState(0);
     const [searchTerm, setSearchTerm] = useState('');
+    const [isFilterPanelOpen, setIsFilterPanelOpen] = useState(false);
 
     const [languageSetsLoaded, setLanguageSetsLoaded] = useState(false);
     const [categoriesLoaded, setCategoriesLoaded] = useState(false);
+    const controlBarContainerRef = useRef(null);
+    const manualCollapseRef = useRef(false);
+    const [autoControlMode, setAutoControlMode] = useState(() => {
+        if (typeof window === 'undefined') {
+            return 'full';
+        }
+        return computeControlBarMode(window.innerWidth);
+    });
+    const [isControlBarCollapsed, setIsControlBarCollapsed] = useState(autoControlMode === 'compact');
+
+    const updateAutoControlMode = useCallback(() => {
+        let width = controlBarContainerRef.current?.getBoundingClientRect?.().width;
+        if (typeof width !== 'number') {
+            width = typeof window !== 'undefined' ? window.innerWidth : CONTROL_BAR_BREAKPOINTS.full;
+        }
+
+        setAutoControlMode((prev) => {
+            const next = computeControlBarMode(width);
+            return next === prev ? prev : next;
+        });
+    }, []);
+
+    useLayoutEffect(() => {
+        updateAutoControlMode();
+
+        if (typeof window !== 'undefined') {
+            window.addEventListener('resize', updateAutoControlMode);
+        }
+
+        let observer;
+        if (typeof window !== 'undefined' && window.ResizeObserver) {
+            observer = new window.ResizeObserver(() => {
+                updateAutoControlMode();
+            });
+            if (controlBarContainerRef.current) {
+                observer.observe(controlBarContainerRef.current);
+            }
+        }
+
+        return () => {
+            if (typeof window !== 'undefined') {
+                window.removeEventListener('resize', updateAutoControlMode);
+            }
+            if (observer) {
+                observer.disconnect();
+            }
+        };
+    }, [updateAutoControlMode]);
+
+    useEffect(() => {
+        if (autoControlMode === 'compact') {
+            manualCollapseRef.current = false;
+            if (!isControlBarCollapsed) {
+                setIsControlBarCollapsed(true);
+            }
+            return;
+        }
+
+        if (!manualCollapseRef.current && isControlBarCollapsed) {
+            setIsControlBarCollapsed(false);
+        }
+    }, [autoControlMode, isControlBarCollapsed]);
+
+    const controlBarDisplayMode = isControlBarCollapsed ? 'compact' : autoControlMode;
+    const isControlBarCompact = controlBarDisplayMode === 'compact';
+    const isControlBarShort = controlBarDisplayMode === 'short';
+    const isLayoutCompact = autoControlMode === 'compact';
+    const shouldShowControlToggle = autoControlMode !== 'compact';
+    const handleToggleControlMode = () => {
+        if (autoControlMode === 'compact') {
+            return;
+        }
+        setIsControlBarCollapsed(prev => {
+            const next = !prev;
+            manualCollapseRef.current = next;
+            return next;
+        });
+    };
+    const selectedLanguageSet = languageSets.find(set => set.id === selectedLanguageSetId);
+    const ignoredCategoriesCount = ignoredCategories.length + userIgnoredCategories.length;
+    const adminControlsToggleLabel = !isControlBarCollapsed
+        ? t('collapse_admin_controls', 'Collapse admin controls')
+        : t('expand_admin_controls', 'Expand admin controls');
+    const adminControlsToggleColor = !isControlBarCollapsed ? 'success' : 'info';
+    const adminControlsTogglePalette = adminControlsToggleColor === 'success'
+        ? {
+            border: 'success.main',
+            bg: 'success.light',
+            hoverBg: 'success.main',
+            text: 'success.contrastText'
+        }
+        : {
+            border: 'info.main',
+            bg: 'info.light',
+            hoverBg: 'info.main',
+            text: 'info.contrastText'
+        };
+    const shouldForceMobileLabels = isControlBarShort;
 
     // Batch operations state
     const [batchMode, setBatchMode] = useState(false);
@@ -1067,11 +1185,16 @@ export default function AdminPanel({
                             {t('admin.records.title', 'Browse Records')}
                         </Typography>
                         <Stack
-                            direction={{ xs: 'column', lg: 'row' }}
-                            spacing={2}
-                            alignItems={{ xs: 'stretch', lg: 'center' }}
+                            ref={controlBarContainerRef}
+                            direction="row"
+                            spacing={isControlBarCompact ? 1 : (isControlBarShort ? 1.5 : 2)}
+                            alignItems="center"
                             justifyContent="flex-start"
-                            sx={{ flexWrap: { xs: 'wrap', lg: 'nowrap' } }}
+                            sx={{
+                                flexWrap: 'nowrap',
+                                overflowX: 'hidden',
+                                width: '100%'
+                            }}
                         >
                             <ResponsiveActionButton
                                 fullWidth={false}
@@ -1086,11 +1209,19 @@ export default function AdminPanel({
                                 icon="📊"
                                 desktopText={t('reload_data')}
                                 mobileText={t('reload')}
-                                sx={{ minWidth: { md: 180 } }}
+                                compact={isControlBarCompact}
+                                forceMobileText={shouldForceMobileLabels}
+                                tooltip={t('reload_data')}
+                                ariaLabel={t('reload_data')}
+                                sx={{
+                                    ...(isControlBarCompact || shouldForceMobileLabels ? {} : { minWidth: { md: 180 } })
+                                }}
                             />
                             <UploadForm
                                 selectedLanguageSetId={selectedLanguageSetId}
                                 onUpload={() => selectedLanguageSetId && fetchRows(offset, limit, filterCategory, searchTerm, selectedLanguageSetId)}
+                                compact={isControlBarCompact}
+                                forceMobileText={shouldForceMobileLabels}
                             />
                             <ResponsiveActionButton
                                 fullWidth={false}
@@ -1100,7 +1231,13 @@ export default function AdminPanel({
                                 icon="💾"
                                 desktopText={t('download_phrases')}
                                 mobileText={t('download')}
-                                sx={{ minWidth: { md: 200 } }}
+                                compact={isControlBarCompact}
+                                forceMobileText={shouldForceMobileLabels}
+                                tooltip={t('download_phrases')}
+                                ariaLabel={t('download_phrases')}
+                                sx={{
+                                    ...(isControlBarCompact || shouldForceMobileLabels ? {} : { minWidth: { md: 200 } })
+                                }}
                             />
                             {currentUser?.role === 'root_admin' && (
                                 <ResponsiveActionButton
@@ -1110,6 +1247,10 @@ export default function AdminPanel({
                                     icon="🗑️"
                                     desktopText={t('clear_database')}
                                     mobileText={t('clear')}
+                                    compact={isControlBarCompact}
+                                    forceMobileText={shouldForceMobileLabels}
+                                    tooltip={t('clear_database')}
+                                    ariaLabel={t('clear_database')}
                                     sx={{
                                         bgcolor: 'error.main',
                                         color: 'white',
@@ -1118,6 +1259,34 @@ export default function AdminPanel({
                                         }
                                     }}
                                 />
+                            )}
+                            {shouldShowControlToggle && (
+                                <Tooltip title={adminControlsToggleLabel}>
+                                    <IconButton
+                                        size="small"
+                                        onClick={handleToggleControlMode}
+                                        aria-label={adminControlsToggleLabel}
+                                        color={adminControlsToggleColor}
+                                        sx={{
+                                            borderRadius: 1,
+                                            border: '1px solid',
+                                            borderColor: adminControlsTogglePalette.border,
+                                            bgcolor: adminControlsTogglePalette.bg,
+                                            color: adminControlsTogglePalette.text,
+                                            width: 48,
+                                            height: 48,
+                                            alignSelf: { xs: 'flex-end', lg: 'center' },
+                                            '&:hover': {
+                                                bgcolor: adminControlsTogglePalette.hoverBg,
+                                                color: 'common.white'
+                                            }
+                                        }}
+                                    >
+                                        {!isControlBarCollapsed
+                                            ? <UnfoldLessIcon fontSize="small" />
+                                            : <UnfoldMoreIcon fontSize="small" />}
+                                    </IconButton>
+                                </Tooltip>
                             )}
                         </Stack>
                         <Snackbar
@@ -1139,70 +1308,144 @@ export default function AdminPanel({
                             </Alert>
                         </Snackbar>
                     </Paper>
-                    {/* Filter and Statistics */}
-                    <Paper sx={{ p: 3, mb: 3 }}>
-                        <Grid container spacing={3} alignItems="center">
-                            {/* Language Set Filter */}
-                            <Grid size={{ xs: 12, md: 4 }}>
-                                <FormControl fullWidth sx={{ minWidth: 200 }}>
-                                    <InputLabel>{t('filter_by_language_set')}</InputLabel>
-                                    <Select
-                                        value={selectedLanguageSetId || ''}
+                    <Paper sx={{ p: 2, mb: 3 }}>
+                        <Stack spacing={1.5}>
+                            <Stack
+                                direction="row"
+                                spacing={1}
+                                alignItems="center"
+                                justifyContent="space-between"
+                            >
+                                <Stack direction="row" spacing={1} alignItems="center">
+                                    <Typography variant="subtitle1" sx={{ fontWeight: 600 }}>
+                                        {t('admin.records.filters', 'Filters')}
+                                    </Typography>
+                                    <Tooltip
+                                        title={selectedLanguageSetId
+                                            ? t('current_language_set', {
+                                                defaultValue: 'Language set: {{name}}',
+                                                name: selectedLanguageSet?.display_name || t('not_selected', 'Not selected')
+                                            })
+                                            : t('filter_by_language_set', 'Filter by language set')}
+                                    >
+                                        <IconButton
+                                            size="small"
+                                            color={isLayoutCompact ? 'primary' : 'default'}
+                                            onClick={() => setIsFilterPanelOpen(true)}
+                                            aria-label={t('open_language_set_filter', 'Open language set filter')}
+                                        >
+                                            <TranslateIcon fontSize="small" />
+                                        </IconButton>
+                                    </Tooltip>
+                                    <Tooltip
+                                        title={filterCategory
+                                            ? t('filtering_by_category_label', {
+                                                defaultValue: 'Category: {{category}}',
+                                                category: filterCategory
+                                            })
+                                            : t('filter_by_category', 'Filter by category')}
+                                    >
+                                        {(filterCategory)
+                                            ? (
+                                                <Badge color="primary" overlap="circular" variant="dot">
+                                                    <IconButton
+                                                        size="small"
+                                                        color="primary"
+                                                        onClick={() => setIsFilterPanelOpen(true)}
+                                                        aria-label={t('open_category_filter', 'Open category filter')}
+                                                    >
+                                                        <CategoryIcon fontSize="small" />
+                                                    </IconButton>
+                                                </Badge>
+                                            ) : (
+                                                <IconButton
+                                                    size="small"
+                                                    onClick={() => setIsFilterPanelOpen(true)}
+                                                    aria-label={t('open_category_filter', 'Open category filter')}
+                                                >
+                                                    <CategoryIcon fontSize="small" />
+                                                </IconButton>
+                                            )}
+                                    </Tooltip>
+                                    <Tooltip
+                                        title={ignoredCategoriesCount
+                                            ? t('ignored_categories_with_count', {
+                                                defaultValue: 'Ignored categories ({{count}})',
+                                                count: ignoredCategoriesCount
+                                            })
+                                            : t('ignored_categories', 'Ignored categories')}
+                                    >
+                                        <Badge
+                                            color={ignoredCategoriesCount ? 'warning' : 'default'}
+                                            overlap="circular"
+                                            badgeContent={ignoredCategoriesCount || null}
+                                        >
+                                            <IconButton
+                                                size="small"
+                                                onClick={() => setShowIgnoredCategories(prev => !prev)}
+                                                aria-label={t('toggle_ignored_categories', 'Toggle ignored categories')}
+                                                aria-pressed={showIgnoredCategories}
+                                            >
+                                                <VisibilityOffIcon fontSize="small" />
+                                            </IconButton>
+                                        </Badge>
+                                    </Tooltip>
+                                </Stack>
+                            </Stack>
+                            <Collapse in={isFilterPanelOpen} timeout="auto" unmountOnExit>
+                                <Stack direction={{ xs: 'column', md: 'row' }} spacing={2}>
+                                    <TextField
+                                        select
+                                        size="small"
+                                        fullWidth
                                         label={t('filter_by_language_set')}
+                                        value={selectedLanguageSetId || ''}
                                         onChange={e => {
                                             const value = parseInt(e.target.value);
                                             setSelectedLanguageSetId(value);
                                             setOffset(0);
-                                            setFilterCategory(''); // Reset category filter when language set changes
-                                            // Save to localStorage
+                                            setFilterCategory('');
                                             localStorage.setItem(STORAGE_KEYS.SELECTED_LANGUAGE_SET, value.toString());
+                                        }}
+                                        InputProps={{
+                                            startAdornment: (
+                                                <InputAdornment position="start">
+                                                    <TranslateIcon fontSize="small" />
+                                                </InputAdornment>
+                                            )
                                         }}
                                     >
                                         {languageSets.map(set => (
-                                            <MenuItem key={set.id} value={set.id}>{set.display_name}</MenuItem>
+                                            <MenuItem key={set.id} value={set.id}>
+                                                {set.display_name}
+                                            </MenuItem>
                                         ))}
-                                    </Select>
-                                </FormControl>
-                            </Grid>
-
-                            {/* Category Filter */}
-                            <Grid size={{ xs: 12, md: 4 }}>
-                                <FormControl fullWidth sx={{ minWidth: 200 }}>
-                                    <InputLabel>{t('filter_by_category')}</InputLabel>
-                                    <Select
-                                        value={filterCategory}
+                                    </TextField>
+                                    <TextField
+                                        select
+                                        size="small"
+                                        fullWidth
                                         label={t('filter_by_category')}
+                                        value={filterCategory}
                                         onChange={e => { setFilterCategory(e.target.value); setOffset(0); }}
+                                        InputProps={{
+                                            startAdornment: (
+                                                <InputAdornment position="start">
+                                                    <CategoryIcon fontSize="small" />
+                                                </InputAdornment>
+                                            )
+                                        }}
                                     >
                                         <MenuItem value="">{`-- ${t('all_categories')} --`}</MenuItem>
                                         {categories.map(cat => (
                                             <MenuItem key={cat} value={cat}>{cat}</MenuItem>
                                         ))}
-                                    </Select>
-                                </FormControl>
-                            </Grid>
-                        </Grid>
-
-                        {/* Ignored Categories Display - New Row */}
-                        {((currentUser && selectedLanguageSetId) || ignoredCategories.length > 0 || userIgnoredCategories.length > 0) && (
-                            <Box sx={{ mt: 2 }}>
-                                <Button
-                                    variant="outlined"
-                                    size="small"
-                                    onClick={() => setShowIgnoredCategories(!showIgnoredCategories)}
-                                    startIcon={<ExpandMoreIcon
-                                        style={{
-                                            transform: showIgnoredCategories ? 'rotate(180deg)' : 'rotate(0deg)',
-                                            transition: 'transform 0.2s'
-                                        }}
-                                    />}
-                                    sx={{ mb: showIgnoredCategories ? 1 : 0 }}
-                                >
-                                    {t('ignored_categories')} ({ignoredCategories.length + userIgnoredCategories.length})
-                                </Button>
-                                <Collapse in={showIgnoredCategories}>
+                                    </TextField>
+                                </Stack>
+                            </Collapse>
+                            {(currentUser && selectedLanguageSetId) || ignoredCategoriesCount > 0 ? (
+                                <Collapse in={showIgnoredCategories} timeout="auto">
                                     <Box sx={{ mt: 1 }}>
-                                        {/* User ignored categories */}
                                         {currentUser && userIgnoredCategories.length > 0 && (
                                             <Box sx={{ mb: 1 }}>
                                                 <Typography variant="caption" sx={{ fontWeight: 600, display: 'block', mb: 0.5 }}>
@@ -1228,8 +1471,6 @@ export default function AdminPanel({
                                                 </Stack>
                                             </Box>
                                         )}
-
-                                        {/* Global ignored categories */}
                                         {ignoredCategories.length > 0 && (
                                             <Box>
                                                 <Typography variant="caption" sx={{ fontWeight: 600, display: 'block', mb: 0.5 }}>
@@ -1254,8 +1495,6 @@ export default function AdminPanel({
                                                 </Stack>
                                             </Box>
                                         )}
-
-                                        {/* Message when no categories are ignored yet */}
                                         {currentUser && ignoredCategories.length === 0 && userIgnoredCategories.length === 0 && categories.length > 0 && (
                                             <Box sx={{ mb: 1 }}>
                                                 <Typography variant="caption" sx={{ fontStyle: 'italic', color: 'text.secondary' }}>
@@ -1263,8 +1502,6 @@ export default function AdminPanel({
                                                 </Typography>
                                             </Box>
                                         )}
-
-                                        {/* Available categories for logged in users */}
                                         {currentUser && categories.length > 0 && (
                                             <Box sx={{ mt: 1 }}>
                                                 <Typography variant="caption" sx={{ fontWeight: 600, display: 'block', mb: 0.5 }}>
@@ -1293,8 +1530,8 @@ export default function AdminPanel({
                                         )}
                                     </Box>
                                 </Collapse>
-                            </Box>
-                        )}
+                            ) : null}
+                        </Stack>
                     </Paper>
                     {/* Batch Operations Toolbar */}
                     {batchMode && (
@@ -1327,6 +1564,7 @@ export default function AdminPanel({
                         isSavingNewRow={isSavingNewRow}
                         canAddNewRow={Boolean(isLogged && selectedLanguageSetId)}
                         categoryOptions={categories}
+                        compactMode={isLayoutCompact}
                     />
                     {/* Pagination */}
                     <Box sx={{ mt: 3 }}>

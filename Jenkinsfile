@@ -152,6 +152,7 @@ pipeline {
             }
             steps {
                 script {
+                    def baseDisplayName = currentBuild.displayName ?: "#${env.BUILD_NUMBER}"
                     env.TRIGGER_GITOPS_CD = env.TRIGGER_GITOPS_CD_PARAM ?: 'false'
                     env.SKIP_IMAGE_PUSH = env.SKIP_IMAGE_PUSH_PARAM ?: 'false'
                     env.IS_NEW_RELEASE = 'true'
@@ -186,14 +187,26 @@ pipeline {
                         echo "Set SKIP_IMAGE_PUSH to: ${env.SKIP_IMAGE_PUSH}"
                         echo "Set IS_NEW_RELEASE to: ${env.IS_NEW_RELEASE}"
                         env.IMAGE_TAG = "v999.0.0-dev"
+                        def shortCommitNoRelease = sh(script: 'git rev-parse --short HEAD', returnStdout: true).trim()
+                        def buildNameNoRelease = "${baseDisplayName}-${shortCommitNoRelease}"
+                        echo "Setting build display name to ${buildNameNoRelease}"
+                        currentBuild.displayName = buildNameNoRelease
                         return
                     } else {
                         echo "Branch: Unexpected exit code ${exitCode}"
+                        def shortCommitFailed = sh(script: 'git rev-parse --short HEAD', returnStdout: true).trim()
+                        def buildNameFailed = "${baseDisplayName}-${shortCommitFailed}"
+                        echo "Setting build display name to ${buildNameFailed}"
+                        currentBuild.displayName = buildNameFailed
                         error("Semantic-release failed with exit code ${exitCode}")
                     }
                     
                     def version = sh(script: "grep '^version' pyproject.toml | head -1 | awk -F '\"' '{print \$2}'", returnStdout: true).trim()
                     env.IMAGE_TAG = version
+                    def shortCommit = sh(script: 'git rev-parse --short HEAD', returnStdout: true).trim()
+                    def buildName = "${version}-${shortCommit}"
+                    echo "Setting build display name to ${buildName}"
+                    currentBuild.displayName = buildName
                 }
             }
         }

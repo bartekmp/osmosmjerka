@@ -18,6 +18,7 @@ import { RESPONSIVE_BUTTON_STYLES } from '../../utils/responsive';
  */
 const AdminButton = ({
   desktopText,
+  tabletText = null,
   mobileText = null,
   to = null,
   onClick,
@@ -32,6 +33,9 @@ const AdminButton = ({
     color,
     sx: {
       ...RESPONSIVE_BUTTON_STYLES.admin,
+      width: { xs: '100%', sm: 'auto' },
+      overflow: 'hidden',
+      justifyContent: 'center',
       ...sx
     },
     ...props
@@ -40,6 +44,7 @@ const AdminButton = ({
   const content = (
     <ResponsiveText 
       desktop={desktopText} 
+      tablet={tabletText}
       mobile={mobileText} 
     />
   );

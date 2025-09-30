@@ -13,7 +13,8 @@ import {
     Checkbox,
     Chip,
     Stack,
-    TextField
+    TextField,
+    Tooltip
 } from '@mui/material';
 import Autocomplete from '@mui/material/Autocomplete';
 import CheckBoxIcon from '@mui/icons-material/CheckBox';
@@ -100,7 +101,8 @@ export default function AdminTable({
     onConfirmNewRow = () => {},
     isSavingNewRow = false,
     canAddNewRow = true,
-    categoryOptions = []
+    categoryOptions = [],
+    compactMode = false
 }) {
     const { t } = useTranslation();
     const [editDialog, setEditDialog] = useState({ open: false, row: null });
@@ -261,6 +263,24 @@ export default function AdminTable({
     const isIndeterminate = useMemo(() => {
         return selectedRows.length > 0 && selectedRows.length < rows.length;
     }, [selectedRows.length, rows.length]);
+
+    const batchModeLabel = batchMode ? t('exit_batch_mode') : t('enter_batch_mode');
+    const batchModeEmoji = batchMode ? '✅' : '🛠️';
+    const addRowLabel = t('add_row');
+    const addRowEmoji = '➕';
+
+    const withCompactTooltip = useCallback((element, title) => {
+        if (!compactMode) {
+            return element;
+        }
+        return (
+            <Tooltip title={title} enterDelay={200} placement="bottom">
+                <span style={{ display: 'inline-flex' }}>
+                    {element}
+                </span>
+            </Tooltip>
+        );
+    }, [compactMode]);
 
     // Remove client-side filtering since we're now doing server-side search
     // The rows prop should already contain the filtered results from the server
@@ -503,28 +523,33 @@ export default function AdminTable({
                     {(onBatchModeToggle || onAddNewRow) && (
                         <Stack
                             direction="row"
-                            spacing={1.5}
-                            sx={{ flexWrap: 'wrap', alignItems: 'center' }}
+                            spacing={compactMode ? 1 : 1.5}
+                            sx={{ flexWrap: compactMode ? 'nowrap' : 'wrap', alignItems: 'center' }}
                         >
-                            {onBatchModeToggle && (
+                            {onBatchModeToggle && withCompactTooltip(
                                 <Button
                                     variant={batchMode ? "contained" : "outlined"}
                                     color={batchMode ? "warning" : "info"}
                                     size="small"
                                     onClick={onBatchModeToggle}
-                                    startIcon={<CheckBoxIcon />}
+                                    startIcon={compactMode ? undefined : <CheckBoxIcon />}
+                                    aria-label={batchModeLabel}
+                                    title={batchModeLabel}
                                 >
-                                    {batchMode ? t('exit_batch_mode') : t('enter_batch_mode')}
-                                </Button>
+                                    {compactMode ? (
+                                        <span aria-hidden="true">{batchModeEmoji}</span>
+                                    ) : batchModeLabel}
+                                </Button>,
+                                batchModeLabel
                             )}
-                            {onAddNewRow && (
+                            {onAddNewRow && withCompactTooltip(
                                 <Button
                                     variant="contained"
                                     color="secondary"
                                     size="small"
-                                    aria-label={t('add_row')}
-                                    title={t('add_row')}
-                                    startIcon={<span aria-hidden="true">➕</span>}
+                                    aria-label={addRowLabel}
+                                    title={addRowLabel}
+                                    startIcon={compactMode ? undefined : <span aria-hidden="true">{addRowEmoji}</span>}
                                     onClick={() => {
                                         if (!canAddNewRow || Boolean(newRow)) {
                                             return;
@@ -541,8 +566,11 @@ export default function AdminTable({
                                     }}
                                     disabled={!canAddNewRow || Boolean(newRow)}
                                 >
-                                    {t('add_row')}
-                                </Button>
+                                    {compactMode ? (
+                                        <span aria-hidden="true">{addRowEmoji}</span>
+                                    ) : addRowLabel}
+                                </Button>,
+                                addRowLabel
                             )}
                         </Stack>
                     )}
@@ -994,4 +1022,5 @@ AdminTable.propTypes = {
     isSavingNewRow: PropTypes.bool,
     canAddNewRow: PropTypes.bool,
     categoryOptions: PropTypes.arrayOf(PropTypes.string),
+    compactMode: PropTypes.bool,
 };
