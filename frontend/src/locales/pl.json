@@ -160,6 +160,7 @@
     "of": "z",
     "page": "Strona",
     "difficulty": "Poziom trudności",
+    "very_easy": "Bardzo łatwy (8x8)",
     "easy": "Łatwy (10x10)",
     "medium": "Średni (13x13)",
     "hard": "Trudny (15x15)",

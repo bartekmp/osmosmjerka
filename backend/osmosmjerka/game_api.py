@@ -5,6 +5,7 @@ import re
 
 from fastapi import APIRouter, Body, Depends, HTTPException, Query, Request, status
 from fastapi.responses import JSONResponse, StreamingResponse
+from pydantic import BaseModel, Field
 
 from osmosmjerka.auth import get_current_user, get_current_user_optional, verify_token
 from osmosmjerka.cache import cache_response, categories_cache, language_sets_cache, phrases_cache, rate_limit
@@ -22,6 +23,14 @@ from osmosmjerka.scoring_rules import (
 from osmosmjerka.utils import export_to_docx, export_to_png
 
 router = APIRouter(prefix="/api")
+
+
+class ScoreCalculationRequest(BaseModel):
+    difficulty: str
+    phrases_found: int = Field(ge=0)
+    total_phrases: int = Field(ge=0)
+    duration_seconds: int = Field(ge=0)
+    hints_used: int = Field(0, ge=0)
 
 
 @router.get("/language-sets")
@@ -57,7 +66,10 @@ async def get_all_categories(language_set_id: int = Query(None), *, request: Req
 
 def get_grid_size_and_num_phrases(selected: list, difficulty: str) -> tuple:
     """Get grid size and number of phrases based on difficulty and available phrases."""
-    if difficulty == "easy":
+    if difficulty == "very_easy":
+        grid_size = 8
+        num_phrases = 5
+    elif difficulty == "easy":
         grid_size = 10
         num_phrases = 7
     elif difficulty == "medium":
@@ -586,6 +598,7 @@ def calculate_game_score(
         "hint_penalty": hint_penalty,
         "final_score": final_score,
         "hints_used": hints_used,
+        "hint_penalty_per_hint": HINT_PENALTY_PER_HINT,
     }
 
 
@@ -596,6 +609,20 @@ async def get_system_scoring_rules() -> JSONResponse:
         return JSONResponse(get_scoring_rules())
     except Exception as e:  # pragma: no cover - defensive guard
         return JSONResponse({"error": str(e)}, status_code=500)
+
+
+@router.post("/system/calculate-score")
+async def calculate_score_endpoint(payload: ScoreCalculationRequest) -> JSONResponse:
+    """Expose score calculation to ensure a single source of truth for the frontend."""
+
+    score = calculate_game_score(
+        payload.difficulty,
+        payload.phrases_found,
+        payload.total_phrases,
+        payload.duration_seconds,
+        payload.hints_used,
+    )
+    return JSONResponse(score)
 
 
 @router.get("/system/scoring-enabled")
