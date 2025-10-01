@@ -1,19 +1,5 @@
-<div align="cente## 📑 Table of Contents
-
-- [About](#-about)
-- [Key Features](#-key-features)
-- [How to Play](#-how-to-play)
-- [Quick Start](#-quick-start)
-  - [Installation](#installation)
-  - [Cloud Deployment](#cloud-deployment)
-  - [Development Mode](#development-mode)
-- [Configuration](#️-configuration)
-- [Data Management](#-data-management)
-- [Admin Panel](#️-admin-panel)
-- [HTTPS Support](#-https-support)
-- [Contributing](#-contributing)
-- [Roadmap](#️-roadmap)
-- [License](#-license)c="frontend/public/android-chrome-192x192.png" alt="Osmosmjerka Logo" width="128" height="128">
+<div align="center">
+  <img src="frontend/public/android-chrome-192x192.png" alt="Osmosmjerka Logo" width="128" height="128">
   <h1>Osmosmjerka</h1>
   
   <p>A feature-rich web-based word search game with language learning capabilities</p>
@@ -29,12 +15,15 @@
 
 ---
 
-## � Table of Contents
+## 📑 Table of Contents
 
 - [About](#-about)
 - [Key Features](#-key-features)
 - [How to Play](#-how-to-play)
 - [Quick Start](#-quick-start)
+  - [Installation](#installation)
+  - [Cloud Deployment](#cloud-deployment)
+  - [Development Mode](#development-mode)
 - [Configuration](#️-configuration)
 - [Data Management](#-data-management)
 - [Admin Panel](#️-admin-panel)
@@ -43,7 +32,7 @@
 - [Roadmap](#️-roadmap)
 - [License](#-license)
 
-## �📖 About
+## 📖 About
 
 [Osmosmjerka](https://hr.wikipedia.org/wiki/Osmosmjerka) (*Croatian for "eight-direction word search puzzle"*) is a modern, multilingual [word search game](https://en.wikipedia.org/wiki/Word_search) designed for language learners. Each puzzle is themed with categorized phrases that include translations, turning gameplay into an engaging [flashcard](https://en.wikipedia.org/wiki/Flashcard)-style learning experience.
 
