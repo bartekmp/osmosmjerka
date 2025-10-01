@@ -1,3 +1,4 @@
+categories;phrase;translation
 Hrana;kruh;chleb
 Hrana;voda;woda
 Fraze;ići ću kući;pójdę do domu
