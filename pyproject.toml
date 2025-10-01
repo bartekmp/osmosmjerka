@@ -82,8 +82,8 @@ version_variables = [
 
 [tool.semantic_release.commit_parser_options]
 minor_tags = ["feat", "feature"]
-patch_tags = ["fix", "bugfix", "bug", "improvement", "enhancement", "patch", "chore"]
-allowed_tags = ["feat", "feature", "fix", "bugfix", "bug", "improvement", "enhancement", "patch", "chore", "noissue", "docs", "style", "refactor", "perf", "test", "ci"]
+patch_tags = ["fix", "bugfix", "bug", "improvement", "enhancement", "patch", "chore", "renovate"]
+allowed_tags = ["feat", "feature", "fix", "bugfix", "bug", "improvement", "enhancement", "patch", "chore", "noissue", "docs", "style", "refactor", "perf", "test", "ci", "renovate"]
 default_bump_level = 0
 parse_squash_commits = true
 ignore_merge_commits = true
