@@ -4,6 +4,7 @@
 
 // Game difficulty settings
 export const GAME_DIFFICULTIES = {
+  VERY_EASY: 'very_easy',
   EASY: 'easy',
   MEDIUM: 'medium',
   HARD: 'hard',

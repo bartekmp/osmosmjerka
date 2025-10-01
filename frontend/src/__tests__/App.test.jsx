@@ -57,6 +57,33 @@ afterEach(() => {
     localStorage.clear();
 });
 
+beforeEach(() => {
+    axios.post.mockImplementation((url, body) => {
+        if (typeof url === 'string' && url.includes('/system/calculate-score')) {
+            const phrasesFound = body?.phrases_found ?? 0;
+            const hintsUsed = body?.hints_used ?? 0;
+            const baseScore = phrasesFound * 100;
+            const hintPenalty = hintsUsed * 75;
+            const finalScore = Math.max(0, baseScore - hintPenalty);
+
+            return Promise.resolve({
+                data: {
+                    base_score: baseScore,
+                    difficulty_bonus: 0,
+                    time_bonus: 0,
+                    streak_bonus: 0,
+                    hint_penalty: hintPenalty,
+                    final_score: finalScore,
+                    hints_used: hintsUsed,
+                    hint_penalty_per_hint: 75,
+                },
+            });
+        }
+
+        return Promise.resolve({ data: {} });
+    });
+});
+
 test('renders profile link', async () => {
     axios.get.mockImplementation((url) => {
         if (typeof url === 'string' && url.startsWith('/api/language-sets')) {
@@ -212,7 +239,7 @@ test('resets timer and score when refreshing the puzzle', async () => {
 
     await waitFor(() => {
         expect(timer).toHaveTextContent('Timer:5');
-        expect(score).toHaveTextContent('Score:149');
+        expect(score).toHaveTextContent('Score:100');
     });
 
     const refreshButton = await screen.findByTitle(/reload puzzle/i);

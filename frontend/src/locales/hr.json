@@ -160,6 +160,7 @@
     "of": "od",
     "page": "Stranica",
     "difficulty": "Težina",
+    "very_easy": "Vrlo lako (8x8)",
     "easy": "Lako (10x10)",
     "medium": "Srednje (13x13)",
     "hard": "Teško (15x15)",

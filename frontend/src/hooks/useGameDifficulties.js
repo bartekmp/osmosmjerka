@@ -8,6 +8,7 @@ const useGameDifficulties = () => {
         const maxGridSize = Math.min(screenWidth * 0.9, screenHeight * 0.6);
 
         const difficulties = [
+            { value: 'very_easy', label: 'Very Easy (8x8)', gridSize: 8 },
             { value: 'easy', label: 'Easy (10x10)', gridSize: 10 },
             { value: 'medium', label: 'Medium (13x13)', gridSize: 13 },
             { value: 'hard', label: 'Hard (15x15)', gridSize: 15 },

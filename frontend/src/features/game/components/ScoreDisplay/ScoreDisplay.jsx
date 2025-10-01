@@ -19,7 +19,7 @@ import {
 } from '@mui/material';
 import './ScoreDisplay.css';
 
-const DEFAULT_DIFFICULTIES = ['easy', 'medium', 'hard', 'very_hard'];
+const DEFAULT_DIFFICULTIES = ['very_easy', 'easy', 'medium', 'hard', 'very_hard'];
 
 const formatDuration = (seconds = 0) => {
     if (!Number.isFinite(seconds) || seconds < 0) {
