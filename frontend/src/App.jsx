@@ -44,17 +44,19 @@ const SPLASH_MIN_VISIBLE_DURATION = 1200;
 
 const DEFAULT_SCORING_RULES = {
     base_points_per_phrase: 100,
-    completion_bonus_points: 0,
+    completion_bonus_points: 200,
     difficulty_multipliers: {
+        very_easy: 0.9,
         easy: 1.0,
         medium: 1.2,
         hard: 1.5,
         very_hard: 2.0
     },
-    hint_penalty_per_hint: 50,
+    hint_penalty_per_hint: 75,
     time_bonus: {
-        max_ratio: 0.5,
+        max_ratio: 0.3,
         target_times_seconds: {
+            very_easy: 240,
             easy: 300,
             medium: 600,
             hard: 900,
@@ -120,6 +122,7 @@ function AppContent() {
     const [gameSessionId, setGameSessionId] = useState(null);
     const [gameStartTime, setGameStartTime] = useState(null);
     const [currentElapsedTime, setCurrentElapsedTime] = useState(0); // Track current elapsed time for saving
+    const currentElapsedTimeRef = useRef(0);
     const [lastFoundCount, setLastFoundCount] = useState(0);
     const [sessionCompleted, setSessionCompleted] = useState(false);
     const [statisticsEnabled, setStatisticsEnabled] = useState(true); // Default to true, will be checked from server
@@ -470,6 +473,10 @@ function AppContent() {
     }, [grid, phrases, found, selectedCategory, difficulty, hidePhrases, allFound, showTranslations, selectedLanguageSetId, currentElapsedTime, isPaused]);
 
     useEffect(() => {
+        currentElapsedTimeRef.current = currentElapsedTime;
+    }, [currentElapsedTime]);
+
+    useEffect(() => {
         if (!restored) return;
         if (selectedCategory && grid.length === 0) {
             loadPuzzle(selectedCategory, difficulty);
@@ -615,11 +622,13 @@ function AppContent() {
                     ...scoringDetails,
                     per_phrase: perPhraseBreakdown,
                     hints_used: hintsUsed,
-                    hint_penalty_per_hint: scoringRules?.hint_penalty_per_hint ?? 50,
+                    hint_penalty_per_hint:
+                        scoringRules?.hint_penalty_per_hint ?? DEFAULT_SCORING_RULES.hint_penalty_per_hint,
                     duration_seconds: durationSeconds,
                     difficulty,
                     total_phrases: phrases.length,
-                    phrases_found: totalFoundPhrases
+                    phrases_found: totalFoundPhrases,
+                    source: 'final'
                 });
 
                 setCurrentScore(scoringDetails.final_score);
@@ -681,70 +690,76 @@ function AppContent() {
         }
     }, [gameSessionId, gameStartTime, sessionCompleted, statisticsEnabled, scoringEnabled, saveGameScore]);
 
-    // Scoring system functions
-    const calculateCurrentScore = useCallback((phrasesFound, timePlayed) => {
-        if (!scoringEnabled) return 0;
+    const latestScoreRequestRef = useRef(0);
 
-        const baseScore = phrasesFound * 100;
-        
-        // Difficulty multipliers
-        const difficultyMultipliers = {
-            easy: 1.0,
-            medium: 1.2,
-            hard: 1.5,
-            very_hard: 2.0
-        };
-        
-        const difficultyBonus = Math.floor(baseScore * (difficultyMultipliers[difficulty] - 1.0));
-        
-        // Time bonus (for ongoing games, no completion bonus yet)
-        let timeBonus = 0;
-        if (timePlayed > 0) {
-            const targetTimes = {
-                easy: 300,
-                medium: 600,
-                hard: 900,
-                very_hard: 1200
-            };
-            const targetTime = targetTimes[difficulty] || 600;
-            
-            if (timePlayed <= targetTime) {
-                const timeRatio = Math.max(0, (targetTime - timePlayed) / targetTime);
-                timeBonus = Math.floor(baseScore * 0.5 * timeRatio);
+    const calculateScoreFromApi = useCallback(
+        async ({ phrasesFound, totalPhrases, durationSeconds, hintsCount }) => {
+            try {
+                const response = await axios.post(`${API_ENDPOINTS.GAME}/system/calculate-score`, {
+                    difficulty,
+                    phrases_found: phrasesFound,
+                    total_phrases: totalPhrases,
+                    duration_seconds: durationSeconds,
+                    hints_used: hintsCount,
+                });
+                return response.data;
+            } catch (error) {
+                console.error('Failed to calculate score:', error);
+                return null;
             }
-        }
-        
-        const hintPenalty = hintsUsed * 50;
-        
-        return Math.max(0, baseScore + difficultyBonus + timeBonus - hintPenalty);
-    }, [scoringEnabled, difficulty, hintsUsed]);
+        },
+        [difficulty]
+    );
 
-    const buildFallbackScoreBreakdown = useCallback(() => {
-        const rules = scoringRules ?? DEFAULT_SCORING_RULES;
-        const basePoints = rules.base_points_per_phrase ?? DEFAULT_SCORING_RULES.base_points_per_phrase;
-        const multiplierMap = rules.difficulty_multipliers ?? DEFAULT_SCORING_RULES.difficulty_multipliers;
+    const updateScore = useCallback(
+        async (phrasesFound, durationSeconds = 0, hintsCount = hintsUsed) => {
+            if (!scoringEnabled) return;
+
+            const totalPhrases = phrases.length;
+            if (totalPhrases === 0) {
+                setCurrentScore(0);
+                return;
+            }
+
+            const requestId = ++latestScoreRequestRef.current;
+            const result = await calculateScoreFromApi({
+                phrasesFound,
+                totalPhrases,
+                durationSeconds,
+                hintsCount,
+            });
+
+            if (result && latestScoreRequestRef.current === requestId) {
+                setCurrentScore(result.final_score);
+            }
+        },
+        [scoringEnabled, phrases.length, calculateScoreFromApi, hintsUsed]
+    );
+
+    const ensureScoreBreakdownFromApi = useCallback(async () => {
+        if (!scoringEnabled) {
+            return;
+        }
+
+        const totalPhrases = phrases.length;
+        if (totalPhrases === 0) {
+            return;
+        }
+
+        const result = await calculateScoreFromApi({
+            phrasesFound: found.length,
+            totalPhrases,
+            durationSeconds: currentElapsedTimeRef.current,
+            hintsCount: hintsUsed,
+        });
+
+        if (!result) {
+            return;
+        }
+
+        const basePoints = scoringRules?.base_points_per_phrase ?? DEFAULT_SCORING_RULES.base_points_per_phrase;
+        const multiplierMap = scoringRules?.difficulty_multipliers ?? DEFAULT_SCORING_RULES.difficulty_multipliers;
         const multiplier = multiplierMap?.[difficulty] ?? 1;
-        const hintPenaltyPerHint = rules.hint_penalty_per_hint ?? DEFAULT_SCORING_RULES.hint_penalty_per_hint;
-        const timeBonusConfig = rules.time_bonus ?? DEFAULT_SCORING_RULES.time_bonus;
-        const baseScore = basePoints * found.length;
-        const difficultyBonus = Math.floor(baseScore * (multiplier - 1));
-
-        const elapsedSeconds = currentElapsedTime;
-        let timeBonus = 0;
-        if (elapsedSeconds > 0) {
-            const targetTimes = timeBonusConfig?.target_times_seconds ?? DEFAULT_SCORING_RULES.time_bonus.target_times_seconds;
-            const targetTime = targetTimes?.[difficulty];
-            const maxRatio = timeBonusConfig?.max_ratio ?? DEFAULT_SCORING_RULES.time_bonus.max_ratio;
-            if (targetTime && elapsedSeconds <= targetTime) {
-                const timeRatio = Math.max(0, (targetTime - elapsedSeconds) / targetTime);
-                timeBonus = Math.round(baseScore * maxRatio * timeRatio);
-            }
-        }
-
-        const hintPenalty = hintPenaltyPerHint * hintsUsed;
-        const completionBonus = allFound ? (rules.completion_bonus_points ?? DEFAULT_SCORING_RULES.completion_bonus_points ?? 0) : 0;
-        const finalScore = Math.max(0, baseScore + difficultyBonus + timeBonus + completionBonus - hintPenalty);
-
         const perPhraseEntries = found.map((phraseValue, index) => {
             const phraseObj = phrases.find((item) => {
                 if (item && typeof item === 'object') {
@@ -758,64 +773,31 @@ function AppContent() {
             return {
                 id: phraseId,
                 phrase: phraseLabel,
-                points: phrasePoints
+                points: phrasePoints,
             };
         });
 
-        return {
-            base_score: baseScore,
-            difficulty_bonus: difficultyBonus,
-            time_bonus: timeBonus,
-            streak_bonus: completionBonus,
-            hint_penalty: hintPenalty,
-            final_score: finalScore,
+        setScoreBreakdown({
+            ...result,
             per_phrase: perPhraseEntries,
             hints_used: hintsUsed,
-            hint_penalty_per_hint: hintPenaltyPerHint,
-            duration_seconds: elapsedSeconds,
+            hint_penalty_per_hint:
+                result.hint_penalty_per_hint ?? scoringRules?.hint_penalty_per_hint ?? DEFAULT_SCORING_RULES.hint_penalty_per_hint,
+            duration_seconds: currentElapsedTimeRef.current,
             difficulty,
-            total_phrases: phrases.length,
+            total_phrases: totalPhrases,
             phrases_found: found.length,
-            source: 'local'
-        };
-    }, [scoringRules, difficulty, found, phrases, currentElapsedTime, hintsUsed, allFound]);
-
-    const updateScore = useCallback((phrasesFound, timePlayed = 0) => {
-        if (!scoringEnabled) return;
-        
-        const score = calculateCurrentScore(phrasesFound, timePlayed);
-        setCurrentScore(score);
-    }, [scoringEnabled, calculateCurrentScore]);
-
-    useEffect(() => {
-        if (!scoringEnabled || !allFound) {
-            return;
-        }
-
-        setScoreBreakdown((current) => {
-            if (current && current.source !== 'local') {
-                return current;
-            }
-
-            const fallbackBreakdown = buildFallbackScoreBreakdown();
-            if (current && current.source === 'local') {
-                const isSame = (
-                    current.final_score === fallbackBreakdown.final_score &&
-                    current.base_score === fallbackBreakdown.base_score &&
-                    current.difficulty_bonus === fallbackBreakdown.difficulty_bonus &&
-                    current.time_bonus === fallbackBreakdown.time_bonus &&
-                    current.hint_penalty === fallbackBreakdown.hint_penalty &&
-                    current.streak_bonus === fallbackBreakdown.streak_bonus &&
-                    (current.per_phrase?.length ?? 0) === (fallbackBreakdown.per_phrase?.length ?? 0)
-                );
-                if (isSame) {
-                    return current;
-                }
-            }
-
-            return fallbackBreakdown;
+            source: 'api-preview',
         });
-    }, [scoringEnabled, allFound, buildFallbackScoreBreakdown]);
+    }, [
+        scoringEnabled,
+        phrases,
+        calculateScoreFromApi,
+        found,
+        hintsUsed,
+        scoringRules,
+        difficulty,
+    ]);
 
     // Hint system functions
     const handleHintRequest = useCallback(async () => {
@@ -866,6 +848,8 @@ function AppContent() {
         setCurrentHintLevel(0);
         setFirstPhraseTime(null);
         setCurrentElapsedTime(0);
+        currentElapsedTimeRef.current = 0;
+        latestScoreRequestRef.current = 0;
         setFound([]);
         setTimerResetTrigger(prev => prev + 1);
         setIsPaused(false);
@@ -907,7 +891,7 @@ function AppContent() {
             // Update score if scoring is enabled
             if (scoringEnabled && gameStartTime) {
                 const timePlayed = Math.floor((Date.now() - gameStartTime) / 1000);
-                updateScore(newFoundCount, timePlayed);
+                updateScore(newFoundCount, timePlayed, hintsUsed);
             }
         }
     }, [found, phrases.length, grid.length, selectedCategory, gameSessionId, sessionCompleted, 
@@ -924,10 +908,10 @@ function AppContent() {
     // Timer update callback
     const handleTimerUpdate = useCallback((elapsedSeconds) => {
         setCurrentElapsedTime(elapsedSeconds); // Track current elapsed time for saving
-        if (scoringEnabled && found.length > 0) {
-            updateScore(found.length, elapsedSeconds);
+        if (scoringEnabled && found.length > 0 && allFound) {
+            updateScore(found.length, elapsedSeconds, hintsUsed);
         }
-    }, [scoringEnabled, found.length, updateScore]);
+    }, [scoringEnabled, found.length, allFound, updateScore, hintsUsed]);
 
     const handlePauseToggle = useCallback(() => {
         if (found.length === 0 || allFound) {
@@ -947,6 +931,26 @@ function AppContent() {
             setIsPaused(false);
         }
     }, [allFound]);
+
+    useEffect(() => {
+        if (!scoringEnabled || found.length === 0) {
+            return;
+        }
+
+        updateScore(found.length, currentElapsedTimeRef.current, hintsUsed);
+    }, [hintsUsed, scoringEnabled, found.length, updateScore]);
+
+    useEffect(() => {
+        if (!scoringEnabled || !allFound) {
+            return;
+        }
+
+        if (scoreBreakdown) {
+            return;
+        }
+
+        ensureScoreBreakdownFromApi();
+    }, [scoringEnabled, allFound, ensureScoreBreakdownFromApi, scoreBreakdown]);
 
     // Game session tracking effects
     // Note: Game session now starts when first phrase is found (see markFound function)

@@ -627,6 +627,7 @@ const StatisticsDashboard = ({ token, setError: onError, currentUser }) => {
                   label={t('difficulty')}
                 >
                   <MenuItem value="">{t('all_difficulties')}</MenuItem>
+                  <MenuItem value="very_easy">{t('very_easy')}</MenuItem>
                   <MenuItem value="easy">{t('easy')}</MenuItem>
                   <MenuItem value="medium">{t('medium')}</MenuItem>
                   <MenuItem value="hard">{t('hard')}</MenuItem>
@@ -700,9 +701,10 @@ const StatisticsDashboard = ({ token, setError: onError, currentUser }) => {
                     <TableCell>{score.category}</TableCell>
                     <TableCell>
                       <Chip 
-                        label={score.difficulty} 
+                        label={t(score.difficulty)} 
                         size="small"
                         color={
+                          score.difficulty === 'very_easy' ? 'info' :
                           score.difficulty === 'easy' ? 'success' :
                           score.difficulty === 'medium' ? 'warning' :
                           score.difficulty === 'hard' ? 'error' :

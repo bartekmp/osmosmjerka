@@ -74,10 +74,37 @@ def test_get_scoring_rules(client):
 
     rules = response.json()
     assert rules["base_points_per_phrase"] == 100
-    assert set(rules["difficulty_multipliers"].keys()) == {"easy", "medium", "hard", "very_hard"}
+    assert set(rules["difficulty_multipliers"].keys()) == {"very_easy", "easy", "medium", "hard", "very_hard"}
     assert rules["completion_bonus_points"] == 200
-    assert rules["hint_penalty_per_hint"] == 50
+    assert rules["hint_penalty_per_hint"] == 75
     assert "time_bonus" in rules and "target_times_seconds" in rules["time_bonus"]
+
+
+def test_calculate_score_endpoint(client):
+    payload = {
+        "difficulty": "easy",
+        "phrases_found": 5,
+        "total_phrases": 7,
+        "duration_seconds": 120,
+        "hints_used": 1,
+    }
+
+    response = client.post("/api/system/calculate-score", json=payload)
+    assert response.status_code == 200
+
+    data = response.json()
+    assert data["base_score"] == 500
+    assert data["difficulty_bonus"] == 0
+    assert data["time_bonus"] == 0  # not all phrases found
+    assert data["streak_bonus"] == 0
+    assert data["hint_penalty"] == 75
+    assert data["final_score"] == 425
+    assert data["hint_penalty_per_hint"] == 75
+
+
+def test_get_grid_size_and_num_phrases_very_easy():
+    size, num_phrases = get_grid_size_and_num_phrases([{"phrase": "a"}] * 10, "very_easy")
+    assert size == 8 and num_phrases == 5
 
 
 def test_get_grid_size_and_num_phrases_easy():

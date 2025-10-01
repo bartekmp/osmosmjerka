@@ -17,6 +17,7 @@ BASE_POINTS_PER_PHRASE: int = 100
 """Number of points awarded for each found phrase."""
 
 DIFFICULTY_MULTIPLIERS: Dict[str, float] = {
+    "very_easy": 0.8,
     "easy": 1.0,
     "medium": 1.2,
     "hard": 1.5,
@@ -26,11 +27,12 @@ DIFFICULTY_MULTIPLIERS: Dict[str, float] = {
 
 # Maximum percentage (expressed as a ratio) of the base score that can be
 # awarded as a speed bonus when a puzzle is completed quickly.
-MAX_TIME_BONUS_RATIO: float = 0.5
+MAX_TIME_BONUS_RATIO: float = 0.3
 
 # Target completion times per difficulty level in seconds. Finishing at or
 # below these thresholds yields the highest speed bonus for that difficulty.
 TARGET_TIMES_SECONDS: Dict[str, int] = {
+    "very_easy": 240,  # 4 minutes
     "easy": 300,  # 5 minutes
     "medium": 600,  # 10 minutes
     "hard": 900,  # 15 minutes
@@ -41,11 +43,11 @@ TARGET_TIMES_SECONDS: Dict[str, int] = {
 COMPLETION_BONUS_POINTS: int = 200
 
 # Points deducted for each hint the player uses.
-HINT_PENALTY_PER_HINT: int = 50
+HINT_PENALTY_PER_HINT: int = 75
 
 # Public representation ------------------------------------------------------
 
-DIFFICULTY_ORDER: List[str] = ["easy", "medium", "hard", "very_hard"]
+DIFFICULTY_ORDER: List[str] = ["very_easy", "easy", "medium", "hard", "very_hard"]
 """Default ordering for displaying difficulty-related data."""
 
 SCORING_RULES: Dict[str, object] = {
