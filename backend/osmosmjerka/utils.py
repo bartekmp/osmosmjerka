@@ -6,6 +6,10 @@ from docx.enum.text import WD_ALIGN_PARAGRAPH
 from docx.shared import Cm, Pt
 from PIL import Image, ImageDraw, ImageFont
 
+from osmosmjerka.logging_config import get_logger
+
+logger = get_logger(__name__)
+
 
 def export_to_docx(category: str, grid: list, phrases: list) -> bytes:
     """Export the phrase search grid and phrases to a DOCX file.
@@ -105,6 +109,7 @@ def export_to_png(category: str, grid: list, phrases: list) -> bytes:
             grid_font = ImageFont.truetype("fonts/arialbd.ttf", max(18, cell_size // 2))
             phrases_font = ImageFont.truetype("fonts/arialbd.ttf", 16)
         except OSError:
+            logger.warning("Could not load custom fonts, falling back to default font")
             title_font = ImageFont.load_default()
             grid_font = ImageFont.load_default()
             phrases_font = ImageFont.load_default()

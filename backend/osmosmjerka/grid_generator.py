@@ -1,6 +1,10 @@
 import random
 from typing import Dict, List, Optional, Tuple
 
+from osmosmjerka.logging_config import get_logger
+
+logger = get_logger(__name__)
+
 
 def normalize_phrase(phrase: str) -> str:
     """

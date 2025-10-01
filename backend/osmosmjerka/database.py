@@ -9,8 +9,12 @@ from dotenv import load_dotenv
 from sqlalchemy import Boolean, Column, DateTime, Integer, MetaData, String, Table, Text, create_engine, desc
 from sqlalchemy.sql import delete, func, insert, select, update
 
+from osmosmjerka.logging_config import get_logger
+
 # Load environment variables
 load_dotenv()
+
+logger = get_logger(__name__)
 
 metadata = MetaData()
 
@@ -217,23 +221,47 @@ class DatabaseManager:
 
     async def connect(self):
         """Connect to the database and ensure tables exist"""
-        database_url = self._ensure_database_url()
-        if self.database is None:
-            self.database = Database(database_url)
-        if self.engine is None:
-            self.engine = create_engine(database_url)
-        await self.database.connect()
-        self.create_tables()
+        try:
+            database_url = self._ensure_database_url()
+            # Extract host and port for logging (without credentials)
+            pg_host = os.getenv("POSTGRES_HOST")
+            pg_port = os.getenv("POSTGRES_PORT")
+            pg_database = os.getenv("POSTGRES_DATABASE")
+
+            if self.database is None:
+                self.database = Database(database_url)
+            if self.engine is None:
+                self.engine = create_engine(database_url)
+
+            await self.database.connect()
+            logger.info(
+                "Connected to PostgreSQL database",
+                extra={
+                    "db_host": pg_host,
+                    "db_port": pg_port,
+                    "db_name": pg_database,
+                },
+            )
+            self.create_tables()
+        except Exception as exc:
+            logger.exception("Failed to connect to database", extra={"error": str(exc)})
+            raise
 
     async def disconnect(self):
         """Disconnect from the database"""
         if self.database:
             await self.database.disconnect()
+            logger.info("Disconnected from database")
 
     def create_tables(self):
         """Create base tables if they don't exist"""
         if self.engine:
-            metadata.create_all(bind=self.engine)
+            try:
+                metadata.create_all(bind=self.engine)
+                logger.debug("Database tables verified/created")
+            except Exception as exc:
+                logger.exception("Failed to create database tables", extra={"error": str(exc)})
+                raise
 
     def _get_phrase_table_name(self, language_set_name: str) -> str:
         """Get the table name for a language set's phrases using the set's short name"""
