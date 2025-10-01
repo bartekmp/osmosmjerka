@@ -2,6 +2,15 @@
 
 <!-- version list -->
 
+## v1.33.0 (2025-10-01)
+
+### Feature
+
+- Add 8x8 difficulty, optimize score calculations using server requests
+  ([#84](https://github.com/bartekmp/osmosmjerka/pull/84),
+  [`393ba52`](https://github.com/bartekmp/osmosmjerka/commit/393ba525212d5985171180608cf18c0ba07692dc))
+
+
 ## v1.32.0 (2025-09-30)
 
 ### Feature
