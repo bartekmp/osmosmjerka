@@ -2,6 +2,58 @@
 
 <!-- version list -->
 
+## v1.33.1 (2025-10-01)
+
+### Bug Fixes
+
+- **deps**: Update dependency react-i18next to v16
+  ([#94](https://github.com/bartekmp/osmosmjerka/pull/94),
+  [`7783950`](https://github.com/bartekmp/osmosmjerka/commit/778395058578522a14900e4fb8e8ef6010a5a550))
+
+### Chores
+
+- Add renovate.json config
+  ([`ac67cf4`](https://github.com/bartekmp/osmosmjerka/commit/ac67cf46c2044298359689e176f74872e553cd20))
+
+- **deps**: Update actions/checkout action to v5
+  ([#86](https://github.com/bartekmp/osmosmjerka/pull/86),
+  [`8f40e8e`](https://github.com/bartekmp/osmosmjerka/commit/8f40e8e4c49a5434e76488143159f2b1559b0b01))
+
+- **deps**: Update actions/setup-node action to v5
+  ([#88](https://github.com/bartekmp/osmosmjerka/pull/88),
+  [`6a84138`](https://github.com/bartekmp/osmosmjerka/commit/6a841389fdff0d23b44908aff3071e706c885936))
+
+- **deps**: Update actions/setup-python action to v6
+  ([#89](https://github.com/bartekmp/osmosmjerka/pull/89),
+  [`2bad43e`](https://github.com/bartekmp/osmosmjerka/commit/2bad43ee4d8fa88ba2424aefa5e2b2e0e8c9dd22))
+
+- **deps**: Update all non-major dependencies
+  ([#85](https://github.com/bartekmp/osmosmjerka/pull/85),
+  [`b4e01ce`](https://github.com/bartekmp/osmosmjerka/commit/b4e01ce6ac1711a8aa76a93b77ac404f3acda9fc))
+
+- **deps**: Update dependency bcrypt to v5 ([#90](https://github.com/bartekmp/osmosmjerka/pull/90),
+  [`ce37a3c`](https://github.com/bartekmp/osmosmjerka/commit/ce37a3ceec76fb899a59327ffb8bf27ee07b279f))
+
+- **deps**: Update dependency setuptools-scm to v9
+  ([#91](https://github.com/bartekmp/osmosmjerka/pull/91),
+  [`4a39c05`](https://github.com/bartekmp/osmosmjerka/commit/4a39c051aab085abc2ca6b43c32f964b0cd346d0))
+
+- **deps**: Update node.js to v22 ([#92](https://github.com/bartekmp/osmosmjerka/pull/92),
+  [`72c341a`](https://github.com/bartekmp/osmosmjerka/commit/72c341a9b4f23ba4047b4112a993f18c69ba605c))
+
+- **deps**: Update postgres docker tag to v18
+  ([#93](https://github.com/bartekmp/osmosmjerka/pull/93),
+  [`fd93ff4`](https://github.com/bartekmp/osmosmjerka/commit/fd93ff49ca0815d1a464d3e20495dc056ba50bb7))
+
+### Noissue
+
+- Add renovate to allowed branch names
+  ([`b1a7177`](https://github.com/bartekmp/osmosmjerka/commit/b1a7177a5e0c8f78eea17a7aa9758b2acb34f65e))
+
+- Update and reorganize readme file ([#95](https://github.com/bartekmp/osmosmjerka/pull/95),
+  [`3aeed43`](https://github.com/bartekmp/osmosmjerka/commit/3aeed43669ef0c9bc1f802317a10b6ba20421760))
+
+
 ## v1.33.0 (2025-10-01)
 
 ### Feature
