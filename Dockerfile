@@ -4,7 +4,7 @@ COPY backend/ backend/
 COPY .env backend/.env
 COPY pyproject.toml pyproject.toml
 
-FROM node:20-slim AS frontend
+FROM node:22-slim AS frontend
 WORKDIR /app
 COPY frontend/ frontend/
 WORKDIR /app/frontend
