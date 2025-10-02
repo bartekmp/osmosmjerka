@@ -2,6 +2,19 @@
 
 <!-- version list -->
 
+## v1.33.3 (2025-10-02)
+
+### Bug Fixes
+
+- Change log config variable name
+  ([`06618e4`](https://github.com/bartekmp/osmosmjerka/commit/06618e4a2e5817030087bd8a95a0cbfbdee27919))
+
+### Noissue
+
+- Strip image tag in promotion pipeline
+  ([`52050e8`](https://github.com/bartekmp/osmosmjerka/commit/52050e8e4795e6e81ecc2e3b820c90621bcadd87))
+
+
 ## v1.33.2 (2025-10-02)
 
 ### Chores
