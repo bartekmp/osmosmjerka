@@ -265,7 +265,7 @@ def _auto_configure() -> None:
 
     # Get configuration from environment
     log_level = os.getenv("LOG_LEVEL", "INFO")
-    development_mode = os.getenv("DEVELOPMENT_MODE", "false").lower() == "true"
+    development_mode = os.getenv("LOG_DEVELOPMENT_MODE", "false").lower() == "true"
     use_colors = os.getenv("LOG_COLORS", "true").lower() == "true"
 
     configure_logging(
