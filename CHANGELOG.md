@@ -2,6 +2,30 @@
 
 <!-- version list -->
 
+## v1.33.2 (2025-10-02)
+
+### Chores
+
+- **deps**: Update dependency eslint-plugin-react-hooks to v6
+  ([#97](https://github.com/bartekmp/osmosmjerka/pull/97),
+  [`be9dc89`](https://github.com/bartekmp/osmosmjerka/commit/be9dc89aef7887fb38f21532ce45bfd9e94305a5))
+
+- **deps**: Update dependency isort to v6.1.0
+  ([#96](https://github.com/bartekmp/osmosmjerka/pull/96),
+  [`b76e5d9`](https://github.com/bartekmp/osmosmjerka/commit/b76e5d9eb2f33c62c31b47675b6a36ae2a490398))
+
+### Enhancement
+
+- Improve backend logging, add json log format for prod and plain text for dev
+  ([#98](https://github.com/bartekmp/osmosmjerka/pull/98),
+  [`a16e593`](https://github.com/bartekmp/osmosmjerka/commit/a16e5932645fd188024e51fbf6f8917bf6b3235c))
+
+### Noissue
+
+- Fix readme
+  ([`5525b1d`](https://github.com/bartekmp/osmosmjerka/commit/5525b1d68f6e4e8ec12ca1f79f9584e5185fdb1b))
+
+
 ## v1.33.1 (2025-10-01)
 
 ### Bug Fixes
