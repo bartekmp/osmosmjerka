@@ -220,6 +220,32 @@ test('resets timer and score when refreshing the puzzle', async () => {
         if (typeof url === 'string' && url.includes('/system/progressive-hints-enabled')) {
             return Promise.resolve({ data: { enabled: false } });
         }
+        if (typeof url === 'string' && url.includes('/system/scoring-rules')) {
+            return Promise.resolve({
+                data: {
+                    base_points_per_phrase: 100,
+                    completion_bonus_points: 200,
+                    difficulty_multipliers: {
+                        very_easy: 0.9,
+                        easy: 1.0,
+                        medium: 1.2,
+                        hard: 1.5,
+                        very_hard: 2.0,
+                    },
+                    hint_penalty_per_hint: 75,
+                    time_bonus: {
+                        max_ratio: 0.3,
+                        target_times_seconds: {
+                            very_easy: 240,
+                            easy: 300,
+                            medium: 600,
+                            hard: 900,
+                            very_hard: 1200,
+                        },
+                    },
+                },
+            });
+        }
         if (typeof url === 'string' && url.startsWith('/api/language-sets')) {
             return Promise.resolve({ data: [{ id: 1, display_name: 'Default', description: '' }] });
         }
