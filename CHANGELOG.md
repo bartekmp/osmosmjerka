@@ -2,6 +2,24 @@
 
 <!-- version list -->
 
+## v1.33.4 (2025-10-02)
+
+### Bugfix
+
+- Fix score calculation for anonymous users
+  ([#100](https://github.com/bartekmp/osmosmjerka/pull/100),
+  [`0a5a468`](https://github.com/bartekmp/osmosmjerka/commit/0a5a4685eaf0e64c672dfbee1095ae7c082b7849))
+
+### Improvement
+
+- Reorganize CSS files, deduplicate styles, use MUI props
+  ([#99](https://github.com/bartekmp/osmosmjerka/pull/99),
+  [`d5b9551`](https://github.com/bartekmp/osmosmjerka/commit/d5b9551038d0895fe07d7619bd9d77dc9b1a8fee))
+
+- Split App.css into smaller units ([#99](https://github.com/bartekmp/osmosmjerka/pull/99),
+  [`d5b9551`](https://github.com/bartekmp/osmosmjerka/commit/d5b9551038d0895fe07d7619bd9d77dc9b1a8fee))
+
+
 ## v1.33.3 (2025-10-02)
 
 ### Bug Fixes
