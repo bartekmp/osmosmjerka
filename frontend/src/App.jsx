@@ -97,6 +97,71 @@ const DEFAULT_SCORING_RULES = {
   },
 };
 
+/**
+ * Client-side score calculation for anonymous users
+ * Mirrors the backend calculation logic exactly
+ */
+function calculateScoreClientSide(
+  difficulty,
+  phrasesFound,
+  totalPhrases,
+  durationSeconds,
+  hintsUsed,
+  rules = DEFAULT_SCORING_RULES
+) {
+  const scoringRules = rules || DEFAULT_SCORING_RULES;
+  
+  // Base score: constant points per phrase found
+  const baseScore = phrasesFound * scoringRules.base_points_per_phrase;
+
+  // Difficulty multipliers determine the size of the bonus
+  const difficultyMultiplier =
+    scoringRules.difficulty_multipliers[difficulty] ||
+    scoringRules.difficulty_multipliers.easy;
+  const difficultyBonus = Math.floor(baseScore * (difficultyMultiplier - 1.0));
+
+  // Time bonus (faster completion = higher bonus)
+  let timeBonus = 0;
+  if (phrasesFound === totalPhrases && durationSeconds > 0) {
+    const targetTime =
+      scoringRules.time_bonus.target_times_seconds[difficulty] ||
+      scoringRules.time_bonus.target_times_seconds.medium;
+    if (targetTime > 0 && durationSeconds <= targetTime) {
+      const timeRatio = Math.max(
+        0.0,
+        (targetTime - durationSeconds) / targetTime
+      );
+      timeBonus = Math.floor(
+        baseScore * scoringRules.time_bonus.max_ratio * timeRatio
+      );
+    }
+  }
+
+  // Completion bonus for finding all phrases
+  const streakBonus =
+    phrasesFound === totalPhrases ? scoringRules.completion_bonus_points : 0;
+
+  // Hint penalty: fixed deduction per hint used
+  const hintPenalty = hintsUsed * scoringRules.hint_penalty_per_hint;
+
+  // Calculate final score
+  const finalScore = Math.max(
+    0,
+    baseScore + difficultyBonus + timeBonus + streakBonus - hintPenalty
+  );
+
+  return {
+    base_score: baseScore,
+    difficulty_bonus: difficultyBonus,
+    time_bonus: timeBonus,
+    streak_bonus: streakBonus,
+    hint_penalty: hintPenalty,
+    final_score: finalScore,
+    hints_used: hintsUsed,
+    hint_penalty_per_hint: scoringRules.hint_penalty_per_hint,
+  };
+}
+
 function AppContent() {
   const { t } = useTranslation();
   const location = useLocation();
@@ -853,6 +918,22 @@ function AppContent() {
 
   const calculateScoreFromApi = useCallback(
     async ({ phrasesFound, totalPhrases, durationSeconds, hintsCount }) => {
+      const token = localStorage.getItem(STORAGE_KEYS.ADMIN_TOKEN);
+
+      // For anonymous users: calculate client-side (no need for API call)
+      if (!token) {
+        // Use loaded rules or fall back to defaults
+        return calculateScoreClientSide(
+          difficulty,
+          phrasesFound,
+          totalPhrases,
+          durationSeconds,
+          hintsCount,
+          scoringRules || DEFAULT_SCORING_RULES
+        );
+      }
+
+      // For authenticated users: use server-side calculation (ensures consistency with saved scores)
       try {
         const response = await axios.post(
           `${API_ENDPOINTS.GAME}/system/calculate-score`,
@@ -866,11 +947,22 @@ function AppContent() {
         );
         return response.data;
       } catch (error) {
-        console.error("Failed to calculate score:", error);
-        return null;
+        console.error(
+          "Failed to calculate score from API, falling back to client-side:",
+          error
+        );
+        // Fallback to client-side calculation if API fails
+        return calculateScoreClientSide(
+          difficulty,
+          phrasesFound,
+          totalPhrases,
+          durationSeconds,
+          hintsCount,
+          scoringRules || DEFAULT_SCORING_RULES
+        );
       }
     },
-    [difficulty]
+    [difficulty, scoringRules]
   );
 
   const updateScore = useCallback(
