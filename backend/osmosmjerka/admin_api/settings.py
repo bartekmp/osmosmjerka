@@ -148,3 +148,85 @@ async def get_progressive_hints_setting(user=Depends(require_root_admin)) -> JSO
 async def update_progressive_hints_setting(body: dict = Body(...), user=Depends(require_root_admin)) -> JSONResponse:
     """Update progressive hints status - alternative endpoint"""
     return await set_progressive_hints_enabled(body, user)
+
+
+@router.get("/scoring-rules")
+async def get_scoring_rules_setting(user=Depends(require_root_admin)) -> JSONResponse:
+    """Get current scoring rules configuration - root admin only"""
+    try:
+        from osmosmjerka.scoring_rules import DIFFICULTY_ORDER
+
+        rules = await db_manager.get_scoring_rules()
+        if not rules:
+            # If no rules in DB, initialize with defaults
+            await db_manager.initialize_default_scoring_rules()
+            rules = await db_manager.get_scoring_rules()
+
+        # At this point, rules should exist
+        if rules:
+            # Format the response to match the expected structure
+            response = {
+                "base_points_per_phrase": rules["base_points_per_phrase"],
+                "difficulty_multipliers": rules["difficulty_multipliers"],
+                "difficulty_order": DIFFICULTY_ORDER,
+                "time_bonus": {
+                    "max_ratio": rules["max_time_bonus_ratio"],
+                    "target_times_seconds": rules["target_times_seconds"],
+                },
+                "completion_bonus_points": rules["completion_bonus_points"],
+                "hint_penalty_per_hint": rules["hint_penalty_per_hint"],
+            }
+            return JSONResponse(response)
+        else:
+            raise HTTPException(status_code=500, detail="Failed to initialize scoring rules")
+    except HTTPException:
+        raise
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+
+
+@router.put("/scoring-rules")
+async def update_scoring_rules_setting(body: dict = Body(...), user=Depends(require_root_admin)) -> JSONResponse:
+    """Update scoring rules configuration - root admin only"""
+    try:
+        # Validate required fields
+        required_fields = [
+            "base_points_per_phrase",
+            "difficulty_multipliers",
+            "completion_bonus_points",
+            "hint_penalty_per_hint",
+        ]
+
+        for field in required_fields:
+            if field not in body:
+                raise HTTPException(status_code=400, detail=f"Missing required field: {field}")
+
+        # Extract time bonus settings (can be nested or flat)
+        if "time_bonus" in body:
+            max_time_bonus_ratio = body["time_bonus"].get("max_ratio")
+            target_times_seconds = body["time_bonus"].get("target_times_seconds")
+        else:
+            max_time_bonus_ratio = body.get("max_time_bonus_ratio")
+            target_times_seconds = body.get("target_times_seconds")
+
+        if max_time_bonus_ratio is None or target_times_seconds is None:
+            raise HTTPException(
+                status_code=400, detail="Missing time bonus settings (max_ratio and target_times_seconds)"
+            )
+
+        # Update scoring rules
+        await db_manager.update_scoring_rules(
+            base_points_per_phrase=int(body["base_points_per_phrase"]),
+            difficulty_multipliers=body["difficulty_multipliers"],
+            max_time_bonus_ratio=float(max_time_bonus_ratio),
+            target_times_seconds=target_times_seconds,
+            completion_bonus_points=int(body["completion_bonus_points"]),
+            hint_penalty_per_hint=int(body["hint_penalty_per_hint"]),
+            updated_by=user["id"],
+        )
+
+        return JSONResponse({"message": "Scoring rules updated successfully"})
+    except HTTPException:
+        raise
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))

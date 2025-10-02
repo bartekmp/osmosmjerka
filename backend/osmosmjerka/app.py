@@ -120,6 +120,9 @@ async def lifespan(_: FastAPI):
         await ensure_root_admin_account()()
         logger.info("Root admin account verified")
 
+        await db_manager.initialize_default_scoring_rules()
+        logger.info("Scoring rules initialized")
+
         logger.info("Application ready to accept requests")
     except Exception as e:
         logger.exception("Failed to start application", extra={"error": str(e)})

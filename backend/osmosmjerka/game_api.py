@@ -538,7 +538,9 @@ async def save_game_score(body: dict = Body(...), user=Depends(get_current_user)
             return JSONResponse({"error": "Invalid field types"}, status_code=400)
 
         # Calculate scoring
-        scoring_result = calculate_game_score(difficulty, phrases_found, total_phrases, duration_seconds, hints_used)
+        scoring_result = await calculate_game_score(
+            difficulty, phrases_found, total_phrases, duration_seconds, hints_used
+        )
 
         # Convert datetime strings to datetime objects if provided
         first_phrase_dt = None
@@ -618,31 +620,50 @@ async def get_leaderboard(
         return JSONResponse({"error": str(e)}, status_code=500)
 
 
-def calculate_game_score(
+async def calculate_game_score(
     difficulty: str, phrases_found: int, total_phrases: int, duration_seconds: int, hints_used: int
 ) -> dict:
     """Calculate game score based on various factors"""
 
+    # Try to get scoring rules from database first
+    db_rules = await db_manager.get_scoring_rules()
+
+    if db_rules:
+        base_points_per_phrase = db_rules["base_points_per_phrase"]
+        difficulty_multipliers = db_rules["difficulty_multipliers"]
+        max_time_bonus_ratio = db_rules["max_time_bonus_ratio"]
+        target_times_seconds = db_rules["target_times_seconds"]
+        completion_bonus_points = db_rules["completion_bonus_points"]
+        hint_penalty_per_hint = db_rules["hint_penalty_per_hint"]
+    else:
+        # Fallback to hardcoded constants
+        base_points_per_phrase = BASE_POINTS_PER_PHRASE
+        difficulty_multipliers = DIFFICULTY_MULTIPLIERS
+        max_time_bonus_ratio = MAX_TIME_BONUS_RATIO
+        target_times_seconds = TARGET_TIMES_SECONDS
+        completion_bonus_points = COMPLETION_BONUS_POINTS
+        hint_penalty_per_hint = HINT_PENALTY_PER_HINT
+
     # Base score: constant points per phrase found
-    base_score = phrases_found * BASE_POINTS_PER_PHRASE
+    base_score = phrases_found * base_points_per_phrase
 
     # Difficulty multipliers determine the size of the bonus.
-    difficulty_multiplier = DIFFICULTY_MULTIPLIERS.get(difficulty, DIFFICULTY_MULTIPLIERS["easy"])
+    difficulty_multiplier = difficulty_multipliers.get(difficulty, difficulty_multipliers.get("easy", 1.0))
     difficulty_bonus = int(base_score * (difficulty_multiplier - 1.0))
 
     # Time bonus (faster completion = higher bonus).
     time_bonus = 0
     if phrases_found == total_phrases and duration_seconds > 0:
-        target_time = TARGET_TIMES_SECONDS.get(difficulty, TARGET_TIMES_SECONDS["medium"])
+        target_time = target_times_seconds.get(difficulty, target_times_seconds.get("medium", 600))
         if target_time > 0 and duration_seconds <= target_time:
             time_ratio = max(0.0, (target_time - duration_seconds) / target_time)
-            time_bonus = int(base_score * MAX_TIME_BONUS_RATIO * time_ratio)
+            time_bonus = int(base_score * max_time_bonus_ratio * time_ratio)
 
     # Completion bonus for finding all phrases in the puzzle.
-    streak_bonus = COMPLETION_BONUS_POINTS if phrases_found == total_phrases else 0
+    streak_bonus = completion_bonus_points if phrases_found == total_phrases else 0
 
     # Hint penalty: fixed deduction per hint used.
-    hint_penalty = hints_used * HINT_PENALTY_PER_HINT
+    hint_penalty = hints_used * hint_penalty_per_hint
 
     # Calculate final score.
     final_score = max(0, base_score + difficulty_bonus + time_bonus + streak_bonus - hint_penalty)
@@ -655,7 +676,7 @@ def calculate_game_score(
         "hint_penalty": hint_penalty,
         "final_score": final_score,
         "hints_used": hints_used,
-        "hint_penalty_per_hint": HINT_PENALTY_PER_HINT,
+        "hint_penalty_per_hint": hint_penalty_per_hint,
     }
 
 
@@ -663,16 +684,39 @@ def calculate_game_score(
 async def get_system_scoring_rules() -> JSONResponse:
     """Public endpoint exposing the current scoring rules."""
     try:
-        return JSONResponse(get_scoring_rules())
+        # Try to get scoring rules from database first
+        db_rules = await db_manager.get_scoring_rules()
+
+        if db_rules:
+            # Add difficulty_order to match the expected format
+            from osmosmjerka.scoring_rules import DIFFICULTY_ORDER
+
+            scoring_rules = {
+                "base_points_per_phrase": db_rules["base_points_per_phrase"],
+                "difficulty_multipliers": db_rules["difficulty_multipliers"],
+                "difficulty_order": DIFFICULTY_ORDER,
+                "time_bonus": {
+                    "max_ratio": db_rules["max_time_bonus_ratio"],
+                    "target_times_seconds": db_rules["target_times_seconds"],
+                },
+                "completion_bonus_points": db_rules["completion_bonus_points"],
+                "hint_penalty_per_hint": db_rules["hint_penalty_per_hint"],
+            }
+            return JSONResponse(scoring_rules)
+        else:
+            # Fallback to hardcoded rules if database rules don't exist
+            return JSONResponse(get_scoring_rules())
     except Exception as e:  # pragma: no cover - defensive guard
-        return JSONResponse({"error": str(e)}, status_code=500)
+        logger.error(f"Error fetching scoring rules: {e}")
+        # Fallback to hardcoded rules on error
+        return JSONResponse(get_scoring_rules())
 
 
 @router.post("/system/calculate-score")
 async def calculate_score_endpoint(payload: ScoreCalculationRequest) -> JSONResponse:
     """Expose score calculation to ensure a single source of truth for the frontend."""
 
-    score = calculate_game_score(
+    score = await calculate_game_score(
         payload.difficulty,
         payload.phrases_found,
         payload.total_phrases,

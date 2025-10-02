@@ -139,6 +139,21 @@ global_settings_table = Table(
     Column("updated_by", Integer, nullable=False),  # User ID of who made the change
 )
 
+# Define the scoring_rules table for dynamic scoring configuration
+scoring_rules_table = Table(
+    "scoring_rules",
+    metadata,
+    Column("id", Integer, primary_key=True, index=True),
+    Column("base_points_per_phrase", Integer, nullable=False, default=100),
+    Column("difficulty_multipliers", Text, nullable=False),  # JSON string of difficulty multipliers
+    Column("max_time_bonus_ratio", String, nullable=False, default="0.3"),  # Stored as string to preserve precision
+    Column("target_times_seconds", Text, nullable=False),  # JSON string of target times
+    Column("completion_bonus_points", Integer, nullable=False, default=200),
+    Column("hint_penalty_per_hint", Integer, nullable=False, default=75),
+    Column("updated_at", DateTime, nullable=False, server_default=func.now()),
+    Column("updated_by", Integer, nullable=False, default=0),  # User ID of who made the change
+)
+
 # Define the user_preferences table for user-specific settings
 user_preferences_table = Table(
     "user_preferences",
@@ -1596,6 +1611,80 @@ class DatabaseManager:
 
         rows = await database.fetch_all(query)
         return {row["preference_key"]: row["preference_value"] for row in rows}
+
+    # Scoring rules management methods
+    async def get_scoring_rules(self) -> Optional[Dict[str, Any]]:
+        """Get current scoring rules from database"""
+        database = self._ensure_database()
+
+        query = select(scoring_rules_table).order_by(desc(scoring_rules_table.c.id)).limit(1)
+        result = await database.fetch_one(query)
+
+        if not result:
+            return None
+
+        import json
+
+        return {
+            "base_points_per_phrase": result["base_points_per_phrase"],
+            "difficulty_multipliers": json.loads(result["difficulty_multipliers"]),
+            "max_time_bonus_ratio": float(result["max_time_bonus_ratio"]),
+            "target_times_seconds": json.loads(result["target_times_seconds"]),
+            "completion_bonus_points": result["completion_bonus_points"],
+            "hint_penalty_per_hint": result["hint_penalty_per_hint"],
+        }
+
+    async def update_scoring_rules(
+        self,
+        base_points_per_phrase: int,
+        difficulty_multipliers: Dict[str, float],
+        max_time_bonus_ratio: float,
+        target_times_seconds: Dict[str, int],
+        completion_bonus_points: int,
+        hint_penalty_per_hint: int,
+        updated_by: int = 0,
+    ) -> None:
+        """Update scoring rules by inserting a new record"""
+        database = self._ensure_database()
+
+        import json
+
+        query = insert(scoring_rules_table).values(
+            base_points_per_phrase=base_points_per_phrase,
+            difficulty_multipliers=json.dumps(difficulty_multipliers),
+            max_time_bonus_ratio=str(max_time_bonus_ratio),
+            target_times_seconds=json.dumps(target_times_seconds),
+            completion_bonus_points=completion_bonus_points,
+            hint_penalty_per_hint=hint_penalty_per_hint,
+            updated_by=updated_by,
+        )
+
+        await database.execute(query)
+
+    async def initialize_default_scoring_rules(self) -> None:
+        """Initialize default scoring rules if none exist"""
+        existing = await self.get_scoring_rules()
+
+        if existing is None:
+            # Import default values from scoring_rules module
+            from osmosmjerka.scoring_rules import (
+                BASE_POINTS_PER_PHRASE,
+                COMPLETION_BONUS_POINTS,
+                DIFFICULTY_MULTIPLIERS,
+                HINT_PENALTY_PER_HINT,
+                MAX_TIME_BONUS_RATIO,
+                TARGET_TIMES_SECONDS,
+            )
+
+            await self.update_scoring_rules(
+                base_points_per_phrase=BASE_POINTS_PER_PHRASE,
+                difficulty_multipliers=DIFFICULTY_MULTIPLIERS,
+                max_time_bonus_ratio=MAX_TIME_BONUS_RATIO,
+                target_times_seconds=TARGET_TIMES_SECONDS,
+                completion_bonus_points=COMPLETION_BONUS_POINTS,
+                hint_penalty_per_hint=HINT_PENALTY_PER_HINT,
+                updated_by=0,
+            )
 
     # Scoring system methods
     async def save_game_score(

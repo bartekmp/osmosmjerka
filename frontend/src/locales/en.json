@@ -149,6 +149,13 @@
     "medium": "Medium (13x13)",
     "hard": "Hard (15x15)",
     "very_hard": "Very Hard (20x20)",
+    "difficultyLevel": {
+        "very_easy": "Very Easy",
+        "easy": "Easy",
+        "medium": "Medium",
+        "hard": "Hard",
+        "very_hard": "Very Hard"
+    },
     "show": "Show",
     "hide": "Hide",
     "show_phrases": "Show phrases",
@@ -463,6 +470,25 @@
             "updateError": "Failed to update setting",
             "updateSuccess": "Setting updated successfully",
             "notice": "Note: Changes take effect immediately for all users. Individual users can override game feature settings in their profiles."
+        },
+        "scoringRules": {
+            "title": "Scoring Rules Configuration",
+            "description": "Configure how points are calculated for games. Changes will apply to all new games.",
+            "disabledWarning": "Scoring system is currently disabled. Enable it above to modify scoring rules.",
+            "baseSettings": "Base Settings",
+            "basePoints": "Base Points per Phrase",
+            "completionBonus": "Completion Bonus",
+            "hintPenalty": "Hint Penalty per Hint",
+            "difficultyMultipliers": "Difficulty Multipliers",
+            "multipliersHelp": "Higher multipliers give more bonus points for harder difficulties",
+            "timeBonus": "Time Bonus Settings",
+            "timeBonusHelp": "Players get bonus points for completing within target times",
+            "maxTimeBonusRatio": "Max Time Bonus Ratio",
+            "maxRatioHelp": "Maximum percentage of base score as time bonus (0-1)",
+            "targetTimes": "Target Times (seconds)",
+            "loadError": "Failed to load scoring rules",
+            "saveError": "Failed to save scoring rules",
+            "saveSuccess": "Scoring rules updated successfully"
         }
     }
 }

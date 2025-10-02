@@ -165,6 +165,13 @@
     "medium": "Srednje (13x13)",
     "hard": "Teško (15x15)",
     "very_hard": "Vrlo teško (20x20)",
+    "difficultyLevel": {
+        "very_easy": "Vrlo lako",
+        "easy": "Lako",
+        "medium": "Srednje",
+        "hard": "Teško",
+        "very_hard": "Vrlo teško"
+    },
     "show": "Prikaži",
     "hide": "Sakrij",
     "show_phrases": "Prikaži fraze",
@@ -464,6 +471,25 @@
             "updateError": "Neuspješno ažuriranje postavke",
             "updateSuccess": "Postavka je uspješno ažurirana",
             "notice": "Napomena: Promjene stupaju na snagu odmah za sve korisnike. Pojedinačni korisnici mogu zamijeniti postavke značajki igre u svojim profilima."
+        },
+        "scoringRules": {
+            "title": "Konfiguracija pravila bodovanja",
+            "description": "Konfiguriraj način izračuna bodova u igrama. Promjene će se primjenjivati na sve nove igre.",
+            "disabledWarning": "Sustav bodovanja je trenutno onemogućen. Omogući ga iznad za izmjenu pravila bodovanja.",
+            "baseSettings": "Osnovne postavke",
+            "basePoints": "Osnovni bodovi po frazi",
+            "completionBonus": "Bonus za završetak",
+            "hintPenalty": "Kazna po savjetu",
+            "difficultyMultipliers": "Množitelji težine",
+            "multipliersHelp": "Viši množitelji daju više bonus bodova za teže razine",
+            "timeBonus": "Postavke vremenskog bonusa",
+            "timeBonusHelp": "Igrači dobivaju bonus bodove za završetak u ciljanim vremenima",
+            "maxTimeBonusRatio": "Maksimalni omjer vremenskog bonusa",
+            "maxRatioHelp": "Maksimalni postotak osnovnog rezultata kao vremenski bonus (0-1)",
+            "targetTimes": "Ciljna vremena (sekunde)",
+            "loadError": "Neuspješno učitavanje pravila bodovanja",
+            "saveError": "Neuspješno spremanje pravila bodovanja",
+            "saveSuccess": "Pravila bodovanja su uspješno ažurirana"
         }
     }
 }
