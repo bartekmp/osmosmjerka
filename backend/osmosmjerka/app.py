@@ -1,4 +1,3 @@
-import logging
 import os
 import sys
 from contextlib import asynccontextmanager
@@ -8,10 +7,17 @@ from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import FileResponse, JSONResponse, RedirectResponse
 from fastapi.staticfiles import StaticFiles
 
+# isort: off
+from osmosmjerka.logging_config import get_logger
+
+# isort: on
 from osmosmjerka.admin_api import router as admin_router
 from osmosmjerka.auth import ROOT_ADMIN_PASSWORD_HASH, ROOT_ADMIN_USERNAME
 from osmosmjerka.database import db_manager
 from osmosmjerka.game_api import router as game_router
+
+# Get logger for this module
+logger = get_logger(__name__)
 
 # List of API endpoints that should be ignored for the SPA routing
 API_ENDPOINTS = ["api/", "admin/"]
@@ -54,13 +60,23 @@ def ensure_root_admin_account():
 
         # If there is a conflict, log error and exit
         if by_id and by_id.get("username") != ROOT_ADMIN_USERNAME:
-            logging.error(
-                f"Fatal: Account with id=0 exists but username is '{by_id.get('username')}', expected '{ROOT_ADMIN_USERNAME}'. Please resolve manually."
+            logger.error(
+                "Fatal: Account with id=0 exists but has wrong username. Please resolve manually.",
+                extra={
+                    "found_username": by_id.get("username"),
+                    "expected_username": ROOT_ADMIN_USERNAME,
+                    "account_id": 0,
+                },
             )
             sys.exit(1)
         if by_username and by_username.get("id") != 0:
-            logging.error(
-                f"Fatal: Account with username='{ROOT_ADMIN_USERNAME}' exists but id is {by_username.get('id')}, expected 0. Please resolve manually."
+            logger.error(
+                "Fatal: Account with correct username exists but has wrong id. Please resolve manually.",
+                extra={
+                    "username": ROOT_ADMIN_USERNAME,
+                    "found_id": by_username.get("id"),
+                    "expected_id": 0,
+                },
             )
             sys.exit(1)
 
@@ -80,8 +96,9 @@ def ensure_root_admin_account():
         if account:
             updates = {}
             if account.get("password_hash") != ROOT_ADMIN_PASSWORD_HASH:
-                logging.warning(
-                    "Root admin password hash in DB differs from ADMIN_PASSWORD_HASH env var. Updating password hash for root admin!"
+                logger.warning(
+                    "Root admin password hash in DB differs from ADMIN_PASSWORD_HASH env var. Updating password hash.",
+                    extra={"username": ROOT_ADMIN_USERNAME},
                 )
                 updates["password_hash"] = ROOT_ADMIN_PASSWORD_HASH
             if updates:
@@ -92,11 +109,27 @@ def ensure_root_admin_account():
 
 @asynccontextmanager
 async def lifespan(_: FastAPI):
-    await db_manager.connect()
-    db_manager.create_tables()
-    await ensure_root_admin_account()()
+    logger.info("Application startup initiated")
+    try:
+        await db_manager.connect()
+        logger.info("Database connection established")
+
+        db_manager.create_tables()
+        logger.info("Database tables verified/created")
+
+        await ensure_root_admin_account()()
+        logger.info("Root admin account verified")
+
+        logger.info("Application ready to accept requests")
+    except Exception as e:
+        logger.exception("Failed to start application", extra={"error": str(e)})
+        raise
+
     yield
+
+    logger.info("Application shutdown initiated")
     await db_manager.disconnect()
+    logger.info("Application shutdown complete")
 
 
 app = FastAPI(lifespan=lifespan)

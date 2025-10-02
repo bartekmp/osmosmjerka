@@ -209,6 +209,22 @@ Use this command to create a bcrypt password hash:
 python3 -c "import bcrypt; import getpass; pwd=getpass.getpass('Password: ').encode(); print(bcrypt.hashpw(pwd, bcrypt.gensalt()).decode())"
 ```
 
+## Logging & Monitoring
+
+Osmosmjerka features a comprehensive hybrid logging system optimized for both development and production:
+
+- **Development Mode**: Human-readable plain text logs with color coding
+- **Production Mode**: Structured JSON logs for Kubernetes and log aggregation
+- **Structured Logging**: All logs include contextual data (user_id, session_id, etc.)
+- **Exception Tracking**: Full stack traces with context for all errors
+- **stdout/stderr Separation**: INFO/DEBUG to stdout, WARNING/ERROR/CRITICAL to stderr
+
+**Quick Example:**
+```bash
+# View logs in Kubernetes
+kubectl logs deployment/osmosmjerka-backend | jq 'select(.level=="ERROR")'
+```
+
 ## 📚 Data Management
 
 ### Import Phrases

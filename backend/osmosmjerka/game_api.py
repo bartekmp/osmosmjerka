@@ -11,6 +11,9 @@ from osmosmjerka.auth import get_current_user, get_current_user_optional, verify
 from osmosmjerka.cache import cache_response, categories_cache, language_sets_cache, phrases_cache, rate_limit
 from osmosmjerka.database import db_manager
 from osmosmjerka.grid_generator import generate_grid
+from osmosmjerka.logging_config import get_logger
+
+logger = get_logger(__name__)
 from osmosmjerka.scoring_rules import (
     BASE_POINTS_PER_PHRASE,
     COMPLETION_BONUS_POINTS,
@@ -312,6 +315,10 @@ async def start_game_session(body: dict = Body(...), user=Depends(get_current_us
         total_phrases = body.get("total_phrases")
 
         if not all([language_set_id, category, difficulty, grid_size, total_phrases]):
+            logger.warning(
+                "Game start failed: missing required fields",
+                extra={"user_id": user["id"], "username": user["username"]},
+            )
             return JSONResponse(
                 {"error": "Missing required fields: language_set_id, category, difficulty, grid_size, total_phrases"},
                 status_code=400,
@@ -319,19 +326,45 @@ async def start_game_session(body: dict = Body(...), user=Depends(get_current_us
 
         # Type validation
         if not isinstance(language_set_id, int) or not isinstance(grid_size, int) or not isinstance(total_phrases, int):
+            logger.warning(
+                "Game start failed: invalid field types",
+                extra={"user_id": user["id"], "username": user["username"]},
+            )
             return JSONResponse(
                 {"error": "language_set_id, grid_size, and total_phrases must be integers"}, status_code=400
             )
 
         if not isinstance(category, str) or not isinstance(difficulty, str):
+            logger.warning(
+                "Game start failed: invalid field types",
+                extra={"user_id": user["id"], "username": user["username"]},
+            )
             return JSONResponse({"error": "category and difficulty must be strings"}, status_code=400)
 
         session_id = await db_manager.start_game_session(
             user["id"], language_set_id, category, difficulty, grid_size, total_phrases
         )
 
+        logger.info(
+            "Game session started",
+            extra={
+                "user_id": user["id"],
+                "username": user["username"],
+                "session_id": session_id,
+                "language_set_id": language_set_id,
+                "category": category,
+                "difficulty": difficulty,
+                "grid_size": grid_size,
+                "total_phrases": total_phrases,
+            },
+        )
+
         return JSONResponse({"session_id": session_id, "message": "Game session started"})
     except Exception as e:
+        logger.exception(
+            "Failed to start game session",
+            extra={"user_id": user["id"], "username": user["username"], "error": str(e)},
+        )
         return JSONResponse({"error": str(e)}, status_code=500)
 
 
@@ -363,6 +396,10 @@ async def complete_game_session(body: dict = Body(...), user=Depends(get_current
         duration_seconds = body.get("duration_seconds")
 
         if session_id is None or phrases_found is None or duration_seconds is None:
+            logger.warning(
+                "Game complete failed: missing required fields",
+                extra={"user_id": user["id"], "username": user["username"]},
+            )
             return JSONResponse(
                 {"error": "Missing required fields: session_id, phrases_found, duration_seconds"}, status_code=400
             )
@@ -372,13 +409,33 @@ async def complete_game_session(body: dict = Body(...), user=Depends(get_current
             or not isinstance(phrases_found, int)
             or not isinstance(duration_seconds, int)
         ):
+            logger.warning(
+                "Game complete failed: invalid field types",
+                extra={"user_id": user["id"], "username": user["username"]},
+            )
             return JSONResponse(
                 {"error": "session_id, phrases_found, and duration_seconds must be integers"}, status_code=400
             )
 
         await db_manager.complete_game_session(session_id, phrases_found, duration_seconds)
+
+        logger.info(
+            "Game session completed",
+            extra={
+                "user_id": user["id"],
+                "username": user["username"],
+                "session_id": session_id,
+                "phrases_found": phrases_found,
+                "duration_seconds": duration_seconds,
+            },
+        )
+
         return JSONResponse({"message": "Game session completed and statistics updated"})
     except Exception as e:
+        logger.exception(
+            "Failed to complete game session",
+            extra={"user_id": user["id"], "username": user["username"], "error": str(e)},
+        )
         return JSONResponse({"error": str(e)}, status_code=500)
 
 

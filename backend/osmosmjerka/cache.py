@@ -8,6 +8,10 @@ from typing import Any, Dict, Optional
 
 from fastapi import HTTPException
 
+from osmosmjerka.logging_config import get_logger
+
+logger = get_logger(__name__)
+
 
 class AsyncLRUCache:
     """Simple async-compatible LRU cache with TTL support."""
@@ -102,6 +106,15 @@ def rate_limit(max_requests: int, window_seconds: int):
                 identifier = "anonymous"
 
             if not rate_limiter.is_allowed(identifier, max_requests, window_seconds):
+                logger.warning(
+                    "Rate limit exceeded",
+                    extra={
+                        "identifier": identifier,
+                        "max_requests": max_requests,
+                        "window_seconds": window_seconds,
+                        "endpoint": func.__name__,
+                    },
+                )
                 raise HTTPException(status_code=429, detail="Too many requests. Please wait before trying again.")
 
             return await func(*args, **kwargs)

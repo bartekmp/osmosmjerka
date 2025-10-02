@@ -12,6 +12,9 @@ from osmosmjerka.auth import (
     require_admin_access,
 )
 from osmosmjerka.database import db_manager
+from osmosmjerka.logging_config import get_logger
+
+logger = get_logger(__name__)
 
 router = APIRouter()
 
