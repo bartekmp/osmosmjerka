@@ -1,3 +1,9 @@
+/* Score Display Component Styles */
+
+/* ====================
+   Compact View
+   ==================== */
+
 .score-display-compact {
     display: flex;
     flex-direction: column;
@@ -6,40 +12,13 @@
     gap: 4px;
 }
 
-.score-clickable {
-    border-radius: 12px;
-    border: 1px solid rgba(25, 118, 210, 0.35);
-    cursor: pointer;
-    user-select: none;
-    transition: background-color 0.2s ease, border-color 0.2s ease, box-shadow 0.2s ease;
-}
-
-.score-clickable:hover {
-    background-color: rgba(25, 118, 210, 0.08);
-    border-color: rgba(25, 118, 210, 0.55);
-    box-shadow: 0 4px 12px rgba(25, 118, 210, 0.12);
-}
-
-.dark-mode .score-clickable:hover {
-    background-color: rgba(144, 202, 249, 0.12);
-    border-color: rgba(144, 202, 249, 0.55);
-    box-shadow: 0 4px 12px rgba(144, 202, 249, 0.15);
-}
-
-.score-clickable:focus-visible {
-    outline: 2px solid rgba(25, 118, 210, 0.55);
-    outline-offset: 2px;
-}
-
 .score-display-compact.score-clickable {
     padding: 8px 16px;
 }
 
-.score-header.score-clickable {
-    padding: 12px 16px;
-    width: 100%;
-    box-sizing: border-box;
-}
+/* ====================
+   Card View
+   ==================== */
 
 .score-display-card {
     margin: 8px 0;
@@ -52,6 +31,12 @@
     flex-direction: column;
     align-items: center;
     margin-bottom: 8px;
+}
+
+.score-header.score-clickable {
+    padding: 12px 16px;
+    width: 100%;
+    box-sizing: border-box;
 }
 
 .score-title {
@@ -68,23 +53,37 @@
     flex-wrap: wrap;
 }
 
+/* ====================
+   Clickable States
+   ==================== */
+
+.score-clickable {
+    border-radius: 12px;
+    border: 1px solid rgba(25, 118, 210, 0.35);
+    cursor: pointer;
+    user-select: none;
+    transition: background-color 0.2s ease, border-color 0.2s ease, box-shadow 0.2s ease;
+}
+
+.score-clickable:hover {
+    background-color: rgba(25, 118, 210, 0.08);
+    border-color: rgba(25, 118, 210, 0.55);
+    box-shadow: 0 4px 12px rgba(25, 118, 210, 0.12);
+}
+
+.score-clickable:focus-visible {
+    outline: 2px solid rgba(25, 118, 210, 0.55);
+    outline-offset: 2px;
+}
+
+/* ====================
+   Score Breakdown
+   ==================== */
+
 .score-breakdown {
     border-top: 1px solid rgba(0, 0, 0, 0.1);
     padding-top: 8px;
     margin-top: 8px;
-}
-
-.per-phrase-section {
-    margin-top: 8px;
-}
-
-.per-phrase-list {
-    list-style: inside;
-    margin: 4px 0 0;
-    padding-left: 12px;
-    display: flex;
-    flex-direction: column;
-    gap: 2px;
 }
 
 .breakdown-items {
@@ -100,13 +99,26 @@
     align-items: center;
 }
 
-.dark-mode .score-display-card {
-    background: linear-gradient(135deg, rgba(144, 202, 249, 0.05) 0%, rgba(144, 202, 249, 0.02) 100%);
+/* ====================
+   Per-Phrase Section
+   ==================== */
+
+.per-phrase-section {
+    margin-top: 8px;
 }
 
-.dark-mode .score-breakdown {
-    border-top-color: rgba(255, 255, 255, 0.1);
+.per-phrase-list {
+    list-style: inside;
+    margin: 4px 0 0;
+    padding-left: 12px;
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
 }
+
+/* ====================
+   Score Rules (Dialog)
+   ==================== */
 
 .score-rules-loading {
     display: flex;
@@ -142,6 +154,10 @@
     gap: 4px;
 }
 
+/* ====================
+   Dialog Sections
+   ==================== */
+
 .score-dialog-section {
     max-width: 100%;
 }
@@ -163,13 +179,17 @@
     gap: 8px;
 }
 
-.score-dialog-breakdown {
-    width: 100%;
+.score-dialog-heading {
+    /* Inherits from MUI Typography h6 */
 }
 
 .score-dialog-subheading {
     margin-bottom: 4px;
     font-weight: 600;
+}
+
+.score-dialog-breakdown {
+    width: 100%;
 }
 
 .score-dialog-breakdown-list {
@@ -213,22 +233,48 @@
     color: #1976d2;
 }
 
+.score-dialog-breakdown-value {
+    /* Value-specific styling applied via modifiers */
+}
+
 .score-dialog-per-phrase {
     width: 100%;
 }
 
-.dark-mode .score-dialog-breakdown-row {
+/* ====================
+   Dark Mode Styles
+   ==================== */
+
+[data-theme="dark"] .score-display-card {
+    background: linear-gradient(135deg, rgba(144, 202, 249, 0.05) 0%, rgba(144, 202, 249, 0.02) 100%);
+}
+
+[data-theme="dark"] .score-clickable:hover {
+    background-color: rgba(144, 202, 249, 0.12);
+    border-color: rgba(144, 202, 249, 0.55);
+    box-shadow: 0 4px 12px rgba(144, 202, 249, 0.15);
+}
+
+[data-theme="dark"] .score-breakdown {
+    border-top-color: rgba(255, 255, 255, 0.1);
+}
+
+[data-theme="dark"] .score-dialog-breakdown-row {
     background: rgba(144, 202, 249, 0.08);
 }
 
-.dark-mode .score-dialog-breakdown-row.negative {
+[data-theme="dark"] .score-dialog-breakdown-row.negative {
     background: rgba(239, 83, 80, 0.12);
 }
 
-.dark-mode .score-dialog-breakdown-row.total {
+[data-theme="dark"] .score-dialog-breakdown-row.total {
     border-top-color: rgba(255, 255, 255, 0.12);
     background: rgba(144, 202, 249, 0.12);
 }
+
+/* ====================
+   Responsive Design
+   ==================== */
 
 @media (max-width: 600px) {
     .score-display-card {

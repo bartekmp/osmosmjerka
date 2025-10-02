@@ -1,36 +1,39 @@
+/* Hint Button Component Styles */
+
 .hint-button-container {
     display: flex;
     flex-direction: column;
     align-items: flex-start;
-    gap: 4px;
-    margin: 8px 0;
+    gap: var(--spacing-xs);
+    margin: var(--spacing-sm) 0;
 }
 
 .hint-button {
-    transition: all 0.3s ease;
-    border-radius: 8px;
-    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+    transition: all var(--transition-normal) ease;
+    border-radius: var(--radius-md);
+    box-shadow: var(--shadow-sm);
 }
 
 .hint-button:hover:not(:disabled) {
     transform: translateY(-1px);
-    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.15);
+    box-shadow: var(--shadow-md);
 }
 
+/* Hint Mode Variants */
 .hint-button.progressive {
-    background: linear-gradient(135deg, #9c27b0 0%, #673ab7 100%);
+    background: var(--hint-progressive-bg);
 }
 
 .hint-button.progressive:hover:not(:disabled) {
-    background: linear-gradient(135deg, #8e24aa 0%, #5e35b1 100%);
+    background: var(--hint-progressive-hover);
 }
 
 .hint-button.classic {
-    background: linear-gradient(135deg, #1976d2 0%, #1565c0 100%);
+    background: var(--hint-classic-bg);
 }
 
 .hint-button.classic:hover:not(:disabled) {
-    background: linear-gradient(135deg, #1565c0 0%, #0d47a1 100%);
+    background: var(--hint-classic-hover);
 }
 
 .hint-counter {
@@ -38,6 +41,7 @@
     margin-top: 2px;
 }
 
+/* Responsive */
 @media (max-width: 600px) {
     .hint-button {
         min-width: 100px;

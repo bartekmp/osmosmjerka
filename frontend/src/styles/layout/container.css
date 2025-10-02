@@ -1,0 +1,41 @@
+/* ==========================================
+   APP LAYOUT - CONTAINER
+   Main container and game area layout
+   ========================================== */
+
+.app-container {
+  min-height: 100vh;
+  padding: 16px 0;
+  position: relative;
+}
+
+.main-game-area {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  width: 100%;
+  max-width: 100vw;
+  position: relative;
+  gap: 24px;
+  justify-content: center;
+  overflow: hidden;
+}
+
+.grid-container {
+  position: relative;
+  flex: 0 0 auto;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  width: 100%;
+  max-width: 100%;
+}
+
+.phrase-list-container {
+  width: 100%;
+  max-width: 400px;
+  align-self: flex-start;
+  position: relative;
+  left: 0;
+  top: 0;
+}

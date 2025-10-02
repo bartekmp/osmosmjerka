@@ -8,24 +8,31 @@ import VisibilityOffIcon from '@mui/icons-material/VisibilityOff';
 import {
     Alert,
     Badge,
-    Box,
-    Button,
     Chip,
     Collapse,
-    Container,
     Divider,
     IconButton,
     MenuItem,
-    Paper,
     Snackbar,
     Stack,
     TextField,
     Tooltip,
-    Typography
+    Typography,
+    Button,
 } from '@mui/material';
 import InputAdornment from '@mui/material/InputAdornment';
 import { AdminButton, AdminLayout, API_ENDPOINTS, ResponsiveActionButton, STORAGE_KEYS } from '@shared';
 import { RateLimitWarning } from '@shared/components/ui/RateLimitWarning';
+import {
+    PaddedContainer,
+    RightAlignedBox,
+    ContentPaper,
+    FormBox,
+    ErrorBox,
+    WarningBox,
+    Paper,
+    Box,
+} from '@shared/components/ui/StyledComponents';
 import { useCallback, useEffect, useLayoutEffect, useRef, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import AdminTable from './AdminTable';
@@ -44,7 +51,6 @@ import UserProfile from './UserProfile';
 import StatisticsDashboard from '../StatisticsDashboard/StatisticsDashboard';
 import SystemSettings from '../SystemSettings/SystemSettings';
 import PropTypes from 'prop-types';
-import './AdminPanel.css';
 
 const CONTROL_BAR_BREAKPOINTS = {
     compact: 1000,
@@ -740,22 +746,21 @@ export default function AdminPanel({
 
     if (!isLogged) {
         return (
-            <Container maxWidth="sm" sx={{ py: 4 }}>
-                <Box sx={{ textAlign: 'right', mb: 2 }}>
+            <PaddedContainer maxWidth="sm">
+                <RightAlignedBox>
                     <AdminButton
                         to="/"
                         desktopText={`⇇ ${t('back_to_game')}`}
                         mobileText="🏠"
                     />
-                </Box>
-                <Paper sx={{ p: 4, borderRadius: 2 }}>
+                </RightAlignedBox>
+                <ContentPaper>
                     <Typography variant="h4" component="h2" gutterBottom align="center">
                         {t('admin_login')}
                     </Typography>
-                    <Box
+                    <FormBox
                         component="form"
                         onSubmit={e => { e.preventDefault(); handleLogin(auth, setError, setCurrentUser); }}
-                        sx={{ mt: 3 }}
                     >
                         <Stack spacing={3}>
                             <TextField
@@ -777,21 +782,21 @@ export default function AdminPanel({
                                 {t('login')}
                             </Button>
                         </Stack>
-                    </Box>
+                    </FormBox>
                     {error && (
-                        <Box sx={{ mt: 2, p: 2, bgcolor: 'error.light', borderRadius: 1 }}>
+                        <ErrorBox>
                             <Typography color="error.contrastText">{error}</Typography>
-                        </Box>
+                        </ErrorBox>
                     )}
                     {isTokenExpired(token) && (
-                        <Box sx={{ mt: 2, p: 2, bgcolor: 'warning.light', borderRadius: 1 }}>
+                        <WarningBox>
                             <Typography color="warning.contrastText">
                                 {t('session_expired')}
                             </Typography>
-                        </Box>
+                        </WarningBox>
                     )}
-                </Paper>
-            </Container>
+                </ContentPaper>
+            </PaddedContainer>
         );
     }
 

@@ -1,10 +1,10 @@
 import { createTheme } from '@mui/material/styles';
 
-const LIGHT_CELL_BORDER = '#c7a24f';
-const LIGHT_CELL_BACKGROUND = '#f2e8d6';
-const LIGHT_CELL_INNER_HIGHLIGHT = '#fdf4e2';
-const LIGHT_CELL_SELECTED = '#cde8f6';
-const LIGHT_CELL_FOUND = '#e7ce8a';
+const _LIGHT_CELL_BORDER = '#c7a24f';
+const _LIGHT_CELL_BACKGROUND = '#f2e8d6';
+const _LIGHT_CELL_INNER_HIGHLIGHT = '#fdf4e2';
+const _LIGHT_CELL_SELECTED = '#cde8f6';
+const _LIGHT_CELL_FOUND = '#e7ce8a';
 
 const createAppTheme = (isDarkMode = false) => createTheme({
   palette: {
@@ -24,6 +24,30 @@ const createAppTheme = (isDarkMode = false) => createTheme({
     text: {
       primary: isDarkMode ? '#e0e0e0' : '#333333',
       secondary: isDarkMode ? '#b0b0b0' : '#666666',
+    },
+    // Custom palette entries for grid cells
+    grid: {
+      cell: {
+        border: isDarkMode ? '#6b5b3a' : '#c7a24f',
+        background: isDarkMode ? '#4a4a4a' : '#f2e8d6',
+        highlight: isDarkMode ? '#5a5a5a' : '#fdf4e2',
+        selected: isDarkMode ? '#2a4a5a' : '#cde8f6',
+        found: isDarkMode ? '#6b5b3a' : '#e7ce8a',
+      },
+      container: {
+        background: isDarkMode ? '#23272e' : '#f5f5f5',
+      },
+    },
+    // Custom palette entries for scrabble buttons
+    scrabble: {
+      main: isDarkMode ? '#4a4a4a' : '#f9e7b3',
+      border: isDarkMode ? '#6b5b3a' : '#b89c4e',
+      hover: isDarkMode ? '#6b5b3a' : '#e7ce8a',
+      disabled: {
+        background: isDarkMode ? '#3a3a3a' : '#f6efdf',
+        text: isDarkMode ? '#666' : '#b3a680',
+        border: isDarkMode ? '#555' : '#dfd0a6',
+      },
     },
   },
   typography: {
@@ -120,45 +144,7 @@ const createAppTheme = (isDarkMode = false) => createTheme({
         },
       },
     },
-    // Custom scrabble-style grid container
-    MuiBox: {
-      styleOverrides: {
-        root: {
-          '&.grid-container': {
-            backgroundColor: isDarkMode ? '#3a3a3a' : '#f4efe4',
-            borderRadius: '8px',
-            boxShadow: isDarkMode ? '0 4px 8px rgba(0,0,0,0.3)' : '0 4px 8px rgba(0,0,0,0.1)',
-            padding: '4px',
-            touchAction: 'none',
-          },
-          '&.grid-cell': {
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'center',
-            border: `3px solid ${isDarkMode ? '#6b5b3a' : LIGHT_CELL_BORDER}`,
-            borderRadius: '4px',
-            boxShadow: isDarkMode
-              ? `1px 2px 0 #6b5b3a, 0 1px 0 #5a5a5a inset`
-              : `0 2px 3px rgba(0,0,0,0.12), 0 1px 0 ${LIGHT_CELL_INNER_HIGHLIGHT} inset`,
-            cursor: 'pointer',
-            background: isDarkMode ? '#4a4a4a' : LIGHT_CELL_BACKGROUND,
-            color: isDarkMode ? '#e0e0e0' : '#333',
-            fontFamily: '"Clear Sans", "Trebuchet MS", "Arial", sans-serif',
-            letterSpacing: '0.03em',
-            transition: 'background 0.2s, box-shadow 0.2s',
-            userSelect: 'none',
-            lineHeight: 1,
-            fontWeight: 'bold',
-            '&.selected': {
-              background: isDarkMode ? '#5a6b8a' : LIGHT_CELL_SELECTED,
-            },
-            '&.found': {
-              background: isDarkMode ? '#6b5b3a' : LIGHT_CELL_FOUND,
-            },
-          },
-        },
-      },
-    },
+    // Note: Grid styles moved to Grid.css for better organization
     // Custom scrabble-style table
     MuiTable: {
       styleOverrides: {
@@ -239,37 +225,6 @@ const createAppTheme = (isDarkMode = false) => createTheme({
                 background: isDarkMode ? '#5a3a3a' : '#ffe6e6',
                 border: '2px solid #ff4444',
               },
-            },
-          },
-        },
-      },
-    },
-    // Grid cell styling
-    MuiGrid: {
-      styleOverrides: {
-        item: {
-          '&.grid-cell': {
-            border: `3px solid ${LIGHT_CELL_BORDER}`,
-            aspectRatio: '1 / 1',
-            textAlign: 'center',
-            borderRadius: '4px',
-            boxShadow: `0 2px 3px rgba(0,0,0,0.12), 0 1px 0 ${LIGHT_CELL_INNER_HIGHLIGHT} inset`,
-            cursor: 'pointer',
-            fontWeight: 500,
-            background: LIGHT_CELL_BACKGROUND,
-            color: '#333',
-            fontFamily: '"Clear Sans", "Trebuchet MS", "Arial", sans-serif',
-            fontSize: '1.35em',
-            letterSpacing: '0.03em',
-            transition: 'background 0.2s, box-shadow 0.2s',
-            userSelect: 'none',
-            padding: '0.4em',
-            lineHeight: 1,
-            '&.selected': {
-              background: LIGHT_CELL_SELECTED,
-            },
-            '&.found': {
-              background: LIGHT_CELL_FOUND,
             },
           },
         },

@@ -1,0 +1,290 @@
+/**
+ * CSS Custom Properties (Variables)
+ * Single source of truth for colors, spacing, shadows, etc.
+ */
+
+:root {
+  /* ============================================
+     GRID CELL COLORS - LIGHT MODE
+     ============================================ */
+  --cell-border-light: #c7a24f;
+  --cell-bg-light: #f2e8d6;
+  --cell-highlight-light: #fdf4e2;
+  --cell-selected-light: #cde8f6;
+  --cell-found-light: #e7ce8a;
+  
+  /* ============================================
+     GRID CELL COLORS - DARK MODE
+     ============================================ */
+  --cell-border-dark: #6b5b3a;
+  --cell-bg-dark: #4a4a4a;
+  --cell-highlight-dark: #5a5a5a;
+  --cell-selected-dark: #2a4a5a;
+  --cell-found-dark: #6b5b3a;
+  
+  /* ============================================
+     THEME COLORS - PRIMARY (GOLD)
+     ============================================ */
+  --primary-gold: #b89c4e;
+  --primary-gold-light: #f9e7b3;
+  --primary-gold-dark: #8a7429;
+  --primary-gold-muted: #d1c18a;
+  --primary-gold-pale: #eee6c7;
+  
+  /* ============================================
+     THEME COLORS - SECONDARY
+     ============================================ */
+  --secondary-light: #e6c97a;
+  --secondary-dark: #6b5b3a;
+  
+  /* ============================================
+     BACKGROUND COLORS
+     ============================================ */
+  --bg-light: #f4efe4;
+  --bg-dark: #2a2a2a;
+  --bg-paper-light: #fff8ec;
+  --bg-paper-dark: #3a3a3a;
+  --bg-elevated-light: #ffffff;
+  --bg-elevated-dark: #222222;
+  --bg-disabled-light: #f6efdf;
+  --bg-disabled-dark: #3a3a3a;
+  
+  /* ============================================
+     TEXT COLORS
+     ============================================ */
+  --text-primary-light: #333333;
+  --text-primary-dark: #e0e0e0;
+  --text-secondary-light: #666666;
+  --text-secondary-dark: #b0b0b0;
+  --text-muted-light: #888888;
+  --text-muted-dark: #666666;
+  --text-disabled-light: #b3a680;
+  --text-disabled-dark: #666666;
+  --text-translation-dark: #bbbbbb;
+  
+  /* ============================================
+     BUTTON COLORS
+     ============================================ */
+  --btn-bg-light: #f9e7b3;
+  --btn-bg-dark: #4a4a4a;
+  --btn-bg-hover-light: #e7ce8a;
+  --btn-bg-hover-dark: #6b5b3a;
+  --btn-border-light: #b89c4e;
+  --btn-border-dark: #6b5b3a;
+  --btn-border-disabled-light: #dfd0a6;
+  --btn-border-disabled-dark: #555555;
+  
+  /* ============================================
+     SEMANTIC COLORS
+     ============================================ */
+  --success-color: #4caf50;
+  --error-color: #f44336;
+  --warning-color: #ff9800;
+  --info-color: #2196f3;
+  
+  /* Timer state colors */
+  --timer-normal-bg-light: rgba(0, 0, 0, 0.02);
+  --timer-normal-border-light: rgba(25, 118, 210, 0.2);
+  --timer-running-bg-light: rgba(25, 118, 210, 0.08);
+  --timer-running-border-light: rgba(25, 118, 210, 0.45);
+  --timer-warning-bg-light: rgba(255, 152, 0, 0.1);
+  --timer-warning-border-light: rgba(255, 152, 0, 0.45);
+  --timer-critical-bg-light: linear-gradient(135deg, rgba(255, 223, 0, 0.35), rgba(255, 255, 255, 0.05));
+  --timer-critical-border-light: rgba(255, 215, 0, 0.8);
+  --timer-critical-glow-light: rgba(255, 215, 0, 0.4);
+  
+  --timer-normal-bg-dark: rgba(255, 255, 255, 0.02);
+  --timer-normal-border-dark: rgba(255, 255, 255, 0.12);
+  --timer-running-bg-dark: rgba(144, 202, 249, 0.08);
+  --timer-running-border-dark: rgba(144, 202, 249, 0.55);
+  --timer-warning-bg-dark: rgba(255, 183, 77, 0.15);
+  --timer-warning-border-dark: rgba(255, 183, 77, 0.6);
+  --timer-critical-bg-dark: linear-gradient(135deg, rgba(255, 223, 0, 0.35), rgba(255, 236, 179, 0.15));
+  --timer-critical-border-dark: rgba(255, 215, 0, 0.85);
+  --timer-critical-glow-dark: rgba(255, 215, 0, 0.55);
+  
+  /* ============================================
+     OVERLAY COLORS
+     ============================================ */
+  --overlay-light: rgba(0, 0, 0, 0.5);
+  --overlay-dark: rgba(30, 30, 30, 0.7);
+  --overlay-menu-light: rgba(255, 255, 255, 0.7);
+  --overlay-menu-dark: rgba(30, 30, 30, 0.7);
+  --overlay-message-light: rgba(255, 255, 255, 0.95);
+  --overlay-message-dark: rgba(34, 34, 34, 1);
+  
+  /* ============================================
+     HINT BUTTON GRADIENTS
+     ============================================ */
+  --hint-progressive-bg: linear-gradient(135deg, #9c27b0 0%, #673ab7 100%);
+  --hint-progressive-hover: linear-gradient(135deg, #8e24aa 0%, #5e35b1 100%);
+  --hint-classic-bg: linear-gradient(135deg, #1976d2 0%, #1565c0 100%);
+  --hint-classic-hover: linear-gradient(135deg, #1565c0 0%, #0d47a1 100%);
+  
+  /* ============================================
+     SPACING SCALE
+     ============================================ */
+  --spacing-xs: 4px;
+  --spacing-sm: 8px;
+  --spacing-md: 16px;
+  --spacing-lg: 24px;
+  --spacing-xl: 32px;
+  --spacing-2xl: 48px;
+  
+  /* ============================================
+     BORDER RADIUS
+     ============================================ */
+  --radius-sm: 4px;
+  --radius-md: 8px;
+  --radius-lg: 12px;
+  --radius-xl: 16px;
+  --radius-round: 50%;
+  --radius-scrabble: 7px; /* Specific to scrabble-style buttons */
+  
+  /* ============================================
+     SHADOWS
+     ============================================ */
+  --shadow-xs: 0 1px 2px rgba(0, 0, 0, 0.05);
+  --shadow-sm: 0 2px 4px rgba(0, 0, 0, 0.1);
+  --shadow-md: 0 4px 8px rgba(0, 0, 0, 0.15);
+  --shadow-lg: 0 8px 16px rgba(0, 0, 0, 0.2);
+  --shadow-xl: 0 12px 24px rgba(0, 0, 0, 0.25);
+  
+  /* Dark mode shadows (stronger) */
+  --shadow-dark-sm: 0 2px 4px rgba(0, 0, 0, 0.3);
+  --shadow-dark-md: 0 4px 8px rgba(0, 0, 0, 0.4);
+  --shadow-dark-lg: 0 8px 16px rgba(0, 0, 0, 0.5);
+  
+  /* Special shadows */
+  --shadow-scrabble-light: 1px 2px 0 var(--btn-border-light), 0 1px 0 #ffffff inset;
+  --shadow-scrabble-dark: 1px 2px 0 var(--btn-border-dark), 0 1px 0 var(--cell-highlight-dark) inset;
+  --shadow-cell-light: 0 2px 3px rgba(0, 0, 0, 0.12), 0 1px 0 var(--cell-highlight-light) inset;
+  --shadow-cell-dark: 1px 2px 0 var(--cell-border-dark), 0 1px 0 var(--cell-highlight-dark) inset;
+  
+  /* ============================================
+     TRANSITIONS & ANIMATIONS
+     ============================================ */
+  --transition-fast: 150ms;
+  --transition-normal: 300ms;
+  --transition-slow: 500ms;
+  
+  --easing-standard: cubic-bezier(0.4, 0.0, 0.2, 1);
+  --easing-decelerate: cubic-bezier(0.0, 0.0, 0.2, 1);
+  --easing-accelerate: cubic-bezier(0.4, 0.0, 1, 1);
+  --easing-sharp: cubic-bezier(0.4, 0.0, 0.6, 1);
+  
+  /* ============================================
+     Z-INDEX SCALE
+     ============================================ */
+  --z-dropdown: 50;
+  --z-sticky: 100;
+  --z-fixed: 200;
+  --z-overlay: 1000;
+  --z-modal: 1300;
+  --z-tooltip: 1500;
+  
+  /* ============================================
+     LAYOUT DIMENSIONS
+     ============================================ */
+  --layout-sidebar-width: 320px;
+  --layout-max-form-width: 480px;
+  --layout-controls-height: 64px;
+  --layout-max-content-width: 1200px;
+  
+  /* ============================================
+     BREAKPOINTS (for use in media queries)
+     ============================================ */
+  --breakpoint-mobile: 600px;
+  --breakpoint-tablet: 900px;
+  --breakpoint-desktop: 1200px;
+}
+
+/* ============================================
+   DARK MODE OVERRIDES
+   Apply dark mode specific values
+   ============================================ */
+[data-theme="dark"] {
+  /* Set active color schemes for dark mode */
+  --cell-border: var(--cell-border-dark);
+  --cell-bg: var(--cell-bg-dark);
+  --cell-highlight: var(--cell-highlight-dark);
+  --cell-selected: var(--cell-selected-dark);
+  --cell-found: var(--cell-found-dark);
+  
+  --btn-bg: var(--btn-bg-dark);
+  --btn-bg-hover: var(--btn-bg-hover-dark);
+  --btn-border: var(--btn-border-dark);
+  --btn-border-disabled: var(--btn-border-disabled-dark);
+  
+  --text-primary: var(--text-primary-dark);
+  --text-secondary: var(--text-secondary-dark);
+  --text-muted: var(--text-muted-dark);
+  --text-disabled: var(--text-disabled-dark);
+  
+  --bg-main: var(--bg-dark);
+  --bg-paper: var(--bg-paper-dark);
+  --bg-elevated: var(--bg-elevated-dark);
+  --bg-disabled: var(--bg-disabled-dark);
+  
+  --overlay: var(--overlay-dark);
+  --overlay-menu: var(--overlay-menu-dark);
+  --overlay-message: var(--overlay-message-dark);
+  
+  --shadow-scrabble: var(--shadow-scrabble-dark);
+  --shadow-cell: var(--shadow-cell-dark);
+  
+  --timer-normal-bg: var(--timer-normal-bg-dark);
+  --timer-normal-border: var(--timer-normal-border-dark);
+  --timer-running-bg: var(--timer-running-bg-dark);
+  --timer-running-border: var(--timer-running-border-dark);
+  --timer-warning-bg: var(--timer-warning-bg-dark);
+  --timer-warning-border: var(--timer-warning-border-dark);
+  --timer-critical-bg: var(--timer-critical-bg-dark);
+  --timer-critical-border: var(--timer-critical-border-dark);
+  --timer-critical-glow: var(--timer-critical-glow-dark);
+}
+
+/* ============================================
+   LIGHT MODE DEFAULTS
+   Set active color schemes for light mode
+   ============================================ */
+:root,
+[data-theme="light"] {
+  --cell-border: var(--cell-border-light);
+  --cell-bg: var(--cell-bg-light);
+  --cell-highlight: var(--cell-highlight-light);
+  --cell-selected: var(--cell-selected-light);
+  --cell-found: var(--cell-found-light);
+  
+  --btn-bg: var(--btn-bg-light);
+  --btn-bg-hover: var(--btn-bg-hover-light);
+  --btn-border: var(--btn-border-light);
+  --btn-border-disabled: var(--btn-border-disabled-light);
+  
+  --text-primary: var(--text-primary-light);
+  --text-secondary: var(--text-secondary-light);
+  --text-muted: var(--text-muted-light);
+  --text-disabled: var(--text-disabled-light);
+  
+  --bg-main: var(--bg-light);
+  --bg-paper: var(--bg-paper-light);
+  --bg-elevated: var(--bg-elevated-light);
+  --bg-disabled: var(--bg-disabled-light);
+  
+  --overlay: var(--overlay-light);
+  --overlay-menu: var(--overlay-menu-light);
+  --overlay-message: var(--overlay-message-light);
+  
+  --shadow-scrabble: var(--shadow-scrabble-light);
+  --shadow-cell: var(--shadow-cell-light);
+  
+  --timer-normal-bg: var(--timer-normal-bg-light);
+  --timer-normal-border: var(--timer-normal-border-light);
+  --timer-running-bg: var(--timer-running-bg-light);
+  --timer-running-border: var(--timer-running-border-light);
+  --timer-warning-bg: var(--timer-warning-bg-light);
+  --timer-warning-border: var(--timer-warning-border-light);
+  --timer-critical-bg: var(--timer-critical-bg-light);
+  --timer-critical-border: var(--timer-critical-border-light);
+  --timer-critical-glow: var(--timer-critical-glow-light);
+}

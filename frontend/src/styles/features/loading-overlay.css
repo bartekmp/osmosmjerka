@@ -1,0 +1,86 @@
+/* ==========================================
+   LOADING OVERLAYS
+   Loading states and not-enough-phrases overlay
+   ========================================== */
+
+.loading-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  backdrop-filter: blur(3px);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 9999;
+}
+
+.loading-overlay.light {
+  background-color: var(--overlay-light);
+}
+
+.loading-overlay.dark {
+  background-color: var(--overlay-dark);
+}
+
+.loading-content {
+  border-radius: var(--radius-md);
+  padding: var(--spacing-lg);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: var(--spacing-md);
+}
+
+.loading-content.light {
+  background-color: var(--bg-elevated-light);
+  color: inherit;
+  box-shadow: var(--shadow-sm);
+}
+
+.loading-content.dark {
+  background-color: var(--bg-elevated-dark);
+  color: var(--text-primary-dark);
+  box-shadow: var(--shadow-dark-md);
+}
+
+.not-enough-phrases-overlay {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  backdrop-filter: blur(6px);
+  z-index: 10;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.not-enough-phrases-overlay.light {
+  background-color: var(--overlay-menu-light);
+}
+
+.not-enough-phrases-overlay.dark {
+  background-color: var(--overlay-menu-dark);
+}
+
+.not-enough-phrases-content {
+  border-radius: var(--radius-lg);
+  padding: var(--spacing-lg);
+  text-align: center;
+  font-weight: bold;
+}
+
+.not-enough-phrases-content.light {
+  background-color: var(--overlay-message-light);
+  color: var(--error-color);
+  box-shadow: var(--shadow-sm);
+}
+
+.not-enough-phrases-content.dark {
+  background-color: var(--overlay-message-dark);
+  color: var(--text-primary-dark);
+  box-shadow: var(--shadow-dark-lg);
+}

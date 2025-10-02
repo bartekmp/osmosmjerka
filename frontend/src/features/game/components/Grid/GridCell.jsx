@@ -1,6 +1,5 @@
 import React, { useRef, useCallback } from 'react';
 import Box from '@mui/material/Box';
-import './GridCell.css';
 
 export default function GridCell({ 
     r, c, cell, 

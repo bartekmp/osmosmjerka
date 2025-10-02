@@ -2,7 +2,6 @@ import React, { useState } from 'react';
 import axios from 'axios';
 import Button from '@mui/material/Button';
 import ExportModal from './ExportModal';
-import './ExportButton.css';
 import { useTranslation } from 'react-i18next';
 import { ResponsiveText } from '../../../shared';
 
@@ -55,7 +54,7 @@ export default function ExportButton({ category, grid, phrases, disabled, classN
     return (
         <>
             <Button
-                className={`scrabble-btn export-btn ${className || ''}`}
+                className={`scrabble-btn ${className || ''}`}
                 onClick={handleButtonClick}
                 disabled={disabled}
                 sx={{

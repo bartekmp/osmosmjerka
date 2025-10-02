@@ -3,7 +3,6 @@ import React, { forwardRef, useCallback, useEffect, useImperativeHandle, useRef,
 import { useTranslation } from 'react-i18next';
 import './Grid.css';
 import ScrabbleGridCell from './GridCell';
-import './GridContainer.css';
 import { GridSelection, findMatchingPhrase, generateMexicanWave } from './gridUtils';
 import { getDirection, isStraightLine } from './helpers';
 import { useGridSize, useMouseSelection } from './hooks';

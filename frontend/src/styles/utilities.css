@@ -1,0 +1,567 @@
+/**
+ * Utility CSS Classes
+ * Common patterns that can be applied via className
+ */
+
+/* ============================================
+   FLEXBOX UTILITIES
+   ============================================ */
+
+/* Center content both horizontally and vertically */
+.flex-center {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+/* Space between items with centered alignment */
+.flex-between {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+/* Flex start alignment */
+.flex-start {
+  display: flex;
+  justify-content: flex-start;
+  align-items: center;
+}
+
+/* Flex end alignment */
+.flex-end {
+  display: flex;
+  justify-content: flex-end;
+  align-items: center;
+}
+
+/* Flex column with gap */
+.flex-col {
+  display: flex;
+  flex-direction: column;
+}
+
+/* Flex row with gap */
+.flex-row {
+  display: flex;
+  flex-direction: row;
+}
+
+/* Flex wrap */
+.flex-wrap {
+  flex-wrap: wrap;
+}
+
+/* Flex grow */
+.flex-grow {
+  flex-grow: 1;
+}
+
+/* Flex shrink */
+.flex-shrink-0 {
+  flex-shrink: 0;
+}
+
+/* ============================================
+   TEXT UTILITIES
+   ============================================ */
+
+/* Truncate text with ellipsis */
+.text-truncate {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+/* Center text */
+.text-center {
+  text-align: center;
+}
+
+/* Left align text */
+.text-left {
+  text-align: start;
+}
+
+/* Right align text */
+.text-right {
+  text-align: end;
+}
+
+/* Uppercase text */
+.text-uppercase {
+  text-transform: uppercase;
+}
+
+/* Lowercase text */
+.text-lowercase {
+  text-transform: lowercase;
+}
+
+/* Capitalize text */
+.text-capitalize {
+  text-transform: capitalize;
+}
+
+/* Bold text */
+.text-bold {
+  font-weight: bold;
+}
+
+/* Normal weight text */
+.text-normal {
+  font-weight: normal;
+}
+
+/* Line clamp - truncate after 2 lines */
+.line-clamp-2 {
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+
+/* Line clamp - truncate after 3 lines */
+.line-clamp-3 {
+  display: -webkit-box;
+  -webkit-line-clamp: 3;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+
+/* ============================================
+   ACCESSIBILITY UTILITIES
+   ============================================ */
+
+/* Screen reader only - visually hidden but accessible to screen readers */
+.sr-only {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border-width: 0;
+}
+
+/* Visually hidden but focusable */
+.sr-only-focusable:focus {
+  position: static;
+  width: auto;
+  height: auto;
+  padding: inherit;
+  margin: inherit;
+  overflow: visible;
+  clip: auto;
+  white-space: normal;
+}
+
+/* ============================================
+   VISIBILITY UTILITIES
+   ============================================ */
+
+/* Hide element */
+.hidden {
+  display: none !important;
+}
+
+/* Invisible but takes up space */
+.invisible {
+  visibility: hidden;
+}
+
+/* Visible */
+.visible {
+  visibility: visible;
+}
+
+/* ============================================
+   SPACING UTILITIES
+   ============================================ */
+
+/* No margin */
+.m-0 {
+  margin: 0;
+}
+
+/* No padding */
+.p-0 {
+  padding: 0;
+}
+
+/* Auto margin (for centering) */
+.mx-auto {
+  margin-inline: auto;
+}
+
+.my-auto {
+  margin-block: auto;
+}
+
+/* ============================================
+   WIDTH/HEIGHT UTILITIES
+   ============================================ */
+
+/* Full width */
+.w-full {
+  width: 100%;
+}
+
+/* Full height */
+.h-full {
+  height: 100%;
+}
+
+/* Auto width */
+.w-auto {
+  width: auto;
+}
+
+/* Auto height */
+.h-auto {
+  height: auto;
+}
+
+/* ============================================
+   OVERFLOW UTILITIES
+   ============================================ */
+
+/* Overflow auto */
+.overflow-auto {
+  overflow: auto;
+}
+
+/* Overflow hidden */
+.overflow-hidden {
+  overflow: hidden;
+}
+
+/* Overflow visible */
+.overflow-visible {
+  overflow: visible;
+}
+
+/* Overflow scroll */
+.overflow-scroll {
+  overflow: scroll;
+}
+
+/* Overflow x auto */
+.overflow-x-auto {
+  overflow-x: auto;
+  overflow-y: hidden;
+}
+
+/* Overflow y auto */
+.overflow-y-auto {
+  overflow-y: auto;
+  overflow-x: hidden;
+}
+
+/* ============================================
+   POSITION UTILITIES
+   ============================================ */
+
+/* Relative positioning */
+.relative {
+  position: relative;
+}
+
+/* Absolute positioning */
+.absolute {
+  position: absolute;
+}
+
+/* Fixed positioning */
+.fixed {
+  position: fixed;
+}
+
+/* Sticky positioning */
+.sticky {
+  position: sticky;
+}
+
+/* ============================================
+   BORDER UTILITIES
+   ============================================ */
+
+/* No border */
+.border-none {
+  border: none;
+}
+
+/* Rounded corners */
+.rounded {
+  border-radius: var(--radius-md, 8px);
+}
+
+.rounded-sm {
+  border-radius: var(--radius-sm, 4px);
+}
+
+.rounded-lg {
+  border-radius: var(--radius-lg, 12px);
+}
+
+.rounded-full {
+  border-radius: 50%;
+}
+
+/* ============================================
+   CURSOR UTILITIES
+   ============================================ */
+
+/* Pointer cursor */
+.cursor-pointer {
+  cursor: pointer;
+}
+
+/* Default cursor */
+.cursor-default {
+  cursor: default;
+}
+
+/* Not allowed cursor */
+.cursor-not-allowed {
+  cursor: not-allowed;
+}
+
+/* ============================================
+   USER SELECT UTILITIES
+   ============================================ */
+
+/* Disable text selection */
+.select-none {
+  user-select: none;
+  -webkit-user-select: none;
+  -moz-user-select: none;
+  -ms-user-select: none;
+}
+
+/* Enable text selection */
+.select-text {
+  user-select: text;
+  -webkit-user-select: text;
+  -moz-user-select: text;
+  -ms-user-select: text;
+}
+
+/* Select all on focus */
+.select-all {
+  user-select: all;
+  -webkit-user-select: all;
+  -moz-user-select: all;
+  -ms-user-select: all;
+}
+
+/* ============================================
+   TRANSITION UTILITIES
+   ============================================ */
+
+/* Transition all properties */
+.transition {
+  transition: all var(--transition-normal, 300ms) var(--easing-standard, ease);
+}
+
+/* Transition transform */
+.transition-transform {
+  transition: transform var(--transition-normal, 300ms)
+    var(--easing-standard, ease);
+}
+
+/* Transition opacity */
+.transition-opacity {
+  transition: opacity var(--transition-normal, 300ms)
+    var(--easing-standard, ease);
+}
+
+/* ============================================
+   POINTER EVENTS UTILITIES
+   ============================================ */
+
+/* Disable pointer events */
+.pointer-events-none {
+  pointer-events: none;
+}
+
+/* Enable pointer events */
+.pointer-events-auto {
+  pointer-events: auto;
+}
+
+/* ============================================
+   RESPONSIVE UTILITIES
+   ============================================ */
+
+/* Hide on mobile (< 600px) */
+@media (max-width: 600px) {
+  .hide-mobile {
+    display: none !important;
+  }
+}
+
+/* Hide on tablet (600px - 900px) */
+@media (min-width: 600px) and (max-width: 900px) {
+  .hide-tablet {
+    display: none !important;
+  }
+}
+
+/* Hide on desktop (> 900px) */
+@media (min-width: 900px) {
+  .hide-desktop {
+    display: none !important;
+  }
+}
+
+/* Show only on mobile */
+@media (min-width: 600px) {
+  .show-mobile-only {
+    display: none !important;
+  }
+}
+
+/* Show only on tablet */
+@media (max-width: 600px), (min-width: 900px) {
+  .show-tablet-only {
+    display: none !important;
+  }
+}
+
+/* Show only on desktop */
+@media (max-width: 900px) {
+  .show-desktop-only {
+    display: none !important;
+  }
+}
+
+/* ============================================
+   INTERACTIVE UTILITIES
+   ============================================ */
+
+/* No interaction */
+.no-interaction {
+  pointer-events: none;
+  user-select: none;
+}
+
+/* Clickable item with hover effect */
+.clickable {
+  cursor: pointer;
+  transition: opacity var(--transition-fast, 150ms);
+}
+
+.clickable:hover {
+  opacity: 0.8;
+}
+
+.clickable:active {
+  opacity: 0.6;
+}
+
+/* ============================================
+   SHADOW UTILITIES
+   ============================================ */
+
+.shadow-sm {
+  box-shadow: var(--shadow-sm, 0 2px 4px rgba(0, 0, 0, 0.1));
+}
+
+.shadow-md {
+  box-shadow: var(--shadow-md, 0 4px 8px rgba(0, 0, 0, 0.15));
+}
+
+.shadow-lg {
+  box-shadow: var(--shadow-lg, 0 8px 16px rgba(0, 0, 0, 0.2));
+}
+
+.shadow-none {
+  box-shadow: none;
+}
+
+/* ============================================
+   Z-INDEX UTILITIES
+   ============================================ */
+
+.z-0 {
+  z-index: 0;
+}
+
+.z-10 {
+  z-index: 10;
+}
+
+.z-20 {
+  z-index: 20;
+}
+
+.z-30 {
+  z-index: 30;
+}
+
+.z-40 {
+  z-index: 40;
+}
+
+.z-50 {
+  z-index: 50;
+}
+
+.z-dropdown {
+  z-index: var(--z-dropdown, 50);
+}
+
+.z-sticky {
+  z-index: var(--z-sticky, 100);
+}
+
+.z-fixed {
+  z-index: var(--z-fixed, 200);
+}
+
+.z-overlay {
+  z-index: var(--z-overlay, 1000);
+}
+
+.z-modal {
+  z-index: var(--z-modal, 1300);
+}
+
+/* ============================================
+   GAP UTILITIES (for flexbox/grid)
+   ============================================ */
+
+.gap-1 {
+  gap: var(--spacing-xs, 4px);
+}
+
+.gap-2 {
+  gap: var(--spacing-sm, 8px);
+}
+
+.gap-3 {
+  gap: var(--spacing-md, 16px);
+}
+
+.gap-4 {
+  gap: var(--spacing-lg, 24px);
+}
+
+/* ============================================
+   ASPECT RATIO UTILITIES
+   ============================================ */
+
+.aspect-square {
+  aspect-ratio: 1 / 1;
+}
+
+.aspect-video {
+  aspect-ratio: 16 / 9;
+}
+
+.aspect-portrait {
+  aspect-ratio: 3 / 4;
+}

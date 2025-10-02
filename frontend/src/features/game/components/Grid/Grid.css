@@ -1,97 +1,109 @@
-/* Clean and optimized Grid CSS */
+/* ==========================================
+   GRID COMPONENT STYLES
+   All grid-related styles consolidated here
+   ========================================== */
 
-/* Base grid cell styles */
+/* Grid wrapper - outermost container */
+.grid-wrapper {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    width: 100%;
+    max-width: 100%;
+    overflow: hidden;
+    padding: 8px;
+}
+
+/* Grid container - main grid box */
+.grid-container {
+    touch-action: none;
+    user-select: none;
+    -webkit-user-select: none;
+    -moz-user-select: none;
+    -ms-user-select: none;
+    overflow: hidden;
+    border-radius: 8px;
+}
+
+.grid-container.light-mode {
+    background-color: #f5f5f5;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+}
+
+[data-theme="dark"] .grid-container {
+    background-color: #23272e;
+    box-shadow: 0 4px 16px rgba(0, 0, 0, 0.7);
+}
+
+/* ==========================================
+   GRID CELL STYLES
+   ========================================== */
+
 .grid-cell {
     display: flex;
     align-items: center;
     justify-content: center;
-    border: 3px solid #c7a24f;
-    border-radius: 4px;
-    box-shadow: 0 2px 3px rgba(0, 0, 0, 0.12), 0 1px 0 #fdf4e2 inset;
+    border: 3px solid var(--cell-border);
+    border-radius: var(--radius-sm);
+    box-shadow: var(--shadow-cell);
     cursor: pointer;
     font-weight: bold;
-    background: #f2e8d6;
-    color: #333;
+    background: var(--cell-bg);
+    color: var(--text-primary);
     font-family: 'Clear Sans', 'Trebuchet MS', 'Arial', sans-serif;
     letter-spacing: 0.03em;
-    transition: background 0.2s, box-shadow 0.2s, transform 0.1s;
+    transition: background var(--transition-normal), box-shadow var(--transition-normal), transform 0.1s;
     user-select: none;
+    -webkit-user-select: none;
+    -moz-user-select: none;
+    -ms-user-select: none;
+    touch-action: none;
     line-height: 1;
     min-width: 2em;
     min-height: 2em;
     font-size: 1.2em;
-    padding: 4px;
-    touch-action: none;
+    padding: var(--spacing-xs);
+    position: relative;
 }
 
-/* Dark mode styles */
-[data-theme="dark"] .grid-cell {
-    border: 3px solid #6b5b3a;
-    box-shadow: 1px 2px 0 #6b5b3a, 0 1px 0 #5a5a5a inset;
-    background: #4a4a4a;
-    color: #e0e0e0;
+.grid-cell:hover {
+    opacity: 0.9;
 }
+
+.grid-cell:active {
+    transform: translateY(1px);
+}
+
+/* Dark mode cell styles - colors handled by CSS variables */
 
 /* Cell states */
 .grid-cell.selected {
-    background: #cde8f6 !important;
-    color: #1e2b33 !important;
+    background: var(--cell-selected) !important;
+    color: var(--text-primary) !important;
     z-index: 2;
 }
 
-[data-theme="dark"] .grid-cell.selected {
-    background: #5a6b8a !important;
-    color: #e0e0e0 !important;
-}
-
 .grid-cell.found {
-    background: #e7ce8a;
+    background: var(--cell-found);
 }
 
-[data-theme="dark"] .grid-cell.found {
-    background: #6b5b3a;
-}
+/* ==========================================
+   CELL ANIMATIONS
+   ========================================== */
 
-/* Animations */
 .grid-cell.blinking {
     animation: cell-blink 0.5s 3;
-}
-
-[data-theme="dark"] .grid-cell.blinking {
-    animation: cell-blink-dark 0.5s 3;
 }
 
 .grid-cell.celebrating {
     animation: cell-celebrate 0.4s ease-in-out;
 }
 
-[data-theme="dark"] .grid-cell.celebrating {
-    animation: cell-celebrate-dark 0.4s ease-in-out;
-}
-
-/* Keyframes */
 @keyframes cell-blink {
-
-    0%,
-    100% {
-    background: #f2e8d6;
-        color: #333;
+    0%, 100% {
+        background: var(--cell-bg);
+        color: var(--text-primary);
     }
-
-    50% {
-        background: #ff6e6e;
-        color: white;
-    }
-}
-
-@keyframes cell-blink-dark {
-
-    0%,
-    100% {
-        background: #4a4a4a;
-        color: #e0e0e0;
-    }
-
     50% {
         background: #ff6e6e;
         color: white;
@@ -99,28 +111,23 @@
 }
 
 @keyframes cell-celebrate {
-
-    0%,
-    100% {
-    background: #f2e8d6;
-        color: #333;
+    0%, 100% {
+        background: var(--cell-bg);
+        color: var(--text-primary);
         transform: scale(1);
     }
-
     25% {
         background: #FFD700;
         color: #333;
         transform: scale(1.08);
         box-shadow: 0 0 15px #FFD700;
     }
-
     50% {
         background: #FF6B35;
         color: white;
         transform: scale(1.15);
         box-shadow: 0 0 25px #FF6B35;
     }
-
     75% {
         background: #4ECDC4;
         color: #333;
@@ -129,39 +136,89 @@
     }
 }
 
-@keyframes cell-celebrate-dark {
 
-    0%,
-    100% {
-        background: #4a4a4a;
-        color: #e0e0e0;
-        transform: scale(1);
+
+/* ==========================================
+   HINT SYSTEM STYLES
+   ========================================== */
+
+.grid-cell.hint-cell {
+    position: relative;
+}
+
+.grid-cell.hint-first-letter {
+    background: linear-gradient(135deg, rgba(156, 39, 176, 0.2) 0%, rgba(156, 39, 176, 0.1) 100%) !important;
+    border: 2px solid #9c27b0 !important;
+    box-shadow: 0 0 10px rgba(156, 39, 176, 0.4);
+    animation: hintPulse 2s infinite;
+}
+
+.grid-cell.hint-full-outline {
+    background: linear-gradient(135deg, rgba(156, 39, 176, 0.15) 0%, rgba(156, 39, 176, 0.05) 100%) !important;
+    border: 1px solid #9c27b0 !important;
+    box-shadow: 0 0 5px rgba(156, 39, 176, 0.3);
+}
+
+.grid-cell.hint-direction {
+    border: 2px solid #9c27b0 !important;
+    background: rgba(156, 39, 176, 0.1) !important;
+}
+
+.direction-arrow {
+    animation: arrowBounce 1.5s infinite;
+}
+
+@keyframes hintPulse {
+    0%, 100% {
+        box-shadow: 0 0 10px rgba(156, 39, 176, 0.4);
+        border-color: #9c27b0;
     }
-
-    25% {
-        background: #FFD700;
-        color: #333;
-        transform: scale(1.08);
-        box-shadow: 0 0 15px #FFD700;
-    }
-
     50% {
-        background: #FF6B35;
-        color: white;
-        transform: scale(1.15);
-        box-shadow: 0 0 25px #FF6B35;
-    }
-
-    75% {
-        background: #4ECDC4;
-        color: #333;
-        transform: scale(1.08);
-        box-shadow: 0 0 15px #4ECDC4;
+        box-shadow: 0 0 20px rgba(156, 39, 176, 0.6);
+        border-color: #e1bee7;
     }
 }
 
-/* Responsive design */
+@keyframes arrowBounce {
+    0%, 100% {
+        transform: scale(1);
+    }
+    50% {
+        transform: scale(1.2);
+    }
+}
+
+/* Dark mode hint styles */
+[data-theme="dark"] .grid-cell.hint-first-letter {
+    background: linear-gradient(135deg, rgba(186, 104, 200, 0.25) 0%, rgba(186, 104, 200, 0.15) 100%) !important;
+    border-color: #ba68c8 !important;
+    box-shadow: 0 0 10px rgba(186, 104, 200, 0.5);
+}
+
+[data-theme="dark"] .grid-cell.hint-full-outline {
+    background: linear-gradient(135deg, rgba(186, 104, 200, 0.2) 0%, rgba(186, 104, 200, 0.1) 100%) !important;
+    border-color: #ba68c8 !important;
+    box-shadow: 0 0 5px rgba(186, 104, 200, 0.4);
+}
+
+[data-theme="dark"] .grid-cell.hint-direction {
+    border-color: #ba68c8 !important;
+    background: rgba(186, 104, 200, 0.15) !important;
+}
+
+[data-theme="dark"] .direction-arrow {
+    color: #ba68c8 !important;
+}
+
+/* ==========================================
+   RESPONSIVE DESIGN
+   ========================================== */
+
 @media (max-width: 900px) {
+    .grid-wrapper {
+        padding: 4px;
+    }
+    
     .grid-cell {
         font-size: 1em;
         min-width: 2.2em;
