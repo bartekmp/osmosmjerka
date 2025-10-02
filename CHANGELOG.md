@@ -2,6 +2,14 @@
 
 <!-- version list -->
 
+## v1.34.0 (2025-10-02)
+
+### Feature
+
+- Allow admins to set the scoring rules ([#101](https://github.com/bartekmp/osmosmjerka/pull/101),
+  [`b4e72f3`](https://github.com/bartekmp/osmosmjerka/commit/b4e72f315d43cd7065f3cf1e0be73dd6da235f78))
+
+
 ## v1.33.4 (2025-10-02)
 
 ### Bugfix
