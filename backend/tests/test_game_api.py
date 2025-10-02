@@ -1,5 +1,5 @@
 import os
-from unittest.mock import Mock, patch
+from unittest.mock import AsyncMock, Mock, patch
 
 import pytest
 from fastapi import FastAPI
@@ -89,15 +89,19 @@ def test_calculate_score_endpoint(client):
         "hints_used": 1,
     }
 
-    response = client.post("/api/system/calculate-score", json=payload)
-    assert response.status_code == 200
+    # Mock get_scoring_rules to return None so it falls back to hardcoded constants
+    with patch("osmosmjerka.game_api.db_manager.get_scoring_rules", new_callable=AsyncMock) as mock_get_scoring:
+        mock_get_scoring.return_value = None
 
-    data = response.json()
-    assert data["base_score"] == 500
-    assert data["difficulty_bonus"] == 0
-    assert data["time_bonus"] == 0  # not all phrases found
-    assert data["streak_bonus"] == 0
-    assert data["hint_penalty"] == 75
+        response = client.post("/api/system/calculate-score", json=payload)
+        assert response.status_code == 200
+
+        data = response.json()
+        assert data["base_score"] == 500
+        assert data["difficulty_bonus"] == 0
+        assert data["time_bonus"] == 0  # not all phrases found
+        assert data["streak_bonus"] == 0
+        assert data["hint_penalty"] == 75
     assert data["final_score"] == 425
     assert data["hint_penalty_per_hint"] == 75
 

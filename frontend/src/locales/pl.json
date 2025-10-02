@@ -165,6 +165,13 @@
     "medium": "Średni (13x13)",
     "hard": "Trudny (15x15)",
     "very_hard": "Bardzo trudny (20x20)",
+    "difficultyLevel": {
+        "very_easy": "Bardzo łatwy",
+        "easy": "Łatwy",
+        "medium": "Średni",
+        "hard": "Trudny",
+        "very_hard": "Bardzo trudny"
+    },
     "show": "Pokaż",
     "hide": "Ukryj",
     "show_phrases": "Pokaż frazy",
@@ -465,6 +472,25 @@
             "updateError": "Nie udało się zaktualizować ustawienia",
             "updateSuccess": "Ustawienie zostało pomyślnie zaktualizowane",
             "notice": "Uwaga: Zmiany wchodzą w życie natychmiast dla wszystkich użytkowników. Poszczególni użytkownicy mogą zastąpić ustawienia funkcji gry w swoich profilach."
+        },
+        "scoringRules": {
+            "title": "Konfiguracja zasad punktacji",
+            "description": "Skonfiguruj sposób obliczania punktów w grach. Zmiany będą dotyczyć wszystkich nowych gier.",
+            "disabledWarning": "System punktacji jest obecnie wyłączony. Włącz go powyżej, aby modyfikować zasady punktacji.",
+            "baseSettings": "Ustawienia podstawowe",
+            "basePoints": "Podstawowe punkty za frazę",
+            "completionBonus": "Bonus za ukończenie",
+            "hintPenalty": "Kara za podpowiedź",
+            "difficultyMultipliers": "Mnożniki trudności",
+            "multipliersHelp": "Wyższe mnożniki dają więcej punktów bonusowych dla trudniejszych poziomów",
+            "timeBonus": "Ustawienia bonusu czasowego",
+            "timeBonusHelp": "Gracze otrzymują punkty bonusowe za ukończenie w docelowych czasach",
+            "maxTimeBonusRatio": "Maksymalny współczynnik bonusu czasowego",
+            "maxRatioHelp": "Maksymalny procent podstawowego wyniku jako bonus czasowy (0-1)",
+            "targetTimes": "Czasy docelowe (sekundy)",
+            "loadError": "Nie udało się załadować zasad punktacji",
+            "saveError": "Nie udało się zapisać zasad punktacji",
+            "saveSuccess": "Zasady punktacji zostały pomyślnie zaktualizowane"
         }
     }
 }
