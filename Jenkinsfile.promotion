@@ -27,13 +27,14 @@ pipeline {
                     if (!env.GITOPS_REPO?.trim()) {
                         error('GITOPS_REPO is not set. Configure OSMOSMJERKA_GITOPS_REPO in Jenkins env.')
                     }
+                    def imageTag = params.IMAGE_TAG.trim()
                     sh 'rm -rf gitops-tmp'
                     sh "git clone ${env.GITOPS_REPO} gitops-tmp"
                     dir('gitops-tmp/k8s/overlays/prod') {
-                        sh "kustomize edit set image ${env.DOCKER_REGISTRY}/${IMAGE_NAME}=${env.DOCKER_REGISTRY}/${IMAGE_NAME}:${params.IMAGE_TAG}"
+                        sh "kustomize edit set image ${env.DOCKER_REGISTRY}/${IMAGE_NAME}=${env.DOCKER_REGISTRY}/${IMAGE_NAME}:${imageTag}"
                         sh 'git config user.email "ci@example.com"'
                         sh 'git config user.name "CI Bot"'
-                        sh "git commit -am 'Promote prod image to ${params.IMAGE_TAG}' || echo 'No changes to commit'"
+                        sh "git commit -am 'Promote prod image to ${imageTag}' || echo 'No changes to commit'"
                         sh 'git push'
                     }
                     sh 'rm -rf gitops-tmp'
