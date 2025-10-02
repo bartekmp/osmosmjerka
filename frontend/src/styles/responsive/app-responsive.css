@@ -1,0 +1,115 @@
+/* ==========================================
+   APP RESPONSIVE STYLES
+   Media queries for tablet and desktop layouts
+   ========================================== */
+
+/* ====================
+   Tablet (600px+)
+   ==================== */
+
+@media (min-width: 600px) {
+  /* Admin controls */
+  .admin-controls-spacer {
+    height: 20px;
+  }
+
+  /* Mobile menu */
+  .mobile-menu-toggle,
+  .hide-menu-button {
+    display: none;
+  }
+
+  /* Control panel */
+  .control-panel {
+    display: flex !important;
+    margin-bottom: 16px;
+  }
+
+  .control-panel.hidden {
+    display: flex !important;
+  }
+
+  .dropdowns-container {
+    gap: 16px;
+    max-width: 55%;
+  }
+
+  /* Buttons */
+  .buttons-container {
+    align-items: flex-start;
+    gap: 16px;
+  }
+
+  .control-action-button {
+    width: auto;
+    height: auto;
+    min-width: auto;
+    padding: 8px 16px;
+    flex-direction: row;
+    font-size: 1rem;
+  }
+
+  .refresh-button {
+    min-height: 60px;
+    height: auto;
+    min-width: 120px;
+    font-size: 1rem;
+    padding: 8px 16px;
+    flex-direction: row;
+  }
+
+  .refresh-button-text {
+    display: inline;
+  }
+
+  /* All found message */
+  .all-found-message {
+    font-size: 1.2rem;
+    min-height: 24px;
+    gap: 16px;
+    margin-bottom: 8px;
+  }
+
+  .all-found-text {
+    font-size: 1.2rem;
+  }
+
+  .new-game-button {
+    font-size: 1rem;
+    padding: 8px 24px;
+    min-height: 36px;
+  }
+
+  .new-game-text-desktop {
+    display: inline;
+  }
+
+  .new-game-text-mobile {
+    display: none;
+  }
+}
+
+/* ====================
+   Desktop (900px+)
+   ==================== */
+
+@media (min-width: 900px) {
+  /* Layout */
+  .main-game-area {
+    flex-direction: row;
+    align-items: flex-start;
+    gap: 48px;
+  }
+
+  .grid-container {
+    width: auto;
+  }
+
+  .dropdowns-container {
+    max-width: 50%;
+  }
+
+  .phrase-list-container {
+    width: 320px;
+  }
+}

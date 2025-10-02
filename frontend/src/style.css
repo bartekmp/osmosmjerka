@@ -1,11 +1,11 @@
-/* Scrabble style buttons */
-button,
+/* Scrabble-style buttons for non-MUI elements */
+/* Note: Most button styling is handled by Material-UI theme (theme.js) */
 .scrabble-btn {
-  background: #f2e8d6;
-  border: 2px solid #c7a24f;
-  border-radius: 7px;
-  box-shadow: 0 2px 3px rgba(0, 0, 0, 0.12), 0 1px 0 #fdf4e2 inset;
-  color: #333;
+  background: var(--btn-bg);
+  border: 2px solid var(--btn-border);
+  border-radius: var(--radius-scrabble);
+  box-shadow: var(--shadow-scrabble);
+  color: var(--text-primary);
   font-family: 'Arial Black', Arial, sans-serif;
   font-size: 1.1em;
   font-weight: bold;
@@ -13,47 +13,23 @@ button,
   margin: 0.2em;
   cursor: pointer;
   letter-spacing: 0.04em;
-  transition: background 0.2s, box-shadow 0.2s, transform 0.1s;
+  transition: background var(--transition-normal), box-shadow var(--transition-normal), transform 0.1s;
   outline: none;
   user-select: none;
 }
 
-/* Dark mode button styles */
-[data-theme="dark"] button,
-[data-theme="dark"] .scrabble-btn {
-  background: #4a4a4a;
-  border: 2px solid #6b5b3a;
-  box-shadow: 1px 2px 0 #6b5b3a, 0 1px 0 #5a5a5a inset;
-  color: #e0e0e0;
-}
-
-button:active,
 .scrabble-btn:active {
-  background: #e7ce8a;
-  box-shadow: 0 1px 0 #c7a24f inset;
+  background: var(--btn-bg-hover);
+  box-shadow: 0 1px 0 var(--btn-border) inset;
   transform: translateY(2px);
 }
 
-[data-theme="dark"] button:active,
-[data-theme="dark"] .scrabble-btn:active {
-  background: #6b5b3a;
-  box-shadow: 0 1px 0 #6b5b3a inset;
-}
-
-button:disabled,
 .scrabble-btn:disabled {
-  background: #f6efdf;
-  color: #b3a680;
-  border-color: #dfd0a6;
+  background: var(--bg-disabled);
+  color: var(--text-disabled);
+  border-color: var(--btn-border-disabled);
   cursor: not-allowed;
   box-shadow: none;
-}
-
-[data-theme="dark"] button:disabled,
-[data-theme="dark"] .scrabble-btn:disabled {
-  background: #3a3a3a;
-  color: #666;
-  border-color: #555;
 }
 
 /* Global body and root styles */
@@ -62,14 +38,9 @@ body,
   min-height: 100vh;
   width: 100vw;
   overflow-x: auto;
-  transition: background-color 0.3s ease, color 0.3s ease;
-}
-
-/* Dark mode body styles */
-[data-theme="dark"] body,
-[data-theme="dark"] #root {
-  background-color: #2a2a2a;
-  color: #e0e0e0;
+  background-color: var(--bg-main);
+  color: var(--text-primary);
+  transition: background-color var(--transition-normal) ease, color var(--transition-normal) ease;
 }
 
 /* Mobile overflow control */

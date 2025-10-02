@@ -1,0 +1,97 @@
+/* ==========================================
+   GAME CONTROLS & MOBILE MENU
+   Control panel, dropdowns, buttons, and mobile menu toggle
+   ========================================== */
+
+.mobile-menu-toggle {
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  width: 100%;
+  justify-content: center;
+  margin-bottom: 8px;
+}
+
+.mobile-menu-button {
+  min-width: 0;
+  width: 180px;
+  height: 40px;
+  margin-right: 8px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.hide-menu-button {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 0;
+  width: 48px;
+  height: 48px;
+  font-size: 1.5rem;
+  padding: 0;
+}
+
+.control-panel {
+  display: flex;
+  flex-direction: row;
+  align-items: flex-start;
+  gap: 16px;
+  width: 100%;
+  max-width: 800px;
+  margin-bottom: 8px;
+  transition: all 0.2s;
+  flex-wrap: nowrap;
+}
+
+.control-panel.hidden {
+  display: none;
+}
+
+.dropdowns-container {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  max-width: 60%;
+}
+
+.buttons-container {
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  gap: 8px;
+  position: relative;
+  flex-wrap: nowrap;
+  flex-shrink: 0;
+}
+
+/* Shared action button sizing */
+.control-action-button {
+  width: 48px;
+  height: 48px;
+  min-width: 48px;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  font-size: 1.2rem;
+}
+
+.refresh-button {
+  height: 60px;
+  min-width: 60px;
+  font-size: 1.2rem;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+}
+
+.refresh-button-text {
+  display: none;
+  font-size: 1rem;
+  margin-top: 8px;
+}

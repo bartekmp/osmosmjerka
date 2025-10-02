@@ -1,8 +1,11 @@
+/* Phrase List Component Styles */
+
 .phrase-list-container {
     width: 100%;
     max-width: 320px;
 }
 
+/* Buttons */
 .phrase-list-hide-btn {
     user-select: none;
     padding: 0.2em 0.7em;
@@ -15,47 +18,33 @@
 .phrase-list-toggle-translations {
     min-width: 2.2em;
     max-width: 2.2em;
-    height: calc(1.1em + 0.9em + 4px); /* Match show/hide button height: font-size + padding + border */
+    height: calc(1.1em + 0.9em + 4px);
     font-size: 1.3em;
     padding: 0;
-    background: #f9e7b3;
-    border: 2px solid #b89c4e;
-    border-radius: 7px;
-    box-shadow: 1px 2px 0 #b89c4e, 0 1px 0 #fff inset;
-    color: #b89c4e;
+    background: var(--btn-bg);
+    border: 2px solid var(--btn-border);
+    border-radius: var(--radius-scrabble);
+    box-shadow: var(--shadow-scrabble);
+    color: var(--primary-gold);
     cursor: pointer;
     user-select: none;
     outline: none;
     display: flex;
     align-items: center;
     justify-content: center;
-    margin-left: 0.2em;
-    margin-right: 0.2em;
-    transition: background 0.2s, box-shadow 0.2s, transform 0.1s;
-}
-
-/* Dark mode toggle button */
-[data-theme="dark"] .phrase-list-toggle-translations {
-    background: #4a4a4a;
-    border: 2px solid #6b5b3a;
-    box-shadow: 1px 2px 0 #6b5b3a, 0 1px 0 #5a5a5a inset;
-    color: #6b5b3a;
+    margin: 0 0.2em;
+    transition: background var(--transition-normal), box-shadow var(--transition-normal), transform 0.1s;
 }
 
 .phrase-list-toggle-translations:disabled {
-    background: #eee6c7;
-    color: #aaa;
-    border-color: #d1c18a;
+    background: var(--bg-disabled);
+    color: var(--text-muted);
+    border-color: var(--btn-border-disabled);
     cursor: not-allowed;
     box-shadow: none;
 }
 
-[data-theme="dark"] .phrase-list-toggle-translations:disabled {
-    background: #3a3a3a;
-    color: #666;
-    border-color: #555;
-}
-
+/* Phrase List */
 .phrase-list-ul {
     list-style: none;
     padding: 0;
@@ -79,12 +68,13 @@
     gap: 1rem;
 }
 
+/* Phrase Text */
 .phrase-list-phrase {
     font-weight: bold;
     text-transform: uppercase;
     min-width: 120px;
     flex-shrink: 0;
-    font-family: 'Clear Sans', 'Trebuchet MS', 'Arial', sans-serif; /* Match grid */
+    font-family: 'Clear Sans', 'Trebuchet MS', 'Arial', sans-serif;
 }
 
 .phrase-list-phrase.found {
@@ -95,6 +85,28 @@
     animation: blink-highlight 0.5s 3;
 }
 
+[data-theme="dark"] .phrase-list-phrase.blinking {
+    animation: blink-highlight-dark 0.5s 3;
+}
+
+/* Translation Text */
+.phrase-list-translation {
+    display: inline-block;
+    color: #bbb;
+    flex: 1;
+    word-wrap: break-word;
+    overflow-wrap: break-word;
+}
+
+.phrase-list-translation.found {
+    color: inherit;
+}
+
+[data-theme="dark"] .phrase-list-translation {
+    color: #888;
+}
+
+/* Animations */
 @keyframes blink-highlight {
     0%, 100% { 
         background-color: transparent; 
@@ -108,11 +120,6 @@
     }
 }
 
-/* Dark mode blink animation */
-[data-theme="dark"] .phrase-list-phrase.blinking {
-    animation: blink-highlight-dark 0.5s 3;
-}
-
 @keyframes blink-highlight-dark {
     0%, 100% { 
         background-color: transparent; 
@@ -124,20 +131,4 @@
         padding: 2px 4px;
         border-radius: 3px;
     }
-}
-
-.phrase-list-translation {
-    display: inline-block;
-    color: #bbb;
-    flex: 1;
-    word-wrap: break-word;
-    overflow-wrap: break-word;
-}
-
-[data-theme="dark"] .phrase-list-translation {
-    color: #888;
-}
-
-.phrase-list-translation.found {
-    color: inherit;
 }

@@ -15,6 +15,9 @@ export { default as LanguageSetSelector } from './components/ui/LanguageSetSelec
 export { default as NotEnoughPhrasesOverlay } from './components/ui/NotEnoughPhrasesOverlay';
 export { default as SplashScreen } from './components/ui/SplashScreen';
 
+// Styled Components
+export * from './components/ui/StyledComponents';
+
 // Utilities
 export * from './utils/responsive';
 export * from './utils/assets';
