@@ -1,4 +1,4 @@
-FROM python:3.13-slim AS backend
+FROM python:3.14-slim AS backend
 WORKDIR /app
 COPY backend/ backend/
 COPY .env backend/.env
@@ -15,7 +15,7 @@ ENV NODE_ENV=production
 ENV VITE_BASE_PATH=/static/
 RUN npm run build
 
-FROM python:3.13-slim
+FROM python:3.14-slim
 LABEL maintainer="bartekmp"
 LABEL description="Dockerfile for a Python backend with a Node.js frontend wordsearch game app called Osmosmjerka with PostgreSQL."
 
