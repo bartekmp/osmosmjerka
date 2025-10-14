@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useMemo, useRef } from 'react';
 import { IconButton, Tooltip, Snackbar, Alert } from '@mui/material';
 import AddCircleOutlineIcon from '@mui/icons-material/AddCircleOutline';
 import CheckCircleIcon from '@mui/icons-material/CheckCircle';
@@ -21,22 +21,40 @@ export default function AddToLearnLaterButton({
   const [notification, setNotification] = useState(null);
   const [phrasesInList, setPhrasesInList] = useState(new Set());
   const [isCheckingList, setIsCheckingList] = useState(false);
+  
+  // Track the last checked phrase IDs to prevent unnecessary re-checks
+  const lastCheckedIdsRef = useRef('');
+
+  // Memoize phrase IDs to avoid re-creating array on every render
+  const phraseIds = useMemo(() => {
+    return phrases.map(p => p.id).filter(Boolean);
+  }, [phrases]);
+
+  // Create a stable string representation of phrase IDs for comparison
+  const phraseIdsKey = useMemo(() => {
+    return phraseIds.sort((a, b) => a - b).join(',');
+  }, [phraseIds]);
 
   // Check which phrases are already in "Learn This Later" list
   useEffect(() => {
     const checkPhrasesInList = async () => {
-      if (!currentUser || !languageSetId || phrases.length === 0) {
+      if (!currentUser || !languageSetId || phraseIds.length === 0) {
         setPhrasesInList(new Set());
+        return;
+      }
+
+      // Skip if we already checked these exact phrase IDs
+      if (lastCheckedIdsRef.current === phraseIdsKey) {
         return;
       }
 
       setIsCheckingList(true);
       try {
         const token = localStorage.getItem(STORAGE_KEYS.ADMIN_TOKEN);
-        if (!token) return;
-
-        const phraseIds = phrases.map(p => p.id).filter(Boolean);
-        if (phraseIds.length === 0) return;
+        if (!token) {
+          setIsCheckingList(false);
+          return;
+        }
 
         const response = await axios.post('/api/user/learn-later/check', {
           language_set_id: languageSetId,
@@ -46,6 +64,7 @@ export default function AddToLearnLaterButton({
         });
 
         setPhrasesInList(new Set(response.data.in_list || []));
+        lastCheckedIdsRef.current = phraseIdsKey; // Mark these IDs as checked
       } catch (error) {
         console.error('Failed to check phrases in list:', error);
         setPhrasesInList(new Set());
@@ -55,14 +74,22 @@ export default function AddToLearnLaterButton({
     };
 
     checkPhrasesInList();
-  }, [phrases, languageSetId, currentUser]);
+  }, [phraseIds, phraseIdsKey, languageSetId, currentUser]);
 
   // Don't render button if user is not logged in
   if (!currentUser) {
     return null;
   }
-
-  const phraseIds = phrases.map(p => p.id).filter(Boolean);
+  
+  // Debug logging to help troubleshoot
+  if (phrases.length > 0 && phraseIds.length === 0) {
+    console.warn('AddToLearnLaterButton: phrases exist but no IDs found', {
+      phrasesCount: phrases.length,
+      firstPhrase: phrases[0],
+      type
+    });
+  }
+  
   const newPhrases = phraseIds.filter(id => !phrasesInList.has(id));
   const alreadyAddedCount = phraseIds.length - newPhrases.length;
   const allAlreadyAdded = phraseIds.length > 0 && newPhrases.length === 0;
@@ -93,6 +120,9 @@ export default function AddToLearnLaterButton({
 
       // Update local state to mark these phrases as added
       setPhrasesInList(prev => new Set([...prev, ...newPhrases]));
+      
+      // Update the last checked IDs key to include the newly added phrases
+      lastCheckedIdsRef.current = [...phraseIds].sort((a, b) => a - b).join(',');
 
       // Show success animation
       setShowSuccess(true);
