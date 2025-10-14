@@ -12,6 +12,8 @@ export { default as GameActionButton } from './components/ui/GameActionButton';
 export { default as LanguageSwitcher } from './components/ui/LanguageSwitcher';
 export { default as NightModeButton } from './components/ui/NightModeButton';
 export { default as LanguageSetSelector } from './components/ui/LanguageSetSelector';
+export { default as PrivateListSelector } from './components/ui/PrivateListSelector';
+export { default as RateLimitWarning } from './components/ui/RateLimitWarning';
 export { default as NotEnoughPhrasesOverlay } from './components/ui/NotEnoughPhrasesOverlay';
 export { default as SplashScreen } from './components/ui/SplashScreen';
 
