@@ -27,6 +27,9 @@ import EditIcon from '@mui/icons-material/Edit';
 import AddIcon from '@mui/icons-material/Add';
 import SaveIcon from '@mui/icons-material/Save';
 import CancelIcon from '@mui/icons-material/Cancel';
+import UploadFileIcon from '@mui/icons-material/UploadFile';
+import ShareIcon from '@mui/icons-material/Share';
+import BarChartIcon from '@mui/icons-material/BarChart';
 import { useTranslation } from 'react-i18next';
 import axios from 'axios';
 import { STORAGE_KEYS } from '../../../shared/constants/constants';
@@ -53,6 +56,24 @@ export default function PrivateListManager({ open, onClose, languageSetId }) {
   const [customPhrase, setCustomPhrase] = useState('');
   const [customTranslation, setCustomTranslation] = useState('');
   const [customCategories, setCustomCategories] = useState('');
+  
+  // Batch Import State
+  const [showImportDialog, setShowImportDialog] = useState(false);
+  const [importFile, setImportFile] = useState(null);
+  const [importData, setImportData] = useState([]);
+  const [importPreview, setImportPreview] = useState([]);
+  const [importResult, setImportResult] = useState(null);
+
+  // List Sharing State
+  const [showShareDialog, setShowShareDialog] = useState(false);
+  const [shareUsername, setShareUsername] = useState('');
+  const [sharePermission, setSharePermission] = useState('read');
+  const [listShares, setListShares] = useState([]);
+
+  // Statistics State
+  const [showStatsDialog, setShowStatsDialog] = useState(false);
+  const [listStats, setListStats] = useState(null);
+  const [userStats, setUserStats] = useState(null);
 
   const getAuthHeader = useCallback(() => {
     const token = localStorage.getItem(STORAGE_KEYS.ADMIN_TOKEN);
@@ -287,6 +308,180 @@ export default function PrivateListManager({ open, onClose, languageSetId }) {
       showNotification(message, 'error');
     } finally {
       setLoading(false);
+    }
+  };
+
+  // ===== Batch Import Functions =====
+
+  const handleFileSelect = (event) => {
+    const file = event.target.files[0];
+    if (!file) return;
+
+    setImportFile(file);
+    // eslint-disable-next-line no-undef
+    const reader = new FileReader();
+
+    reader.onload = (e) => {
+      try {
+        const content = e.target.result;
+        let parsedData = [];
+
+        if (file.name.endsWith('.json')) {
+          parsedData = JSON.parse(content);
+        } else if (file.name.endsWith('.csv')) {
+          // Simple CSV parser
+          const lines = content.split('\n').filter(line => line.trim());
+          const headers = lines[0].split(',').map(h => h.trim().toLowerCase());
+          
+          parsedData = lines.slice(1).map(line => {
+            const values = line.split(',').map(v => v.trim());
+            const obj = {};
+            headers.forEach((header, idx) => {
+              obj[header] = values[idx] || '';
+            });
+            return obj;
+          });
+        }
+
+        if (!Array.isArray(parsedData)) {
+          throw new Error('Invalid file format');
+        }
+
+        setImportData(parsedData);
+        setImportPreview(parsedData.slice(0, 10)); // Show first 10 for preview
+        showNotification(`Loaded ${parsedData.length} phrases for import`, 'success');
+      } catch (error) {
+        showNotification('Failed to parse file. Ensure correct JSON/CSV format.', 'error');
+        console.error('Parse error:', error);
+      }
+    };
+
+    reader.readAsText(file);
+  };
+
+  const handleBatchImport = async () => {
+    if (!importData || importData.length === 0) {
+      showNotification('No data to import', 'error');
+      return;
+    }
+
+    setLoading(true);
+    try {
+      const response = await axios.post(
+        `/api/user/private-lists/${selectedListId}/phrases/batch`,
+        importData,
+        { headers: getAuthHeader() }
+      );
+
+      setImportResult(response.data);
+      showNotification(
+        `Imported ${response.data.added_count} phrases (${response.data.error_count} errors)`,
+        response.data.error_count > 0 ? 'warning' : 'success'
+      );
+
+      if (response.data.added_count > 0) {
+        await fetchPhrases();
+        await fetchLists();
+      }
+    } catch (error) {
+      console.error('Batch import failed:', error);
+      showNotification('Batch import failed', 'error');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleCloseImportDialog = () => {
+    setShowImportDialog(false);
+    setImportFile(null);
+    setImportData([]);
+    setImportPreview([]);
+    setImportResult(null);
+  };
+
+  // ===== List Sharing Functions =====
+
+  const fetchListShares = async () => {
+    if (!selectedListId) return;
+
+    try {
+      const response = await axios.get(`/api/user/private-lists/${selectedListId}/shares`, {
+        headers: getAuthHeader()
+      });
+      setListShares(response.data.shares || []);
+    } catch (error) {
+      console.error('Failed to fetch shares:', error);
+    }
+  };
+
+  const handleShareList = async () => {
+    if (!shareUsername.trim()) {
+      showNotification('Please enter a username', 'error');
+      return;
+    }
+
+    setLoading(true);
+    try {
+      await axios.post(
+        `/api/user/private-lists/${selectedListId}/share`,
+        {
+          shared_with_username: shareUsername.trim(),
+          permission: sharePermission
+        },
+        { headers: getAuthHeader() }
+      );
+
+      showNotification(`List shared with ${shareUsername}`, 'success');
+      setShareUsername('');
+      await fetchListShares();
+    } catch (error) {
+      const message = error.response?.data?.error || 'Failed to share list';
+      showNotification(message, 'error');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleUnshare = async (sharedWithUserId) => {
+    setLoading(true);
+    try {
+      await axios.delete(
+        `/api/user/private-lists/${selectedListId}/share/${sharedWithUserId}`,
+        { headers: getAuthHeader() }
+      );
+
+      showNotification('Sharing removed', 'success');
+      await fetchListShares();
+    } catch {
+      showNotification('Failed to remove sharing', 'error');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  // ===== Statistics Functions =====
+
+  const fetchListStatistics = async () => {
+    if (!selectedListId) return;
+
+    try {
+      const response = await axios.get(`/api/user/private-lists/${selectedListId}/statistics`, {
+        headers: getAuthHeader()
+      });
+      setListStats(response.data);
+    } catch (error) {
+      console.error('Failed to fetch list statistics:', error);
+    }
+  };
+
+  const fetchUserStatistics = async () => {
+    try {
+      const response = await axios.get('/api/user/lists/statistics', {
+        headers: getAuthHeader()
+      });
+      setUserStats(response.data);
+    } catch (error) {
+      console.error('Failed to fetch user statistics:', error);
     }
   };
 
@@ -528,6 +723,39 @@ export default function PrivateListManager({ open, onClose, languageSetId }) {
             >
               {t('privateListManager.phrases.addCustom')}
             </Button>
+            <Button
+              variant="outlined"
+              startIcon={<UploadFileIcon />}
+              onClick={() => setShowImportDialog(true)}
+              disabled={loading}
+              size="small"
+            >
+              Import CSV/JSON
+            </Button>
+            <Button
+              variant="outlined"
+              startIcon={<ShareIcon />}
+              onClick={() => {
+                fetchListShares();
+                setShowShareDialog(true);
+              }}
+              disabled={loading}
+              size="small"
+            >
+              Share List
+            </Button>
+            <Button
+              variant="outlined"
+              startIcon={<BarChartIcon />}
+              onClick={() => {
+                fetchListStatistics();
+                setShowStatsDialog(true);
+              }}
+              disabled={loading}
+              size="small"
+            >
+              Statistics
+            </Button>
             {selectedPhrases.size > 0 && (
               <Button
                 variant="outlined"
@@ -677,6 +905,264 @@ export default function PrivateListManager({ open, onClose, languageSetId }) {
           {notification?.message}
         </Alert>
       </Snackbar>
+
+      {/* Batch Import Dialog */}
+      <Dialog open={showImportDialog} onClose={handleCloseImportDialog} maxWidth="md" fullWidth>
+        <DialogTitle>Import Phrases from CSV/JSON</DialogTitle>
+        <DialogContent>
+          <Box sx={{ mb: 2 }}>
+            <Typography variant="body2" color="text.secondary" gutterBottom>
+              Upload a CSV or JSON file with phrases. Format: phrase, translation, categories (optional)
+            </Typography>
+            <Button
+              variant="contained"
+              component="label"
+              startIcon={<UploadFileIcon />}
+              sx={{ mt: 1 }}
+            >
+              Select File
+              <input
+                type="file"
+                hidden
+                accept=".csv,.json"
+                onChange={handleFileSelect}
+              />
+            </Button>
+            {importFile && (
+              <Typography variant="body2" sx={{ mt: 1 }}>
+                Selected: {importFile.name} ({importData.length} phrases)
+              </Typography>
+            )}
+          </Box>
+
+          {importPreview.length > 0 && (
+            <Box>
+              <Typography variant="subtitle2" gutterBottom>
+                Preview (first 10 rows):
+              </Typography>
+              <Table size="small">
+                <TableHead>
+                  <TableRow>
+                    <TableCell>Phrase</TableCell>
+                    <TableCell>Translation</TableCell>
+                    <TableCell>Categories</TableCell>
+                  </TableRow>
+                </TableHead>
+                <TableBody>
+                  {importPreview.map((item, idx) => (
+                    <TableRow key={idx}>
+                      <TableCell>{item.phrase}</TableCell>
+                      <TableCell>{item.translation}</TableCell>
+                      <TableCell>{item.categories || '-'}</TableCell>
+                    </TableRow>
+                  ))}
+                </TableBody>
+              </Table>
+            </Box>
+          )}
+
+          {importResult && (
+            <Box sx={{ mt: 2 }}>
+              <Alert severity={importResult.error_count > 0 ? 'warning' : 'success'}>
+                Imported: {importResult.added_count} | Errors: {importResult.error_count}
+              </Alert>
+              {importResult.errors && importResult.errors.length > 0 && (
+                <Box sx={{ mt: 1 }}>
+                  <Typography variant="caption" color="error">
+                    First {importResult.errors.length} errors:
+                  </Typography>
+                  {importResult.errors.map((err, idx) => (
+                    <Typography key={idx} variant="caption" display="block">
+                      Row {err.index + 1}: {err.error}
+                    </Typography>
+                  ))}
+                </Box>
+              )}
+            </Box>
+          )}
+        </DialogContent>
+        <DialogActions>
+          <Button onClick={handleCloseImportDialog}>Close</Button>
+          <Button 
+            onClick={handleBatchImport} 
+            variant="contained" 
+            disabled={loading || importData.length === 0}
+          >
+            Import {importData.length} Phrases
+          </Button>
+        </DialogActions>
+      </Dialog>
+
+      {/* Share List Dialog */}
+      <Dialog open={showShareDialog} onClose={() => setShowShareDialog(false)} maxWidth="sm" fullWidth>
+        <DialogTitle>Share List</DialogTitle>
+        <DialogContent>
+          <Box sx={{ mb: 2 }}>
+            <TextField
+              fullWidth
+              label="Username"
+              value={shareUsername}
+              onChange={(e) => setShareUsername(e.target.value)}
+              margin="dense"
+            />
+            <Box sx={{ mt: 1, display: 'flex', gap: 1 }}>
+              <Chip
+                label="Read Only"
+                color={sharePermission === 'read' ? 'primary' : 'default'}
+                onClick={() => setSharePermission('read')}
+                clickable
+              />
+              <Chip
+                label="Read & Write"
+                color={sharePermission === 'write' ? 'primary' : 'default'}
+                onClick={() => setSharePermission('write')}
+                clickable
+              />
+            </Box>
+            <Button
+              variant="contained"
+              onClick={handleShareList}
+              disabled={loading || !shareUsername.trim()}
+              sx={{ mt: 2 }}
+              fullWidth
+            >
+              Share
+            </Button>
+          </Box>
+
+          <Typography variant="subtitle2" gutterBottom>
+            Currently shared with:
+          </Typography>
+          {listShares.length === 0 ? (
+            <Typography variant="body2" color="text.secondary">
+              Not shared with anyone
+            </Typography>
+          ) : (
+            <Table size="small">
+              <TableHead>
+                <TableRow>
+                  <TableCell>User</TableCell>
+                  <TableCell>Permission</TableCell>
+                  <TableCell align="right">Actions</TableCell>
+                </TableRow>
+              </TableHead>
+              <TableBody>
+                {listShares.map((share) => (
+                  <TableRow key={share.id}>
+                    <TableCell>{share.username}</TableCell>
+                    <TableCell>
+                      <Chip
+                        label={share.permission}
+                        size="small"
+                        color={share.permission === 'write' ? 'primary' : 'default'}
+                      />
+                    </TableCell>
+                    <TableCell align="right">
+                      <IconButton
+                        size="small"
+                        onClick={() => handleUnshare(share.shared_with_user_id)}
+                        disabled={loading}
+                        color="error"
+                      >
+                        <DeleteIcon />
+                      </IconButton>
+                    </TableCell>
+                  </TableRow>
+                ))}
+              </TableBody>
+            </Table>
+          )}
+        </DialogContent>
+        <DialogActions>
+          <Button onClick={() => setShowShareDialog(false)}>Close</Button>
+        </DialogActions>
+      </Dialog>
+
+      {/* Statistics Dialog */}
+      <Dialog open={showStatsDialog} onClose={() => setShowStatsDialog(false)} maxWidth="sm" fullWidth>
+        <DialogTitle>List Statistics</DialogTitle>
+        <DialogContent>
+          {listStats ? (
+            <Box>
+              <Typography variant="h6" gutterBottom>
+                {listStats.list_name}
+              </Typography>
+              <Table size="small">
+                <TableBody>
+                  <TableRow>
+                    <TableCell>Total Phrases</TableCell>
+                    <TableCell align="right"><strong>{listStats.total_phrases}</strong></TableCell>
+                  </TableRow>
+                  <TableRow>
+                    <TableCell>Custom Phrases</TableCell>
+                    <TableCell align="right">{listStats.custom_phrases}</TableCell>
+                  </TableRow>
+                  <TableRow>
+                    <TableCell>Public Phrases</TableCell>
+                    <TableCell align="right">{listStats.public_phrases}</TableCell>
+                  </TableRow>
+                  <TableRow>
+                    <TableCell>Created</TableCell>
+                    <TableCell align="right">
+                      {listStats.created_at ? new Date(listStats.created_at).toLocaleDateString() : '-'}
+                    </TableCell>
+                  </TableRow>
+                  <TableRow>
+                    <TableCell>Last Updated</TableCell>
+                    <TableCell align="right">
+                      {listStats.updated_at ? new Date(listStats.updated_at).toLocaleDateString() : '-'}
+                    </TableCell>
+                  </TableRow>
+                </TableBody>
+              </Table>
+            </Box>
+          ) : (
+            <CircularProgress />
+          )}
+
+          {userStats && (
+            <Box sx={{ mt: 3 }}>
+              <Typography variant="h6" gutterBottom>
+                Your Overall Statistics
+              </Typography>
+              <Table size="small">
+                <TableBody>
+                  <TableRow>
+                    <TableCell>Total Lists</TableCell>
+                    <TableCell align="right"><strong>{userStats.total_lists}</strong></TableCell>
+                  </TableRow>
+                  <TableRow>
+                    <TableCell>Total Phrases</TableCell>
+                    <TableCell align="right"><strong>{userStats.total_phrases}</strong></TableCell>
+                  </TableRow>
+                </TableBody>
+              </Table>
+
+              {userStats.most_used_lists && userStats.most_used_lists.length > 0 && (
+                <Box sx={{ mt: 2 }}>
+                  <Typography variant="subtitle2" gutterBottom>
+                    Most Used Lists:
+                  </Typography>
+                  {userStats.most_used_lists.map((list) => (
+                    <Box key={list.id} sx={{ display: 'flex', justifyContent: 'space-between', py: 0.5 }}>
+                      <Typography variant="body2">{list.list_name}</Typography>
+                      <Chip label={`${list.phrase_count} phrases`} size="small" />
+                    </Box>
+                  ))}
+                </Box>
+              )}
+            </Box>
+          )}
+        </DialogContent>
+        <DialogActions>
+          <Button onClick={() => {
+            fetchUserStatistics();
+          }} disabled={loading}>
+            Refresh Stats
+          </Button>
+          <Button onClick={() => setShowStatsDialog(false)}>Close</Button>
+        </DialogActions>
+      </Dialog>
     </>
   );
 }
