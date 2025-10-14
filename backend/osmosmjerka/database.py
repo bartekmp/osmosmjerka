@@ -6,7 +6,7 @@ from typing import Any, Dict, List, Optional
 
 from databases import Database
 from dotenv import load_dotenv
-from sqlalchemy import Boolean, Column, DateTime, Integer, MetaData, String, Table, Text, create_engine, desc
+from sqlalchemy import Boolean, Column, DateTime, Integer, MetaData, String, Table, Text, and_, create_engine, desc
 from sqlalchemy.sql import delete, func, insert, select, update
 
 from osmosmjerka.logging_config import get_logger
@@ -189,6 +189,35 @@ game_scores_table = Table(
     Column("first_phrase_time", DateTime, nullable=True),
     Column("completion_time", DateTime, nullable=True),
     Column("created_at", DateTime, nullable=False, server_default=func.now()),
+)
+
+# Define the user_private_lists table for user-created phrase lists
+user_private_lists_table = Table(
+    "user_private_lists",
+    metadata,
+    Column("id", Integer, primary_key=True, index=True),
+    Column("user_id", Integer, nullable=False, index=True),
+    Column("language_set_id", Integer, nullable=False, index=True),
+    Column("list_name", String(255), nullable=False),
+    Column("description", Text, nullable=True),
+    Column("is_system_list", Boolean, nullable=False, default=False),  # TRUE for "Learn This Later"
+    Column("created_at", DateTime, nullable=False, server_default=func.now()),
+    Column("updated_at", DateTime, nullable=False, server_default=func.now(), onupdate=func.now()),
+)
+
+# Define the user_private_list_phrases table for phrases in private lists
+user_private_list_phrases_table = Table(
+    "user_private_list_phrases",
+    metadata,
+    Column("id", Integer, primary_key=True, index=True),
+    Column("list_id", Integer, nullable=False, index=True),
+    Column("phrase_id", Integer, nullable=True),  # NULL if it's a user-defined phrase
+    Column("language_set_id", Integer, nullable=False, index=True),
+    # User-defined phrase fields (only populated if phrase_id IS NULL)
+    Column("custom_phrase", String(255), nullable=True),
+    Column("custom_translation", Text, nullable=True),
+    Column("custom_categories", String(255), nullable=True),  # Space-separated like public phrases
+    Column("added_at", DateTime, nullable=False, server_default=func.now()),
 )
 
 
@@ -1828,6 +1857,318 @@ class DatabaseManager:
             return user_preference.lower() == "true"
 
         return global_enabled
+
+    # User Private Lists Management Methods
+    async def get_learn_later_list(
+        self, user_id: int, language_set_id: int, create_if_missing: bool = False
+    ) -> Optional[Dict]:
+        """Get user's Learn This Later list for a language set"""
+        database = self._ensure_database()
+
+        query = select(user_private_lists_table).where(
+            user_private_lists_table.c.user_id == user_id,
+            user_private_lists_table.c.language_set_id == language_set_id,
+            user_private_lists_table.c.is_system_list == True,  # noqa: E712
+        )
+
+        result = await database.fetch_one(query)
+
+        if result:
+            return dict(result)
+
+        if create_if_missing:
+            # Create the list
+            return await self.create_learn_later_list(user_id, language_set_id)
+
+        return None
+
+    async def get_or_create_learn_later_list(self, user_id: int, language_set_id: int) -> Dict:
+        """Get or create user's Learn This Later list"""
+        existing = await self.get_learn_later_list(user_id, language_set_id, create_if_missing=False)
+
+        if existing:
+            return existing
+
+        return await self.create_learn_later_list(user_id, language_set_id)
+
+    async def create_learn_later_list(self, user_id: int, language_set_id: int) -> Dict:
+        """Create Learn This Later list for user"""
+        database = self._ensure_database()
+
+        query = insert(user_private_lists_table).values(
+            user_id=user_id,
+            language_set_id=language_set_id,
+            list_name="Learn This Later",
+            description="Automatically created system list for phrases to review later",
+            is_system_list=True,
+        )
+
+        list_id = await database.execute(query)
+
+        return {
+            "id": list_id,
+            "user_id": user_id,
+            "language_set_id": language_set_id,
+            "list_name": "Learn This Later",
+            "is_system_list": True,
+        }
+
+    async def get_phrase_ids_in_private_list(self, list_id: int, phrase_ids: List[int]) -> List[int]:
+        """Check which phrase IDs are already in a private list"""
+        database = self._ensure_database()
+
+        query = select(user_private_list_phrases_table.c.phrase_id).where(
+            user_private_list_phrases_table.c.list_id == list_id,
+            user_private_list_phrases_table.c.phrase_id.in_(phrase_ids),
+            user_private_list_phrases_table.c.phrase_id.isnot(None),  # Only public phrases
+        )
+
+        result = await database.fetch_all(query)
+        return [row["phrase_id"] for row in result]
+
+    async def bulk_add_phrases_to_private_list(
+        self, list_id: int, phrase_ids: List[int], language_set_id: int, skip_duplicates: bool = True
+    ) -> int:
+        """Add multiple phrases to a private list"""
+        database = self._ensure_database()
+
+        if skip_duplicates:
+            # Get existing phrase IDs in the list
+            existing_ids = await self.get_phrase_ids_in_private_list(list_id, phrase_ids)
+            # Filter out duplicates
+            phrase_ids = [pid for pid in phrase_ids if pid not in existing_ids]
+
+        if not phrase_ids:
+            return 0
+
+        # Bulk insert
+        values = [
+            {
+                "list_id": list_id,
+                "phrase_id": phrase_id,
+                "language_set_id": language_set_id,
+                "custom_phrase": None,
+                "custom_translation": None,
+                "custom_categories": None,
+            }
+            for phrase_id in phrase_ids
+        ]
+
+        query = insert(user_private_list_phrases_table).values(values)
+        await database.execute(query)
+
+        return len(phrase_ids)
+
+    async def get_user_private_lists(self, user_id: int, language_set_id: Optional[int] = None) -> List[Dict]:
+        """Get all private lists for a user, optionally filtered by language set"""
+        database = self._ensure_database()
+
+        query = select(user_private_lists_table).where(user_private_lists_table.c.user_id == user_id)
+
+        if language_set_id is not None:
+            query = query.where(user_private_lists_table.c.language_set_id == language_set_id)
+
+        query = query.order_by(desc(user_private_lists_table.c.is_system_list), user_private_lists_table.c.created_at)
+
+        result = await database.fetch_all(query)
+        return [dict(row) for row in result]
+
+    async def get_private_list_by_id(self, list_id: int, user_id: int) -> Optional[Dict]:
+        """Get a specific private list by ID (with user ownership check)"""
+        database = self._ensure_database()
+
+        query = select(user_private_lists_table).where(
+            user_private_lists_table.c.id == list_id, user_private_lists_table.c.user_id == user_id
+        )
+
+        result = await database.fetch_one(query)
+        return dict(result) if result else None
+
+    async def delete_private_list(self, list_id: int, user_id: int) -> bool:
+        """Delete a private list (only if not a system list and user owns it)"""
+        database = self._ensure_database()
+
+        # First check if it's a system list
+        list_info = await self.get_private_list_by_id(list_id, user_id)
+        if not list_info or list_info.get("is_system_list"):
+            return False
+
+        # Delete all phrases in the list first
+        delete_phrases_query = delete(user_private_list_phrases_table).where(
+            user_private_list_phrases_table.c.list_id == list_id
+        )
+        await database.execute(delete_phrases_query)
+
+        # Delete the list
+        delete_list_query = delete(user_private_lists_table).where(
+            user_private_lists_table.c.id == list_id, user_private_lists_table.c.user_id == user_id
+        )
+        await database.execute(delete_list_query)
+
+        return True
+
+    async def get_private_list_phrase_count(self, list_id: int) -> int:
+        """Get the number of phrases in a private list"""
+        database = self._ensure_database()
+
+        query = select(func.count(user_private_list_phrases_table.c.id)).where(
+            user_private_list_phrases_table.c.list_id == list_id
+        )
+
+        result = await database.fetch_one(query)
+        return result[0] if result else 0
+
+    async def get_private_list_phrases(
+        self, list_id: int, user_id: int, language_set_id: int, category: Optional[str] = None
+    ) -> List[Dict]:
+        """Get all phrases from a private list, with optional category filter"""
+        database = self._ensure_database()
+
+        # Verify ownership
+        list_info = await self.get_private_list_by_id(list_id, user_id)
+        if not list_info:
+            return []
+
+        # Get the language set info for dynamic table lookup
+        language_set = await self.get_language_set_by_id(language_set_id)
+        if not language_set:
+            return []
+
+        phrase_table = self._get_phrase_table(language_set["name"])
+
+        # Query to get phrases from the list
+        query = (
+            select(
+                user_private_list_phrases_table.c.id.label("list_phrase_id"),
+                user_private_list_phrases_table.c.phrase_id,
+                user_private_list_phrases_table.c.custom_phrase,
+                user_private_list_phrases_table.c.custom_translation,
+                user_private_list_phrases_table.c.custom_categories,
+                phrase_table.c.id.label("public_id"),
+                phrase_table.c.phrase.label("public_phrase"),
+                phrase_table.c.translation.label("public_translation"),
+                phrase_table.c.categories.label("public_categories"),
+            )
+            .select_from(
+                user_private_list_phrases_table.outerjoin(
+                    phrase_table, user_private_list_phrases_table.c.phrase_id == phrase_table.c.id
+                )
+            )
+            .where(user_private_list_phrases_table.c.list_id == list_id)
+        )
+
+        result = await database.fetch_all(query)
+        phrases = []
+
+        for row in result:
+            row_dict = dict(row)
+
+            # Determine if it's a custom phrase or a public phrase
+            if row_dict["phrase_id"] is None:
+                # Custom phrase
+                phrase_data = {
+                    "id": None,  # Custom phrases don't have a public ID
+                    "phrase": row_dict["custom_phrase"],
+                    "translation": row_dict["custom_translation"],
+                    "categories": row_dict["custom_categories"] or "",
+                }
+            else:
+                # Public phrase
+                phrase_data = {
+                    "id": row_dict["public_id"],
+                    "phrase": row_dict["public_phrase"],
+                    "translation": row_dict["public_translation"],
+                    "categories": row_dict["public_categories"] or "",
+                }
+
+            # Apply category filter if specified
+            if category:
+                phrase_categories = phrase_data["categories"].split()
+                if category not in phrase_categories:
+                    continue
+
+            # Only include phrases with at least 3 characters
+            if len(phrase_data["phrase"].strip()) >= 3:
+                phrases.append(phrase_data)
+
+        return phrases
+
+    async def create_private_list(
+        self, user_id: int, list_name: str, language_set_id: int, is_system_list: bool = False
+    ) -> int:
+        """Create a new private list for a user"""
+        database = self._ensure_database()
+
+        query = insert(user_private_lists_table).values(
+            user_id=user_id,
+            language_set_id=language_set_id,
+            list_name=list_name,
+            is_system_list=is_system_list,
+        )
+
+        list_id = await database.execute(query)
+        return list_id
+
+    async def update_private_list_name(self, list_id: int, new_name: str) -> bool:
+        """Update the name of a private list"""
+        database = self._ensure_database()
+
+        query = (
+            update(user_private_lists_table).where(user_private_lists_table.c.id == list_id).values(list_name=new_name)
+        )
+
+        await database.execute(query)
+        return True
+
+    async def add_phrase_to_private_list(
+        self,
+        list_id: int,
+        phrase_id: Optional[int] = None,
+        custom_phrase: Optional[str] = None,
+        custom_translation: Optional[str] = None,
+        custom_categories: Optional[str] = None,
+    ) -> int:
+        """Add a single phrase to a private list (either public phrase or custom phrase)"""
+        database = self._ensure_database()
+
+        # Check for duplicates
+        if phrase_id:
+            # Check if this public phrase is already in the list
+            check_query = select(user_private_list_phrases_table).where(
+                and_(
+                    user_private_list_phrases_table.c.list_id == list_id,
+                    user_private_list_phrases_table.c.phrase_id == phrase_id,
+                )
+            )
+            existing = await database.fetch_one(check_query)
+            if existing:
+                raise ValueError(f"Phrase {phrase_id} is already in this list")
+
+        # Insert the phrase
+        query = insert(user_private_list_phrases_table).values(
+            list_id=list_id,
+            phrase_id=phrase_id,
+            custom_phrase=custom_phrase,
+            custom_translation=custom_translation,
+            custom_categories=custom_categories,
+        )
+
+        entry_id = await database.execute(query)
+        return entry_id
+
+    async def remove_phrase_from_private_list(self, list_id: int, phrase_entry_id: int) -> bool:
+        """Remove a phrase entry from a private list"""
+        database = self._ensure_database()
+
+        query = delete(user_private_list_phrases_table).where(
+            and_(
+                user_private_list_phrases_table.c.id == phrase_entry_id,
+                user_private_list_phrases_table.c.list_id == list_id,
+            )
+        )
+
+        result = await database.execute(query)
+        return result > 0
 
 
 # Create global database manager instance

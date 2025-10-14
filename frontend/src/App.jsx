@@ -182,6 +182,7 @@ function AppContent() {
     const saved = localStorage.getItem(STORAGE_KEYS.SELECTED_LANGUAGE_SET);
     return saved ? parseInt(saved) : null;
   });
+  const [selectedPrivateListId, setSelectedPrivateListId] = useState(null);
   const [grid, setGrid] = useState([]);
   const [phrases, setPhrases] = useState([]);
   const [found, setFound] = useState([]);
@@ -667,7 +668,8 @@ function AppContent() {
       },
       t,
       selectedLanguageSetId,
-      refresh
+      refresh,
+      selectedPrivateListId
     )
       .then((result) => {
         if (result?.status === "error") {
@@ -1395,6 +1397,9 @@ function AppContent() {
                   selectedLanguageSetId={selectedLanguageSetId}
                   onLanguageSetChange={handleLanguageSetChange}
                   onLanguageSetStatusChange={handleLanguageSetStatusChange}
+                  currentUser={currentUser}
+                  selectedPrivateListId={selectedPrivateListId}
+                  onPrivateListChange={setSelectedPrivateListId}
                 />
 
                 {/* All Found Message */}
@@ -1535,6 +1540,8 @@ function AppContent() {
                       disableShowPhrases={notEnoughPhrases}
                       onPhraseClick={handlePhraseClick}
                       progressiveHintsEnabled={progressiveHintsEnabled}
+                      currentUser={currentUser}
+                      languageSetId={selectedLanguageSetId}
                       t={t}
                     />
                   </Box>

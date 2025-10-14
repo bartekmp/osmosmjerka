@@ -82,7 +82,7 @@ export function saveGameState(state) {
 }
 
 // Load puzzle from API
-export function loadPuzzle(category, diff, setters, t, languageSetId = null, refresh = false) {
+export function loadPuzzle(category, diff, setters, t, languageSetId = null, refresh = false, privateListId = null) {
     const {
         setSelectedCategory,
         setGrid,
@@ -97,16 +97,39 @@ export function loadPuzzle(category, diff, setters, t, languageSetId = null, ref
     if (setNotEnoughPhrases) setNotEnoughPhrases(false);
     if (setNotEnoughPhrasesMsg) setNotEnoughPhrasesMsg("");
 
-    // Build API URL with language set parameter if provided
-    let apiUrl = `/api/phrases?category=${category}&difficulty=${diff}`;
-    if (languageSetId) {
-        apiUrl += `&language_set_id=${languageSetId}`;
-    }
-    if (refresh) {
-        apiUrl += `&refresh=true`;
+    // Build API URL - use private list endpoint if privateListId is provided
+    let apiUrl;
+    const token = localStorage.getItem('osmosmjerka-admin-token');
+    
+    if (privateListId) {
+        // Use private list endpoint (requires authentication)
+        apiUrl = `/api/user/private-lists/${privateListId}/phrases?language_set_id=${languageSetId}&difficulty=${diff}`;
+        if (category) {
+            apiUrl += `&category=${category}`;
+        }
+        if (refresh) {
+            apiUrl += `&refresh=true`;
+        }
+    } else {
+        // Use public phrases endpoint
+        apiUrl = `/api/phrases?category=${category}&difficulty=${diff}`;
+        if (languageSetId) {
+            apiUrl += `&language_set_id=${languageSetId}`;
+        }
+        if (refresh) {
+            apiUrl += `&refresh=true`;
+        }
     }
 
-    return axios.get(apiUrl)
+    // Prepare request config with auth header if using private list
+    const requestConfig = {};
+    if (privateListId && token) {
+        requestConfig.headers = {
+            Authorization: `Bearer ${token}`
+        };
+    }
+
+    return axios.get(apiUrl, requestConfig)
         .then(res => {
             if (res.data.error_code === "NOT_ENOUGH_PHRASES") {
                 if (setNotEnoughPhrases) setNotEnoughPhrases(true);

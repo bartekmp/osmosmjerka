@@ -492,5 +492,107 @@
             "saveError": "Nie udało się zapisać zasad punktacji",
             "saveSuccess": "Zasady punktacji zostały pomyślnie zaktualizowane"
         }
+    },
+    "learnLater": {
+        "find_phrases_first": "Najpierw znajdź kilka fraz",
+        "select_phrases_first": "Najpierw wybierz kilka fraz",
+        "add_found_to_learn_later": "Dodaj {{count}} znalezionych fraz do Naucz się później",
+        "add_selected_to_learn_later": "Dodaj {{count}} wybranych do Naucz się później",
+        "add_new_phrases_tooltip": "Dodaj {{new}} nowych fraz ({{already}} już zapisano)",
+        "add_selected_new_tooltip": "Dodaj {{new}} wybranych ({{already}} już zapisano)",
+        "all_phrases_already_saved": "Wszystkie frazy już są w Naucz się później ✓",
+        "selected_already_saved": "Wybrane frazy już zapisane",
+        "added_to_learn_later_count": "Dodano {{count}} fraz do Naucz się później!",
+        "added_selected_to_learn_later": "Dodano {{count}} wybranych fraz!",
+        "failed_to_add": "Nie udało się dodać fraz",
+        "select_all_found": "Zaznacz wszystkie znalezione frazy",
+        "deselect_all": "Odznacz wszystkie"
+    },
+    "myLists": {
+        "title": "Moje Listy",
+        "public_categories": "Kategorie Publiczne",
+        "no_lists_yet": "Jeszcze nie ma prywatnych list",
+        "loading_failed": "Nie udało się załadować twoich list",
+        "system_list_indicator": "📝"
+    },
+    "privateListManager": {
+        "title": "Zarządzanie Moimi Listami",
+        "tabs": {
+            "lists": "Moje Listy",
+            "phrases": "Frazy"
+        },
+        "lists": {
+            "create_new": "Utwórz Nową Listę",
+            "rename": "Zmień Nazwę Listy",
+            "delete": "Usuń Listę",
+            "delete_confirm": "Czy na pewno chcesz usunąć \"{{listName}}\"? Wszystkie frazy z tej listy zostaną usunięte.",
+            "cannot_delete_system": "Listy systemowe nie mogą być usunięte",
+            "cannot_rename_system": "Listy systemowe nie mogą być zmieniane",
+            "list_name": "Nazwa Listy",
+            "list_name_placeholder": "Wprowadź nazwę listy...",
+            "select_language_set": "Zestaw Językowy",
+            "creating": "Tworzenie...",
+            "deleting": "Usuwanie...",
+            "renaming": "Zmiana nazwy..."
+        },
+        "phrases": {
+            "add_phrase": "Dodaj Frazę",
+            "add_custom_phrase": "Dodaj Własną Frazę",
+            "add_public_phrase": "Dodaj z Publicznych Fraz",
+            "remove_phrase": "Usuń",
+            "remove_selected": "Usuń Zaznaczone",
+            "remove_confirm": "Usunąć tę frazę z listy?",
+            "remove_confirm_multiple": "Usunąć {{count}} fraz z listy?",
+            "phrase_text": "Fraza",
+            "translation": "Tłumaczenie",
+            "categories": "Kategorie (oddzielone spacją)",
+            "categories_placeholder": "np. Zwierzęta Zwierzęta_domowe",
+            "phrase_placeholder": "Wprowadź frazę...",
+            "translation_placeholder": "Wprowadź tłumaczenie...",
+            "search_public_phrases": "Szukaj publicznych fraz...",
+            "custom": "Własna",
+            "public": "Publiczna",
+            "no_phrases": "Brak fraz na tej liście",
+            "select_list_first": "Wybierz listę, aby zobaczyć jej frazy",
+            "adding": "Dodawanie..."
+        },
+        "validation": {
+            "name_required": "Nazwa listy jest wymagana",
+            "name_too_long": "Nazwa listy jest za długa (max 100 znaków)",
+            "name_duplicate": "Lista o tej nazwie już istnieje",
+            "language_set_required": "Zestaw językowy jest wymagany",
+            "phrase_required": "Tekst frazy jest wymagany",
+            "translation_required": "Tłumaczenie jest wymagane",
+            "phrase_too_short": "Fraza musi mieć co najmniej 3 znaki",
+            "select_phrases": "Proszę wybrać frazy do usunięcia"
+        },
+        "success": {
+            "list_created": "Lista \"{{listName}}\" została utworzona",
+            "list_renamed": "Zmieniono nazwę listy na \"{{listName}}\"",
+            "list_deleted": "Lista została usunięta",
+            "phrase_added": "Fraza została dodana",
+            "phrase_removed": "Fraza została usunięta",
+            "phrases_removed": "Usunięto {{count}} fraz"
+        },
+        "errors": {
+            "load_failed": "Nie udało się załadować list",
+            "create_failed": "Nie udało się utworzyć listy",
+            "rename_failed": "Nie udało się zmienić nazwy listy",
+            "delete_failed": "Nie udało się usunąć listy",
+            "add_phrase_failed": "Nie udało się dodać frazy",
+            "remove_phrase_failed": "Nie udało się usunąć frazy",
+            "already_exists": "Ta fraza już istnieje na liście"
+        },
+        "buttons": {
+            "create": "Utwórz",
+            "cancel": "Anuluj",
+            "save": "Zapisz",
+            "delete": "Usuń",
+            "add": "Dodaj",
+            "remove": "Usuń",
+            "close": "Zamknij",
+            "select_all": "Zaznacz Wszystkie",
+            "deselect_all": "Odznacz Wszystkie"
+        }
     }
 }

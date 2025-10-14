@@ -1,6 +1,6 @@
 import { Box, Button, FormControl, InputLabel, MenuItem, Select } from '@mui/material';
 import { useTranslation } from 'react-i18next';
-import { LanguageSetSelector, ResponsiveText } from '../../../../shared';
+import { LanguageSetSelector, PrivateListSelector, ResponsiveText } from '../../../../shared';
 import ExportButton from '../../../export/components/ExportButton';
 import CategorySelector from './CategorySelector';
 
@@ -22,7 +22,10 @@ const GameControls = ({
     notEnoughPhrases,
     selectedLanguageSetId,
     onLanguageSetChange,
-    onLanguageSetStatusChange
+    onLanguageSetStatusChange,
+    currentUser,
+    selectedPrivateListId,
+    onPrivateListChange
 }) => {
     const { t } = useTranslation();
 
@@ -78,6 +81,14 @@ const GameControls = ({
                             onStatusChange={onLanguageSetStatusChange}
                         />
                     )}
+                    {/* Private list selector (only shown when user is logged in) */}
+                    <PrivateListSelector
+                        currentUser={currentUser}
+                        languageSetId={selectedLanguageSetId}
+                        selectedListId={selectedPrivateListId}
+                        onListChange={onPrivateListChange}
+                        size="small"
+                    />
                     <CategorySelector
                         categories={visibleCategories}
                         selected={selectedCategory}
