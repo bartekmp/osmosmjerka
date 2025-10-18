@@ -2,6 +2,42 @@
 
 <!-- version list -->
 
+## v1.34.1 (2025-10-18)
+
+### Chores
+
+- **deps**: Update actions/setup-node action to v6
+  ([#105](https://github.com/bartekmp/osmosmjerka/pull/105),
+  [`ab466a6`](https://github.com/bartekmp/osmosmjerka/commit/ab466a6fdf9a9ec0b0560bf0329ce9ea9cd5c31f))
+
+- **deps**: Update dependency eslint-plugin-react-hooks to v7
+  ([#103](https://github.com/bartekmp/osmosmjerka/pull/103),
+  [`1c01d75`](https://github.com/bartekmp/osmosmjerka/commit/1c01d75e7cf274c4f396c5c38215a0b126f94274))
+
+- **deps**: Update dependency isort to v7 ([#104](https://github.com/bartekmp/osmosmjerka/pull/104),
+  [`dd3183c`](https://github.com/bartekmp/osmosmjerka/commit/dd3183c04094b85d010736fedddcde4e7b9c6f0b))
+
+- **deps**: Update dependency pillow to v12
+  ([#107](https://github.com/bartekmp/osmosmjerka/pull/107),
+  [`0499d30`](https://github.com/bartekmp/osmosmjerka/commit/0499d30780ba1a09fc32c28c43f4f2d84ae21a62))
+
+- **deps**: Update dependency semantic-release to v25
+  ([#106](https://github.com/bartekmp/osmosmjerka/pull/106),
+  [`bc9f4ad`](https://github.com/bartekmp/osmosmjerka/commit/bc9f4ad67b407196eaae21acf9b109e3eccc3788))
+
+- **deps**: Update python dependencies
+  ([`89a7ee4`](https://github.com/bartekmp/osmosmjerka/commit/89a7ee4362c16d65d924b8e0bc9b0d3ecf18ac9c))
+
+- **deps**: Update python docker tag to v3.14
+  ([#102](https://github.com/bartekmp/osmosmjerka/pull/102),
+  [`9c19997`](https://github.com/bartekmp/osmosmjerka/commit/9c1999741bb0b9b213f1a4f8092f128c6bebdd3c))
+
+### Continuous Integration
+
+- Improve renovate rules
+  ([`8d17486`](https://github.com/bartekmp/osmosmjerka/commit/8d17486ac11da5bba771e2a4383a51f38920be7c))
+
+
 ## v1.34.0 (2025-10-02)
 
 ### Feature
