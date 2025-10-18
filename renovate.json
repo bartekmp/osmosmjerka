@@ -23,7 +23,7 @@
       "enabled": true
     },
     {
-      "matchManagers": ["pip_requirements", "poetry", "pip_setup"],
+      "matchManagers": ["poetry"],
       "groupName": "Python dependencies",
       "labels": ["python"],
       "schedule": ["every weekend"]
