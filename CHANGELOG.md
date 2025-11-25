@@ -2,6 +2,22 @@
 
 <!-- version list -->
 
+## v1.34.2 (2025-11-25)
+
+### Chores
+
+- **deps**: Update python dependencies ([#111](https://github.com/bartekmp/osmosmjerka/pull/111),
+  [`91c1629`](https://github.com/bartekmp/osmosmjerka/commit/91c16296b7d1f8e251f4e70ae60e6af4a84f9d03))
+
+- **deps**: Update python dependencies ([#109](https://github.com/bartekmp/osmosmjerka/pull/109),
+  [`7f0885f`](https://github.com/bartekmp/osmosmjerka/commit/7f0885fd15a718cf26ca01af5b98eb56bc765942))
+
+### Continuous Integration
+
+- Update match managers
+  ([`1e4ca5d`](https://github.com/bartekmp/osmosmjerka/commit/1e4ca5db8f67a71cd58c9e65685333b16b18f96d))
+
+
 ## v1.34.1 (2025-10-18)
 
 ### Chores
