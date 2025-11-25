@@ -2,6 +2,15 @@
 
 <!-- version list -->
 
+## v1.34.3 (2025-11-25)
+
+### Bugfix
+
+- Add necessary build packages for asyncpg
+  ([#112](https://github.com/bartekmp/osmosmjerka/pull/112),
+  [`910f71a`](https://github.com/bartekmp/osmosmjerka/commit/910f71a6432d1ca009495f97d4ad4e9629068740))
+
+
 ## v1.34.2 (2025-11-25)
 
 ### Chores
