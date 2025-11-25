@@ -27,6 +27,11 @@ COPY --from=frontend /app/frontend/build /app/backend/static
 ARG VERSION
 ENV SETUPTOOLS_SCM_PRETEND_VERSION=$VERSION
 
+RUN apt-get update && apt-get install -y \
+    build-essential gcc python3-dev libpq-dev libssl-dev pkg-config libffi-dev \
+    && apt-get clean \
+    && rm -rf /var/lib/apt/lists/*
+
 RUN pip install .
 
 # Ensure DEVELOPMENT_MODE is false in production
