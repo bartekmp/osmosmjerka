@@ -519,78 +519,68 @@
             "lists": "My Lists",
             "phrases": "Phrases"
         },
-        "lists": {
-            "create_new": "Create New List",
-            "rename": "Rename List",
-            "delete": "Delete List",
-            "delete_confirm": "Are you sure you want to delete \"{{listName}}\"? All phrases in this list will be removed.",
-            "cannot_delete_system": "System lists cannot be deleted",
-            "cannot_rename_system": "System lists cannot be renamed",
-            "list_name": "List Name",
-            "list_name_placeholder": "Enter list name...",
-            "select_language_set": "Language Set",
-            "creating": "Creating...",
-            "deleting": "Deleting...",
-            "renaming": "Renaming..."
-        },
-        "phrases": {
-            "add_phrase": "Add Phrase",
-            "add_custom_phrase": "Add Custom Phrase",
-            "add_public_phrase": "Add from Public Phrases",
-            "remove_phrase": "Remove",
-            "remove_selected": "Remove Selected",
-            "remove_confirm": "Remove this phrase from the list?",
-            "remove_confirm_multiple": "Remove {{count}} phrases from the list?",
-            "phrase_text": "Phrase",
-            "translation": "Translation",
-            "categories": "Categories (space-separated)",
-            "categories_placeholder": "e.g., Animals Pets",
-            "phrase_placeholder": "Enter phrase...",
-            "translation_placeholder": "Enter translation...",
-            "search_public_phrases": "Search public phrases...",
-            "custom": "Custom",
-            "public": "Public",
-            "no_phrases": "No phrases in this list yet",
-            "select_list_first": "Select a list to view its phrases",
-            "adding": "Adding..."
-        },
-        "validation": {
-            "name_required": "List name is required",
-            "name_too_long": "List name is too long (max 100 characters)",
-            "name_duplicate": "A list with this name already exists",
-            "language_set_required": "Language set is required",
-            "phrase_required": "Phrase text is required",
-            "translation_required": "Translation is required",
-            "phrase_too_short": "Phrase must be at least 3 characters",
-            "select_phrases": "Please select phrases to remove"
-        },
-        "success": {
-            "list_created": "List \"{{listName}}\" created successfully",
-            "list_renamed": "List renamed to \"{{listName}}\"",
-            "list_deleted": "List deleted successfully",
-            "phrase_added": "Phrase added successfully",
-            "phrase_removed": "Phrase removed successfully",
-            "phrases_removed": "{{count}} phrases removed successfully"
-        },
-        "errors": {
-            "load_failed": "Failed to load lists",
-            "create_failed": "Failed to create list",
-            "rename_failed": "Failed to rename list",
-            "delete_failed": "Failed to delete list",
-            "add_phrase_failed": "Failed to add phrase",
-            "remove_phrase_failed": "Failed to remove phrase",
-            "already_exists": "This phrase is already in the list"
-        },
         "buttons": {
             "create": "Create",
             "cancel": "Cancel",
             "save": "Save",
             "delete": "Delete",
             "add": "Add",
-            "remove": "Remove",
-            "close": "Close",
-            "select_all": "Select All",
-            "deselect_all": "Deselect All"
+            "close": "Close"
+        },
+        "lists": {
+            "title": "My Lists",
+            "createNew": "Create New List",
+            "noLists": "You have no lists yet",
+            "listName": "List Name",
+            "phraseCount": "Phrases",
+            "actions": "Actions",
+            "systemList": "System",
+            "cannotRenameSystem": "System lists cannot be renamed",
+            "cannotDeleteSystem": "System lists cannot be deleted",
+            "confirmDelete": "Delete List",
+            "deleteWarning": "Are you sure you want to delete \"{{name}}\"? All phrases will be removed."
+        },
+        "phrases": {
+            "title": "Phrases in \"{{listName}}\"",
+            "selectListFirst": "Select a list to view its phrases",
+            "addCustom": "Add Custom Phrase",
+            "removeSelected": "Remove Selected ({{count}})",
+            "noPhrases": "No phrases in this list yet",
+            "phrase": "Phrase",
+            "translation": "Translation",
+            "categories": "Categories",
+            "categoriesOptional": "Optional, space separated list",
+            "addedAt": "Added",
+            "type": "Type",
+            "actions": "Actions",
+            "custom": "Custom",
+            "public": "Public"
+        },
+        "validation": {
+            "listNameRequired": "List name is required",
+            "listNameTooLong": "List name is too long (max 100 characters)",
+            "maxLength": "Max {{max}} characters",
+            "phraseRequired": "Phrase text is required",
+            "translationRequired": "Translation is required",
+            "selectPhrasesToRemove": "Select at least one phrase",
+            "selectListFirst": "Select a list first"
+        },
+        "success": {
+            "listCreated": "List created successfully",
+            "listRenamed": "List renamed successfully",
+            "listDeleted": "List deleted successfully",
+            "phraseAdded": "Phrase added successfully",
+            "phraseRemoved": "Phrase removed successfully",
+            "phrasesRemoved": "{{count}} phrases removed successfully"
+        },
+        "errors": {
+            "load_failed": "Failed to load data",
+            "createListFailed": "Failed to create list",
+            "renameListFailed": "Failed to rename list",
+            "deleteListFailed": "Failed to delete list",
+            "addPhraseFailed": "Failed to add phrase",
+            "removePhraseFailed": "Failed to remove phrase",
+            "removeSelectedFailed": "Failed to remove selected phrases"
         }
     }
 }

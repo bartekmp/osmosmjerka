@@ -80,9 +80,19 @@ export default function PrivateListManager({ open, onClose, languageSetId }) {
     return token ? { Authorization: `Bearer ${token}` } : {};
   }, []);
 
-  // Fetch all lists
+  useEffect(() => {
+    setSelectedPhrases(new Set());
+  }, [selectedListId]);
+
+  // Fetch all lists for the selected language set
   const fetchLists = useCallback(async () => {
-    if (!languageSetId) return;
+    if (!languageSetId) {
+      setLists([]);
+      setSelectedListId(null);
+      setPhrases([]);
+      setSelectedPhrases(new Set());
+      return;
+    }
 
     setLoading(true);
     try {
@@ -90,15 +100,25 @@ export default function PrivateListManager({ open, onClose, languageSetId }) {
         params: { language_set_id: languageSetId },
         headers: getAuthHeader()
       });
-      setLists(response.data.lists || []);
-      
-      // Auto-select first list if none selected
-      if (!selectedListId && response.data.lists.length > 0) {
-        setSelectedListId(response.data.lists[0].id);
+
+      const fetchedLists = Array.isArray(response.data?.lists)
+        ? response.data.lists
+        : Array.isArray(response.data)
+          ? response.data
+          : [];
+
+      setLists(fetchedLists);
+
+      if (fetchedLists.length === 0) {
+        setSelectedListId(null);
+        setPhrases([]);
+        setSelectedPhrases(new Set());
+      } else if (!selectedListId || !fetchedLists.some((list) => list.id === selectedListId)) {
+        setSelectedListId(fetchedLists[0].id);
       }
     } catch (error) {
       console.error('Failed to fetch lists:', error);
-      showNotification(t('privateListManager.errors.fetchListsFailed'), 'error');
+      showNotification(t('privateListManager.errors.load_failed'), 'error');
     } finally {
       setLoading(false);
     }
@@ -108,18 +128,20 @@ export default function PrivateListManager({ open, onClose, languageSetId }) {
   const fetchPhrases = useCallback(async () => {
     if (!selectedListId) {
       setPhrases([]);
+      setSelectedPhrases(new Set());
       return;
     }
 
     setLoading(true);
     try {
-      const response = await axios.get(`/api/user/private-lists/${selectedListId}/phrases`, {
+      const response = await axios.get(`/api/user/private-lists/${selectedListId}/entries`, {
         headers: getAuthHeader()
       });
       setPhrases(response.data.phrases || []);
+      setSelectedPhrases(new Set());
     } catch (error) {
       console.error('Failed to fetch phrases:', error);
-      showNotification(t('privateListManager.errors.fetchPhrasesFailed'), 'error');
+      showNotification(t('privateListManager.errors.load_failed'), 'error');
     } finally {
       setLoading(false);
     }
@@ -261,8 +283,13 @@ export default function PrivateListManager({ open, onClose, languageSetId }) {
   // ===== Phrases Tab Functions =====
 
   const handleAddCustomPhrase = async () => {
-    if (!customPhrase.trim() || !customTranslation.trim()) {
-      showNotification(t('privateListManager.validation.phraseAndTranslationRequired'), 'error');
+    if (!customPhrase.trim()) {
+      showNotification(t('privateListManager.validation.phraseRequired'), 'error');
+      return;
+    }
+
+    if (!customTranslation.trim()) {
+      showNotification(t('privateListManager.validation.translationRequired'), 'error');
       return;
     }
 
@@ -293,6 +320,10 @@ export default function PrivateListManager({ open, onClose, languageSetId }) {
   };
 
   const handleRemovePhrase = async (phraseEntryId) => {
+    if (!selectedListId) {
+      return;
+    }
+
     setLoading(true);
     try {
       await axios.delete(`/api/user/private-lists/${selectedListId}/phrases/${phraseEntryId}`, {
@@ -501,7 +532,7 @@ export default function PrivateListManager({ open, onClose, languageSetId }) {
     if (selectedPhrases.size === phrases.length) {
       setSelectedPhrases(new Set());
     } else {
-      setSelectedPhrases(new Set(phrases.map(p => p.id)));
+      setSelectedPhrases(new Set(phrases.map(p => p.entry_id)));
     }
   };
 
@@ -511,16 +542,21 @@ export default function PrivateListManager({ open, onClose, languageSetId }) {
       return;
     }
 
+    if (!selectedListId) {
+      showNotification(t('privateListManager.validation.selectListFirst'), 'error');
+      return;
+    }
+
     setLoading(true);
     try {
-      // Delete phrases sequentially
-      for (const phraseEntryId of selectedPhrases) {
-        await axios.delete(`/api/user/private-lists/${selectedListId}/phrases/${phraseEntryId}`, {
+      const entryIds = Array.from(selectedPhrases);
+      await Promise.all(entryIds.map((phraseEntryId) => (
+        axios.delete(`/api/user/private-lists/${selectedListId}/phrases/${phraseEntryId}`, {
           headers: getAuthHeader()
-        });
-      }
+        })
+      )));
 
-      showNotification(t('privateListManager.success.phrasesRemoved', { count: selectedPhrases.size }), 'success');
+      showNotification(t('privateListManager.success.phrasesRemoved', { count: entryIds.length }), 'success');
       setSelectedPhrases(new Set());
       await fetchPhrases();
       await fetchLists(); // Update phrase count
@@ -793,22 +829,26 @@ export default function PrivateListManager({ open, onClose, languageSetId }) {
                 <TableCell>{t('privateListManager.phrases.phrase')}</TableCell>
                 <TableCell>{t('privateListManager.phrases.translation')}</TableCell>
                 <TableCell>{t('privateListManager.phrases.categories')}</TableCell>
+                <TableCell>{t('privateListManager.phrases.addedAt')}</TableCell>
                 <TableCell align="center">{t('privateListManager.phrases.type')}</TableCell>
                 <TableCell align="right">{t('privateListManager.phrases.actions')}</TableCell>
               </TableRow>
             </TableHead>
             <TableBody>
               {phrases.map((phrase) => (
-                <TableRow key={phrase.id} hover>
+                <TableRow key={phrase.entry_id} hover>
                   <TableCell padding="checkbox">
                     <Checkbox
-                      checked={selectedPhrases.has(phrase.id)}
-                      onChange={() => handleTogglePhraseSelection(phrase.id)}
+                      checked={selectedPhrases.has(phrase.entry_id)}
+                      onChange={() => handleTogglePhraseSelection(phrase.entry_id)}
                     />
                   </TableCell>
                   <TableCell>{phrase.phrase}</TableCell>
                   <TableCell>{phrase.translation}</TableCell>
                   <TableCell>{phrase.categories || '-'}</TableCell>
+                  <TableCell>
+                    {phrase.added_at ? new Date(phrase.added_at).toLocaleString() : '-'}
+                  </TableCell>
                   <TableCell align="center">
                     {phrase.is_custom ? (
                       <Chip label={t('privateListManager.phrases.custom')} size="small" color="secondary" />
@@ -819,7 +859,7 @@ export default function PrivateListManager({ open, onClose, languageSetId }) {
                   <TableCell align="right">
                     <IconButton
                       size="small"
-                      onClick={() => handleRemovePhrase(phrase.id)}
+                      onClick={() => handleRemovePhrase(phrase.entry_id)}
                       color="error"
                       disabled={loading}
                     >

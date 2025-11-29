@@ -4,6 +4,7 @@ import random
 import re
 
 from fastapi import APIRouter, Body, Depends, HTTPException, Query, Request, status
+from fastapi.encoders import jsonable_encoder
 from fastapi.responses import JSONResponse, StreamingResponse
 from pydantic import BaseModel, Field
 
@@ -822,7 +823,7 @@ async def get_user_private_lists(language_set_id: int = Query(None), user=Depend
             phrase_count = await db_manager.get_private_list_phrase_count(list_info["id"])
             enriched_lists.append({**list_info, "phrase_count": phrase_count})
 
-        return JSONResponse(enriched_lists)
+        return JSONResponse(jsonable_encoder(enriched_lists))
     except Exception as e:
         logger.exception("Failed to get user private lists")
         raise HTTPException(status_code=500, detail=str(e))
@@ -878,6 +879,34 @@ async def get_private_list_phrases_endpoint(
     except Exception as e:
         logger.exception(f"Failed to get phrases from private list {list_id}")
         raise HTTPException(status_code=500, detail=str(e))
+
+
+@router.get("/user/private-lists/{list_id}/entries")
+@rate_limit(max_requests=30, window_seconds=60)
+async def get_private_list_entries_endpoint(list_id: int, user=Depends(get_current_user)) -> JSONResponse:
+    """Return all phrases in a private list for management interfaces"""
+    try:
+        list_info = await db_manager.get_private_list_by_id(list_id, user["id"])
+        if not list_info:
+            return JSONResponse({"error": "List not found"}, status_code=status.HTTP_404_NOT_FOUND)
+
+        entries = await db_manager.get_private_list_entries(list_id, user["id"], list_info=list_info)
+
+        return JSONResponse(
+            {
+                "list": {
+                    "id": list_info["id"],
+                    "list_name": list_info["list_name"],
+                    "language_set_id": list_info["language_set_id"],
+                    "is_system_list": list_info["is_system_list"],
+                },
+                "phrases": entries,
+            }
+        )
+
+    except Exception:
+        logger.exception(f"Failed to load entries for private list {list_id}")
+        raise HTTPException(status_code=500, detail="Failed to load list entries")
 
 
 @router.post("/user/private-lists")

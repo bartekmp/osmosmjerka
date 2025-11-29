@@ -515,72 +515,10 @@
         "system_list_indicator": "📝"
     },
     "privateListManager": {
-        "title": "Upravljanje Mojim Listama",
+        "title": "Upravljanje mojim listama",
         "tabs": {
-            "lists": "Moje Liste",
+            "lists": "Moje liste",
             "phrases": "Fraze"
-        },
-        "lists": {
-            "create_new": "Kreiraj Novu Listu",
-            "rename": "Preimenuj Listu",
-            "delete": "Izbriši Listu",
-            "delete_confirm": "Jeste li sigurni da želite izbrisati \"{{listName}}\"? Sve fraze u ovoj listi bit će uklonjene.",
-            "cannot_delete_system": "Sistemske liste se ne mogu izbrisati",
-            "cannot_rename_system": "Sistemske liste se ne mogu preimenovati",
-            "list_name": "Naziv Liste",
-            "list_name_placeholder": "Unesite naziv liste...",
-            "select_language_set": "Jezični Set",
-            "creating": "Kreiram...",
-            "deleting": "Brišem...",
-            "renaming": "Preimenujem..."
-        },
-        "phrases": {
-            "add_phrase": "Dodaj Frazu",
-            "add_custom_phrase": "Dodaj Vlastitu Frazu",
-            "add_public_phrase": "Dodaj iz Javnih Fraza",
-            "remove_phrase": "Ukloni",
-            "remove_selected": "Ukloni Odabrane",
-            "remove_confirm": "Ukloniti ovu frazu iz liste?",
-            "remove_confirm_multiple": "Ukloniti {{count}} fraza iz liste?",
-            "phrase_text": "Fraza",
-            "translation": "Prijevod",
-            "categories": "Kategorije (odvojene razmakom)",
-            "categories_placeholder": "npr. Životinje Kućni_ljubimci",
-            "phrase_placeholder": "Unesite frazu...",
-            "translation_placeholder": "Unesite prijevod...",
-            "search_public_phrases": "Pretraži javne fraze...",
-            "custom": "Vlastita",
-            "public": "Javna",
-            "no_phrases": "Još nema fraza u ovoj listi",
-            "select_list_first": "Odaberite listu za pregled fraza",
-            "adding": "Dodajem..."
-        },
-        "validation": {
-            "name_required": "Naziv liste je obavezan",
-            "name_too_long": "Naziv liste je predug (max 100 znakova)",
-            "name_duplicate": "Lista s ovim nazivom već postoji",
-            "language_set_required": "Jezični set je obavezan",
-            "phrase_required": "Tekst fraze je obavezan",
-            "translation_required": "Prijevod je obavezan",
-            "phrase_too_short": "Fraza mora imati najmanje 3 znaka",
-            "select_phrases": "Molimo odaberite fraze za uklanjanje"
-        },
-        "success": {
-            "list_created": "Lista \"{{listName}}\" uspješno kreirana",
-            "list_renamed": "Lista preimenovana u \"{{listName}}\"",
-            "list_deleted": "Lista uspješno izbrisana",
-            "phrase_added": "Fraza uspješno dodana",
-            "phrase_removed": "Fraza uspješno uklonjena",
-            "phrases_removed": "{{count}} fraza uspješno uklonjeno"
-        },
-        "errors": {
-            "load_failed": "Neuspješno učitavanje lista",
-            "create_failed": "Neuspješno kreiranje liste",
-            "rename_failed": "Neuspješno preimenovanje liste",
-            "delete_failed": "Neuspješno brisanje liste",
-            "add_phrase_failed": "Neuspješno dodavanje fraze",
-            "remove_phrase_failed": "Neuspješno uklanjanje fraze",
-            "already_exists": "Ova fraza već postoji u listi"
         },
         "buttons": {
             "create": "Kreiraj",
@@ -588,10 +526,62 @@
             "save": "Spremi",
             "delete": "Izbriši",
             "add": "Dodaj",
-            "remove": "Ukloni",
-            "close": "Zatvori",
-            "select_all": "Odaberi Sve",
-            "deselect_all": "Poništi Odabir"
+            "close": "Zatvori"
+        },
+        "lists": {
+            "title": "Moje liste",
+            "createNew": "Kreiraj novu listu",
+            "noLists": "Još nemate lista",
+            "listName": "Naziv liste",
+            "phraseCount": "Fraze",
+            "actions": "Radnje",
+            "systemList": "Sustav",
+            "cannotRenameSystem": "Sistemske liste se ne mogu preimenovati",
+            "cannotDeleteSystem": "Sistemske liste se ne mogu izbrisati",
+            "confirmDelete": "Izbriši listu",
+            "deleteWarning": "Jeste li sigurni da želite izbrisati \"{{name}}\"? Sve fraze bit će uklonjene."
+        },
+        "phrases": {
+            "title": "Fraze u \"{{listName}}\"",
+            "selectListFirst": "Odaberite listu za prikaz fraza",
+            "addCustom": "Dodaj vlastitu frazu",
+            "removeSelected": "Ukloni odabrane ({{count}})",
+            "noPhrases": "Ova lista još nema fraza",
+            "phrase": "Fraza",
+            "translation": "Prijevod",
+            "categories": "Kategorije",
+            "categoriesOptional": "Opcionalno, popis kategorija odvojenih razmacima",
+            "addedAt": "Dodano",
+            "type": "Vrsta",
+            "actions": "Radnje",
+            "custom": "Vlastita",
+            "public": "Javna"
+        },
+        "validation": {
+            "listNameRequired": "Naziv liste je obavezan",
+            "listNameTooLong": "Naziv liste je predug (max 100 znakova)",
+            "maxLength": "Najviše {{max}} znakova",
+            "phraseRequired": "Tekst fraze je obavezan",
+            "translationRequired": "Prijevod je obavezan",
+            "selectPhrasesToRemove": "Odaberite barem jednu frazu",
+            "selectListFirst": "Prvo odaberite listu"
+        },
+        "success": {
+            "listCreated": "Lista je uspješno kreirana",
+            "listRenamed": "Lista je uspješno preimenovana",
+            "listDeleted": "Lista je uspješno izbrisana",
+            "phraseAdded": "Fraza je dodana",
+            "phraseRemoved": "Fraza je uklonjena",
+            "phrasesRemoved": "{{count}} fraza je uklonjeno"
+        },
+        "errors": {
+            "load_failed": "Neuspješno učitavanje podataka",
+            "createListFailed": "Neuspješno kreiranje liste",
+            "renameListFailed": "Neuspješno preimenovanje liste",
+            "deleteListFailed": "Neuspješno brisanje liste",
+            "addPhraseFailed": "Neuspješno dodavanje fraze",
+            "removePhraseFailed": "Neuspješno uklanjanje fraze",
+            "removeSelectedFailed": "Neuspjelo uklanjanje odabranih fraza"
         }
     }
 }

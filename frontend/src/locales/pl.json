@@ -516,72 +516,10 @@
         "system_list_indicator": "📝"
     },
     "privateListManager": {
-        "title": "Zarządzanie Moimi Listami",
+        "title": "Zarządzanie moimi listami",
         "tabs": {
-            "lists": "Moje Listy",
+            "lists": "Moje listy",
             "phrases": "Frazy"
-        },
-        "lists": {
-            "create_new": "Utwórz Nową Listę",
-            "rename": "Zmień Nazwę Listy",
-            "delete": "Usuń Listę",
-            "delete_confirm": "Czy na pewno chcesz usunąć \"{{listName}}\"? Wszystkie frazy z tej listy zostaną usunięte.",
-            "cannot_delete_system": "Listy systemowe nie mogą być usunięte",
-            "cannot_rename_system": "Listy systemowe nie mogą być zmieniane",
-            "list_name": "Nazwa Listy",
-            "list_name_placeholder": "Wprowadź nazwę listy...",
-            "select_language_set": "Zestaw Językowy",
-            "creating": "Tworzenie...",
-            "deleting": "Usuwanie...",
-            "renaming": "Zmiana nazwy..."
-        },
-        "phrases": {
-            "add_phrase": "Dodaj Frazę",
-            "add_custom_phrase": "Dodaj Własną Frazę",
-            "add_public_phrase": "Dodaj z Publicznych Fraz",
-            "remove_phrase": "Usuń",
-            "remove_selected": "Usuń Zaznaczone",
-            "remove_confirm": "Usunąć tę frazę z listy?",
-            "remove_confirm_multiple": "Usunąć {{count}} fraz z listy?",
-            "phrase_text": "Fraza",
-            "translation": "Tłumaczenie",
-            "categories": "Kategorie (oddzielone spacją)",
-            "categories_placeholder": "np. Zwierzęta Zwierzęta_domowe",
-            "phrase_placeholder": "Wprowadź frazę...",
-            "translation_placeholder": "Wprowadź tłumaczenie...",
-            "search_public_phrases": "Szukaj publicznych fraz...",
-            "custom": "Własna",
-            "public": "Publiczna",
-            "no_phrases": "Brak fraz na tej liście",
-            "select_list_first": "Wybierz listę, aby zobaczyć jej frazy",
-            "adding": "Dodawanie..."
-        },
-        "validation": {
-            "name_required": "Nazwa listy jest wymagana",
-            "name_too_long": "Nazwa listy jest za długa (max 100 znaków)",
-            "name_duplicate": "Lista o tej nazwie już istnieje",
-            "language_set_required": "Zestaw językowy jest wymagany",
-            "phrase_required": "Tekst frazy jest wymagany",
-            "translation_required": "Tłumaczenie jest wymagane",
-            "phrase_too_short": "Fraza musi mieć co najmniej 3 znaki",
-            "select_phrases": "Proszę wybrać frazy do usunięcia"
-        },
-        "success": {
-            "list_created": "Lista \"{{listName}}\" została utworzona",
-            "list_renamed": "Zmieniono nazwę listy na \"{{listName}}\"",
-            "list_deleted": "Lista została usunięta",
-            "phrase_added": "Fraza została dodana",
-            "phrase_removed": "Fraza została usunięta",
-            "phrases_removed": "Usunięto {{count}} fraz"
-        },
-        "errors": {
-            "load_failed": "Nie udało się załadować list",
-            "create_failed": "Nie udało się utworzyć listy",
-            "rename_failed": "Nie udało się zmienić nazwy listy",
-            "delete_failed": "Nie udało się usunąć listy",
-            "add_phrase_failed": "Nie udało się dodać frazy",
-            "remove_phrase_failed": "Nie udało się usunąć frazy",
-            "already_exists": "Ta fraza już istnieje na liście"
         },
         "buttons": {
             "create": "Utwórz",
@@ -589,10 +527,62 @@
             "save": "Zapisz",
             "delete": "Usuń",
             "add": "Dodaj",
-            "remove": "Usuń",
-            "close": "Zamknij",
-            "select_all": "Zaznacz Wszystkie",
-            "deselect_all": "Odznacz Wszystkie"
+            "close": "Zamknij"
+        },
+        "lists": {
+            "title": "Moje listy",
+            "createNew": "Utwórz nową listę",
+            "noLists": "Nie masz jeszcze żadnych list",
+            "listName": "Nazwa listy",
+            "phraseCount": "Frazy",
+            "actions": "Działania",
+            "systemList": "System",
+            "cannotRenameSystem": "List systemowych nie można zmieniać",
+            "cannotDeleteSystem": "List systemowych nie można usuwać",
+            "confirmDelete": "Usuń listę",
+            "deleteWarning": "Czy na pewno usunąć \"{{name}}\"? Wszystkie frazy zostaną usunięte."
+        },
+        "phrases": {
+            "title": "Frazy w \"{{listName}}\"",
+            "selectListFirst": "Wybierz listę, aby zobaczyć frazy",
+            "addCustom": "Dodaj własną frazę",
+            "removeSelected": "Usuń zaznaczone ({{count}})",
+            "noPhrases": "Ta lista nie ma jeszcze fraz",
+            "phrase": "Fraza",
+            "translation": "Tłumaczenie",
+            "categories": "Kategorie",
+            "categoriesOptional": "Opcjonalnie, lista kategorii oddzielonych spacją",
+            "addedAt": "Dodano",
+            "type": "Typ",
+            "actions": "Działania",
+            "custom": "Własna",
+            "public": "Publiczna"
+        },
+        "validation": {
+            "listNameRequired": "Nazwa listy jest wymagana",
+            "listNameTooLong": "Nazwa listy jest za długa (max 100 znaków)",
+            "maxLength": "Maks. {{max}} znaków",
+            "phraseRequired": "Tekst frazy jest wymagany",
+            "translationRequired": "Tłumaczenie jest wymagane",
+            "selectPhrasesToRemove": "Wybierz co najmniej jedną frazę",
+            "selectListFirst": "Najpierw wybierz listę"
+        },
+        "success": {
+            "listCreated": "Lista została utworzona",
+            "listRenamed": "Nazwa listy została zmieniona",
+            "listDeleted": "Lista została usunięta",
+            "phraseAdded": "Fraza została dodana",
+            "phraseRemoved": "Fraza została usunięta",
+            "phrasesRemoved": "Usunięto {{count}} fraz"
+        },
+        "errors": {
+            "load_failed": "Nie udało się załadować danych",
+            "createListFailed": "Nie udało się utworzyć listy",
+            "renameListFailed": "Nie udało się zmienić nazwy listy",
+            "deleteListFailed": "Nie udało się usunąć listy",
+            "addPhraseFailed": "Nie udało się dodać frazy",
+            "removePhraseFailed": "Nie udało się usunąć frazy",
+            "removeSelectedFailed": "Nie udało się usunąć zaznaczonych fraz"
         }
     }
 }

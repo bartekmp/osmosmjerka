@@ -2034,32 +2034,31 @@ class DatabaseManager:
         result = await database.fetch_one(query)
         return result[0] if result else 0
 
-    async def get_private_list_phrases(
-        self, list_id: int, user_id: int, language_set_id: int, category: Optional[str] = None
+    async def get_private_list_entries(
+        self, list_id: int, user_id: int, list_info: Optional[Dict] = None
     ) -> List[Dict]:
-        """Get all phrases from a private list, with optional category filter"""
+        """Return all entries from a private list with metadata for management interfaces."""
         database = self._ensure_database()
 
-        # Verify ownership
-        list_info = await self.get_private_list_by_id(list_id, user_id)
+        if list_info is None:
+            list_info = await self.get_private_list_by_id(list_id, user_id)
         if not list_info:
             return []
 
-        # Get the language set info for dynamic table lookup
-        language_set = await self.get_language_set_by_id(language_set_id)
+        language_set = await self.get_language_set_by_id(list_info["language_set_id"])
         if not language_set:
             return []
 
         phrase_table = self._get_phrase_table(language_set["name"])
 
-        # Query to get phrases from the list
         query = (
             select(
-                user_private_list_phrases_table.c.id.label("list_phrase_id"),
+                user_private_list_phrases_table.c.id.label("entry_id"),
                 user_private_list_phrases_table.c.phrase_id,
                 user_private_list_phrases_table.c.custom_phrase,
                 user_private_list_phrases_table.c.custom_translation,
                 user_private_list_phrases_table.c.custom_categories,
+                user_private_list_phrases_table.c.added_at,
                 phrase_table.c.id.label("public_id"),
                 phrase_table.c.phrase.label("public_phrase"),
                 phrase_table.c.translation.label("public_translation"),
@@ -2071,41 +2070,67 @@ class DatabaseManager:
                 )
             )
             .where(user_private_list_phrases_table.c.list_id == list_id)
+            .order_by(user_private_list_phrases_table.c.added_at.desc(), user_private_list_phrases_table.c.id.desc())
         )
 
         result = await database.fetch_all(query)
-        phrases = []
+        entries: List[Dict] = []
 
         for row in result:
             row_dict = dict(row)
+            is_custom = row_dict["phrase_id"] is None
+            phrase_text = row_dict["custom_phrase"] if is_custom else row_dict["public_phrase"]
+            translation = row_dict["custom_translation"] if is_custom else row_dict["public_translation"]
+            categories = (row_dict["custom_categories"] if is_custom else row_dict["public_categories"]) or ""
 
-            # Determine if it's a custom phrase or a public phrase
-            if row_dict["phrase_id"] is None:
-                # Custom phrase
-                phrase_data = {
-                    "id": None,  # Custom phrases don't have a public ID
-                    "phrase": row_dict["custom_phrase"],
-                    "translation": row_dict["custom_translation"],
-                    "categories": row_dict["custom_categories"] or "",
-                }
-            else:
-                # Public phrase
-                phrase_data = {
-                    "id": row_dict["public_id"],
-                    "phrase": row_dict["public_phrase"],
-                    "translation": row_dict["public_translation"],
-                    "categories": row_dict["public_categories"] or "",
-                }
+            if not phrase_text:
+                continue
 
-            # Apply category filter if specified
+            entries.append(
+                {
+                    "entry_id": row_dict["entry_id"],
+                    "phrase_id": row_dict["phrase_id"] if row_dict["phrase_id"] is not None else row_dict["public_id"],
+                    "phrase": phrase_text,
+                    "translation": translation or "",
+                    "categories": categories,
+                    "is_custom": is_custom,
+                    "source": "custom" if is_custom else "public",
+                    "added_at": row_dict["added_at"].isoformat() if row_dict["added_at"] else None,
+                }
+            )
+
+        return entries
+
+    async def get_private_list_phrases(
+        self, list_id: int, user_id: int, language_set_id: int, category: Optional[str] = None
+    ) -> List[Dict]:
+        """Get all phrases from a private list for puzzle generation, with optional category filter"""
+
+        list_info = await self.get_private_list_by_id(list_id, user_id)
+        if not list_info or list_info["language_set_id"] != language_set_id:
+            return []
+
+        entries = await self.get_private_list_entries(list_id, user_id, list_info=list_info)
+        phrases: List[Dict] = []
+
+        for entry in entries:
+            phrase_text = entry["phrase"] or ""
+            if len(phrase_text.strip()) < 3:
+                continue
+
             if category:
-                phrase_categories = phrase_data["categories"].split()
+                phrase_categories = set(entry["categories"].split()) if entry["categories"] else set()
                 if category not in phrase_categories:
                     continue
 
-            # Only include phrases with at least 3 characters
-            if len(phrase_data["phrase"].strip()) >= 3:
-                phrases.append(phrase_data)
+            phrases.append(
+                {
+                    "id": entry["phrase_id"],
+                    "phrase": entry["phrase"],
+                    "translation": entry["translation"],
+                    "categories": entry["categories"],
+                }
+            )
 
         return phrases
 
