@@ -2,6 +2,17 @@
 
 <!-- version list -->
 
+## v1.34.4 (2025-12-03)
+
+### Chores
+
+- **deps**: Update node.js to v24 ([#114](https://github.com/bartekmp/osmosmjerka/pull/114),
+  [`db4fba0`](https://github.com/bartekmp/osmosmjerka/commit/db4fba0dd460ece184dbd64b9cdc0f4adacfba82))
+
+- **deps**: Update python dependencies ([#113](https://github.com/bartekmp/osmosmjerka/pull/113),
+  [`20c82e0`](https://github.com/bartekmp/osmosmjerka/commit/20c82e081723299138db56fdd087e976c36f7969))
+
+
 ## v1.34.3 (2025-11-25)
 
 ### Bugfix
