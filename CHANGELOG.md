@@ -2,6 +2,14 @@
 
 <!-- version list -->
 
+## v1.34.5 (2025-12-05)
+
+### Chores
+
+- **deps**: Update python dependencies ([#115](https://github.com/bartekmp/osmosmjerka/pull/115),
+  [`644367a`](https://github.com/bartekmp/osmosmjerka/commit/644367a57c3469a9c78493377dcc28fe7441635f))
+
+
 ## v1.34.4 (2025-12-03)
 
 ### Chores
