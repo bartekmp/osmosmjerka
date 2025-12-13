@@ -2,6 +2,22 @@
 
 <!-- version list -->
 
+## v1.34.6 (2025-12-13)
+
+### Chores
+
+- **deps**: Update dependency fastapi to v0.123.10
+  ([#116](https://github.com/bartekmp/osmosmjerka/pull/116),
+  [`3e1f8ae`](https://github.com/bartekmp/osmosmjerka/commit/3e1f8ae63da3e82f816fea6060cbe216bdd6b9c9))
+
+- **deps**: Update dependency fastapi to v0.124.0
+  ([#117](https://github.com/bartekmp/osmosmjerka/pull/117),
+  [`7ae1ddf`](https://github.com/bartekmp/osmosmjerka/commit/7ae1ddf03d1c521bd98e46447ae7d293a4acefb5))
+
+- **deps**: Update python dependencies
+  ([`d1d77e5`](https://github.com/bartekmp/osmosmjerka/commit/d1d77e524e4cadcc3e6e4d976336a5c412a1b27a))
+
+
 ## v1.34.5 (2025-12-05)
 
 ### Chores
