@@ -8,7 +8,7 @@ import PropTypes from 'prop-types';
 import { ResponsiveActionButton, STORAGE_KEYS } from '../../../shared';
 import PastePhraseDialog from './AdminPanel/PastePhraseDialog';
 
-export default function UploadForm({ onUpload, selectedLanguageSetId, compact = false, forceMobileText = false }) {
+export default function UploadForm({ onUpload, selectedLanguageSetId = null, compact = false, forceMobileText = false }) {
     const { t } = useTranslation();
     const fileInputRef = useRef();
     const [loading, setLoading] = useState(false);
@@ -178,10 +178,4 @@ UploadForm.propTypes = {
     selectedLanguageSetId: PropTypes.oneOfType([PropTypes.number, PropTypes.oneOf([null])]),
     compact: PropTypes.bool,
     forceMobileText: PropTypes.bool
-};
-
-UploadForm.defaultProps = {
-    selectedLanguageSetId: null,
-    compact: false,
-    forceMobileText: false
 };

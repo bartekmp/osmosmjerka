@@ -20,7 +20,9 @@ import {
   Box,
   Typography,
   CircularProgress,
-  Checkbox
+  Checkbox,
+  Pagination,
+  Stack
 } from '@mui/material';
 import DeleteIcon from '@mui/icons-material/Delete';
 import EditIcon from '@mui/icons-material/Edit';
@@ -30,6 +32,7 @@ import CancelIcon from '@mui/icons-material/Cancel';
 import UploadFileIcon from '@mui/icons-material/UploadFile';
 import ShareIcon from '@mui/icons-material/Share';
 import BarChartIcon from '@mui/icons-material/BarChart';
+import DownloadIcon from '@mui/icons-material/Download';
 import { useTranslation } from 'react-i18next';
 import axios from 'axios';
 import { STORAGE_KEYS } from '../../../shared/constants/constants';
@@ -56,7 +59,7 @@ export default function PrivateListManager({ open, onClose, languageSetId }) {
   const [customPhrase, setCustomPhrase] = useState('');
   const [customTranslation, setCustomTranslation] = useState('');
   const [customCategories, setCustomCategories] = useState('');
-  
+
   // Batch Import State
   const [showImportDialog, setShowImportDialog] = useState(false);
   const [importFile, setImportFile] = useState(null);
@@ -84,8 +87,16 @@ export default function PrivateListManager({ open, onClose, languageSetId }) {
     setSelectedPhrases(new Set());
   }, [selectedListId]);
 
-  // Fetch all lists for the selected language set
-  const fetchLists = useCallback(async () => {
+  // Pagination state for lists
+  const [listsPagination, setListsPagination] = useState({
+    limit: 50,
+    offset: 0,
+    total: 0,
+    hasMore: false
+  });
+
+  // Fetch paginated lists for the selected language set
+  const fetchLists = useCallback(async (reset = false) => {
     if (!languageSetId) {
       setLists([]);
       setSelectedListId(null);
@@ -96,24 +107,37 @@ export default function PrivateListManager({ open, onClose, languageSetId }) {
 
     setLoading(true);
     try {
+      const offset = reset ? 0 : listsPagination.offset;
       const response = await axios.get('/api/user/private-lists', {
-        params: { language_set_id: languageSetId },
+        params: {
+          language_set_id: languageSetId,
+          limit: listsPagination.limit,
+          offset: offset
+        },
         headers: getAuthHeader()
       });
 
-      const fetchedLists = Array.isArray(response.data?.lists)
-        ? response.data.lists
-        : Array.isArray(response.data)
-          ? response.data
-          : [];
+      const data = response.data;
+      const fetchedLists = Array.isArray(data?.lists) ? data.lists : [];
 
-      setLists(fetchedLists);
+      if (reset) {
+        setLists(fetchedLists);
+      } else {
+        setLists(prev => [...prev, ...fetchedLists]);
+      }
 
-      if (fetchedLists.length === 0) {
+      setListsPagination(prev => ({
+        ...prev,
+        offset: offset + fetchedLists.length,
+        total: data.total || 0,
+        hasMore: data.has_more || false
+      }));
+
+      if (fetchedLists.length === 0 && reset) {
         setSelectedListId(null);
         setPhrases([]);
         setSelectedPhrases(new Set());
-      } else if (!selectedListId || !fetchedLists.some((list) => list.id === selectedListId)) {
+      } else if (reset && fetchedLists.length > 0 && (!selectedListId || !fetchedLists.some((list) => list.id === selectedListId))) {
         setSelectedListId(fetchedLists[0].id);
       }
     } catch (error) {
@@ -122,10 +146,18 @@ export default function PrivateListManager({ open, onClose, languageSetId }) {
     } finally {
       setLoading(false);
     }
-  }, [languageSetId, selectedListId, getAuthHeader, t]);
+  }, [languageSetId, selectedListId, listsPagination.limit, getAuthHeader, t]);
 
-  // Fetch phrases from selected list
-  const fetchPhrases = useCallback(async () => {
+  // Pagination state for phrases
+  const [phrasesPagination, setPhrasesPagination] = useState({
+    limit: 100,
+    offset: 0,
+    total: 0,
+    hasMore: false
+  });
+
+  // Fetch paginated phrases from selected list
+  const fetchPhrases = useCallback(async (reset = false) => {
     if (!selectedListId) {
       setPhrases([]);
       setSelectedPhrases(new Set());
@@ -134,10 +166,31 @@ export default function PrivateListManager({ open, onClose, languageSetId }) {
 
     setLoading(true);
     try {
+      const offset = reset ? 0 : phrasesPagination.offset;
       const response = await axios.get(`/api/user/private-lists/${selectedListId}/entries`, {
+        params: {
+          limit: phrasesPagination.limit,
+          offset: offset
+        },
         headers: getAuthHeader()
       });
-      setPhrases(response.data.phrases || []);
+
+      const data = response.data;
+      const fetchedPhrases = Array.isArray(data?.entries) ? data.entries : (Array.isArray(data?.phrases) ? data.phrases : []);
+
+      if (reset) {
+        setPhrases(fetchedPhrases);
+      } else {
+        setPhrases(prev => [...prev, ...fetchedPhrases]);
+      }
+
+      setPhrasesPagination(prev => ({
+        ...prev,
+        offset: offset + fetchedPhrases.length,
+        total: data.total || 0,
+        hasMore: data.has_more || false
+      }));
+
       setSelectedPhrases(new Set());
     } catch (error) {
       console.error('Failed to fetch phrases:', error);
@@ -145,20 +198,81 @@ export default function PrivateListManager({ open, onClose, languageSetId }) {
     } finally {
       setLoading(false);
     }
-  }, [selectedListId, getAuthHeader, t]);
+  }, [selectedListId, phrasesPagination.limit, phrasesPagination.offset, getAuthHeader, t]);
 
-  // Load data when dialog opens or tab changes
+  // Load data when dialog opens or language set changes
   useEffect(() => {
-    if (open) {
-      fetchLists();
+    if (open && languageSetId) {
+      setListsPagination({ limit: 50, offset: 0, total: 0, hasMore: false });
+      // Use a ref to avoid dependency issues
+      const fetchData = async () => {
+        setLoading(true);
+        try {
+          const response = await axios.get('/api/user/private-lists', {
+            params: {
+              language_set_id: languageSetId,
+              limit: 50,
+              offset: 0
+            },
+            headers: getAuthHeader()
+          });
+          const data = response.data;
+          const fetchedLists = Array.isArray(data?.lists) ? data.lists : [];
+          setLists(fetchedLists);
+          setListsPagination({
+            limit: 50,
+            offset: fetchedLists.length,
+            total: data.total || 0,
+            hasMore: data.has_more || false
+          });
+          if (fetchedLists.length > 0 && (!selectedListId || !fetchedLists.some((list) => list.id === selectedListId))) {
+            setSelectedListId(fetchedLists[0].id);
+          }
+        } catch (error) {
+          console.error('Failed to fetch lists:', error);
+          showNotification(t('privateListManager.errors.load_failed'), 'error');
+        } finally {
+          setLoading(false);
+        }
+      };
+      fetchData();
     }
-  }, [open, fetchLists]);
+  }, [open, languageSetId]);
 
+  // Load phrases when tab changes or list selection changes
   useEffect(() => {
     if (open && activeTab === 1 && selectedListId) {
-      fetchPhrases();
+      setPhrasesPagination({ limit: 100, offset: 0, total: 0, hasMore: false });
+      const fetchData = async () => {
+        setLoading(true);
+        try {
+          const response = await axios.get(`/api/user/private-lists/${selectedListId}/entries`, {
+            params: {
+              limit: 100,
+              offset: 0
+            },
+            headers: getAuthHeader()
+          });
+          const data = response.data;
+          const fetchedPhrases = Array.isArray(data?.entries) ? data.entries : (Array.isArray(data?.phrases) ? data.phrases : []);
+          setPhrases(fetchedPhrases);
+          setPhrasesPagination({
+            limit: 100,
+            offset: fetchedPhrases.length,
+            total: data.total || 0,
+            hasMore: data.has_more || false
+          });
+          setSelectedPhrases(new Set());
+        } catch (error) {
+          console.error('Failed to fetch phrases:', error);
+          showNotification(t('privateListManager.errors.load_failed'), 'error');
+        } finally {
+          setLoading(false);
+        }
+      };
+      fetchData();
     }
-  }, [open, activeTab, selectedListId, fetchPhrases]);
+  }, [open, activeTab, selectedListId]);
 
   const showNotification = (message, severity = 'success') => {
     setNotification({ message, severity });
@@ -197,7 +311,7 @@ export default function PrivateListManager({ open, onClose, languageSetId }) {
       showNotification(t('privateListManager.success.listCreated'), 'success');
       setNewListName('');
       setShowCreateDialog(false);
-      await fetchLists();
+      await fetchLists(true);
     } catch (error) {
       console.error('Failed to create list:', error);
       const message = error.response?.data?.detail || t('privateListManager.errors.createListFailed');
@@ -239,7 +353,7 @@ export default function PrivateListManager({ open, onClose, languageSetId }) {
       showNotification(t('privateListManager.success.listRenamed'), 'success');
       setEditingListId(null);
       setEditingListName('');
-      await fetchLists();
+      await fetchLists(true);
     } catch (error) {
       console.error('Failed to rename list:', error);
       const message = error.response?.data?.detail || t('privateListManager.errors.renameListFailed');
@@ -264,13 +378,13 @@ export default function PrivateListManager({ open, onClose, languageSetId }) {
 
       showNotification(t('privateListManager.success.listDeleted'), 'success');
       setDeleteConfirmation(null);
-      
+
       // Clear selection if deleted list was selected
       if (selectedListId === deleteConfirmation.id) {
         setSelectedListId(null);
       }
-      
-      await fetchLists();
+
+      await fetchLists(true);
     } catch (error) {
       console.error('Failed to delete list:', error);
       const message = error.response?.data?.detail || t('privateListManager.errors.deleteListFailed');
@@ -308,8 +422,8 @@ export default function PrivateListManager({ open, onClose, languageSetId }) {
       setCustomTranslation('');
       setCustomCategories('');
       setShowAddCustomDialog(false);
-      await fetchPhrases();
-      await fetchLists(); // Update phrase count
+      await fetchPhrases(true);
+      await fetchLists(true); // Update phrase count
     } catch (error) {
       console.error('Failed to add custom phrase:', error);
       const message = error.response?.data?.detail || t('privateListManager.errors.addPhraseFailed');
@@ -326,17 +440,29 @@ export default function PrivateListManager({ open, onClose, languageSetId }) {
 
     setLoading(true);
     try {
-      await axios.delete(`/api/user/private-lists/${selectedListId}/phrases/${phraseEntryId}`, {
+      const _ = await axios.delete(`/api/user/private-lists/${selectedListId}/phrases/${phraseEntryId}`, {
         headers: getAuthHeader()
       });
 
       showNotification(t('privateListManager.success.phraseRemoved'), 'success');
-      await fetchPhrases();
-      await fetchLists(); // Update phrase count
+      await fetchPhrases(true);
+      await fetchLists(true); // Update phrase count
     } catch (error) {
       console.error('Failed to remove phrase:', error);
-      const message = error.response?.data?.detail || t('privateListManager.errors.removePhraseFailed');
-      showNotification(message, 'error');
+      const message = error.response?.data?.detail || error.response?.data?.error || t('privateListManager.errors.removePhraseFailed');
+
+      // Even if there's an error, refresh the list in case the deletion actually succeeded
+      // (sometimes the backend returns an error but the deletion still happens)
+      await fetchPhrases(true);
+      await fetchLists(true);
+
+      // Only show error if it's not a 404 (phrase not found might mean it was already deleted)
+      if (error.response?.status !== 404) {
+        showNotification(message, 'error');
+      } else {
+        // For 404, show a less alarming message since deletion might have succeeded
+        showNotification(t('privateListManager.success.phraseRemoved'), 'success');
+      }
     } finally {
       setLoading(false);
     }
@@ -357,21 +483,24 @@ export default function PrivateListManager({ open, onClose, languageSetId }) {
         const content = e.target.result;
         let parsedData = [];
 
-        if (file.name.endsWith('.json')) {
-          parsedData = JSON.parse(content);
-        } else if (file.name.endsWith('.csv')) {
+        if (file.name.endsWith('.csv')) {
           // Simple CSV parser
           const lines = content.split('\n').filter(line => line.trim());
-          const headers = lines[0].split(',').map(h => h.trim().toLowerCase());
-          
+          if (lines.length === 0) {
+            throw new Error('Empty file');
+          }
+          const headers = lines[0].split(';').map(h => h.trim().toLowerCase());
+
           parsedData = lines.slice(1).map(line => {
-            const values = line.split(',').map(v => v.trim());
+            const values = line.split(';').map(v => v.trim());
             const obj = {};
             headers.forEach((header, idx) => {
               obj[header] = values[idx] || '';
             });
             return obj;
           });
+        } else {
+          throw new Error('Only CSV files are supported');
         }
 
         if (!Array.isArray(parsedData)) {
@@ -380,9 +509,9 @@ export default function PrivateListManager({ open, onClose, languageSetId }) {
 
         setImportData(parsedData);
         setImportPreview(parsedData.slice(0, 10)); // Show first 10 for preview
-        showNotification(`Loaded ${parsedData.length} phrases for import`, 'success');
+        showNotification(t('privateListManager.phrases.importLoaded', 'Loaded {{count}} phrases for import', { count: parsedData.length }), 'success');
       } catch (error) {
-        showNotification('Failed to parse file. Ensure correct JSON/CSV format.', 'error');
+        showNotification(t('privateListManager.errors.importParseFailed', 'Failed to parse file. Ensure correct CSV format.'), 'error');
         console.error('Parse error:', error);
       }
     };
@@ -411,8 +540,8 @@ export default function PrivateListManager({ open, onClose, languageSetId }) {
       );
 
       if (response.data.added_count > 0) {
-        await fetchPhrases();
-        await fetchLists();
+        await fetchPhrases(true);
+        await fetchLists(true);
       }
     } catch (error) {
       console.error('Batch import failed:', error);
@@ -462,7 +591,7 @@ export default function PrivateListManager({ open, onClose, languageSetId }) {
         { headers: getAuthHeader() }
       );
 
-      showNotification(`List shared with ${shareUsername}`, 'success');
+      showNotification(t('privateListManager.phrases.shareSuccess', 'List shared with {{username}}', { username: shareUsername }), 'success');
       setShareUsername('');
       await fetchListShares();
     } catch (error) {
@@ -487,6 +616,51 @@ export default function PrivateListManager({ open, onClose, languageSetId }) {
       showNotification('Failed to remove sharing', 'error');
     } finally {
       setLoading(false);
+    }
+  };
+
+  // ===== Export Functions =====
+
+  const handleExportList = async () => {
+    if (!selectedListId) {
+      showNotification(t('privateListManager.phrases.selectListFirst'), 'error');
+      return;
+    }
+
+    try {
+      const response = await axios.get(
+        `/api/user/private-lists/${selectedListId}/export`,
+        {
+          headers: getAuthHeader(),
+          responseType: 'blob',
+        }
+      );
+
+      // Create download link
+      const url = window.URL.createObjectURL(new Blob([response.data]));
+      const link = document.createElement('a');
+      link.href = url;
+
+      // Get filename from Content-Disposition header
+      const contentDisposition = response.headers['content-disposition'];
+      let filename = 'list_export.csv';
+      if (contentDisposition) {
+        const filenameMatch = contentDisposition.match(/filename="?(.+)"?/i);
+        if (filenameMatch) {
+          filename = filenameMatch[1];
+        }
+      }
+
+      link.setAttribute('download', filename);
+      document.body.appendChild(link);
+      link.click();
+      link.remove();
+      window.URL.revokeObjectURL(url);
+
+      showNotification(t('privateListManager.phrases.exportSuccess', 'List exported successfully'), 'success');
+    } catch (error) {
+      console.error('Export failed:', error);
+      showNotification(t('privateListManager.errors.exportFailed', 'Failed to export list'), 'error');
     }
   };
 
@@ -558,8 +732,8 @@ export default function PrivateListManager({ open, onClose, languageSetId }) {
 
       showNotification(t('privateListManager.success.phrasesRemoved', { count: entryIds.length }), 'success');
       setSelectedPhrases(new Set());
-      await fetchPhrases();
-      await fetchLists(); // Update phrase count
+      await fetchPhrases(true);
+      await fetchLists(true); // Update phrase count
     } catch (error) {
       console.error('Failed to remove phrases:', error);
       showNotification(t('privateListManager.errors.removeSelectedFailed'), 'error');
@@ -682,6 +856,69 @@ export default function PrivateListManager({ open, onClose, languageSetId }) {
           </Table>
         )}
 
+        {/* Pagination for Lists */}
+        {listsPagination.total > listsPagination.limit && (
+          <Box sx={{ mt: 2, display: 'flex', justifyContent: 'center' }}>
+            <Stack spacing={2}>
+              <Pagination
+                count={Math.ceil(listsPagination.total / listsPagination.limit)}
+                page={Math.floor(listsPagination.offset / listsPagination.limit) + 1}
+                onChange={async (event, page) => {
+                  const newOffset = (page - 1) * listsPagination.limit;
+                  setListsPagination(prev => ({ ...prev, offset: newOffset }));
+                  setLoading(true);
+                  try {
+                    const response = await axios.get('/api/user/private-lists', {
+                      params: {
+                        language_set_id: languageSetId,
+                        limit: listsPagination.limit,
+                        offset: newOffset
+                      },
+                      headers: getAuthHeader()
+                    });
+                    const data = response.data;
+                    const fetchedLists = Array.isArray(data?.lists) ? data.lists : [];
+                    setLists(fetchedLists);
+                    setListsPagination(prev => ({
+                      ...prev,
+                      offset: newOffset + fetchedLists.length,
+                      total: data.total || 0,
+                      hasMore: data.has_more || false
+                    }));
+                  } catch (error) {
+                    console.error('Failed to fetch lists:', error);
+                    showNotification(t('privateListManager.errors.load_failed'), 'error');
+                  } finally {
+                    setLoading(false);
+                  }
+                }}
+                color="primary"
+                size="small"
+              />
+              <Typography variant="caption" color="text.secondary" sx={{ textAlign: 'center' }}>
+                {t('privateListManager.lists.showing', {
+                  start: listsPagination.offset + 1,
+                  end: Math.min(listsPagination.offset + lists.length, listsPagination.total),
+                  total: listsPagination.total
+                })}
+              </Typography>
+            </Stack>
+          </Box>
+        )}
+
+        {/* Load More Button (alternative to pagination) */}
+        {listsPagination.hasMore && (
+          <Box sx={{ mt: 2, display: 'flex', justifyContent: 'center' }}>
+            <Button
+              variant="outlined"
+              onClick={() => fetchLists(false)}
+              disabled={loading}
+            >
+              {t('privateListManager.lists.loadMore')}
+            </Button>
+          </Box>
+        )}
+
         {/* Create List Dialog */}
         <Dialog open={showCreateDialog} onClose={() => setShowCreateDialog(false)}>
           <DialogTitle>{t('privateListManager.lists.createNew')}</DialogTitle>
@@ -716,12 +953,22 @@ export default function PrivateListManager({ open, onClose, languageSetId }) {
             <Typography>
               {t('privateListManager.lists.deleteWarning', { name: deleteConfirmation?.list_name })}
             </Typography>
+            {deleteConfirmation?.is_system && (
+              <Typography color="error" sx={{ mt: 2 }}>
+                {t('privateListManager.lists.cannotDeleteSystem')}
+              </Typography>
+            )}
           </DialogContent>
           <DialogActions>
             <Button onClick={() => setDeleteConfirmation(null)} disabled={loading}>
               {t('privateListManager.buttons.cancel')}
             </Button>
-            <Button onClick={handleConfirmDelete} color="error" variant="contained" disabled={loading}>
+            <Button
+              onClick={handleConfirmDelete}
+              color="error"
+              variant="contained"
+              disabled={loading || deleteConfirmation?.is_system}
+            >
               {t('privateListManager.buttons.delete')}
             </Button>
           </DialogActions>
@@ -766,7 +1013,7 @@ export default function PrivateListManager({ open, onClose, languageSetId }) {
               disabled={loading}
               size="small"
             >
-              Import CSV/JSON
+              {t('privateListManager.phrases.importCSV', 'Import CSV')}
             </Button>
             <Button
               variant="outlined"
@@ -778,7 +1025,17 @@ export default function PrivateListManager({ open, onClose, languageSetId }) {
               disabled={loading}
               size="small"
             >
-              Share List
+              {t('privateListManager.phrases.shareList', 'Share List')}
+            </Button>
+            <Button
+              variant="outlined"
+              startIcon={<DownloadIcon />}
+              onClick={handleExportList}
+              disabled={loading || !selectedListId}
+              size="small"
+              title={t('privateListManager.phrases.exportList', 'Export list as CSV')}
+            >
+              {t('privateListManager.phrases.exportCSV', 'Export CSV')}
             </Button>
             <Button
               variant="outlined"
@@ -790,7 +1047,7 @@ export default function PrivateListManager({ open, onClose, languageSetId }) {
               disabled={loading}
               size="small"
             >
-              Statistics
+              {t('privateListManager.phrases.statistics', 'Statistics')}
             </Button>
             {selectedPhrases.size > 0 && (
               <Button
@@ -872,6 +1129,69 @@ export default function PrivateListManager({ open, onClose, languageSetId }) {
           </Table>
         )}
 
+        {/* Pagination for Phrases */}
+        {phrasesPagination.total > phrasesPagination.limit && (
+          <Box sx={{ mt: 2, display: 'flex', justifyContent: 'center' }}>
+            <Stack spacing={2}>
+              <Pagination
+                count={Math.ceil(phrasesPagination.total / phrasesPagination.limit)}
+                page={Math.floor(phrasesPagination.offset / phrasesPagination.limit) + 1}
+                onChange={async (event, page) => {
+                  const newOffset = (page - 1) * phrasesPagination.limit;
+                  setPhrasesPagination(prev => ({ ...prev, offset: newOffset }));
+                  setLoading(true);
+                  try {
+                    const response = await axios.get(`/api/user/private-lists/${selectedListId}/entries`, {
+                      params: {
+                        limit: phrasesPagination.limit,
+                        offset: newOffset
+                      },
+                      headers: getAuthHeader()
+                    });
+                    const data = response.data;
+                    const fetchedPhrases = Array.isArray(data?.entries) ? data.entries : (Array.isArray(data?.phrases) ? data.phrases : []);
+                    setPhrases(fetchedPhrases);
+                    setPhrasesPagination(prev => ({
+                      ...prev,
+                      offset: newOffset + fetchedPhrases.length,
+                      total: data.total || 0,
+                      hasMore: data.has_more || false
+                    }));
+                    setSelectedPhrases(new Set());
+                  } catch (error) {
+                    console.error('Failed to fetch phrases:', error);
+                    showNotification(t('privateListManager.errors.load_failed'), 'error');
+                  } finally {
+                    setLoading(false);
+                  }
+                }}
+                color="primary"
+                size="small"
+              />
+              <Typography variant="caption" color="text.secondary" sx={{ textAlign: 'center' }}>
+                {t('privateListManager.phrases.showing', {
+                  start: phrasesPagination.offset + 1,
+                  end: Math.min(phrasesPagination.offset + phrases.length, phrasesPagination.total),
+                  total: phrasesPagination.total
+                })}
+              </Typography>
+            </Stack>
+          </Box>
+        )}
+
+        {/* Load More Button for Phrases */}
+        {phrasesPagination.hasMore && (
+          <Box sx={{ mt: 2, display: 'flex', justifyContent: 'center' }}>
+            <Button
+              variant="outlined"
+              onClick={() => fetchPhrases(false)}
+              disabled={loading}
+            >
+              {t('privateListManager.phrases.loadMore')}
+            </Button>
+          </Box>
+        )}
+
         {/* Add Custom Phrase Dialog */}
         <Dialog open={showAddCustomDialog} onClose={() => setShowAddCustomDialog(false)} maxWidth="sm" fullWidth>
           <DialogTitle>{t('privateListManager.phrases.addCustom')}</DialogTitle>
@@ -922,7 +1242,13 @@ export default function PrivateListManager({ open, onClose, languageSetId }) {
         <DialogContent>
           <Tabs value={activeTab} onChange={handleTabChange} sx={{ borderBottom: 1, borderColor: 'divider' }}>
             <Tab label={t('privateListManager.tabs.lists')} />
-            <Tab label={t('privateListManager.tabs.phrases')} />
+            <Tab
+              label={
+                selectedListId && lists.find(l => l.id === selectedListId)
+                  ? `${t('privateListManager.tabs.phrases')} - ${lists.find(l => l.id === selectedListId).list_name}`
+                  : t('privateListManager.tabs.phrases')
+              }
+            />
           </Tabs>
           <Box sx={{ mt: 2 }}>
             {activeTab === 0 && renderListsTab()}
@@ -948,11 +1274,11 @@ export default function PrivateListManager({ open, onClose, languageSetId }) {
 
       {/* Batch Import Dialog */}
       <Dialog open={showImportDialog} onClose={handleCloseImportDialog} maxWidth="md" fullWidth>
-        <DialogTitle>Import Phrases from CSV/JSON</DialogTitle>
+        <DialogTitle>{t('privateListManager.phrases.importTitle', 'Import Phrases from CSV')}</DialogTitle>
         <DialogContent>
           <Box sx={{ mb: 2 }}>
             <Typography variant="body2" color="text.secondary" gutterBottom>
-              Upload a CSV or JSON file with phrases. Format: phrase, translation, categories (optional)
+              {t('privateListManager.phrases.importDescription', 'Upload a CSV file with phrases. Format: phrase; translation; categories (optional)')}
             </Typography>
             <Button
               variant="contained"
@@ -964,7 +1290,7 @@ export default function PrivateListManager({ open, onClose, languageSetId }) {
               <input
                 type="file"
                 hidden
-                accept=".csv,.json"
+                accept=".csv"
                 onChange={handleFileSelect}
               />
             </Button>
@@ -1023,9 +1349,9 @@ export default function PrivateListManager({ open, onClose, languageSetId }) {
         </DialogContent>
         <DialogActions>
           <Button onClick={handleCloseImportDialog}>Close</Button>
-          <Button 
-            onClick={handleBatchImport} 
-            variant="contained" 
+          <Button
+            onClick={handleBatchImport}
+            variant="contained"
             disabled={loading || importData.length === 0}
           >
             Import {importData.length} Phrases
@@ -1035,25 +1361,25 @@ export default function PrivateListManager({ open, onClose, languageSetId }) {
 
       {/* Share List Dialog */}
       <Dialog open={showShareDialog} onClose={() => setShowShareDialog(false)} maxWidth="sm" fullWidth>
-        <DialogTitle>Share List</DialogTitle>
+        <DialogTitle>{t('privateListManager.phrases.shareList', 'Share List')}</DialogTitle>
         <DialogContent>
           <Box sx={{ mb: 2 }}>
             <TextField
               fullWidth
-              label="Username"
+              label={t('privateListManager.phrases.shareUsername', 'Username')}
               value={shareUsername}
               onChange={(e) => setShareUsername(e.target.value)}
               margin="dense"
             />
             <Box sx={{ mt: 1, display: 'flex', gap: 1 }}>
               <Chip
-                label="Read Only"
+                label={t('privateListManager.phrases.shareReadOnly', 'Read Only')}
                 color={sharePermission === 'read' ? 'primary' : 'default'}
                 onClick={() => setSharePermission('read')}
                 clickable
               />
               <Chip
-                label="Read & Write"
+                label={t('privateListManager.phrases.shareReadWrite', 'Read & Write')}
                 color={sharePermission === 'write' ? 'primary' : 'default'}
                 onClick={() => setSharePermission('write')}
                 clickable
@@ -1066,24 +1392,24 @@ export default function PrivateListManager({ open, onClose, languageSetId }) {
               sx={{ mt: 2 }}
               fullWidth
             >
-              Share
+              {t('privateListManager.buttons.share', 'Share')}
             </Button>
           </Box>
 
           <Typography variant="subtitle2" gutterBottom>
-            Currently shared with:
+            {t('privateListManager.phrases.currentlyShared', 'Currently shared with:')}
           </Typography>
           {listShares.length === 0 ? (
             <Typography variant="body2" color="text.secondary">
-              Not shared with anyone
+              {t('privateListManager.phrases.notShared', 'Not shared with anyone')}
             </Typography>
           ) : (
             <Table size="small">
               <TableHead>
                 <TableRow>
-                  <TableCell>User</TableCell>
-                  <TableCell>Permission</TableCell>
-                  <TableCell align="right">Actions</TableCell>
+                  <TableCell>{t('privateListManager.phrases.user', 'User')}</TableCell>
+                  <TableCell>{t('privateListManager.phrases.permission', 'Permission')}</TableCell>
+                  <TableCell align="right">{t('privateListManager.phrases.actions', 'Actions')}</TableCell>
                 </TableRow>
               </TableHead>
               <TableBody>
@@ -1114,13 +1440,13 @@ export default function PrivateListManager({ open, onClose, languageSetId }) {
           )}
         </DialogContent>
         <DialogActions>
-          <Button onClick={() => setShowShareDialog(false)}>Close</Button>
+          <Button onClick={() => setShowShareDialog(false)}>{t('privateListManager.buttons.close')}</Button>
         </DialogActions>
       </Dialog>
 
       {/* Statistics Dialog */}
       <Dialog open={showStatsDialog} onClose={() => setShowStatsDialog(false)} maxWidth="sm" fullWidth>
-        <DialogTitle>List Statistics</DialogTitle>
+        <DialogTitle>{t('privateListManager.phrases.statisticsTitle', 'List Statistics')}</DialogTitle>
         <DialogContent>
           {listStats ? (
             <Box>
@@ -1163,7 +1489,7 @@ export default function PrivateListManager({ open, onClose, languageSetId }) {
           {userStats && (
             <Box sx={{ mt: 3 }}>
               <Typography variant="h6" gutterBottom>
-                Your Overall Statistics
+                {t('privateListManager.phrases.overallStatistics', 'Your Overall Statistics')}
               </Typography>
               <Table size="small">
                 <TableBody>

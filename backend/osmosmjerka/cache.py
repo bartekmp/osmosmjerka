@@ -79,7 +79,12 @@ rate_limiter = RateLimiter()
 
 
 def rate_limit(max_requests: int, window_seconds: int):
-    """Decorator to add rate limiting to FastAPI endpoints."""
+    """Decorator to add rate limiting to FastAPI endpoints.
+
+    Rate limiting is skipped for:
+    - Test environment (TESTING=true)
+    - Root admin users (role="root_admin")
+    """
 
     def decorator(func):
         @wraps(func)
@@ -98,6 +103,12 @@ def rate_limit(max_requests: int, window_seconds: int):
             # Try to get user from kwargs
             if not user:
                 user = kwargs.get("user")
+
+            # Skip rate limiting for root admin users
+            if user and isinstance(user, dict):
+                user_role = user.get("role")
+                if user_role == "root_admin":
+                    return await func(*args, **kwargs)
 
             # Create identifier
             if user and isinstance(user, dict) and "id" in user:

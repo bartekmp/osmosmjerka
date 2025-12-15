@@ -42,7 +42,7 @@ export function restoreGameState(setters) {
                 if (setIsPaused) {
                     setIsPaused(!!state.isPaused);
                 }
-                
+
                 // Restore timer state if available
                 if (state.elapsedTimeSeconds !== undefined) {
                     if (setCurrentElapsedTime) {
@@ -55,7 +55,7 @@ export function restoreGameState(setters) {
                         setGameStartTime(adjustedStartTime);
                     }
                 }
-                
+
                 if (setGridStatus) {
                     setGridStatus('success');
                 }
@@ -99,12 +99,13 @@ export function loadPuzzle(category, diff, setters, t, languageSetId = null, ref
 
     // Build API URL - use private list endpoint if privateListId is provided
     let apiUrl;
-    const token = localStorage.getItem('osmosmjerka-admin-token');
-    
+    const token = localStorage.getItem(STORAGE_KEYS.ADMIN_TOKEN);
+
     if (privateListId) {
         // Use private list endpoint (requires authentication)
         apiUrl = `/api/user/private-lists/${privateListId}/phrases?language_set_id=${languageSetId}&difficulty=${diff}`;
-        if (category) {
+        // "ALL" means no category filter - don't include category parameter
+        if (category && category !== "ALL") {
             apiUrl += `&category=${category}`;
         }
         if (refresh) {
@@ -112,7 +113,11 @@ export function loadPuzzle(category, diff, setters, t, languageSetId = null, ref
         }
     } else {
         // Use public phrases endpoint
-        apiUrl = `/api/phrases?category=${category}&difficulty=${diff}`;
+        apiUrl = `/api/phrases?difficulty=${diff}`;
+        // "ALL" means no category filter - don't include category parameter
+        if (category && category !== "ALL") {
+            apiUrl += `&category=${category}`;
+        }
         if (languageSetId) {
             apiUrl += `&language_set_id=${languageSetId}`;
         }

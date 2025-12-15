@@ -1,19 +1,19 @@
 import React, { useState, useRef } from 'react';
 import { useTranslation } from 'react-i18next';
-import { Checkbox, Tooltip } from '@mui/material';
+import { Checkbox, Tooltip, Box, Typography } from '@mui/material';
 import AddToLearnLaterButton from '../AddToLearnLaterButton';
 import './PhraseList.css';
 
-export default function PhraseList({ 
-    phrases, 
-    found, 
-    hidePhrases, 
-    setHidePhrases, 
-    allFound, 
-    showTranslations, 
-    setShowTranslations, 
-    disableShowPhrases, 
-    onPhraseClick, 
+export default function PhraseList({
+    phrases,
+    found,
+    hidePhrases,
+    setHidePhrases,
+    allFound,
+    showTranslations,
+    setShowTranslations,
+    disableShowPhrases,
+    onPhraseClick,
     progressiveHintsEnabled = false,
     currentUser = null,
     languageSetId = null
@@ -39,14 +39,14 @@ export default function PhraseList({
             if (blinkTimeoutRef.current) {
                 clearTimeout(blinkTimeoutRef.current);
             }
-            
+
             setBlinkingPhrase(phrase);
-            
+
             // Also trigger grid blinking if callback is provided
             if (onPhraseClick) {
                 onPhraseClick(phrase);
             }
-            
+
             // Remove the blinking after 3 blinks (1.5 seconds)
             blinkTimeoutRef.current = setTimeout(() => {
                 setBlinkingPhrase(null);
@@ -65,7 +65,7 @@ export default function PhraseList({
 
     // Get found phrases with their full data (including id)
     const foundPhrases = phrases.filter(p => found.includes(p.phrase));
-    
+
     // Toggle phrase selection
     const togglePhraseSelection = (phraseId) => {
         setSelectedPhrases(prev => {
@@ -90,39 +90,56 @@ export default function PhraseList({
 
     const selectedFoundPhrases = foundPhrases.filter(p => selectedPhrases.has(p.id));
     const hasSelection = selectedPhrases.size > 0;
-    const allSelectedInFound = foundPhrases.length > 0 && 
-                               selectedPhrases.size === foundPhrases.length;
+    const allSelectedInFound = foundPhrases.length > 0 &&
+        selectedPhrases.size === foundPhrases.length;
 
     return (
         <div className="phrase-list-container">
-            <div style={{ display: 'flex', alignItems: 'center', gap: 8, justifyContent: 'space-between', flexWrap: 'wrap' }}>
-                <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+            {/* Top row: Hide/Show and Translation toggle buttons */}
+            <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 8 }}>
+                <button
+                    className="scrabble-btn phrase-list-hide-btn"
+                    type="button"
+                    onClick={() => setHidePhrases(h => !h)}
+                    disabled={allFound || disableShowPhrases}
+                    style={{ width: buttonWidth, textAlign: 'center', fontSize: '1.1em', display: 'flex', alignItems: 'center', justifyContent: 'center' }}
+                >
+                    <span style={{ marginRight: 6 }}>{hidePhrases ? '👁️' : '🙈'}</span>
+                    <span className="phrase-list-btn-label" style={{ display: 'none', sm: 'inline' }}>{hidePhrases ? t('show_phrases') : t('hide_phrases')}</span>
+                    <span className="phrase-list-btn-label" style={{ display: 'inline', sm: 'none' }}>{hidePhrases ? t('show') : t('hide')}</span>
+                </button>
+                {/* Only render translation toggle if enabled */}
+                {canToggleTranslations && (
                     <button
-                        className="scrabble-btn phrase-list-hide-btn"
+                        className={`scrabble-btn phrase-list-toggle-translations`}
                         type="button"
-                        onClick={() => setHidePhrases(h => !h)}
-                        disabled={allFound || disableShowPhrases}
-                        style={{ width: buttonWidth, textAlign: 'center', fontSize: '1.1em', display: 'flex', alignItems: 'center', justifyContent: 'center' }}
+                        onClick={() => setShowTranslations(t => !t)}
+                        aria-label={showTranslations ? t('hide_all_translations') : t('show_all_translations')}
+                        style={{ fontSize: '1.1em', display: 'flex', alignItems: 'center', justifyContent: 'center' }}
                     >
-                        <span style={{ marginRight: 6 }}>{hidePhrases ? '👁️' : '🙈'}</span>
-                        <span className="phrase-list-btn-label" style={{ display: 'none', sm: 'inline' }}>{hidePhrases ? t('show_phrases') : t('hide_phrases')}</span>
-                        <span className="phrase-list-btn-label" style={{ display: 'inline', sm: 'none' }}>{hidePhrases ? t('show') : t('hide')}</span>
+                        <span style={{ marginRight: 6 }}>{showTranslations ? '◀' : '▶'}</span>
                     </button>
-                    {/* Only render translation toggle if enabled */}
-                    {canToggleTranslations && (
-                        <button
-                            className={`scrabble-btn phrase-list-toggle-translations`}
-                            type="button"
-                            onClick={() => setShowTranslations(t => !t)}
-                            aria-label={showTranslations ? t('hide_all_translations') : t('show_all_translations')}
-                            style={{ fontSize: '1.1em', display: 'flex', alignItems: 'center', justifyContent: 'center' }}
-                        >
-                            <span style={{ marginRight: 6 }}>{showTranslations ? '◀' : '▶'}</span>
-                        </button>
-                    )}
-                    {/* Select All checkbox - only for logged-in users with found phrases */}
-                    {currentUser && foundPhrases.length > 0 && (
-                        <Tooltip 
+                )}
+            </div>
+
+            {/* Selection controls frame - only for logged-in users with found phrases */}
+            {currentUser && foundPhrases.length > 0 && (
+                <Box
+                    sx={{
+                        border: '1px solid',
+                        borderColor: 'divider',
+                        borderRadius: 1,
+                        p: 1.5,
+                        mb: 2,
+                        bgcolor: 'background.paper',
+                        display: 'flex',
+                        alignItems: 'center',
+                        gap: 2,
+                        flexWrap: 'wrap'
+                    }}
+                >
+                    <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                        <Tooltip
                             title={allSelectedInFound ? t('learnLater.deselect_all') : t('learnLater.select_all_found')}
                             placement="top"
                             arrow
@@ -135,12 +152,13 @@ export default function PhraseList({
                                 sx={{ p: 0.5 }}
                             />
                         </Tooltip>
-                    )}
-                </div>
-                
-                {/* Quick Add Buttons - Only for logged-in users */}
-                {currentUser && foundPhrases.length > 0 && (
-                    <div style={{ display: 'flex', gap: 4, alignItems: 'center' }}>
+                        <Typography variant="body2" color="text.secondary">
+                            {allSelectedInFound ? t('learnLater.deselect_all') : t('learnLater.select_all_found')}
+                        </Typography>
+                    </Box>
+
+                    {/* Add buttons */}
+                    <Box sx={{ display: 'flex', gap: 1, alignItems: 'center', ml: 'auto' }}>
                         {/* Add Selected Button - only shows when phrases are selected */}
                         {hasSelection && (
                             <AddToLearnLaterButton
@@ -154,7 +172,7 @@ export default function PhraseList({
                                 }}
                             />
                         )}
-                        
+
                         {/* Add All Button */}
                         <AddToLearnLaterButton
                             type="all"
@@ -163,51 +181,59 @@ export default function PhraseList({
                             currentUser={currentUser}
                             disabled={foundPhrases.length === 0}
                         />
-                    </div>
-                )}
-            </div>
+                    </Box>
+
+                </Box>
+            )}
+
             <ul className={`phrase-list-ul${hidePhrases ? ' blurred' : ''}`}>
                 {phrases.map((phraseObj, index) => {
                     const { phrase, translation, id } = phraseObj;
                     const isFound = found.includes(phrase);
                     const isSelected = selectedPhrases.has(id);
-                    
+
                     return (
                         <li className="phrase-list-li" key={`${phrase}-${index}`}>
-                            {/* Checkbox - only for found phrases and logged-in users */}
-                            {currentUser && isFound && id && (
-                                <Checkbox
-                                    size="small"
-                                    checked={isSelected}
-                                    onChange={() => togglePhraseSelection(id)}
-                                    sx={{ 
-                                        mr: 0.5,
-                                        p: 0.25,
-                                        '& .MuiSvgIcon-root': { fontSize: 18 }
-                                    }}
-                                />
-                            )}
-                            
-                            <span 
-                                className={`phrase-list-phrase${isFound ? ' found' : ''}${blinkingPhrase === phrase ? ' blinking' : ''}`}
-                                onClick={() => handlePhraseClick(phrase)}
-                                onKeyDown={(e) => {
-                                    if (e.key === 'Enter' || e.key === ' ') {
-                                        e.preventDefault();
+                            <span
+                                className={`phrase-list-phrase${isFound ? ' found' : ''}${blinkingPhrase === phrase ? ' blinking' : ''}${isSelected ? ' selected' : ''}`}
+                                onClick={() => {
+                                    if (currentUser && isFound && id) {
+                                        togglePhraseSelection(id);
+                                    } else if (!progressiveHintsEnabled) {
                                         handlePhraseClick(phrase);
                                     }
                                 }}
-                                onTouchEnd={e => { e.preventDefault(); handlePhraseClick(phrase); }}
-                                style={{ cursor: progressiveHintsEnabled ? 'default' : 'pointer' }}
+                                onKeyDown={(e) => {
+                                    if (e.key === 'Enter' || e.key === ' ') {
+                                        e.preventDefault();
+                                        if (currentUser && isFound && id) {
+                                            togglePhraseSelection(id);
+                                        } else if (!progressiveHintsEnabled) {
+                                            handlePhraseClick(phrase);
+                                        }
+                                    }
+                                }}
+                                onTouchEnd={e => {
+                                    e.preventDefault();
+                                    if (currentUser && isFound && id) {
+                                        togglePhraseSelection(id);
+                                    } else if (!progressiveHintsEnabled) {
+                                        handlePhraseClick(phrase);
+                                    }
+                                }}
+                                style={{
+                                    cursor: progressiveHintsEnabled ? 'default' : 'pointer',
+                                    display: 'inline-block'
+                                }}
                                 role="button"
                                 tabIndex={progressiveHintsEnabled ? -1 : 0}
-                                aria-label={`Highlight phrase: ${phrase}`}
+                                aria-label={isSelected ? `Selected: ${phrase}` : `Highlight phrase: ${phrase}`}
                             >
                                 {phrase}
                             </span>
                             <span
                                 className={`phrase-list-translation${isFound ? ' found' : ''}`}
-                                style={{ 
+                                style={{
                                     minWidth: translationMinWidth,
                                     whiteSpace: 'pre-wrap',
                                     wordBreak: 'break-word'

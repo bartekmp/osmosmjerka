@@ -191,17 +191,31 @@ async def get_phrases(
         language_set_id, ignored_categories_override=ignored_override
     )
 
-    if not category or category not in categories:
-        category = random.choice(categories) if categories else None
+    # Treat "ALL" as None to get phrases from all categories
+    category_filter = None if category == "ALL" else category
 
-    if not category:
+    # Only auto-select a category if category was not explicitly provided (or was invalid)
+    # Don't override "ALL" selection
+    if category != "ALL":
+        if not category_filter or (category_filter and category_filter not in categories):
+            category_filter = random.choice(categories) if categories else None
+        if not category_filter and not categories:
+            return JSONResponse(
+                {"error": "No categories available for the selected language set"},
+                status_code=status.HTTP_404_NOT_FOUND,
+            )
+    elif not categories:
+        # If "ALL" was selected but no categories exist, return error
         return JSONResponse(
             {"error": "No categories available for the selected language set"},
             status_code=status.HTTP_404_NOT_FOUND,
         )
 
     # Get all phrases for the category from the specified language set
-    selected = await db_manager.get_phrases(language_set_id, category, ignored_categories_override=ignored_override)
+    # If category_filter is None, get phrases from all categories
+    selected = await db_manager.get_phrases(
+        language_set_id, category_filter, ignored_categories_override=ignored_override
+    )
 
     if not selected:
         return JSONResponse(
@@ -215,9 +229,9 @@ async def get_phrases(
         return JSONResponse(
             {
                 "error": (
-                    f"Not enough phrases in category '{category}'. Need {num_phrases}, but only {len(selected)} available."
+                    f"Not enough phrases in category '{category_filter or 'ALL'}'. Need {num_phrases}, but only {len(selected)} available."
                 ),
-                "category": category,
+                "category": category_filter or "ALL",
                 "available": len(selected),
                 "needed": num_phrases,
             },
@@ -227,7 +241,10 @@ async def get_phrases(
     # Try to generate grid with exactly the required number of phrases
     grid, placed_phrases = _generate_grid_with_exact_phrase_count(selected, grid_size, num_phrases)
 
-    return JSONResponse({"grid": grid, "phrases": placed_phrases, "category": category})
+    # Use the original category value for response (preserve "ALL" if it was selected)
+    response_category = category if category == "ALL" else (category_filter or "Mixed")
+
+    return JSONResponse({"grid": grid, "phrases": placed_phrases, "category": response_category})
 
 
 @router.post("/export")
@@ -812,18 +829,36 @@ async def bulk_add_to_learn_later(body: dict = Body(...), user=Depends(get_curre
 
 @router.get("/user/private-lists")
 @rate_limit(max_requests=30, window_seconds=60)
-async def get_user_private_lists(language_set_id: int = Query(None), user=Depends(get_current_user)) -> JSONResponse:
-    """Get all private lists for the current user, optionally filtered by language set"""
+async def get_user_private_lists(
+    language_set_id: int = Query(None),
+    limit: int = Query(50, ge=1, le=200),
+    offset: int = Query(0, ge=0),
+    user=Depends(get_current_user),
+) -> JSONResponse:
+    """Get paginated private lists for the current user, optionally filtered by language set"""
     try:
-        lists = await db_manager.get_user_private_lists(user["id"], language_set_id)
+        result = await db_manager.get_user_private_lists(user["id"], language_set_id, limit=limit, offset=offset)
 
-        # Enrich with phrase counts
+        # Batch fetch phrase counts (fixes N+1 query problem)
+        list_ids = [list_info["id"] for list_info in result["lists"]]
+        phrase_counts = await db_manager.get_phrase_counts_batch(list_ids)
+
+        # Enrich lists with phrase counts
         enriched_lists = []
-        for list_info in lists:
-            phrase_count = await db_manager.get_private_list_phrase_count(list_info["id"])
-            enriched_lists.append({**list_info, "phrase_count": phrase_count})
+        for list_info in result["lists"]:
+            enriched_lists.append({**list_info, "phrase_count": phrase_counts.get(list_info["id"], 0)})
 
-        return JSONResponse(jsonable_encoder(enriched_lists))
+        return JSONResponse(
+            jsonable_encoder(
+                {
+                    "lists": enriched_lists,
+                    "total": result["total"],
+                    "limit": result["limit"],
+                    "offset": result["offset"],
+                    "has_more": result["has_more"],
+                }
+            )
+        )
     except Exception as e:
         logger.exception("Failed to get user private lists")
         raise HTTPException(status_code=500, detail=str(e))
@@ -841,8 +876,12 @@ async def get_private_list_phrases_endpoint(
 ) -> JSONResponse:
     """Get phrases from a private list for puzzle generation, with optional category filter"""
     try:
+        # Treat "ALL" as None to get phrases from all categories
+        category_filter = None if category == "ALL" else category
         # Get phrases from the private list
-        all_phrases = await db_manager.get_private_list_phrases(list_id, user["id"], language_set_id, category=category)
+        all_phrases = await db_manager.get_private_list_phrases(
+            list_id, user["id"], language_set_id, category=category_filter
+        )
 
         if not all_phrases:
             return JSONResponse({"error": "No phrases found in this list"}, status_code=status.HTTP_404_NOT_FOUND)
@@ -881,16 +920,39 @@ async def get_private_list_phrases_endpoint(
         raise HTTPException(status_code=500, detail=str(e))
 
 
+@router.get("/user/private-lists/{list_id}/categories")
+@rate_limit(max_requests=30, window_seconds=60)
+async def get_private_list_categories_endpoint(
+    list_id: int,
+    language_set_id: int = Query(...),
+    user=Depends(get_current_user),
+) -> JSONResponse:
+    """Get all unique categories from phrases in a private list"""
+    try:
+        categories = await db_manager.get_private_list_categories(list_id, user["id"], language_set_id)
+        return JSONResponse(categories)
+    except Exception as e:
+        logger.exception(f"Failed to get categories for private list {list_id}")
+        raise HTTPException(status_code=500, detail=str(e))
+
+
 @router.get("/user/private-lists/{list_id}/entries")
 @rate_limit(max_requests=30, window_seconds=60)
-async def get_private_list_entries_endpoint(list_id: int, user=Depends(get_current_user)) -> JSONResponse:
-    """Return all phrases in a private list for management interfaces"""
+async def get_private_list_entries_endpoint(
+    list_id: int,
+    limit: int = Query(100, ge=1, le=500),
+    offset: int = Query(0, ge=0),
+    user=Depends(get_current_user),
+) -> JSONResponse:
+    """Return paginated phrases in a private list for management interfaces"""
     try:
         list_info = await db_manager.get_private_list_by_id(list_id, user["id"])
         if not list_info:
             return JSONResponse({"error": "List not found"}, status_code=status.HTTP_404_NOT_FOUND)
 
-        entries = await db_manager.get_private_list_entries(list_id, user["id"], list_info=list_info)
+        result = await db_manager.get_private_list_entries(
+            list_id, user["id"], list_info=list_info, limit=limit, offset=offset
+        )
 
         return JSONResponse(
             {
@@ -900,7 +962,11 @@ async def get_private_list_entries_endpoint(list_id: int, user=Depends(get_curre
                     "language_set_id": list_info["language_set_id"],
                     "is_system_list": list_info["is_system_list"],
                 },
-                "phrases": entries,
+                "entries": result["entries"],
+                "total": result["total"],
+                "limit": result["limit"],
+                "offset": result["offset"],
+                "has_more": result["has_more"],
             }
         )
 
@@ -923,12 +989,7 @@ async def create_private_list(list_data: dict, user=Depends(get_current_user)) -
         if not language_set_id:
             return JSONResponse({"error": "Language set ID is required"}, status_code=status.HTTP_400_BAD_REQUEST)
 
-        # Check if user already has a list with this name in this language set
-        existing_lists = await db_manager.get_user_private_lists(user["id"], language_set_id)
-        if any(lst["list_name"].lower() == list_name.lower() for lst in existing_lists):
-            return JSONResponse({"error": "A list with this name already exists"}, status_code=status.HTTP_409_CONFLICT)
-
-        # Create the list
+        # Create the list (duplicate check and limit check are now in create_private_list method)
         list_id = await db_manager.create_private_list(user["id"], list_name, language_set_id, is_system_list=False)
 
         return JSONResponse(
@@ -941,6 +1002,15 @@ async def create_private_list(list_data: dict, user=Depends(get_current_user)) -
             },
             status_code=status.HTTP_201_CREATED,
         )
+
+    except ValueError as e:
+        # Handle limit reached or duplicate name
+        error_msg = str(e)
+        if "limit reached" in error_msg.lower():
+            return JSONResponse({"error": error_msg}, status_code=status.HTTP_403_FORBIDDEN)
+        elif "already exists" in error_msg.lower():
+            return JSONResponse({"error": error_msg}, status_code=status.HTTP_409_CONFLICT)
+        return JSONResponse({"error": error_msg}, status_code=status.HTTP_400_BAD_REQUEST)
 
     except Exception as e:
         logger.exception("Failed to create private list")
@@ -966,7 +1036,11 @@ async def update_private_list(list_id: int, list_data: dict, user=Depends(get_cu
             return JSONResponse({"error": "Cannot rename system lists"}, status_code=status.HTTP_403_FORBIDDEN)
 
         # Check for name conflicts in the same language set
-        existing_lists = await db_manager.get_user_private_lists(user["id"], list_info["language_set_id"])
+        # Note: Database unique constraint will also prevent this, but we check here for better error message
+        existing_lists_result = await db_manager.get_user_private_lists(
+            user["id"], list_info["language_set_id"], limit=None, offset=0
+        )
+        existing_lists = existing_lists_result["lists"]
         if any(lst["id"] != list_id and lst["list_name"].lower() == new_name.lower() for lst in existing_lists):
             return JSONResponse({"error": "A list with this name already exists"}, status_code=status.HTTP_409_CONFLICT)
 
@@ -1043,6 +1117,14 @@ async def add_phrase_to_private_list(list_id: int, phrase_data: dict, user=Depen
             status_code=status.HTTP_201_CREATED,
         )
 
+    except ValueError as e:
+        # Handle limit reached or duplicate phrase
+        error_msg = str(e)
+        if "full" in error_msg.lower() or "limit" in error_msg.lower():
+            return JSONResponse({"error": error_msg}, status_code=status.HTTP_403_FORBIDDEN)
+        elif "already" in error_msg.lower():
+            return JSONResponse({"error": error_msg}, status_code=status.HTTP_409_CONFLICT)
+        return JSONResponse({"error": error_msg}, status_code=status.HTTP_400_BAD_REQUEST)
     except Exception as e:
         logger.exception(f"Failed to add phrase to private list {list_id}")
         raise HTTPException(status_code=500, detail=str(e))
@@ -1141,7 +1223,8 @@ async def remove_phrase_from_private_list(
             return JSONResponse({"error": "Phrase not found in this list"}, status_code=status.HTTP_404_NOT_FOUND)
 
         return JSONResponse(
-            {"message": "Phrase removed successfully", "list_id": list_id, "phrase_entry_id": phrase_entry_id}
+            {"message": "Phrase removed successfully", "list_id": list_id, "phrase_entry_id": phrase_entry_id},
+            status_code=status.HTTP_200_OK,
         )
 
     except Exception as e:
@@ -1297,3 +1380,73 @@ async def get_user_list_statistics(user=Depends(get_current_user)) -> JSONRespon
     except Exception:
         logger.exception("Failed to get user list statistics")
         raise HTTPException(status_code=500, detail="Failed to get statistics")
+
+
+# ===== List Export Endpoint =====
+
+
+@router.get("/user/private-lists/{list_id}/export")
+@rate_limit(max_requests=10, window_seconds=60)
+async def export_private_list(
+    list_id: int,
+    user=Depends(get_current_user),
+) -> StreamingResponse:
+    """Export a private list as CSV"""
+    try:
+        import csv
+
+        # Check access (owner or shared)
+        access = await db_manager.check_list_access(list_id, user["id"])
+        if not access:
+            raise HTTPException(status_code=404, detail="List not found or access denied")
+
+        # Get list info
+        list_info = await db_manager.get_private_list_by_id(list_id, user["id"])
+        if not list_info:
+            raise HTTPException(status_code=404, detail="List not found")
+
+        # Get all entries (no pagination for export)
+        result = await db_manager.get_private_list_entries(
+            list_id, user["id"], list_info=list_info, limit=None, offset=0
+        )
+        entries = result["entries"]
+
+        # Export as CSV with UTF-8 BOM for proper encoding
+        output = io.StringIO()
+        # Write UTF-8 BOM for Excel compatibility
+        output.write("\ufeff")
+        csv_writer = csv.writer(output, delimiter=";", quotechar='"', quoting=csv.QUOTE_MINIMAL)
+
+        # Write header
+        csv_writer.writerow(["phrase", "translation", "categories", "source", "added_at"])
+
+        # Write data rows
+        for entry in entries:
+            phrase = entry.get("phrase", "")
+            translation = entry.get("translation", "").replace("\n", "<br>")
+            categories = entry.get("categories", "")
+            source = entry.get("source", "unknown")
+            added_at = entry.get("added_at", "")
+
+            csv_writer.writerow([phrase, translation, categories, source, added_at])
+
+        content = output.getvalue()
+        output.close()
+
+        safe_list_name = re.sub(r"[^a-z0-9]+", "_", list_info["list_name"].lower())
+        filename = f"list_{safe_list_name}.csv"
+
+        return StreamingResponse(
+            io.BytesIO(content.encode("utf-8-sig")),  # utf-8-sig includes BOM
+            media_type="text/csv; charset=utf-8",
+            headers={
+                "Content-Disposition": f"attachment; filename={filename}",
+                "Content-Type": "text/csv; charset=utf-8",
+            },
+        )
+
+    except HTTPException:
+        raise
+    except Exception as e:
+        logger.exception(f"Failed to export list {list_id}")
+        raise HTTPException(status_code=500, detail=f"Export failed: {str(e)}")
