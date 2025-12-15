@@ -230,3 +230,57 @@ async def update_scoring_rules_setting(body: dict = Body(...), user=Depends(requ
         raise
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
+
+
+# ===== Private List Limits =====
+
+
+@router.get("/list-limits")
+async def get_list_limits(user=Depends(require_root_admin)) -> JSONResponse:
+    """Get private list limits for users and admins - root admin only"""
+    try:
+        user_limit = await db_manager.get_global_setting("user_private_list_limit", "50")
+        admin_limit = await db_manager.get_global_setting("admin_private_list_limit", "500")
+
+        return JSONResponse(
+            {
+                "user_limit": int(user_limit) if user_limit else 50,
+                "admin_limit": int(admin_limit) if admin_limit else 500,
+            }
+        )
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+
+
+@router.put("/list-limits")
+async def update_list_limits(body: dict = Body(...), user=Depends(require_root_admin)) -> JSONResponse:
+    """Update private list limits - root admin only"""
+    try:
+        user_limit = body.get("user_limit")
+        admin_limit = body.get("admin_limit")
+
+        if user_limit is not None:
+            if not isinstance(user_limit, int) or user_limit < 1:
+                raise HTTPException(status_code=400, detail="user_limit must be a positive integer")
+            await db_manager.set_global_setting(
+                "user_private_list_limit",
+                str(user_limit),
+                "Maximum number of private lists a regular user can create",
+                user["id"],
+            )
+
+        if admin_limit is not None:
+            if not isinstance(admin_limit, int) or admin_limit < 1:
+                raise HTTPException(status_code=400, detail="admin_limit must be a positive integer")
+            await db_manager.set_global_setting(
+                "admin_private_list_limit",
+                str(admin_limit),
+                "Maximum number of private lists an admin can create",
+                user["id"],
+            )
+
+        return JSONResponse({"message": "List limits updated successfully"})
+    except HTTPException:
+        raise
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))

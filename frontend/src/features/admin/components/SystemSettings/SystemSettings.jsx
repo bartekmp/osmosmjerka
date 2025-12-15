@@ -10,6 +10,8 @@ import {
   Snackbar,
   Grid,
   Paper,
+  TextField,
+  Button,
 } from "@mui/material";
 import { useTranslation } from "react-i18next";
 import axios from "axios";
@@ -23,6 +25,11 @@ const SystemSettings = () => {
     scoringEnabled: false,
     progressiveHintsEnabled: false,
   });
+  const [listLimits, setListLimits] = useState({
+    userLimit: 50,
+    adminLimit: 500,
+  });
+  const [listLimitsLoading, setListLimitsLoading] = useState(false);
   const [loading, setLoading] = useState(true);
   const [notification, setNotification] = useState({
     open: false,
@@ -45,8 +52,8 @@ const SystemSettings = () => {
     try {
       setLoading(true);
 
-      // Load all three settings
-      const [statisticsResponse, scoringResponse, hintsResponse] =
+      // Load all settings
+      const [statisticsResponse, scoringResponse, hintsResponse, limitsResponse] =
         await Promise.all([
           axios.get(`${API_ENDPOINTS.ADMIN}/settings/statistics`, {
             headers: { Authorization: `Bearer ${token}` },
@@ -57,12 +64,19 @@ const SystemSettings = () => {
           axios.get(`${API_ENDPOINTS.ADMIN}/settings/progressive-hints`, {
             headers: { Authorization: `Bearer ${token}` },
           }),
+          axios.get(`${API_ENDPOINTS.ADMIN}/settings/list-limits`, {
+            headers: { Authorization: `Bearer ${token}` },
+          }).catch(() => ({ data: { user_limit: 50, admin_limit: 500 } })),
         ]);
 
       setSettings({
         statisticsEnabled: statisticsResponse.data.enabled,
         scoringEnabled: scoringResponse.data.enabled,
         progressiveHintsEnabled: hintsResponse.data.enabled,
+      });
+      setListLimits({
+        userLimit: limitsResponse.data.user_limit || 50,
+        adminLimit: limitsResponse.data.admin_limit || 500,
       });
     } catch (error) {
       console.error("Failed to load system settings:", error);
@@ -130,6 +144,35 @@ const SystemSettings = () => {
   const handleToggle = (settingType) => (event) => {
     const enabled = event.target.checked;
     updateSetting(settingType, enabled);
+  };
+
+  const handleUpdateListLimits = async () => {
+    const token = localStorage.getItem(STORAGE_KEYS.ADMIN_TOKEN);
+    if (!token) return;
+
+    setListLimitsLoading(true);
+    try {
+      await axios.put(
+        `${API_ENDPOINTS.ADMIN}/settings/list-limits`,
+        {
+          user_limit: listLimits.userLimit,
+          admin_limit: listLimits.adminLimit,
+        },
+        {
+          headers: {
+            Authorization: `Bearer ${token}`,
+            "Content-Type": "application/json",
+          },
+        }
+      );
+
+      showNotification(t("admin.settings.updateSuccess"), "success");
+    } catch (error) {
+      console.error("Failed to update list limits:", error);
+      showNotification(t("admin.settings.updateError"), "error");
+    } finally {
+      setListLimitsLoading(false);
+    }
   };
 
   if (loading) {
@@ -232,6 +275,52 @@ const SystemSettings = () => {
                 }
               />
             </FormGroup>
+          </Paper>
+        </Grid>
+
+        {/* Private List Limits */}
+        <Grid size={{ xs: 12, md: 6 }}>
+          <Paper elevation={2} sx={{ p: 3 }}>
+            <Typography variant="h6" gutterBottom color="primary">
+              {t("admin.settings.listLimits.title", "Private List Limits")}
+            </Typography>
+
+            <Typography variant="body2" color="text.secondary" paragraph>
+              {t("admin.settings.listLimits.description", "Configure maximum number of private lists users can create")}
+            </Typography>
+
+            <Box sx={{ display: "flex", flexDirection: "column", gap: 2 }}>
+              <TextField
+                label={t("admin.settings.listLimits.userLimit", "User Limit")}
+                type="number"
+                value={listLimits.userLimit}
+                onChange={(e) =>
+                  setListLimits({ ...listLimits, userLimit: parseInt(e.target.value) || 0 })
+                }
+                inputProps={{ min: 1 }}
+                fullWidth
+              />
+
+              <TextField
+                label={t("admin.settings.listLimits.adminLimit", "Admin Limit")}
+                type="number"
+                value={listLimits.adminLimit}
+                onChange={(e) =>
+                  setListLimits({ ...listLimits, adminLimit: parseInt(e.target.value) || 0 })
+                }
+                inputProps={{ min: 1 }}
+                fullWidth
+              />
+
+              <Button
+                variant="contained"
+                onClick={handleUpdateListLimits}
+                disabled={listLimitsLoading}
+                sx={{ mt: 1 }}
+              >
+                {t("admin.settings.listLimits.save", "Save Limits")}
+              </Button>
+            </Box>
           </Paper>
         </Grid>
       </Grid>

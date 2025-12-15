@@ -6,7 +6,23 @@ from typing import Any, Dict, List, Optional
 
 from databases import Database
 from dotenv import load_dotenv
-from sqlalchemy import Boolean, Column, DateTime, Integer, MetaData, String, Table, Text, create_engine, desc
+from sqlalchemy import (
+    Boolean,
+    CheckConstraint,
+    Column,
+    DateTime,
+    ForeignKey,
+    Index,
+    Integer,
+    MetaData,
+    String,
+    Table,
+    Text,
+    UniqueConstraint,
+    and_,
+    create_engine,
+    desc,
+)
 from sqlalchemy.sql import delete, func, insert, select, update
 
 from osmosmjerka.logging_config import get_logger
@@ -191,6 +207,74 @@ game_scores_table = Table(
     Column("created_at", DateTime, nullable=False, server_default=func.now()),
 )
 
+# Define the user_private_lists table for user-created phrase lists
+user_private_lists_table = Table(
+    "user_private_lists",
+    metadata,
+    Column("id", Integer, primary_key=True, index=True),
+    Column("user_id", Integer, ForeignKey("accounts.id", ondelete="CASCADE"), nullable=False, index=True),
+    Column("language_set_id", Integer, ForeignKey("language_sets.id", ondelete="CASCADE"), nullable=False, index=True),
+    Column("list_name", String(255), nullable=False),
+    Column("description", Text, nullable=True),
+    Column("is_system_list", Boolean, nullable=False, default=False),  # TRUE for "Learn This Later"
+    Column("created_at", DateTime, nullable=False, server_default=func.now()),
+    Column("updated_at", DateTime, nullable=False, server_default=func.now(), onupdate=func.now()),
+    # Unique constraint: user cannot have duplicate list names in same language set
+    UniqueConstraint("user_id", "language_set_id", "list_name", name="uq_user_list_name"),
+    # Composite index for common query pattern
+    Index("idx_user_lang_list", "user_id", "language_set_id"),
+)
+
+# Define the user_private_list_phrases table for phrases in private lists
+user_private_list_phrases_table = Table(
+    "user_private_list_phrases",
+    metadata,
+    Column("id", Integer, primary_key=True, index=True),
+    Column("list_id", Integer, ForeignKey("user_private_lists.id", ondelete="CASCADE"), nullable=False, index=True),
+    Column("phrase_id", Integer, nullable=True),  # NULL if it's a user-defined phrase
+    Column("language_set_id", Integer, nullable=False, index=True),
+    # User-defined phrase fields (only populated if phrase_id IS NULL)
+    Column("custom_phrase", String(255), nullable=True),
+    Column("custom_translation", Text, nullable=True),
+    Column("custom_categories", String(255), nullable=True),  # Space-separated like public phrases
+    Column("added_at", DateTime, nullable=False, server_default=func.now()),
+    # CHECK constraint: either phrase_id OR custom_phrase must be provided
+    CheckConstraint(
+        "(phrase_id IS NOT NULL) OR (custom_phrase IS NOT NULL)",
+        name="check_phrase_or_custom",
+    ),
+    # Unique constraint: prevent duplicate public phrases in same list
+    # Note: This is a partial unique index (PostgreSQL) - only applies when phrase_id IS NOT NULL
+    # For SQLite/MySQL, we'll enforce this at application level
+    # Composite indexes for performance
+    Index("idx_list_phrase", "list_id", "phrase_id"),
+    Index("idx_list_added", "list_id", "added_at"),
+    Index("idx_list_lang", "list_id", "language_set_id"),
+)
+
+# Define the user_list_shares table for sharing lists between users
+user_list_shares_table = Table(
+    "user_list_shares",
+    metadata,
+    Column("id", Integer, primary_key=True, index=True),
+    Column("list_id", Integer, ForeignKey("user_private_lists.id", ondelete="CASCADE"), nullable=False, index=True),
+    Column(
+        "owner_user_id", Integer, ForeignKey("accounts.id", ondelete="CASCADE"), nullable=False, index=True
+    ),  # Original list owner
+    Column(
+        "shared_with_user_id", Integer, ForeignKey("accounts.id", ondelete="CASCADE"), nullable=False, index=True
+    ),  # User receiving access
+    Column("permission", String(20), nullable=False, default="read"),  # 'read' or 'write'
+    Column("shared_at", DateTime, nullable=False, server_default=func.now()),
+    # Unique constraint: prevent duplicate shares
+    UniqueConstraint("list_id", "shared_with_user_id", name="uq_list_shared_with"),
+    # CHECK constraint: permission must be 'read' or 'write'
+    CheckConstraint("permission IN ('read', 'write')", name="check_permission"),
+    # Composite indexes for performance
+    Index("idx_shared_with_list", "shared_with_user_id", "list_id"),
+    Index("idx_list_shared_with", "list_id", "shared_with_user_id"),
+)
+
 
 class DatabaseManager:
     """Database manager class that encapsulates all database operations using hybrid approach"""
@@ -357,6 +441,10 @@ class DatabaseManager:
         ).where(accounts_table.c.id == account_id)
         result = await database.fetch_one(query)
         return self._serialize_datetimes(dict(result._mapping)) if result else None
+
+    async def get_user_by_username(self, username: str) -> Optional[dict[str, Any]]:
+        """Get user by username (alias for get_account_by_username)"""
+        return await self.get_account_by_username(username)
 
     async def create_account(
         self,
@@ -1828,6 +1916,780 @@ class DatabaseManager:
             return user_preference.lower() == "true"
 
         return global_enabled
+
+    # User Private Lists Management Methods
+    async def get_learn_later_list(
+        self, user_id: int, language_set_id: int, create_if_missing: bool = False
+    ) -> Optional[Dict]:
+        """Get user's Learn This Later list for a language set"""
+        database = self._ensure_database()
+
+        query = select(user_private_lists_table).where(
+            user_private_lists_table.c.user_id == user_id,
+            user_private_lists_table.c.language_set_id == language_set_id,
+            user_private_lists_table.c.is_system_list == True,  # noqa: E712
+        )
+
+        result = await database.fetch_one(query)
+
+        if result:
+            return dict(result)
+
+        if create_if_missing:
+            # Create the list
+            return await self.create_learn_later_list(user_id, language_set_id)
+
+        return None
+
+    async def get_or_create_learn_later_list(self, user_id: int, language_set_id: int) -> Dict:
+        """Get or create user's Learn This Later list"""
+        existing = await self.get_learn_later_list(user_id, language_set_id, create_if_missing=False)
+
+        if existing:
+            return existing
+
+        return await self.create_learn_later_list(user_id, language_set_id)
+
+    async def create_learn_later_list(self, user_id: int, language_set_id: int) -> Dict:
+        """Create Learn This Later list for user"""
+        database = self._ensure_database()
+
+        query = insert(user_private_lists_table).values(
+            user_id=user_id,
+            language_set_id=language_set_id,
+            list_name="Learn This Later",
+            description="Automatically created system list for phrases to review later",
+            is_system_list=True,
+        )
+
+        list_id = await database.execute(query)
+
+        return {
+            "id": list_id,
+            "user_id": user_id,
+            "language_set_id": language_set_id,
+            "list_name": "Learn This Later",
+            "is_system_list": True,
+        }
+
+    async def get_phrase_ids_in_private_list(self, list_id: int, phrase_ids: List[int]) -> List[int]:
+        """Check which phrase IDs are already in a private list"""
+        database = self._ensure_database()
+
+        query = select(user_private_list_phrases_table.c.phrase_id).where(
+            user_private_list_phrases_table.c.list_id == list_id,
+            user_private_list_phrases_table.c.phrase_id.in_(phrase_ids),
+            user_private_list_phrases_table.c.phrase_id.isnot(None),  # Only public phrases
+        )
+
+        result = await database.fetch_all(query)
+        return [row["phrase_id"] for row in result]
+
+    async def bulk_add_phrases_to_private_list(
+        self, list_id: int, phrase_ids: List[int], language_set_id: int, skip_duplicates: bool = True
+    ) -> int:
+        """Add multiple phrases to a private list"""
+        database = self._ensure_database()
+
+        if skip_duplicates:
+            # Get existing phrase IDs in the list
+            existing_ids = await self.get_phrase_ids_in_private_list(list_id, phrase_ids)
+            # Filter out duplicates
+            phrase_ids = [pid for pid in phrase_ids if pid not in existing_ids]
+
+        if not phrase_ids:
+            return 0
+
+        # Bulk insert
+        values = [
+            {
+                "list_id": list_id,
+                "phrase_id": phrase_id,
+                "language_set_id": language_set_id,
+                "custom_phrase": None,
+                "custom_translation": None,
+                "custom_categories": None,
+            }
+            for phrase_id in phrase_ids
+        ]
+
+        query = insert(user_private_list_phrases_table).values(values)
+        await database.execute(query)
+
+        return len(phrase_ids)
+
+    async def get_user_private_lists(
+        self,
+        user_id: int,
+        language_set_id: Optional[int] = None,
+        limit: Optional[int] = None,
+        offset: int = 0,
+    ) -> Dict[str, Any]:
+        """Get paginated private lists for a user, optionally filtered by language set
+
+        Returns:
+            Dict with keys: 'lists', 'total', 'limit', 'offset', 'has_more'
+        """
+        database = self._ensure_database()
+
+        # Base query
+        base_query = select(user_private_lists_table).where(user_private_lists_table.c.user_id == user_id)
+
+        if language_set_id is not None:
+            base_query = base_query.where(user_private_lists_table.c.language_set_id == language_set_id)
+
+        # Get total count
+        count_query = select(func.count()).select_from(base_query.alias())
+        total = await database.fetch_val(count_query)
+
+        # Get paginated results
+        query = base_query.order_by(
+            desc(user_private_lists_table.c.is_system_list), user_private_lists_table.c.created_at
+        )
+
+        if limit is not None:
+            query = query.limit(limit).offset(offset)
+
+        result = await database.fetch_all(query)
+        lists = [dict(row) for row in result]
+
+        return {
+            "lists": lists,
+            "total": total,
+            "limit": limit,
+            "offset": offset,
+            "has_more": limit is not None and (offset + len(lists) < total) if limit else False,
+        }
+
+    async def get_private_list_by_id(self, list_id: int, user_id: int) -> Optional[Dict]:
+        """Get a specific private list by ID (with user ownership check)"""
+        database = self._ensure_database()
+
+        query = select(user_private_lists_table).where(
+            user_private_lists_table.c.id == list_id, user_private_lists_table.c.user_id == user_id
+        )
+
+        result = await database.fetch_one(query)
+        return dict(result) if result else None
+
+    async def delete_private_list(self, list_id: int, user_id: int) -> bool:
+        """Delete a private list (only if not a system list and user owns it)"""
+        database = self._ensure_database()
+
+        # First check if it's a system list
+        list_info = await self.get_private_list_by_id(list_id, user_id)
+        if not list_info or list_info.get("is_system_list"):
+            return False
+
+        # Delete all phrases in the list first
+        delete_phrases_query = delete(user_private_list_phrases_table).where(
+            user_private_list_phrases_table.c.list_id == list_id
+        )
+        await database.execute(delete_phrases_query)
+
+        # Delete the list
+        delete_list_query = delete(user_private_lists_table).where(
+            user_private_lists_table.c.id == list_id, user_private_lists_table.c.user_id == user_id
+        )
+        await database.execute(delete_list_query)
+
+        return True
+
+    async def get_private_list_phrase_count(self, list_id: int) -> int:
+        """Get the number of phrases in a private list"""
+        database = self._ensure_database()
+
+        query = select(func.count(user_private_list_phrases_table.c.id)).where(
+            user_private_list_phrases_table.c.list_id == list_id
+        )
+
+        result = await database.fetch_one(query)
+        return result[0] if result else 0
+
+    async def get_phrase_counts_batch(self, list_ids: List[int]) -> Dict[int, int]:
+        """Get phrase counts for multiple lists in a single query (fixes N+1 problem)
+
+        Args:
+            list_ids: List of list IDs to get counts for
+
+        Returns:
+            Dict mapping list_id to phrase count
+        """
+        if not list_ids:
+            return {}
+
+        database = self._ensure_database()
+
+        query = (
+            select(
+                user_private_list_phrases_table.c.list_id,
+                func.count(user_private_list_phrases_table.c.id).label("count"),
+            )
+            .where(user_private_list_phrases_table.c.list_id.in_(list_ids))
+            .group_by(user_private_list_phrases_table.c.list_id)
+        )
+
+        result = await database.fetch_all(query)
+        return {row["list_id"]: row["count"] for row in result}
+
+    async def get_private_list_entries(
+        self,
+        list_id: int,
+        user_id: int,
+        list_info: Optional[Dict] = None,
+        limit: Optional[int] = None,
+        offset: int = 0,
+    ) -> Dict[str, Any]:
+        """Return paginated entries from a private list with metadata for management interfaces.
+
+        Returns:
+            Dict with keys: 'entries', 'total', 'limit', 'offset', 'has_more'
+        """
+        database = self._ensure_database()
+
+        if list_info is None:
+            list_info = await self.get_private_list_by_id(list_id, user_id)
+        if not list_info:
+            return {"entries": [], "total": 0, "limit": limit, "offset": offset, "has_more": False}
+
+        language_set = await self.get_language_set_by_id(list_info["language_set_id"])
+        if not language_set:
+            return {"entries": [], "total": 0, "limit": limit, "offset": offset, "has_more": False}
+
+        phrase_table = self._get_phrase_table(language_set["name"])
+
+        # Base query for counting
+        base_query = (
+            select(user_private_list_phrases_table.c.id)
+            .where(user_private_list_phrases_table.c.list_id == list_id)
+            .select_from(
+                user_private_list_phrases_table.outerjoin(
+                    phrase_table, user_private_list_phrases_table.c.phrase_id == phrase_table.c.id
+                )
+            )
+        )
+
+        # Get total count
+        count_query = select(func.count()).select_from(base_query.alias())
+        total = await database.fetch_val(count_query)
+
+        # Get paginated results
+        query = (
+            select(
+                user_private_list_phrases_table.c.id.label("entry_id"),
+                user_private_list_phrases_table.c.phrase_id,
+                user_private_list_phrases_table.c.custom_phrase,
+                user_private_list_phrases_table.c.custom_translation,
+                user_private_list_phrases_table.c.custom_categories,
+                user_private_list_phrases_table.c.added_at,
+                phrase_table.c.id.label("public_id"),
+                phrase_table.c.phrase.label("public_phrase"),
+                phrase_table.c.translation.label("public_translation"),
+                phrase_table.c.categories.label("public_categories"),
+            )
+            .select_from(
+                user_private_list_phrases_table.outerjoin(
+                    phrase_table, user_private_list_phrases_table.c.phrase_id == phrase_table.c.id
+                )
+            )
+            .where(user_private_list_phrases_table.c.list_id == list_id)
+            .order_by(user_private_list_phrases_table.c.added_at.desc(), user_private_list_phrases_table.c.id.desc())
+        )
+
+        if limit is not None:
+            query = query.limit(limit).offset(offset)
+
+        result = await database.fetch_all(query)
+        entries: List[Dict] = []
+
+        for row in result:
+            row_dict = dict(row)
+            is_custom = row_dict["phrase_id"] is None
+            phrase_text = row_dict["custom_phrase"] if is_custom else row_dict["public_phrase"]
+            translation = row_dict["custom_translation"] if is_custom else row_dict["public_translation"]
+            categories = (row_dict["custom_categories"] if is_custom else row_dict["public_categories"]) or ""
+
+            if not phrase_text:
+                continue
+
+            entries.append(
+                {
+                    "entry_id": row_dict["entry_id"],
+                    "phrase_id": row_dict["phrase_id"] if row_dict["phrase_id"] is not None else row_dict["public_id"],
+                    "phrase": phrase_text,
+                    "translation": translation or "",
+                    "categories": categories,
+                    "is_custom": is_custom,
+                    "source": "custom" if is_custom else "public",
+                    "added_at": row_dict["added_at"].isoformat() if row_dict["added_at"] else None,
+                }
+            )
+
+        return {
+            "entries": entries,
+            "total": total,
+            "limit": limit,
+            "offset": offset,
+            "has_more": limit is not None and (offset + len(entries) < total) if limit else False,
+        }
+
+    async def get_private_list_phrases(
+        self, list_id: int, user_id: int, language_set_id: int, category: Optional[str] = None
+    ) -> List[Dict]:
+        """Get all phrases from a private list for puzzle generation, with optional category filter"""
+
+        list_info = await self.get_private_list_by_id(list_id, user_id)
+        if not list_info or list_info["language_set_id"] != language_set_id:
+            return []
+
+        # get_private_list_entries returns a dict with "entries" key, not a list directly
+        entries_result = await self.get_private_list_entries(list_id, user_id, list_info=list_info, limit=None)
+        entries = entries_result.get("entries", [])
+        phrases: List[Dict] = []
+
+        for entry in entries:
+            phrase_text = entry["phrase"] or ""
+            if len(phrase_text.strip()) < 3:
+                continue
+
+            if category:
+                phrase_categories = set(entry["categories"].split()) if entry["categories"] else set()
+                if category not in phrase_categories:
+                    continue
+
+            phrases.append(
+                {
+                    "id": entry["phrase_id"],
+                    "phrase": entry["phrase"],
+                    "translation": entry["translation"],
+                    "categories": entry["categories"],
+                }
+            )
+
+        return phrases
+
+    async def get_private_list_categories(self, list_id: int, user_id: int, language_set_id: int) -> List[str]:
+        """Get all unique categories from phrases in a private list"""
+        list_info = await self.get_private_list_by_id(list_id, user_id)
+        if not list_info or list_info["language_set_id"] != language_set_id:
+            return []
+
+        # get_private_list_entries returns a dict with "entries" key, not a list directly
+        entries_result = await self.get_private_list_entries(list_id, user_id, list_info=list_info, limit=None)
+        entries = entries_result.get("entries", [])
+
+        categories_set = set()
+        for entry in entries:
+            if entry.get("categories"):
+                # Categories are space-separated
+                entry_categories = entry["categories"].split()
+                categories_set.update(entry_categories)
+
+        return sorted(list(categories_set))
+
+    async def get_user_list_limit(self, user_id: int) -> int:
+        """Get the list limit for a user (admins get higher limits)"""
+        database = self._ensure_database()
+
+        # Check if user is admin
+        user_query = select(accounts_table.c.role).where(accounts_table.c.id == user_id)
+        user_role = await database.fetch_val(user_query)
+
+        # Get limit from global settings
+        limit_setting = await self.get_global_setting("user_private_list_limit", "50")
+        admin_limit_setting = await self.get_global_setting("admin_private_list_limit", "500")
+
+        default_limit = int(limit_setting) if limit_setting else 50
+        admin_limit = int(admin_limit_setting) if admin_limit_setting else 500
+
+        if user_role in ("root_admin", "administrative"):
+            return admin_limit
+        return default_limit
+
+    async def get_user_current_list_count(self, user_id: int, language_set_id: Optional[int] = None) -> int:
+        """Get current number of lists for a user"""
+        result = await self.get_user_private_lists(user_id, language_set_id, limit=None, offset=0)
+        return result["total"]
+
+    async def create_private_list(
+        self, user_id: int, list_name: str, language_set_id: int, is_system_list: bool = False
+    ) -> int:
+        """Create a new private list for a user
+
+        Raises:
+            ValueError: If list limit is reached or duplicate name exists
+        """
+        database = self._ensure_database()
+
+        # Check list limit (skip for system lists)
+        if not is_system_list:
+            list_limit = await self.get_user_list_limit(user_id)
+            current_count = await self.get_user_current_list_count(user_id, language_set_id)
+
+            if current_count >= list_limit:
+                raise ValueError(f"List limit reached ({list_limit} lists). " f"Current count: {current_count}")
+
+        # Check for duplicate name
+        check_query = select(user_private_lists_table.c.id).where(
+            and_(
+                user_private_lists_table.c.user_id == user_id,
+                user_private_lists_table.c.language_set_id == language_set_id,
+                user_private_lists_table.c.list_name == list_name,
+            )
+        )
+        existing = await database.fetch_one(check_query)
+        if existing:
+            raise ValueError(f"List with name '{list_name}' already exists in this language set")
+
+        query = insert(user_private_lists_table).values(
+            user_id=user_id,
+            language_set_id=language_set_id,
+            list_name=list_name,
+            is_system_list=is_system_list,
+        )
+
+        list_id = await database.execute(query)
+        return list_id
+
+    async def update_private_list_name(self, list_id: int, new_name: str) -> bool:
+        """Update the name of a private list"""
+        database = self._ensure_database()
+
+        query = (
+            update(user_private_lists_table).where(user_private_lists_table.c.id == list_id).values(list_name=new_name)
+        )
+
+        await database.execute(query)
+        return True
+
+    async def get_phrase_limit_per_list(self) -> int:
+        """Get the maximum phrases allowed per list"""
+        limit_setting = await self.get_global_setting("max_phrases_per_list", "10000")
+        return int(limit_setting) if limit_setting else 10000
+
+    async def add_phrase_to_private_list(
+        self,
+        list_id: int,
+        phrase_id: Optional[int] = None,
+        custom_phrase: Optional[str] = None,
+        custom_translation: Optional[str] = None,
+        custom_categories: Optional[str] = None,
+    ) -> int:
+        """Add a single phrase to a private list (either public phrase or custom phrase)
+
+        Raises:
+            ValueError: If phrase limit reached or duplicate phrase
+        """
+        database = self._ensure_database()
+
+        # Check phrase limit
+        phrase_limit = await self.get_phrase_limit_per_list()
+        current_count = await self.get_private_list_phrase_count(list_id)
+
+        if current_count >= phrase_limit:
+            raise ValueError(f"List is full ({phrase_limit} phrases). " f"Current count: {current_count}")
+
+        # Get the list to retrieve language_set_id
+        list_query = select(user_private_lists_table.c.language_set_id).where(user_private_lists_table.c.id == list_id)
+        list_result = await database.fetch_one(list_query)
+        if not list_result:
+            raise ValueError(f"List {list_id} not found")
+
+        language_set_id = list_result[0]
+
+        # Check for duplicates
+        if phrase_id:
+            # Check if this public phrase is already in the list
+            check_query = select(user_private_list_phrases_table).where(
+                and_(
+                    user_private_list_phrases_table.c.list_id == list_id,
+                    user_private_list_phrases_table.c.phrase_id == phrase_id,
+                )
+            )
+            existing = await database.fetch_one(check_query)
+            if existing:
+                raise ValueError(f"Phrase {phrase_id} is already in this list")
+
+        # Insert the phrase
+        query = insert(user_private_list_phrases_table).values(
+            list_id=list_id,
+            language_set_id=language_set_id,
+            phrase_id=phrase_id,
+            custom_phrase=custom_phrase,
+            custom_translation=custom_translation,
+            custom_categories=custom_categories,
+        )
+
+        entry_id = await database.execute(query)
+        return entry_id
+
+    async def remove_phrase_from_private_list(self, list_id: int, phrase_entry_id: int) -> bool:
+        """Remove a phrase entry from a private list
+
+        Note: This only removes the association between the phrase and the list.
+        It does NOT delete the phrase itself from the database.
+        """
+        database = self._ensure_database()
+
+        query = delete(user_private_list_phrases_table).where(
+            and_(
+                user_private_list_phrases_table.c.id == phrase_entry_id,
+                user_private_list_phrases_table.c.list_id == list_id,
+            )
+        )
+
+        _ = await database.execute(query)
+
+        # The databases library may return different types. Let's verify deletion by checking if entry still exists
+        # This is more reliable than trying to parse rowcount which may not be available
+        check_query = select(user_private_list_phrases_table).where(
+            and_(
+                user_private_list_phrases_table.c.id == phrase_entry_id,
+                user_private_list_phrases_table.c.list_id == list_id,
+            )
+        )
+        check_result = await database.fetch_one(check_query)
+        # If entry is gone, deletion succeeded
+        return check_result is None
+
+    # ===== List Sharing Methods =====
+
+    async def share_list(
+        self, list_id: int, owner_user_id: int, shared_with_user_id: int, permission: str = "read"
+    ) -> int:
+        """Share a list with another user"""
+        database = self._ensure_database()
+
+        # Check if already shared
+        check_query = select(user_list_shares_table).where(
+            and_(
+                user_list_shares_table.c.list_id == list_id,
+                user_list_shares_table.c.shared_with_user_id == shared_with_user_id,
+            )
+        )
+        existing = await database.fetch_one(check_query)
+
+        if existing:
+            # Update permission if already shared
+            update_query = (
+                update(user_list_shares_table)
+                .where(user_list_shares_table.c.id == existing["id"])
+                .values(permission=permission)
+            )
+            await database.execute(update_query)
+            return existing["id"]
+
+        # Insert new share
+        query = insert(user_list_shares_table).values(
+            list_id=list_id,
+            owner_user_id=owner_user_id,
+            shared_with_user_id=shared_with_user_id,
+            permission=permission,
+        )
+
+        share_id = await database.execute(query)
+        return share_id
+
+    async def unshare_list(self, list_id: int, shared_with_user_id: int) -> bool:
+        """Remove sharing access for a user"""
+        database = self._ensure_database()
+
+        query = delete(user_list_shares_table).where(
+            and_(
+                user_list_shares_table.c.list_id == list_id,
+                user_list_shares_table.c.shared_with_user_id == shared_with_user_id,
+            )
+        )
+
+        result = await database.execute(query)
+        return result > 0
+
+    async def get_list_shares(self, list_id: int, owner_user_id: int) -> list:
+        """Get all shares for a specific list"""
+        database = self._ensure_database()
+
+        query = (
+            select(
+                user_list_shares_table.c.id,
+                user_list_shares_table.c.shared_with_user_id,
+                user_list_shares_table.c.permission,
+                user_list_shares_table.c.shared_at,
+                accounts_table.c.username,
+            )
+            .select_from(
+                user_list_shares_table.join(
+                    accounts_table, user_list_shares_table.c.shared_with_user_id == accounts_table.c.id
+                )
+            )
+            .where(
+                and_(
+                    user_list_shares_table.c.list_id == list_id,
+                    user_list_shares_table.c.owner_user_id == owner_user_id,
+                )
+            )
+        )
+
+        rows = await database.fetch_all(query)
+        return [dict(row) for row in rows]
+
+    async def get_shared_with_me_lists(self, user_id: int, language_set_id: Optional[int] = None) -> list:
+        """Get all lists shared with the current user"""
+        database = self._ensure_database()
+
+        conditions = [user_list_shares_table.c.shared_with_user_id == user_id]
+        if language_set_id:
+            conditions.append(user_private_lists_table.c.language_set_id == language_set_id)
+
+        query = (
+            select(
+                user_private_lists_table.c.id,
+                user_private_lists_table.c.list_name,
+                user_private_lists_table.c.language_set_id,
+                user_private_lists_table.c.is_system_list,
+                user_list_shares_table.c.permission,
+                user_list_shares_table.c.owner_user_id,
+                accounts_table.c.username.label("owner_username"),
+                func.count(user_private_list_phrases_table.c.id).label("phrase_count"),
+            )
+            .select_from(
+                user_list_shares_table.join(
+                    user_private_lists_table,
+                    user_list_shares_table.c.list_id == user_private_lists_table.c.id,
+                )
+                .join(accounts_table, user_list_shares_table.c.owner_user_id == accounts_table.c.id)
+                .outerjoin(
+                    user_private_list_phrases_table,
+                    user_private_lists_table.c.id == user_private_list_phrases_table.c.list_id,
+                )
+            )
+            .where(and_(*conditions))
+            .group_by(
+                user_private_lists_table.c.id,
+                user_list_shares_table.c.permission,
+                user_list_shares_table.c.owner_user_id,
+                accounts_table.c.username,
+            )
+        )
+
+        rows = await database.fetch_all(query)
+        return [dict(row) for row in rows]
+
+    async def check_list_access(self, list_id: int, user_id: int) -> Optional[dict]:
+        """Check if user has access to a list (owner or shared)
+        Returns dict with 'access_type' ('owner' or 'shared') and 'permission' ('read' or 'write')
+        """
+        database = self._ensure_database()
+
+        # Check if owner
+        owner_query = select(user_private_lists_table).where(
+            and_(user_private_lists_table.c.id == list_id, user_private_lists_table.c.user_id == user_id)
+        )
+        owner_row = await database.fetch_one(owner_query)
+        if owner_row:
+            return {"access_type": "owner", "permission": "write"}
+
+        # Check if shared
+        share_query = select(user_list_shares_table).where(
+            and_(
+                user_list_shares_table.c.list_id == list_id,
+                user_list_shares_table.c.shared_with_user_id == user_id,
+            )
+        )
+        share_row = await database.fetch_one(share_query)
+        if share_row:
+            return {"access_type": "shared", "permission": share_row["permission"]}
+
+        return None
+
+    # ===== List Statistics Methods =====
+
+    async def get_list_statistics(self, list_id: int, user_id: int) -> Optional[dict]:
+        """Get usage statistics for a specific list"""
+        database = self._ensure_database()
+
+        # Get list info
+        list_query = select(user_private_lists_table).where(
+            and_(user_private_lists_table.c.id == list_id, user_private_lists_table.c.user_id == user_id)
+        )
+        list_info = await database.fetch_one(list_query)
+        if not list_info:
+            return None
+
+        # Get phrase count and breakdown
+        phrases_query = select(
+            func.count(user_private_list_phrases_table.c.id).label("total_phrases"),
+            func.sum(func.cast((user_private_list_phrases_table.c.phrase_id.is_(None)), Integer)).label(
+                "custom_phrases"
+            ),
+            func.sum(func.cast((user_private_list_phrases_table.c.phrase_id.isnot(None)), Integer)).label(
+                "public_phrases"
+            ),
+        ).where(user_private_list_phrases_table.c.list_id == list_id)
+        phrase_stats = await database.fetch_one(phrases_query)
+
+        total_phrases = phrase_stats["total_phrases"] if phrase_stats else 0
+        custom_phrases = phrase_stats["custom_phrases"] if phrase_stats else 0
+        public_phrases = phrase_stats["public_phrases"] if phrase_stats else 0
+
+        return {
+            "list_id": list_id,
+            "list_name": list_info["list_name"],
+            "created_at": list_info["created_at"].isoformat() if list_info["created_at"] else None,
+            "updated_at": list_info["updated_at"].isoformat() if list_info["updated_at"] else None,
+            "total_phrases": total_phrases or 0,
+            "custom_phrases": custom_phrases or 0,
+            "public_phrases": public_phrases or 0,
+            "is_system_list": list_info["is_system_list"],
+        }
+
+    async def get_user_list_statistics(self, user_id: int) -> dict:
+        """Get aggregate statistics for all user lists"""
+        database = self._ensure_database()
+
+        # Get total lists count
+        lists_count_query = select(func.count(user_private_lists_table.c.id)).where(
+            user_private_lists_table.c.user_id == user_id
+        )
+        total_lists = await database.fetch_val(lists_count_query)
+
+        # Get total phrases across all lists
+        phrases_count_query = (
+            select(func.count(user_private_list_phrases_table.c.id))
+            .select_from(
+                user_private_list_phrases_table.join(
+                    user_private_lists_table,
+                    user_private_list_phrases_table.c.list_id == user_private_lists_table.c.id,
+                )
+            )
+            .where(user_private_lists_table.c.user_id == user_id)
+        )
+        total_phrases = await database.fetch_val(phrases_count_query)
+
+        # Get most used lists (by phrase count)
+        most_used_query = (
+            select(
+                user_private_lists_table.c.id,
+                user_private_lists_table.c.list_name,
+                func.count(user_private_list_phrases_table.c.id).label("phrase_count"),
+            )
+            .select_from(
+                user_private_lists_table.outerjoin(
+                    user_private_list_phrases_table,
+                    user_private_lists_table.c.id == user_private_list_phrases_table.c.list_id,
+                )
+            )
+            .where(user_private_lists_table.c.user_id == user_id)
+            .group_by(user_private_lists_table.c.id, user_private_lists_table.c.list_name)
+            .order_by(desc(func.count(user_private_list_phrases_table.c.id)))
+            .limit(5)
+        )
+        most_used = await database.fetch_all(most_used_query)
+
+        return {
+            "total_lists": total_lists or 0,
+            "total_phrases": total_phrases or 0,
+            "most_used_lists": [dict(row) for row in most_used],
+        }
 
 
 # Create global database manager instance

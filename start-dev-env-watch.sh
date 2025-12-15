@@ -192,6 +192,7 @@ fi
 export DEVELOPMENT_MODE=true  # Enable development mode for backend
 export LOG_DEVELOPMENT_MODE=true  # Enable development logging mode
 export LOG_LEVEL=DEBUG  # Set log level to DEBUG for development
+export TESTING=true  # Disable rate limiting for development
 BACKEND_CMD=(uvicorn osmosmjerka.app:app --host 0.0.0.0 --port $BACKEND_PORT --reload --reload-dir .)
 
 if [ ${#DOTENV_BACKEND_PREFIX[@]} -gt 0 ]; then

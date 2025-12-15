@@ -229,6 +229,36 @@ def test_get_phrases_success(mock_generate_grid, mock_get_phrases, mock_get_cate
     assert data["category"] == "A"
 
 
+@patch("osmosmjerka.database.db_manager.get_categories_for_language_set")
+@patch("osmosmjerka.database.db_manager.get_phrases")
+@patch("osmosmjerka.game_api.get_grid_size_and_num_phrases")
+@patch("osmosmjerka.game_api._generate_grid_with_exact_phrase_count")
+def test_get_phrases_all_categories(
+    mock_generate_grid, mock_get_grid_size, mock_get_phrases, mock_get_categories, client
+):
+    """Test getting phrases with ALL category (all categories)"""
+    mock_get_categories.return_value = ["A", "B", "C"]
+    # Return phrases from multiple categories
+    mock_get_phrases.return_value = [
+        {"phrase": "a1", "categories": "A", "translation": "a1"},
+        {"phrase": "b1", "categories": "B", "translation": "b1"},
+        {"phrase": "c1", "categories": "C", "translation": "c1"},
+    ] * 10  # 30 phrases total
+    mock_get_grid_size.return_value = (10, 7)
+    mock_generate_grid.return_value = ([["A"]], [{"phrase": "a1", "translation": "a1"}])
+
+    response = client.get("/api/phrases?category=ALL&difficulty=easy")
+    assert response.status_code == 200
+    data = response.json()
+    assert "grid" in data
+    assert "phrases" in data
+    assert data["category"] == "ALL"
+    # Verify that get_phrases was called with None (no category filter)
+    mock_get_phrases.assert_called_once()
+    call_args = mock_get_phrases.call_args
+    assert call_args[0][1] is None  # category parameter should be None
+
+
 @patch("osmosmjerka.game_api.export_to_docx")
 def test_export_puzzle_docx(mock_export_docx, client):
     """Test exporting puzzle as DOCX"""

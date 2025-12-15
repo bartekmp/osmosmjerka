@@ -20,3 +20,6 @@ export { default as AdminControls } from './admin/components/AdminControls';
 // Export feature exports
 export { default as ExportButton } from './export/components/ExportButton';
 export { default as ExportModal } from './export/components/ExportModal';
+
+// Lists feature exports
+export { PrivateListManager } from './lists';

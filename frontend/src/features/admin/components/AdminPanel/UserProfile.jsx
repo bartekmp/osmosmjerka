@@ -24,8 +24,10 @@ import {
     Radio
 } from '@mui/material';
 import { EmojiEvents as TrophyIcon } from '@mui/icons-material';
+import PlaylistAddCheckIcon from '@mui/icons-material/PlaylistAddCheck';
 import { useTranslation } from 'react-i18next';
 import { API_ENDPOINTS } from '@shared';
+import { PrivateListManager } from '../../../lists';
 
 export default function UserProfile() {
     const { t } = useTranslation();
@@ -61,6 +63,10 @@ export default function UserProfile() {
     // Progressive hints user preference
     const [progressiveHintsEnabled, setProgressiveHintsEnabled] = useState(null); // null = use global setting
     const [progressiveHintsLoading, setProgressiveHintsLoading] = useState(false);
+
+    // Private List Manager state
+    const [showListManager, setShowListManager] = useState(false);
+    const [selectedLanguageSetForLists, setSelectedLanguageSetForLists] = useState(null);
 
     const authHeader = {
         'Authorization': `Bearer ${localStorage.getItem('adminToken')}`,
@@ -351,13 +357,29 @@ export default function UserProfile() {
                 <Typography variant="h6" gutterBottom>{t('account_information')}</Typography>
                 <Typography sx={{ mb: 1 }}><strong>{t('username')}:</strong> {profile.username}</Typography>
                 <Typography sx={{ mb: 2 }}><strong>{t('role')}:</strong> {profile.role}</Typography>
-                <Button
-                    variant="outlined"
-                    onClick={() => setPasswordDialog(true)}
-                    sx={{ mb: 2 }}
-                >
-                    {t('change_password')}
-                </Button>
+                <Box sx={{ display: 'flex', gap: 2, flexWrap: 'wrap' }}>
+                    <Button
+                        variant="outlined"
+                        onClick={() => setPasswordDialog(true)}
+                    >
+                        {t('change_password')}
+                    </Button>
+                    <Button
+                        variant="outlined"
+                        startIcon={<PlaylistAddCheckIcon />}
+                        onClick={() => {
+                            // Auto-select first language set if available
+                            if (languageSets.length > 0) {
+                                setSelectedLanguageSetForLists(languageSets[0].id);
+                            }
+                            setShowListManager(true);
+                        }}
+                        disabled={languageSets.length === 0}
+                        title={languageSets.length === 0 ? t('no_language_sets_available', 'No language sets available') : ''}
+                    >
+                        {t('manage_my_lists', 'Manage My Lists')}
+                    </Button>
+                </Box>
             </Paper>
 
             {/* Statistics Section */}
@@ -638,6 +660,15 @@ export default function UserProfile() {
                     {notification.message}
                 </Alert>
             </Snackbar>
+
+            {/* Private List Manager Dialog */}
+            {selectedLanguageSetForLists && (
+                <PrivateListManager
+                    open={showListManager}
+                    onClose={() => setShowListManager(false)}
+                    languageSetId={selectedLanguageSetForLists}
+                />
+            )}
         </Box>
     );
 }

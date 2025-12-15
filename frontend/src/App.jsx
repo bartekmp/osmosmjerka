@@ -110,7 +110,7 @@ function calculateScoreClientSide(
   rules = DEFAULT_SCORING_RULES
 ) {
   const scoringRules = rules || DEFAULT_SCORING_RULES;
-  
+
   // Base score: constant points per phrase found
   const baseScore = phrasesFound * scoringRules.base_points_per_phrase;
 
@@ -182,6 +182,7 @@ function AppContent() {
     const saved = localStorage.getItem(STORAGE_KEYS.SELECTED_LANGUAGE_SET);
     return saved ? parseInt(saved) : null;
   });
+  const [selectedPrivateListId, setSelectedPrivateListId] = useState(null);
   const [grid, setGrid] = useState([]);
   const [phrases, setPhrases] = useState([]);
   const [found, setFound] = useState([]);
@@ -356,6 +357,9 @@ function AppContent() {
     // Only run after game state restoration is complete
     if (!restored) return;
 
+    // Skip if a private list is selected - categories will be loaded by the private list effect
+    if (selectedPrivateListId) return;
+
     // Prevent duplicate API calls for the same language set
     if (lastFetchedLanguageSetIdRef.current === debouncedLanguageSetId) return;
     lastFetchedLanguageSetIdRef.current = debouncedLanguageSetId;
@@ -370,17 +374,20 @@ function AppContent() {
     axios
       .get(categoriesUrl)
       .then((res) => {
-        setCategories(res.data);
-        if (res.data.length === 0) {
+        const publicCategories = res.data || [];
+        // Add "ALL" option at the beginning for public categories
+        const categoriesWithAll = ["ALL", ...publicCategories];
+        setCategories(categoriesWithAll);
+        if (publicCategories.length === 0) {
           setCategoriesStatus("empty");
           setGridStatus("empty");
           return;
         }
         setCategoriesStatus("success");
         // Automatically select a random category if none is selected and no game is loaded
-        if (res.data.length > 0 && !selectedCategory && grid.length === 0) {
-          const randomIndex = Math.floor(Math.random() * res.data.length);
-          const randomCategory = res.data[randomIndex];
+        if (publicCategories.length > 0 && !selectedCategory && grid.length === 0) {
+          const randomIndex = Math.floor(Math.random() * publicCategories.length);
+          const randomCategory = publicCategories[randomIndex];
           setSelectedCategory(randomCategory);
           // Automatically load puzzle with the selected category
           loadPuzzle(randomCategory, difficulty);
@@ -396,7 +403,47 @@ function AppContent() {
         }
         lastFetchedLanguageSetIdRef.current = null; // Reset on error to allow retry
       });
-  }, [restored, debouncedLanguageSetId]);
+  }, [restored, debouncedLanguageSetId, selectedPrivateListId]);
+
+  // Fetch categories when private list selection changes
+  useEffect(() => {
+    if (!restored || !selectedLanguageSetId) return;
+
+    const token = localStorage.getItem(STORAGE_KEYS.ADMIN_TOKEN);
+
+    if (selectedPrivateListId) {
+      // Fetch categories from the private list
+      setCategoriesStatus("pending");
+      axios
+        .get(`/api/user/private-lists/${selectedPrivateListId}/categories?language_set_id=${selectedLanguageSetId}`, {
+          headers: token ? { Authorization: `Bearer ${token}` } : {}
+        })
+        .then((res) => {
+          const listCategories = res.data || [];
+          // Add "ALL" option at the beginning for private lists
+          const categoriesWithAll = ["ALL", ...listCategories];
+          setCategories(categoriesWithAll);
+          if (listCategories.length === 0) {
+            setCategoriesStatus("empty");
+          } else {
+            setCategoriesStatus("success");
+            // Clear selected category if it doesn't exist in the new list (but keep "ALL" if selected)
+            if (selectedCategory && selectedCategory !== "ALL" && !listCategories.includes(selectedCategory)) {
+              setSelectedCategory("");
+            }
+          }
+        })
+        .catch((err) => {
+          console.error("Error loading categories from private list:", err);
+          setCategoriesStatus("error");
+          setCategories([]);
+        });
+    } else {
+      // When switching back to public, reset the last fetched language set ID
+      // so the public categories effect can fetch them
+      lastFetchedLanguageSetIdRef.current = null;
+    }
+  }, [restored, selectedPrivateListId, selectedLanguageSetId]);
 
   useEffect(() => {
     if (initialLoadComplete || !restored) {
@@ -632,10 +679,13 @@ function AppContent() {
 
   useEffect(() => {
     if (!restored) return;
-    if (selectedCategory && grid.length === 0) {
+    // Load puzzle if:
+    // 1. A category is selected (for public puzzles), OR
+    // 2. A private list is selected (category is optional for private lists)
+    if (selectedCategory || selectedPrivateListId) {
       loadPuzzle(selectedCategory, difficulty);
     }
-  }, [restored, selectedCategory, difficulty]);
+  }, [restored, selectedCategory, difficulty, selectedPrivateListId]);
 
   const loadPuzzle = (category, diff = difficulty, refresh = false) => {
     setIsGridLoading(true);
@@ -667,7 +717,8 @@ function AppContent() {
       },
       t,
       selectedLanguageSetId,
-      refresh
+      refresh,
+      selectedPrivateListId
     )
       .then((result) => {
         if (result?.status === "error") {
@@ -801,10 +852,10 @@ function AppContent() {
               : 0);
           const perPhraseBreakdown = isCompleted
             ? found.map((phraseText, index) => ({
-                id: `${index}-${phraseText}`,
-                phrase: phraseText,
-                points: basePointsPerPhrase,
-              }))
+              id: `${index}-${phraseText}`,
+              phrase: phraseText,
+              points: basePointsPerPhrase,
+            }))
             : [];
 
           setScoreBreakdown({
@@ -1395,6 +1446,11 @@ function AppContent() {
                   selectedLanguageSetId={selectedLanguageSetId}
                   onLanguageSetChange={handleLanguageSetChange}
                   onLanguageSetStatusChange={handleLanguageSetStatusChange}
+                  currentUser={currentUser}
+                  selectedPrivateListId={selectedPrivateListId}
+                  onPrivateListChange={(listId) => {
+                    setSelectedPrivateListId(listId);
+                  }}
                 />
 
                 {/* All Found Message */}
@@ -1442,7 +1498,7 @@ function AppContent() {
                       disabled={allFound}
                       isDarkMode={isDarkMode}
                       showCelebration={showCelebration}
-                      onHintUsed={() => {}} // Placeholder - hint tracking is handled in handleHintRequest
+                      onHintUsed={() => { }} // Placeholder - hint tracking is handled in handleHintRequest
                       onGridInteraction={handleGridInteraction}
                     />
 
@@ -1535,6 +1591,8 @@ function AppContent() {
                       disableShowPhrases={notEnoughPhrases}
                       onPhraseClick={handlePhraseClick}
                       progressiveHintsEnabled={progressiveHintsEnabled}
+                      currentUser={currentUser}
+                      languageSetId={selectedLanguageSetId}
                       t={t}
                     />
                   </Box>

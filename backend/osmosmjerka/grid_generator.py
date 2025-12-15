@@ -278,7 +278,7 @@ def calculate_optimal_grid_size(phrase_pairs: List[Tuple[str, str]]) -> int:
     return min(size, max_phrase_len + 5)
 
 
-def place_single_phrase(grid: List[List[str]], phrase_data: Tuple[str, str], placed_phrases: List[Dict]) -> bool:
+def place_single_phrase(grid: List[List[str]], phrase_data: Tuple[Dict, str, str], placed_phrases: List[Dict]) -> bool:
     """
     Attempt to place a single phrase in the grid using the best available strategy.
 
@@ -289,13 +289,13 @@ def place_single_phrase(grid: List[List[str]], phrase_data: Tuple[str, str], pla
 
     Args:
         grid: Current grid state (modified in place)
-        phrase_data: Tuple of (original_phrase, translation)
+        phrase_data: Tuple of (phrase_object, phrase_text, translation)
         placed_phrases: List of already placed phrases (modified in place)
 
     Returns:
         bool: True if phrase was successfully placed, False otherwise
     """
-    orig_phrase, translation = phrase_data
+    phrase_obj, orig_phrase, translation = phrase_data
     phrase_normalized = normalize_phrase(orig_phrase.replace(" ", "").upper())
     size = len(grid)
 
@@ -309,7 +309,9 @@ def place_single_phrase(grid: List[List[str]], phrase_data: Tuple[str, str], pla
         if result:
             coords, direction = result
             _place_phrase_on_grid(grid, phrase_normalized, coords)
-            placed_phrases.append({"phrase": orig_phrase, "translation": translation, "coords": coords})
+            # Preserve all fields from original phrase object, adding coords
+            placed_phrase = {**phrase_obj, "coords": coords}
+            placed_phrases.append(placed_phrase)
             return True
 
     # Strategy 2: Try random placement with scoring
@@ -317,7 +319,9 @@ def place_single_phrase(grid: List[List[str]], phrase_data: Tuple[str, str], pla
     if result:
         coords, direction = result
         _place_phrase_on_grid(grid, phrase_normalized, coords)
-        placed_phrases.append({"phrase": orig_phrase, "translation": translation, "coords": coords})
+        # Preserve all fields from original phrase object, adding coords
+        placed_phrase = {**phrase_obj, "coords": coords}
+        placed_phrases.append(placed_phrase)
         return True
 
     # Strategy 3: Fallback to systematic placement
@@ -326,7 +330,9 @@ def place_single_phrase(grid: List[List[str]], phrase_data: Tuple[str, str], pla
     if result:
         coords, direction = result
         _place_phrase_on_grid(grid, phrase_normalized, coords)
-        placed_phrases.append({"phrase": orig_phrase, "translation": translation, "coords": coords})
+        # Preserve all fields from original phrase object, adding coords
+        placed_phrase = {**phrase_obj, "coords": coords}
+        placed_phrases.append(placed_phrase)
         return True
 
     return False
@@ -430,11 +436,14 @@ def generate_grid(phrases: list, size: int | None = None) -> tuple[list, list]:
         return [], []
 
     # Step 2: Prepare and sort phrases (longest first for better placement foundation)
-    phrase_pairs = [(w["phrase"], w["translation"]) for w in valid_phrases]
-    phrase_pairs.sort(key=lambda x: len(normalize_phrase(x[0].replace(" ", "").upper())), reverse=True)
+    # Keep full phrase objects to preserve all fields (id, categories, etc.)
+    phrase_pairs = [(w, w["phrase"], w["translation"]) for w in valid_phrases]
+    phrase_pairs.sort(key=lambda x: len(normalize_phrase(x[1].replace(" ", "").upper())), reverse=True)
 
     # Step 3: Calculate optimal grid size
-    grid_size = size if size is not None else calculate_optimal_grid_size(phrase_pairs)
+    # Extract just phrase/translation tuples for size calculation
+    phrase_text_pairs = [(p[1], p[2]) for p in phrase_pairs]
+    grid_size = size if size is not None else calculate_optimal_grid_size(phrase_text_pairs)
 
     # Step 4: Initialize empty grid and placement tracking
     grid = [["" for _ in range(grid_size)] for _ in range(grid_size)]

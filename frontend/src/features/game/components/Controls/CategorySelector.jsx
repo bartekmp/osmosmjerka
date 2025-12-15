@@ -38,7 +38,7 @@ export default function CategorySelector({ categories = [], selected, onSelect, 
                                 </em>
                             );
                         }
-                        return selectedValue;
+                        return selectedValue === "ALL" ? t('all_categories', 'ALL') : selectedValue;
                     }}
                 >
                     <MenuItem value="" disabled={hasCategories}>
@@ -49,7 +49,9 @@ export default function CategorySelector({ categories = [], selected, onSelect, 
                         </em>
                     </MenuItem>
                     {hasCategories && categories.map(cat => (
-                        <MenuItem key={cat} value={cat}>{cat}</MenuItem>
+                        <MenuItem key={cat} value={cat}>
+                            {cat === "ALL" ? t('all_categories', 'ALL') : cat}
+                        </MenuItem>
                     ))}
                 </Select>
             </FormControl>

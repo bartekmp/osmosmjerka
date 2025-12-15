@@ -5,6 +5,7 @@ export { default as LanguageSetSelector } from './LanguageSetSelector';
 export { default as LanguageSwitcher } from './LanguageSwitcher';
 export { default as NightModeButton } from './NightModeButton';
 export { default as NotEnoughPhrasesOverlay } from './NotEnoughPhrasesOverlay';
+export { default as PrivateListSelector } from './PrivateListSelector';
 export { default as RateLimitWarning } from './RateLimitWarning';
 export { default as ResponsiveActionButton } from './ResponsiveActionButton';
 export { default as ResponsiveText } from './ResponsiveText';
