@@ -2,6 +2,41 @@
 
 <!-- version list -->
 
+## v1.35.0 (2025-12-15)
+
+### Bug Fixes
+
+- Prevent infinite loop in Learn This Later button
+  ([#118](https://github.com/bartekmp/osmosmjerka/pull/118),
+  [`32570fd`](https://github.com/bartekmp/osmosmjerka/commit/32570fd40f0301d6e41e0cfcc8fe531022318f80))
+
+### Feature
+
+- Add batch import, list sharing, and statistics
+  ([#118](https://github.com/bartekmp/osmosmjerka/pull/118),
+  [`32570fd`](https://github.com/bartekmp/osmosmjerka/commit/32570fd40f0301d6e41e0cfcc8fe531022318f80))
+
+- Add PrivateListManager UI component ([#118](https://github.com/bartekmp/osmosmjerka/pull/118),
+  [`32570fd`](https://github.com/bartekmp/osmosmjerka/commit/32570fd40f0301d6e41e0cfcc8fe531022318f80))
+
+- Private phrase lists ([#118](https://github.com/bartekmp/osmosmjerka/pull/118),
+  [`32570fd`](https://github.com/bartekmp/osmosmjerka/commit/32570fd40f0301d6e41e0cfcc8fe531022318f80))
+
+- UI for batch import, list sharing, and statistics
+  ([#118](https://github.com/bartekmp/osmosmjerka/pull/118),
+  [`32570fd`](https://github.com/bartekmp/osmosmjerka/commit/32570fd40f0301d6e41e0cfcc8fe531022318f80))
+
+- Update readme with user defined lists feature
+  ([#118](https://github.com/bartekmp/osmosmjerka/pull/118),
+  [`32570fd`](https://github.com/bartekmp/osmosmjerka/commit/32570fd40f0301d6e41e0cfcc8fe531022318f80))
+
+- User-defined Phrase Lists ([#118](https://github.com/bartekmp/osmosmjerka/pull/118),
+  [`32570fd`](https://github.com/bartekmp/osmosmjerka/commit/32570fd40f0301d6e41e0cfcc8fe531022318f80))
+
+- Wire PrivateListManager to entry API ([#118](https://github.com/bartekmp/osmosmjerka/pull/118),
+  [`32570fd`](https://github.com/bartekmp/osmosmjerka/commit/32570fd40f0301d6e41e0cfcc8fe531022318f80))
+
+
 ## v1.34.6 (2025-12-13)
 
 ### Chores
