@@ -4,7 +4,7 @@ from unittest.mock import AsyncMock, Mock
 import pytest
 import pytest_asyncio
 
-from backend.osmosmjerka.database import DatabaseManager
+from osmosmjerka.database import DatabaseManager
 
 
 @pytest_asyncio.fixture
