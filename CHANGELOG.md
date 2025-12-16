@@ -2,6 +2,32 @@
 
 <!-- version list -->
 
+## v1.35.1 (2025-12-16)
+
+### Chores
+
+- Bump version to 1.35.1 ([#120](https://github.com/bartekmp/osmosmjerka/pull/120),
+  [`a9991d0`](https://github.com/bartekmp/osmosmjerka/commit/a9991d0f586ec3cb88a029135e07ddc7033a2f6a))
+
+### Refactoring
+
+- Fix user extraction in rate limiting decorator
+  ([#119](https://github.com/bartekmp/osmosmjerka/pull/119),
+  [`4439cce`](https://github.com/bartekmp/osmosmjerka/commit/4439cce4922aafafaf007177f822cd06aae451f4))
+
+- Split game_api into module ([#119](https://github.com/bartekmp/osmosmjerka/pull/119),
+  [`4439cce`](https://github.com/bartekmp/osmosmjerka/commit/4439cce4922aafafaf007177f822cd06aae451f4))
+
+- Split grid_generator into module ([#119](https://github.com/bartekmp/osmosmjerka/pull/119),
+  [`4439cce`](https://github.com/bartekmp/osmosmjerka/commit/4439cce4922aafafaf007177f822cd06aae451f4))
+
+- Turn database.py into module ([#119](https://github.com/bartekmp/osmosmjerka/pull/119),
+  [`4439cce`](https://github.com/bartekmp/osmosmjerka/commit/4439cce4922aafafaf007177f822cd06aae451f4))
+
+- Unify suggested port to 3210 ([#119](https://github.com/bartekmp/osmosmjerka/pull/119),
+  [`4439cce`](https://github.com/bartekmp/osmosmjerka/commit/4439cce4922aafafaf007177f822cd06aae451f4))
+
+
 ## v1.35.0 (2025-12-15)
 
 ### Bug Fixes
