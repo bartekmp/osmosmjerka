@@ -5,7 +5,7 @@ This project supports both development and production environments with differen
 ## Development Mode
 
 **Configuration:**
-- Frontend: Vite dev server on port 3000
+- Frontend: Vite dev server on port 3210
 - Backend: FastAPI on port 8085 with `DEVELOPMENT_MODE=true`
 - Base path: `/` (root)
 
@@ -16,8 +16,8 @@ This project supports both development and production environments with differen
 4. Hot reload and fast development
 
 **Access URLs:**
-- `http://localhost:3000` - Main development URL
-- `http://your-host-url:3000` - Network access
+- `http://localhost:3210` - Main development URL
+- `http://your-host-url:3210` - Network access
 
 **Start development:**
 ```bash
@@ -80,12 +80,12 @@ cp -r build/* ../backend/static/
 ## Troubleshooting
 
 **MIME type errors:**
-- Ensure you're accessing `localhost:3000` in development, not `localhost:8085`
+- Ensure you're accessing `localhost:3210` in development, not `localhost:8085`
 - Check that `DEVELOPMENT_MODE=true` is set for backend in development
 
 **Static files not loading:**
 - In production: Verify build copied to `backend/static/`
-- In development: Check Vite dev server is running on port 3000
+- In development: Check Vite dev server is running on port 3210
 
 **Module loading errors (blank page):**
 - App shows error page instead of blank screen for failed module imports
