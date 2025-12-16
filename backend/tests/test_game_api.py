@@ -153,7 +153,7 @@ def test_get_grid_size_and_num_phrases_edge_cases():
 
 @patch("osmosmjerka.database.db_manager.get_categories_for_language_set")
 @patch("osmosmjerka.database.db_manager.get_phrases")
-@patch("osmosmjerka.game_api.generate_grid")
+@patch("osmosmjerka.game_api.phrases._generate_grid_with_exact_phrase_count")
 def test_get_phrases_no_category_specified(mock_generate_grid, mock_get_phrases, mock_get_categories, client):
     """Test getting phrases when no category is specified"""
     mock_get_categories.return_value = ["A", "B"]
@@ -170,7 +170,7 @@ def test_get_phrases_no_category_specified(mock_generate_grid, mock_get_phrases,
 
 @patch("osmosmjerka.database.db_manager.get_categories_for_language_set")
 @patch("osmosmjerka.database.db_manager.get_phrases")
-@patch("osmosmjerka.game_api.generate_grid")
+@patch("osmosmjerka.game_api.phrases._generate_grid_with_exact_phrase_count")
 def test_get_phrases_invalid_category(mock_generate_grid, mock_get_phrases, mock_get_categories, client):
     """Test getting phrases with invalid category falls back to random"""
     mock_get_categories.return_value = ["A", "B"]
@@ -213,7 +213,7 @@ def test_get_phrases_not_enough_phrases(mock_get_phrases, mock_get_categories, c
 
 @patch("osmosmjerka.database.db_manager.get_categories_for_language_set")
 @patch("osmosmjerka.database.db_manager.get_phrases")
-@patch("osmosmjerka.game_api.generate_grid")
+@patch("osmosmjerka.game_api.phrases._generate_grid_with_exact_phrase_count")
 def test_get_phrases_success(mock_generate_grid, mock_get_phrases, mock_get_categories, client):
     """Test successful phrase retrieval"""
     mock_get_categories.return_value = ["A"]
@@ -231,8 +231,8 @@ def test_get_phrases_success(mock_generate_grid, mock_get_phrases, mock_get_cate
 
 @patch("osmosmjerka.database.db_manager.get_categories_for_language_set")
 @patch("osmosmjerka.database.db_manager.get_phrases")
-@patch("osmosmjerka.game_api.get_grid_size_and_num_phrases")
-@patch("osmosmjerka.game_api._generate_grid_with_exact_phrase_count")
+@patch("osmosmjerka.game_api.phrases.get_grid_size_and_num_phrases")
+@patch("osmosmjerka.game_api.phrases._generate_grid_with_exact_phrase_count")
 def test_get_phrases_all_categories(
     mock_generate_grid, mock_get_grid_size, mock_get_phrases, mock_get_categories, client
 ):
@@ -259,7 +259,7 @@ def test_get_phrases_all_categories(
     assert call_args[0][1] is None  # category parameter should be None
 
 
-@patch("osmosmjerka.game_api.export_to_docx")
+@patch("osmosmjerka.game_api.export.export_to_docx")
 def test_export_puzzle_docx(mock_export_docx, client):
     """Test exporting puzzle as DOCX"""
     mock_export_docx.return_value = b"docx_content"
@@ -273,7 +273,7 @@ def test_export_puzzle_docx(mock_export_docx, client):
     assert "attachment; filename=wordsearch-test.docx" in response.headers["content-disposition"]
 
 
-@patch("osmosmjerka.game_api.export_to_png")
+@patch("osmosmjerka.game_api.export.export_to_png")
 def test_export_puzzle_png(mock_export_png, client):
     """Test exporting puzzle as PNG"""
     mock_export_png.return_value = b"png_content"
@@ -287,7 +287,7 @@ def test_export_puzzle_png(mock_export_png, client):
 
 def test_export_puzzle_default_format(client):
     """Test exporting puzzle with default DOCX format"""
-    with patch("osmosmjerka.game_api.export_to_docx") as mock_export:
+    with patch("osmosmjerka.game_api.export.export_to_docx") as mock_export:
         mock_export.return_value = b"docx_content"
 
         data = {
@@ -307,7 +307,7 @@ def test_export_puzzle_invalid_format(client):
     """Test exporting puzzle with invalid format"""
     with (
         patch("osmosmjerka.game_api.export_to_docx") as mock_docx,
-        patch("osmosmjerka.game_api.export_to_png") as mock_png,
+        patch("osmosmjerka.game_api.export.export_to_png") as mock_png,
     ):
         mock_docx.return_value = b"docxbytes"
         mock_png.return_value = b"pngbytes"
@@ -325,7 +325,7 @@ def test_export_puzzle_invalid_format(client):
 
 def test_export_puzzle_filename_sanitization(client):
     """Test that category names are properly sanitized in filenames"""
-    with patch("osmosmjerka.game_api.export_to_docx") as mock_export:
+    with patch("osmosmjerka.game_api.export.export_to_docx") as mock_export:
         mock_export.return_value = b"docx_content"
 
         data = {
@@ -342,7 +342,7 @@ def test_export_puzzle_filename_sanitization(client):
 
 def test_export_puzzle_no_category(client):
     """Test exporting puzzle with valid category"""
-    with patch("osmosmjerka.game_api.export_to_docx") as mock_export:
+    with patch("osmosmjerka.game_api.export.export_to_docx") as mock_export:
         mock_export.return_value = b"docx_content"
 
         data = {"category": "Test", "grid": [["A"]], "phrases": [{"phrase": "A", "translation": "A"}], "format": "docx"}
@@ -353,7 +353,7 @@ def test_export_puzzle_no_category(client):
 
 def test_export_puzzle_exception(client):
     """Test export puzzle when export function raises exception"""
-    with patch("osmosmjerka.game_api.export_to_docx") as mock_export:
+    with patch("osmosmjerka.game_api.export.export_to_docx") as mock_export:
         mock_export.side_effect = Exception("Export failed")
 
         data = {"category": "Test", "grid": [["A"]], "phrases": [{"phrase": "A", "translation": "A"}], "format": "docx"}
