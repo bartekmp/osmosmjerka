@@ -26,7 +26,7 @@ export function getBaseUrl() {
             // Check traditional NODE_ENV
             (typeof process !== 'undefined' && process.env && process.env.NODE_ENV === 'production') ||
             // Check if we're NOT running on development ports
-            (window.location.port !== '3000' && window.location.port !== '5173' && window.location.hostname !== 'localhost');
+            (window.location.port !== '3210' && window.location.port !== '5173' && window.location.hostname !== 'localhost');
 
         return isProduction ? '/static/' : '/';
     }

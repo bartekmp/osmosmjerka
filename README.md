@@ -173,7 +173,7 @@ For development with hot reload:
 ```
 
 This starts:
-- Frontend: `http://localhost:3000` (Vite dev server)
+- Frontend: `http://localhost:3210` (Vite dev server)
 - Backend API: `http://localhost:8085`
 
 See [DEVELOPMENT.md](DEVELOPMENT.md) for detailed development setup and workflows.

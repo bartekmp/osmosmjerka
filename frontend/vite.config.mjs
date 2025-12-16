@@ -27,7 +27,7 @@ export default defineConfig({
     // Development server configuration
     server: {
         host: '0.0.0.0', // Allow access from any host
-        port: 3000,
+        port: 3210,
         strictPort: true,
         allowedHosts: ['localhost', 'workstation.local', 'workstation'], // Allow these hosts
         proxy: {
@@ -90,7 +90,7 @@ export default defineConfig({
     },
     publicDir: 'public',
     // Base path configuration:
-    // - Development: '/' (frontend served by Vite dev server on port 3000)
+    // - Development: '/' (frontend served by Vite dev server on port 3210)
     // - Production: '/static/' (frontend build served by backend from /static/ path)
     // Use explicit command argument or NODE_ENV check
     base: process.env.VITE_BASE_PATH || (process.env.NODE_ENV === 'production' ? '/static/' : '/'),

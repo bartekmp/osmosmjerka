@@ -11,8 +11,8 @@ def db_manager():
     # Patch the Database and engine so no real DB is used
     with (
         # pylint: disable=unused-variable
-        patch("osmosmjerka.database.Database", autospec=True),
-        patch("osmosmjerka.database.create_engine", autospec=True) as mock_engine,
+        patch("databases.Database", autospec=True),
+        patch("sqlalchemy.create_engine", autospec=True) as mock_engine,
     ):
         manager = DatabaseManager(database_url="sqlite:///test.db")
         manager.database = AsyncMock()
