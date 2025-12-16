@@ -4,11 +4,13 @@ import os
 import time
 from collections import defaultdict
 from functools import wraps
-from typing import Any, Dict, Optional
+from typing import Any, Callable, Dict, Optional, TypeVar
 
 from fastapi import HTTPException
 
 from osmosmjerka.logging_config import get_logger
+
+F = TypeVar("F", bound=Callable[..., Any])
 
 logger = get_logger(__name__)
 
@@ -78,31 +80,30 @@ phrases_cache = AsyncLRUCache(maxsize=100, ttl=180)  # 3 min TTL
 rate_limiter = RateLimiter()
 
 
-def rate_limit(max_requests: int, window_seconds: int):
+def rate_limit(max_requests: int, window_seconds: int) -> Callable[[F], F]:
     """Decorator to add rate limiting to FastAPI endpoints.
 
     Rate limiting is skipped for:
     - Test environment (TESTING=true)
     - Root admin users (role="root_admin")
+
+    Args:
+        max_requests: Maximum number of requests allowed
+        window_seconds: Time window in seconds for rate limiting
+
+    Returns:
+        Decorator function that wraps the endpoint with rate limiting
     """
 
-    def decorator(func):
+    def decorator(func: F) -> F:
         @wraps(func)
-        async def wrapper(*args, **kwargs):
+        async def wrapper(*args: Any, **kwargs: Any) -> Any:
             # Skip rate limiting in test environment
             if os.getenv("TESTING") == "true":
                 return await func(*args, **kwargs)
 
-            # Extract user from request - user is typically passed as dependency
-            user = None
-            for arg in args:
-                if hasattr(arg, "get") and "id" in str(arg):
-                    user = arg
-                    break
-
-            # Try to get user from kwargs
-            if not user:
-                user = kwargs.get("user")
+            # Extract user from request
+            user = kwargs.get("user")
 
             # Skip rate limiting for root admin users
             if user and isinstance(user, dict):
@@ -130,17 +131,25 @@ def rate_limit(max_requests: int, window_seconds: int):
 
             return await func(*args, **kwargs)
 
-        return wrapper
+        return wrapper  # type: ignore[return-value]
 
     return decorator
 
 
-def cache_response(cache_instance: AsyncLRUCache, key_prefix: str = ""):
-    """Decorator to cache FastAPI endpoint responses."""
+def cache_response(cache_instance: AsyncLRUCache, key_prefix: str = "") -> Callable[[F], F]:
+    """Decorator to cache FastAPI endpoint responses.
 
-    def decorator(func):
+    Args:
+        cache_instance: The cache instance to use for storing responses
+        key_prefix: Optional prefix for cache keys
+
+    Returns:
+        Decorator function that wraps the endpoint with caching
+    """
+
+    def decorator(func: F) -> F:
         @wraps(func)
-        async def wrapper(*args, **kwargs):
+        async def wrapper(*args: Any, **kwargs: Any) -> Any:
             # Check if refresh is requested to bypass cache
             refresh_requested = kwargs.get("refresh", False)
 
@@ -174,6 +183,6 @@ def cache_response(cache_instance: AsyncLRUCache, key_prefix: str = ""):
 
             return result
 
-        return wrapper
+        return wrapper  # type: ignore[return-value]
 
     return decorator
