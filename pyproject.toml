@@ -1,6 +1,6 @@
 [project]
 name = "osmosmjerka"
-version = "1.35.0"
+version = "1.35.1"
 description = "Web-based word search game for learning foreign languages"
 license = "Apache-2.0"
 requires-python = ">=3.13"
@@ -82,7 +82,7 @@ version_variables = [
 
 [tool.semantic_release.commit_parser_options]
 minor_tags = ["feat", "feature"]
-patch_tags = ["fix", "bugfix", "bug", "improvement", "enhancement", "patch", "chore", "renovate"]
+patch_tags = ["fix", "bugfix", "bug", "improvement", "enhancement", "patch", "chore", "renovate", "refactor"]
 allowed_tags = ["feat", "feature", "fix", "bugfix", "bug", "improvement", "enhancement", "patch", "chore", "noissue", "docs", "style", "refactor", "perf", "test", "ci", "renovate"]
 default_bump_level = 0
 parse_squash_commits = true
