@@ -51,26 +51,39 @@ else
   "$PYTHON_BIN" .github/scripts/validate_format.py
 fi
 
-# Python linting
-info "Running Python linters (flake8, black, isort)..."
-for tool in flake8 black isort; do
-  if ! command_exists "$tool"; then
-    error "Missing '$tool'. Install with 'pip install -e .[dev]'."
-    exit 1
-  fi
-done
+# Get staged Python files
+STAGED_PYTHON_FILES=($(git diff --cached --name-only --diff-filter=ACM | grep -E '^backend/.*\.py$' || true))
 
-flake8 backend/ --max-line-length=120 --count --statistics
-black --check backend/ --diff
-isort --check-only backend/ --diff
+if [[ ${#STAGED_PYTHON_FILES[@]} -gt 0 ]]; then
+  info "Running Python linters on ${#STAGED_PYTHON_FILES[@]} staged file(s)..."
+  for tool in flake8 black isort; do
+    if ! command_exists "$tool"; then
+      error "Missing '$tool'. Install with 'pip install -e .[dev]'."
+      exit 1
+    fi
+  done
 
-# Frontend linting
-info "Running frontend lint (npm run lint)..."
-if ! command_exists npm; then
-  error "npm is required. Install Node.js >= 18 and run 'npm install' inside frontend/."
-  exit 1
+  flake8 "${STAGED_PYTHON_FILES[@]}" --max-line-length=120 --count --statistics
+  black --check "${STAGED_PYTHON_FILES[@]}" --diff
+  isort --check-only "${STAGED_PYTHON_FILES[@]}" --diff
+else
+  info "No staged Python files to lint."
 fi
 
-( cd frontend && npm run lint )
+# Get staged frontend files
+STAGED_FRONTEND_FILES=($(git diff --cached --name-only --diff-filter=ACM | grep -E '^frontend/' || true))
+
+if [[ ${#STAGED_FRONTEND_FILES[@]} -gt 0 ]]; then
+  info "Running frontend lint on ${#STAGED_FRONTEND_FILES[@]} staged file(s)..."
+  if ! command_exists npm; then
+    error "npm is required. Install Node.js >= 18 and run 'npm install' inside frontend/."
+    exit 1
+  fi
+
+  # Note: npm run lint typically checks all files. For staged-only checks, consider using lint-staged
+  ( cd frontend && npm run lint )
+else
+  info "No staged frontend files to lint."
+fi
 
 info "All local checks passed. Proceeding with commit."
