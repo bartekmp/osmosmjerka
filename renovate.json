@@ -15,12 +15,32 @@
   "timezone": "Europe/Warsaw",
   "rangeStrategy": "replace",
   "prConcurrentLimit": 5,
-  "prCreation": "not-pending",
+  "prCreation": "immediate",
+  "rebaseWhen": "behind-base-branch",
+  "stopUpdatingLabel": "renovate-stop",
+  "ignoreDeps": ["react-scripts"],
+  "postUpdateOptions": ["npmDedupe"],
+  "enabledManagers": ["poetry", "npm", "dockerfile", "github-actions"],
+  "reviewers": ["bartekmp"],
+  "suppressNotifications": ["prIgnoreNotification"],
+
+  "separateMinorPatch": false,
+  "separateMajorMinor": true,
+  "separateMultipleMajor": true,
+
+  "vulnerabilityAlerts": {
+    "labels": ["security"],
+    "automerge": false,
+    "prPriority": 100
+  },
+
+  "configMigration": true,
 
   "packageRules": [
     {
       "matchManagers": ["github-actions"],
-      "enabled": true
+      "enabled": true,
+      "pinDigests": true
     },
     {
       "matchManagers": ["poetry"],
@@ -38,27 +58,59 @@
       "matchManagers": ["dockerfile"],
       "groupName": "Docker base images",
       "labels": ["docker"],
-      "schedule": ["monthly"]
+      "schedule": ["monthly"],
+      "pinDigests": true
     },
     {
       "matchPackagePrefixes": ["@types/"],
-      "groupName": "TypeScript types"
+      "groupName": "TypeScript types",
+      "automerge": true
+    },
+    {
+      "matchPackageNames": ["react", "react-dom"],
+      "groupName": "React core",
+      "prPriority": 5
+    },
+    {
+      "matchPackagePatterns": ["^@mui/"],
+      "groupName": "Material-UI packages"
+    },
+    {
+      "matchPackagePatterns": ["^eslint", "^@eslint/"],
+      "groupName": "ESLint packages"
+    },
+    {
+      "matchPackagePatterns": ["^@babel/"],
+      "groupName": "Babel packages"
+    },
+    {
+      "matchPackagePatterns": ["jest", "^@testing-library/"],
+      "groupName": "Testing packages"
+    },
+    {
+      "matchDepTypes": ["devDependencies"],
+      "automerge": true,
+      "automergeType": "pr",
+      "platformAutomerge": true
+    },
+    {
+      "matchDepTypes": ["peerDependencies"],
+      "enabled": true,
+      "rangeStrategy": "widen"
     },
     {
       "matchUpdateTypes": ["minor", "patch"],
       "automerge": true,
-      "automergeType": "branch",
+      "automergeType": "pr",
       "platformAutomerge": true
     },
     {
       "matchUpdateTypes": ["major"],
       "labels": ["major update"],
-      "prPriority": -1,
-      "automerge": false
+      "prPriority": 10,
+      "automerge": false,
+      "groupName": null,
+      "commitMessagePrefix": "BREAKING:"
     }
-  ],
-
-  "ignoreDeps": ["react-scripts"],
-
-  "enabledManagers": ["poetry", "npm", "dockerfile"]
+  ]
 }
