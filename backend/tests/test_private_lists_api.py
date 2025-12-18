@@ -435,3 +435,38 @@ def test_get_private_list_categories(mock_get_categories, client):
     assert "Greetings" in data
     assert "Animals" in data
     assert "Colors" in data
+
+
+@patch("osmosmjerka.database.db_manager.get_private_list_phrases", new_callable=AsyncMock)
+def test_get_private_list_phrases_empty_list(mock_get_phrases, client):
+    """Test getting phrases from an empty private list"""
+    mock_get_phrases.return_value = []
+
+    response = client.get("/api/user/private-lists/1/phrases?language_set_id=1&difficulty=easy")
+
+    assert response.status_code == 404
+    data = response.json()
+    assert data["error_code"] == "NO_PHRASES_IN_LIST"
+    assert "error" not in data  # Should not have error key
+
+
+@patch("osmosmjerka.database.db_manager.get_private_list_phrases", new_callable=AsyncMock)
+@patch("osmosmjerka.game_api.get_grid_size_and_num_phrases")
+def test_get_private_list_phrases_not_enough(mock_get_grid_size, mock_get_phrases, client):
+    """Test getting phrases when there are not enough phrases in the list"""
+    # Return only 3 phrases, but need 7 for the grid
+    mock_get_phrases.return_value = [
+        {"id": 1, "phrase": "hello", "translation": "hola", "categories": "Greetings"},
+        {"id": 2, "phrase": "cat", "translation": "gato", "categories": "Animals"},
+        {"id": 3, "phrase": "red", "translation": "rojo", "categories": "Colors"},
+    ]
+    mock_get_grid_size.return_value = (10, 7)  # Need 7 phrases
+
+    response = client.get("/api/user/private-lists/1/phrases?language_set_id=1&difficulty=easy")
+
+    assert response.status_code == 400
+    data = response.json()
+    assert data["error_code"] == "NOT_ENOUGH_PHRASES"
+    assert data["available"] == 3
+    assert data["required"] == 7
+    assert "error" not in data  # Should not have error key

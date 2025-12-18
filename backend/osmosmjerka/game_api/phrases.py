@@ -85,13 +85,13 @@ async def get_phrases(
             category_filter = random.choice(categories) if categories else None
         if not category_filter and not categories:
             return JSONResponse(
-                {"error": "No categories available for the selected language set"},
+                {"error_code": "NO_CATEGORIES_AVAILABLE"},
                 status_code=status.HTTP_404_NOT_FOUND,
             )
     elif not categories:
         # If "ALL" was selected but no categories exist, return error
         return JSONResponse(
-            {"error": "No categories available for the selected language set"},
+            {"error_code": "NO_CATEGORIES_AVAILABLE"},
             status_code=status.HTTP_404_NOT_FOUND,
         )
 
@@ -103,7 +103,7 @@ async def get_phrases(
 
     if not selected:
         return JSONResponse(
-            {"error": "No phrases found", "category": category},
+            {"error_code": "NO_PHRASES_FOUND", "category": category},
             status_code=status.HTTP_404_NOT_FOUND,
         )
 
@@ -112,9 +112,7 @@ async def get_phrases(
     if len(selected) < num_phrases:
         return JSONResponse(
             {
-                "error": (
-                    f"Not enough phrases in category '{category_filter or 'ALL'}'. Need {num_phrases}, but only {len(selected)} available."
-                ),
+                "error_code": "NOT_ENOUGH_PHRASES_IN_CATEGORY",
                 "category": category_filter or "ALL",
                 "available": len(selected),
                 "needed": num_phrases,

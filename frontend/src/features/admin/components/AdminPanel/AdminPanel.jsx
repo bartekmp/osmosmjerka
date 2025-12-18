@@ -229,6 +229,7 @@ export default function AdminPanel({
         setOffset(0); // Reset to first page when searching
     }, []);
     const [token, setToken] = useState(localStorage.getItem(STORAGE_KEYS.ADMIN_TOKEN) || '');
+    const [tokenExpired, setTokenExpired] = useState(false); // Track if token expired (vs. user logged out)
     const [clearLoading, setClearLoading] = useState(false);
     const [reloadLoading, setReloadLoading] = useState(false);
     const [dataLoading, setDataLoading] = useState(false);
@@ -271,6 +272,20 @@ export default function AdminPanel({
         originalFetchRows(...args);
     }, [originalFetchRows, browseRecords]);
 
+    // Helper function to handle authentication errors
+    const handleAuthError = useCallback((response) => {
+        // Check if it's an authentication error (400 or 401)
+        if (response.status === 401 || response.status === 400) {
+            setTokenExpired(true); // Mark that token expired
+            setToken('');
+            localStorage.removeItem(STORAGE_KEYS.ADMIN_TOKEN);
+            setIsLogged(false);
+            setDashboard(true);
+            return true;
+        }
+        return false;
+    }, [setDashboard]);
+
     // Clear loading state when rows change (indicating fetch completed)
     useEffect(() => {
         if (dataLoading) {
@@ -306,20 +321,30 @@ export default function AdminPanel({
                     'Authorization': `Bearer ${token}`
                 }
             })
-                .then(res => res.json())
-                .then(data => {
-                    setLanguageSets(data);
-                    setLanguageSetsLoading(false);
-                    setLanguageSetsLoaded(true);
-                    // Auto-select first language set if none is selected
-                    if (data.length > 0 && !selectedLanguageSetId) {
-                        const firstSetId = data[0].id;
-                        setSelectedLanguageSetId(firstSetId);
-                        localStorage.setItem(STORAGE_KEYS.SELECTED_LANGUAGE_SET, firstSetId.toString());
+                .then(res => {
+                    if (!res.ok) {
+                        if (handleAuthError(res)) {
+                            return;
+                        }
+                        throw new Error('Failed to load language sets');
                     }
-                    // If no language sets exist, show error
-                    if (data.length === 0) {
-                        setError(t('no_language_sets_error'));
+                    return res.json();
+                })
+                .then(data => {
+                    if (data) {
+                        setLanguageSets(data);
+                        setLanguageSetsLoading(false);
+                        setLanguageSetsLoaded(true);
+                        // Auto-select first language set if none is selected
+                        if (data.length > 0 && !selectedLanguageSetId) {
+                            const firstSetId = data[0].id;
+                            setSelectedLanguageSetId(firstSetId);
+                            localStorage.setItem(STORAGE_KEYS.SELECTED_LANGUAGE_SET, firstSetId.toString());
+                        }
+                        // If no language sets exist, show error
+                        if (data.length === 0) {
+                            setError(t('no_language_sets_error'));
+                        }
                     }
                 })
                 .catch(err => {
@@ -327,7 +352,7 @@ export default function AdminPanel({
                     setLanguageSetsLoading(false);
                 });
         }
-    }, [isLogged, token, languageSetsLoaded, currentUser]);
+    }, [isLogged, token, languageSetsLoaded, currentUser, handleAuthError]);
 
     // Separate useEffect for categories that depends on selectedLanguageSetId
     useEffect(() => {
@@ -344,14 +369,24 @@ export default function AdminPanel({
                     'Authorization': `Bearer ${token}`
                 }
             })
-                .then(res => res.json())
+                .then(res => {
+                    if (!res.ok) {
+                        if (handleAuthError(res)) {
+                            return;
+                        }
+                        throw new Error('Failed to load categories');
+                    }
+                    return res.json();
+                })
                 .then(data => {
-                    setCategories(data);
-                    setCategoriesLoaded(true);
+                    if (data) {
+                        setCategories(data);
+                        setCategoriesLoaded(true);
+                    }
                 })
                 .catch(err => console.error('Failed to load categories:', err));
         }
-    }, [isLogged, token, selectedLanguageSetId, dashboard, userManagement, userProfile, statisticsDashboard, systemSettings, languageSetManagement, duplicateManagement, categoriesLoaded]);
+    }, [isLogged, token, selectedLanguageSetId, dashboard, userManagement, userProfile, statisticsDashboard, systemSettings, languageSetManagement, duplicateManagement, categoriesLoaded, handleAuthError]);
 
     // Handlers for pagination and offset input, to avoid negative or excessive values
     const handleOffsetInput = (e) => {
@@ -489,6 +524,7 @@ export default function AdminPanel({
     useEffect(() => {
         if (token) {
             if (isTokenExpired(token)) {
+                setTokenExpired(true); // Mark that token expired
                 setIsLogged(false);
                 setToken('');
                 localStorage.removeItem(STORAGE_KEYS.ADMIN_TOKEN);
@@ -500,21 +536,35 @@ export default function AdminPanel({
                     : {}
             })
                 .then(res => {
-                    if (!res.ok) throw new Error("Unauthorized or server error");
+                    if (!res.ok) {
+                        if (handleAuthError(res)) {
+                            return;
+                        }
+                        throw new Error("Unauthorized or server error");
+                    }
                     return res.json();
                 })
                 .then(data => {
-                    setIsLogged(true);
-                    setCurrentUser(data); // Profile endpoint returns user data directly
+                    if (data) {
+                        setIsLogged(true);
+                        setCurrentUser(data); // Profile endpoint returns user data directly
+                        setTokenExpired(false); // Reset expired flag on successful login
+                    }
                 })
                 .catch(() => {
                     setIsLogged(false);
                     setToken('');
                     localStorage.removeItem(STORAGE_KEYS.ADMIN_TOKEN);
+                    // Don't reset tokenExpired here - it might have been set by handleAuthError
                 });
+        } else {
+            // No token - only reset expired flag if it wasn't already set (to preserve expired state)
+            // This prevents clearing the expired message when token is removed after expiration
+            // We use a functional update to access the current tokenExpired value
+            setTokenExpired(prev => prev ? prev : false);
         }
 
-    }, [token]);
+    }, [token, handleAuthError]);
 
     // When switching to Browse Phrases, auto-load first page
     useEffect(() => {
@@ -603,13 +653,22 @@ export default function AdminPanel({
             method,
             headers,
             body: JSON.stringify(updatedRow)
-        }).catch(err => {
-            // If save fails, revert the optimistic update
-            console.error('Save failed:', err);
-            if (selectedLanguageSetId) {
-                fetchRows(offset, limit, filterCategory, searchTerm, selectedLanguageSetId);
-            }
-        });
+        })
+            .then(res => {
+                if (!res.ok) {
+                    if (handleAuthError(res)) {
+                        return;
+                    }
+                    throw new Error('Save failed');
+                }
+            })
+            .catch(err => {
+                // If save fails, revert the optimistic update
+                console.error('Save failed:', err);
+                if (selectedLanguageSetId) {
+                    fetchRows(offset, limit, filterCategory, searchTerm, selectedLanguageSetId);
+                }
+            });
     }, [offset, limit, filterCategory, selectedLanguageSetId, fetchRows]);
 
     // Handle inline delete from table with optimistic updates
@@ -628,13 +687,22 @@ export default function AdminPanel({
             fetch(`/admin/row/${id}?language_set_id=${selectedLanguageSetId}`, {
                 method: 'DELETE',
                 headers
-            }).catch(err => {
-                // If delete fails, reload the data
-                console.error('Delete failed:', err);
-                if (selectedLanguageSetId) {
-                    fetchRows(offset, limit, filterCategory, searchTerm, selectedLanguageSetId);
-                }
-            });
+            })
+                .then(res => {
+                    if (!res.ok) {
+                        if (handleAuthError(res)) {
+                            return;
+                        }
+                        throw new Error('Delete failed');
+                    }
+                })
+                .catch(err => {
+                    // If delete fails, reload the data
+                    console.error('Delete failed:', err);
+                    if (selectedLanguageSetId) {
+                        fetchRows(offset, limit, filterCategory, searchTerm, selectedLanguageSetId);
+                    }
+                });
         }
     }, [offset, limit, filterCategory, selectedLanguageSetId, fetchRows, t]);
 
@@ -647,24 +715,28 @@ export default function AdminPanel({
             const headers = token ? { Authorization: 'Bearer ' + token } : {};
             fetch(API_ENDPOINTS.ADMIN_CLEAR, { method: 'DELETE', headers })
                 .then(async res => {
-                    const data = await res.json();
-                    if (res.ok) {
-                        setClearNotification({
-                            open: true,
-                            message: data.message || t('db_cleared'),
-                            severity: 'success',
-                            autoHideDuration: 3000,
-                        });
-                        if (selectedLanguageSetId) {
-                            fetchRows(offset, limit, filterCategory, searchTerm, selectedLanguageSetId);
+                    if (!res.ok) {
+                        if (handleAuthError(res)) {
+                            return;
                         }
-                    } else {
+                        const data = await res.json();
                         setClearNotification({
                             open: true,
                             message: data.message || t('clear_db_failed'),
                             severity: 'error',
                             autoHideDuration: null,
                         });
+                        return;
+                    }
+                    const data = await res.json();
+                    setClearNotification({
+                        open: true,
+                        message: data.message || t('db_cleared'),
+                        severity: 'success',
+                        autoHideDuration: 3000,
+                    });
+                    if (selectedLanguageSetId) {
+                        fetchRows(offset, limit, filterCategory, searchTerm, selectedLanguageSetId);
                     }
                 })
                 .catch(() => {
@@ -704,15 +776,19 @@ export default function AdminPanel({
                 })
             });
 
-            if (response.ok) {
-                onUpdateUserIgnoredCategories(newIgnoredCategories);
-                // Refresh the data to reflect the changes
-                if (selectedLanguageSetId) {
-                    fetchRows(offset, limit, filterCategory, searchTerm, selectedLanguageSetId);
+            if (!response.ok) {
+                if (handleAuthError(response)) {
+                    return;
                 }
-            } else {
                 const data = await response.json();
                 setError(data.error || t('ignored_categories_updated_error'));
+                return;
+            }
+
+            onUpdateUserIgnoredCategories(newIgnoredCategories);
+            // Refresh the data to reflect the changes
+            if (selectedLanguageSetId) {
+                fetchRows(offset, limit, filterCategory, searchTerm, selectedLanguageSetId);
             }
         } catch (err) {
             console.error('Failed to update ignored categories:', err);
@@ -726,6 +802,7 @@ export default function AdminPanel({
         localStorage.removeItem(STORAGE_KEYS.ADMIN_TOKEN);
         setIsLogged(false);
         setCurrentUser(null);
+        setTokenExpired(false); // User logged out on purpose, not expired
         setDashboard(true);
         setUserManagement(false);
         setLanguageSetManagement(false);
@@ -764,7 +841,13 @@ export default function AdminPanel({
                     </Typography>
                     <FormBox
                         component="form"
-                        onSubmit={e => { e.preventDefault(); handleLogin(auth, setError, setCurrentUser); }}
+                        onSubmit={e => { 
+                            e.preventDefault(); 
+                            handleLogin(auth, setError, (user) => {
+                                setCurrentUser(user);
+                                setTokenExpired(false); // Reset expired flag on successful login
+                            });
+                        }}
                     >
                         <Stack spacing={3}>
                             <TextField
@@ -792,7 +875,7 @@ export default function AdminPanel({
                             <Typography color="error.contrastText">{error}</Typography>
                         </ErrorBox>
                     )}
-                    {isTokenExpired(token) && (
+                    {tokenExpired && (
                         <WarningBox>
                             <Typography color="warning.contrastText">
                                 {t('session_expired')}

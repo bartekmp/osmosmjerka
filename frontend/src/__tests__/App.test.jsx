@@ -124,7 +124,7 @@ test('shows not enough phrases overlay', async () => {
                 response: {
                     status: 404,
                     data: {
-                        error: 'NOT_ENOUGH_PHRASES',
+                        error_code: 'NOT_ENOUGH_PHRASES_IN_CATEGORY',
                         category: 'TestCategory',
                         available: 0,
                         needed: 5

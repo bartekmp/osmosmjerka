@@ -139,7 +139,7 @@ async def get_private_list_phrases_endpoint(
         )
 
         if not all_phrases:
-            return JSONResponse({"error": "No phrases found in this list"}, status_code=status.HTTP_404_NOT_FOUND)
+            return JSONResponse({"error_code": "NO_PHRASES_IN_LIST"}, status_code=status.HTTP_404_NOT_FOUND)
 
         # Use the same grid generation logic as regular puzzles
         grid_size, num_phrases = get_grid_size_and_num_phrases(all_phrases, difficulty)
@@ -147,7 +147,7 @@ async def get_private_list_phrases_endpoint(
         if len(all_phrases) < num_phrases:
             return JSONResponse(
                 {
-                    "error": "Not enough phrases",
+                    "error_code": "NOT_ENOUGH_PHRASES",
                     "available": len(all_phrases),
                     "required": num_phrases,
                     "grid_size": grid_size,

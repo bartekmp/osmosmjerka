@@ -193,7 +193,8 @@ def test_get_phrases_no_phrases_found(mock_get_phrases, mock_get_categories, cli
     response = client.get("/api/phrases?category=A")
     assert response.status_code == 404
     data = response.json()
-    assert "No phrases found" in data["error"]
+    assert data["error_code"] == "NO_PHRASES_FOUND"
+    assert "category" in data
 
 
 @patch("osmosmjerka.database.db_manager.get_categories_for_language_set")
@@ -206,9 +207,10 @@ def test_get_phrases_not_enough_phrases(mock_get_phrases, mock_get_categories, c
     response = client.get("/api/phrases?category=A&difficulty=hard")  # Needs 12 phrases
     assert response.status_code == 404
     data = response.json()
-    assert "Not enough phrases" in data["error"]
+    assert data["error_code"] == "NOT_ENOUGH_PHRASES_IN_CATEGORY"
     assert data["available"] == 1
     assert data["needed"] == 12
+    assert data["category"] == "A"
 
 
 @patch("osmosmjerka.database.db_manager.get_categories_for_language_set")

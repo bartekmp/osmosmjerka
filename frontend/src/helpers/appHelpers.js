@@ -161,13 +161,25 @@ export function loadPuzzle(category, diff, setters, t, languageSetId = null, ref
 
             if (err.response && err.response.data) {
                 const errorData = err.response.data;
-                // Check for structured not enough phrases error
-                if (errorData.category && errorData.available !== undefined && errorData.needed !== undefined) {
+                // Check for structured not enough phrases error (with category)
+                if (errorData.error_code === "NOT_ENOUGH_PHRASES_IN_CATEGORY" && errorData.category && errorData.available !== undefined && errorData.needed !== undefined) {
                     msg = t ? t('not_enough_phrases_detailed', {
                         category: errorData.category,
                         available: errorData.available,
                         needed: errorData.needed
                     }) : `Not enough phrases in category '${errorData.category}'. Need ${errorData.needed}, but only ${errorData.available} available.`;
+                } else if (errorData.error_code === "NOT_ENOUGH_PHRASES" && t) {
+                    // Check for "Not enough phrases" error code (for private lists, no category)
+                    msg = t('not_enough_phrases');
+                } else if (errorData.error_code === "NO_PHRASES_IN_LIST" && t) {
+                    // Check for "No phrases found in this list" error code and translate it
+                    msg = t('no_phrases_found_in_list');
+                } else if (errorData.error_code === "NO_CATEGORIES_AVAILABLE" && t) {
+                    // Check for "No categories available" error code and translate it
+                    msg = t('no_categories_available');
+                } else if (errorData.error_code === "NO_PHRASES_FOUND" && t) {
+                    // Check for "No phrases found" error code and translate it
+                    msg = t('no_phrases_found');
                 } else if (errorData.detail) {
                     msg = errorData.detail;
                 } else if (errorData.error) {
