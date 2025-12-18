@@ -156,6 +156,7 @@
   "reload_puzzle": "Ponovno učitaj zagonetku",
   "not_enough_phrases": "Nema dovoljno fraza za generiranje zagonetke.",
   "not_enough_phrases_detailed": "Nema dovoljno fraza u kategoriji '{{category}}'. Potrebno je {{needed}}, a dostupno je samo {{available}}.",
+  "no_phrases_found_in_list": "Nema fraza na ovoj listi.",
   "error_loading_puzzle": "Greška pri učitavanju zagonetke.",
   "loading_puzzle": "Čitanje zagonetke...",
   "admin_dashboard": "Administratorska ploča",

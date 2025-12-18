@@ -13,6 +13,20 @@ export function useAdminApi({ token, setRows, setTotalRows, setDashboard, setErr
         ? { Authorization: 'Bearer ' + token, 'Content-Type': 'application/json' }
         : {};
 
+    // Helper function to handle authentication errors
+    const handleAuthError = useCallback((response) => {
+        // Check if it's an authentication error (400 or 401)
+        if (response.status === 401 || response.status === 400) {
+            // Clear token and logout
+            setToken('');
+            localStorage.removeItem('adminToken');
+            setIsLogged(false);
+            setDashboard(true);
+            return true;
+        }
+        return false;
+    }, [setToken, setIsLogged, setDashboard]);
+
     // Create debounced API call for fetching rows
     const fetchRowsApiCall = useCallback(async (offset, limit, filterCategory, searchTerm, languageSetId) => {
         let url = `/admin/rows?offset=${offset}&limit=${limit}`;
@@ -22,13 +36,16 @@ export function useAdminApi({ token, setRows, setTotalRows, setDashboard, setErr
         
         const response = await fetch(url, { headers: authHeader });
         if (!response.ok) {
+            if (handleAuthError(response)) {
+                throw new Error("Session expired, please log in again.");
+            }
             if (response.status === 429) {
                 throw new Error("Too many requests. Please wait before trying again.");
             }
             throw new Error("Unauthorized or server error");
         }
         return response.json();
-    }, [authHeader]);
+    }, [authHeader, handleAuthError]);
 
     const { 
         call: debouncedFetchRows, 
@@ -89,6 +106,9 @@ export function useAdminApi({ token, setRows, setTotalRows, setDashboard, setErr
         });
 
         if (!response.ok) {
+            if (handleAuthError(response)) {
+                throw new Error("Session expired, please log in again.");
+            }
             let message = 'Failed to save row';
             try {
                 const errorBody = await response.json();
@@ -111,7 +131,7 @@ export function useAdminApi({ token, setRows, setTotalRows, setDashboard, setErr
         }
 
         return response;
-    }, [authHeader]);
+    }, [authHeader, handleAuthError]);
 
     const handleExportTxt = useCallback((filterCategory) => {
         const params = new URLSearchParams();
@@ -128,8 +148,12 @@ export function useAdminApi({ token, setRows, setTotalRows, setDashboard, setErr
             document.body.appendChild(link);
             link.click();
             link.remove();
+        }).catch(err => {
+            if (err.response && (err.response.status === 401 || err.response.status === 400)) {
+                handleAuthError({ status: err.response.status });
+            }
         });
-    }, [authHeader]);
+    }, [authHeader, handleAuthError]);
 
     const clearDb = useCallback((fetchRows) => {
         if (!window.confirm("Are you sure you want to delete all data?")) return;
@@ -181,11 +205,15 @@ export function useAdminApi({ token, setRows, setTotalRows, setDashboard, setErr
                 body: JSON.stringify({ row_ids: rowIds })
             });
 
-            const data = await response.json();
-
             if (!response.ok) {
+                if (handleAuthError(response)) {
+                    throw new Error("Session expired, please log in again.");
+                }
+                const data = await response.json();
                 throw new Error(data.error || data.detail || 'Failed to delete records');
             }
+
+            const data = await response.json();
 
             return {
                 success: true,
@@ -199,7 +227,7 @@ export function useAdminApi({ token, setRows, setTotalRows, setDashboard, setErr
                 error: error.message
             };
         }
-    }, [authHeader]);
+    }, [authHeader, handleAuthError]);
 
     const handleBatchAddCategory = useCallback(async (rowIds, category, languageSetId) => {
         try {
@@ -212,11 +240,15 @@ export function useAdminApi({ token, setRows, setTotalRows, setDashboard, setErr
                 })
             });
 
-            const data = await response.json();
-
             if (!response.ok) {
+                if (handleAuthError(response)) {
+                    throw new Error("Session expired, please log in again.");
+                }
+                const data = await response.json();
                 throw new Error(data.error || data.detail || 'Failed to add category');
             }
+
+            const data = await response.json();
 
             return {
                 success: true,
@@ -231,7 +263,7 @@ export function useAdminApi({ token, setRows, setTotalRows, setDashboard, setErr
                 error: error.message
             };
         }
-    }, [authHeader]);
+    }, [authHeader, handleAuthError]);
 
     const handleBatchRemoveCategory = useCallback(async (rowIds, category, languageSetId) => {
         try {
@@ -244,11 +276,15 @@ export function useAdminApi({ token, setRows, setTotalRows, setDashboard, setErr
                 })
             });
 
-            const data = await response.json();
-
             if (!response.ok) {
+                if (handleAuthError(response)) {
+                    throw new Error("Session expired, please log in again.");
+                }
+                const data = await response.json();
                 throw new Error(data.error || data.detail || 'Failed to remove category');
             }
+
+            const data = await response.json();
 
             return {
                 success: true,
@@ -263,15 +299,18 @@ export function useAdminApi({ token, setRows, setTotalRows, setDashboard, setErr
                 error: error.message
             };
         }
-    }, [authHeader]);
+    }, [authHeader, handleAuthError]);
 
     const getWithAuth = useCallback(async (url) => {
         const response = await fetch(url, { headers: authHeader });
         if (!response.ok) {
+            if (handleAuthError(response)) {
+                throw new Error("Session expired, please log in again.");
+            }
             throw new Error(`HTTP error! status: ${response.status}`);
         }
         return response.json();
-    }, [authHeader]);
+    }, [authHeader, handleAuthError]);
 
     return { 
         fetchRows, 

@@ -156,6 +156,7 @@
   "reload_puzzle": "Odśwież łamigłówkę",
   "not_enough_phrases": "Za mało fraz dla tej kategorii lub zestawu językowego.",
   "not_enough_phrases_detailed": "Za mało fraz w kategorii '{{category}}'. Potrzeba {{needed}}, ale dostępne są tylko {{available}}.",
+  "no_phrases_found_in_list": "Nie znaleziono fraz na tej liście.",
   "error_loading_puzzle": "Błąd podczas ładowania łamigłówki.",
   "loading_puzzle": "Ładowanie łamigłówki...",
   "admin_dashboard": "Panel administratora",

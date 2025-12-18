@@ -139,6 +139,7 @@
   "reload_puzzle": "Reload puzzle",
   "not_enough_phrases": "Not enough phrases to generate a puzzle.",
   "not_enough_phrases_detailed": "Not enough phrases in category '{{category}}'. Need {{needed}}, but only {{available}} available.",
+  "no_phrases_found_in_list": "No phrases found in this list.",
   "error_loading_puzzle": "Error loading puzzle.",
   "loading_puzzle": "Loading puzzle...",
   "admin_dashboard": "Admin Dashboard",
