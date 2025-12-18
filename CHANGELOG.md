@@ -2,6 +2,41 @@
 
 <!-- version list -->
 
+## v1.35.2 (2025-12-18)
+
+### Chores
+
+- Update Renovate configuration with additional rules
+  ([#121](https://github.com/bartekmp/osmosmjerka/pull/121),
+  [`57dba66`](https://github.com/bartekmp/osmosmjerka/commit/57dba6630659566f03e1c271041ea36e7005b45c))
+
+- **config**: Migrate config renovate.json
+  ([#122](https://github.com/bartekmp/osmosmjerka/pull/122),
+  [`9ae463c`](https://github.com/bartekmp/osmosmjerka/commit/9ae463ccfe27446d727cdd9637ac0f8aed5bbda5))
+
+### Continuous Integration
+
+- Format code ([#123](https://github.com/bartekmp/osmosmjerka/pull/123),
+  [`49fef3b`](https://github.com/bartekmp/osmosmjerka/commit/49fef3bb9da31ade6ec232899fa4922debae83f7))
+
+- Pre-commit hook for staged files only ([#123](https://github.com/bartekmp/osmosmjerka/pull/123),
+  [`49fef3b`](https://github.com/bartekmp/osmosmjerka/commit/49fef3bb9da31ade6ec232899fa4922debae83f7))
+
+### Enhancement
+
+- Fix login token expiry handling, improve error messages from API
+  ([#124](https://github.com/bartekmp/osmosmjerka/pull/124),
+  [`b8221d7`](https://github.com/bartekmp/osmosmjerka/commit/b8221d7e2802945a0476369259ce4794b187ba21))
+
+- Fix login tokin expiry handling, improve error messages from API
+  ([#124](https://github.com/bartekmp/osmosmjerka/pull/124),
+  [`b8221d7`](https://github.com/bartekmp/osmosmjerka/commit/b8221d7e2802945a0476369259ce4794b187ba21))
+
+- Improve returning JSON responses from API
+  ([#124](https://github.com/bartekmp/osmosmjerka/pull/124),
+  [`b8221d7`](https://github.com/bartekmp/osmosmjerka/commit/b8221d7e2802945a0476369259ce4794b187ba21))
+
+
 ## v1.35.1 (2025-12-16)
 
 ### Chores
