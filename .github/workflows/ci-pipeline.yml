@@ -239,7 +239,7 @@ jobs:
         run: |          
           # Run semantic-release version --push
           set +e
-          python -m semantic_release version --strict --push
+          python -m semantic_release version --push
           EXIT_CODE=$?
           set -e
           

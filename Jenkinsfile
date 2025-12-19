@@ -341,8 +341,9 @@ POSTGRES_DATABASE=${env.POSTGRES_DATABASE}
     post {
         always {
             script {
-                // Cleanup: remove .env file, gitops temp dir, and node_modules/venv
-                // Note: Docker images are kept for deployment, only temp files are cleaned
+                def versionTag = env.BRANCH_NAME == 'main' ? env.IMAGE_TAG : '999.0.0-dev'
+                sh "docker rm ${env.DOCKER_REGISTRY}/${IMAGE_NAME}:latest || true"
+                sh "docker rm ${env.DOCKER_REGISTRY}/${IMAGE_NAME}:${versionTag} || true"
                 sh 'rm -f .env || true'
                 sh 'rm -rf gitops-tmp || true'
                 sh 'rm -rf frontend/node_modules backend/.venv || true'
