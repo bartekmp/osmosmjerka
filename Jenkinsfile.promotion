@@ -12,6 +12,15 @@ pipeline {
     }
 
     stages {
+        stage('Set Build Name') {
+            steps {
+                script {
+                    if (params.IMAGE_TAG?.trim()) {
+                        currentBuild.displayName = params.IMAGE_TAG.trim()
+                    }
+                }
+            }
+        }
         stage('Validate Input') {
             steps {
                 script {
