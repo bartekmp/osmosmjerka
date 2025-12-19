@@ -50,6 +50,64 @@ pipeline {
                 sh 'echo "Current branch: ${BRANCH_NAME}"'
             }
         }
+        
+        stage('Detect Release from GitHub Actions') {
+            when {
+                branch 'main'
+            }
+            steps {
+                script {
+                    // Fetch latest tags created by GitHub Actions semantic-release
+                    sh 'git fetch --tags --force'
+                    
+                    // Get current commit SHA
+                    def currentCommit = sh(script: 'git rev-parse HEAD', returnStdout: true).trim()
+                    
+                    // Check if current commit has a tag (new release from GitHub Actions)
+                    def tagsOnCommit = sh(script: "git tag --points-at ${currentCommit}", returnStdout: true).trim()
+                    
+                    echo "Current commit: ${currentCommit}"
+                    echo "Tags on commit: ${tagsOnCommit}"
+                    
+                    if (tagsOnCommit) {
+                        // New release detected - GitHub Actions created a tag on this commit
+                        // Get the first tag (semantic-release typically creates one tag per release)
+                        def releaseTag = tagsOnCommit.split('\n')[0].trim()
+                        echo "New release detected: ${releaseTag}"
+                        env.IS_NEW_RELEASE = 'true'
+                        env.TRIGGER_GITOPS_CD = env.TRIGGER_GITOPS_CD_PARAM ?: 'true'
+                        env.SKIP_IMAGE_PUSH = env.SKIP_IMAGE_PUSH_PARAM ?: 'false'
+                        
+                        // Extract version from pyproject.toml (semantic-release updates it)
+                        // This ensures we get the exact version that was released
+                        def version = sh(script: "grep '^version' pyproject.toml | head -1 | awk -F '\"' '{print \$2}'", returnStdout: true).trim()
+                        env.IMAGE_TAG = version
+                        
+                        def shortCommit = sh(script: 'git rev-parse --short HEAD', returnStdout: true).trim()
+                        def buildName = "${version}-${shortCommit}"
+                        echo "Setting build display name to ${buildName}"
+                        currentBuild.displayName = buildName
+                    } else {
+                        // No new release - this commit doesn't have a tag
+                        echo "No new release - commit does not have a release tag"
+                        env.IS_NEW_RELEASE = 'false'
+                        env.TRIGGER_GITOPS_CD = env.TRIGGER_GITOPS_CD_PARAM ?: 'false'
+                        env.SKIP_IMAGE_PUSH = env.SKIP_IMAGE_PUSH_PARAM ?: 'true'
+                        env.IMAGE_TAG = "v999.0.0-dev"
+                        
+                        def shortCommit = sh(script: 'git rev-parse --short HEAD', returnStdout: true).trim()
+                        def buildName = "#${env.BUILD_NUMBER}-${shortCommit}"
+                        echo "Setting build display name to ${buildName}"
+                        currentBuild.displayName = buildName
+                    }
+                    
+                    echo "Set TRIGGER_GITOPS_CD to: ${env.TRIGGER_GITOPS_CD}"
+                    echo "Set SKIP_IMAGE_PUSH to: ${env.SKIP_IMAGE_PUSH}"
+                    echo "Set IS_NEW_RELEASE to: ${env.IS_NEW_RELEASE}"
+                    echo "Set IMAGE_TAG to: ${env.IMAGE_TAG}"
+                }
+            }
+        }
         stage('Install Dependencies') {
             steps {
                 dir("${FRONTEND_DIR}") {
@@ -142,94 +200,7 @@ pipeline {
                 }
             }
         }
-
-        stage('Semantic Release') {
-            when {
-                allOf {
-                    branch 'main'
-                    not { buildingTag() }
-                }
-            }
-            steps {
-                script {
-                    def baseDisplayName = currentBuild.displayName ?: "#${env.BUILD_NUMBER}"
-                    env.TRIGGER_GITOPS_CD = env.TRIGGER_GITOPS_CD_PARAM ?: 'false'
-                    env.SKIP_IMAGE_PUSH = env.SKIP_IMAGE_PUSH_PARAM ?: 'false'
-                    env.IS_NEW_RELEASE = 'true'
-
-                    echo "Initial TRIGGER_GITOPS_CD value: ${env.TRIGGER_GITOPS_CD}"
-                    echo "Initial SKIP_IMAGE_PUSH value: ${env.SKIP_IMAGE_PUSH}"
-                    echo "Initial IS_NEW_RELEASE value: ${env.IS_NEW_RELEASE}"
-
-                    def exitCode = sh(
-                        script: """
-                            . backend/.venv/bin/activate
-                            semantic-release --strict version --push
-                        """,
-                        returnStatus: true
-                    )
-
-                    echo "Semantic-release exit code: ${exitCode}"
-                    if (exitCode == 0) {
-                        echo "Branch: New version released successfully"
-                        env.TRIGGER_GITOPS_CD = 'true'
-                        env.SKIP_IMAGE_PUSH = 'false'
-                        env.IS_NEW_RELEASE = 'true'
-                        echo "Set TRIGGER_GITOPS_CD to: ${env.TRIGGER_GITOPS_CD}"
-                        echo "Set SKIP_IMAGE_PUSH to: ${env.SKIP_IMAGE_PUSH}"
-                        echo "Set IS_NEW_RELEASE to: ${env.IS_NEW_RELEASE}"
-                    } else if (exitCode == 2) {
-                        echo "Branch: No release necessary or already released, setting TRIGGER_GITOPS_CD to false"
-                        env.TRIGGER_GITOPS_CD = 'false'
-                        env.SKIP_IMAGE_PUSH = 'true'
-                        env.IS_NEW_RELEASE = 'false'
-                        echo "Set TRIGGER_GITOPS_CD to: ${env.TRIGGER_GITOPS_CD}"
-                        echo "Set SKIP_IMAGE_PUSH to: ${env.SKIP_IMAGE_PUSH}"
-                        echo "Set IS_NEW_RELEASE to: ${env.IS_NEW_RELEASE}"
-                        env.IMAGE_TAG = "v999.0.0-dev"
-                        def shortCommitNoRelease = sh(script: 'git rev-parse --short HEAD', returnStdout: true).trim()
-                        def buildNameNoRelease = "${baseDisplayName}-${shortCommitNoRelease}"
-                        echo "Setting build display name to ${buildNameNoRelease}"
-                        currentBuild.displayName = buildNameNoRelease
-                        return
-                    } else {
-                        echo "Branch: Unexpected exit code ${exitCode}"
-                        def shortCommitFailed = sh(script: 'git rev-parse --short HEAD', returnStdout: true).trim()
-                        def buildNameFailed = "${baseDisplayName}-${shortCommitFailed}"
-                        echo "Setting build display name to ${buildNameFailed}"
-                        currentBuild.displayName = buildNameFailed
-                        error("Semantic-release failed with exit code ${exitCode}")
-                    }
-                    
-                    def version = sh(script: "grep '^version' pyproject.toml | head -1 | awk -F '\"' '{print \$2}'", returnStdout: true).trim()
-                    env.IMAGE_TAG = version
-                    def shortCommit = sh(script: 'git rev-parse --short HEAD', returnStdout: true).trim()
-                    def buildName = "${version}-${shortCommit}"
-                    echo "Setting build display name to ${buildName}"
-                    currentBuild.displayName = buildName
-                }
-            }
-        }
-
-        stage('Release') {
-            when {
-                allOf {
-                    branch 'main'
-                    not { buildingTag() }
-                }
-            }
-            steps {
-                script {
-                    if (env.IS_NEW_RELEASE == 'false') {
-                        echo "No new release, skipping semantic release publish."
-                        return
-                    }
-
-                    sh '. backend/.venv/bin/activate && semantic-release publish'
-                }
-            }
-        }
-
+ 
         stage('Prepare .env') {
             when {
                 allOf {
@@ -370,9 +341,8 @@ POSTGRES_DATABASE=${env.POSTGRES_DATABASE}
     post {
         always {
             script {
-                def versionTag = env.BRANCH_NAME == 'main' ? env.IMAGE_TAG : '999.0.0-dev'
-                sh "docker rm ${env.DOCKER_REGISTRY}/${IMAGE_NAME}:latest || true"
-                sh "docker rm ${env.DOCKER_REGISTRY}/${IMAGE_NAME}:${versionTag} || true"
+                // Cleanup: remove .env file, gitops temp dir, and node_modules/venv
+                // Note: Docker images are kept for deployment, only temp files are cleaned
                 sh 'rm -f .env || true'
                 sh 'rm -rf gitops-tmp || true'
                 sh 'rm -rf frontend/node_modules backend/.venv || true'
