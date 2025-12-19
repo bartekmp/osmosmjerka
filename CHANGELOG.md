@@ -2,6 +2,22 @@
 
 <!-- version list -->
 
+## v1.35.3 (2025-12-19)
+
+### Improvement
+
+- Add valid CORS headers, add other security headers, add DB pool settings
+  ([#125](https://github.com/bartekmp/osmosmjerka/pull/125),
+  [`316d314`](https://github.com/bartekmp/osmosmjerka/commit/316d314245ac006b99bae5966044b2a6428ae35d))
+
+- API and DB tweaks ([#125](https://github.com/bartekmp/osmosmjerka/pull/125),
+  [`316d314`](https://github.com/bartekmp/osmosmjerka/commit/316d314245ac006b99bae5966044b2a6428ae35d))
+
+- Sanitize errors, set upload size limits, add IP-based rate limiting for anonymous users
+  ([#125](https://github.com/bartekmp/osmosmjerka/pull/125),
+  [`316d314`](https://github.com/bartekmp/osmosmjerka/commit/316d314245ac006b99bae5966044b2a6428ae35d))
+
+
 ## v1.35.2 (2025-12-18)
 
 ### Chores
