@@ -244,9 +244,8 @@ jobs:
           private-key: ${{ secrets.SEMREL_GHA_APP_KEY }}
           owner: bartekmp
           repositories: osmosmjerka
-          permissions: |
-            contents: write
-            metadata: read
+          permission-contents: write
+          permission-metadata: read
 
       - name: Configure Git with App token
         run: |
@@ -331,9 +330,8 @@ jobs:
           private-key: ${{ secrets.SEMREL_GHA_APP_KEY }}
           owner: bartekmp
           repositories: osmosmjerka
-          permissions: |
-            contents: write
-            metadata: read
+          permission-contents: write
+          permission-metadata: read
 
       - name: Configure Git with App token
         run: |
