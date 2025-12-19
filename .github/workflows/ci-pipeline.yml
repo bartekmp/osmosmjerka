@@ -252,12 +252,23 @@ jobs:
           git config --global credential.helper store
           echo "https://x-access-token:${{ steps.app-token.outputs.token }}@github.com" > ~/.git-credentials
           git remote set-url origin https://x-access-token:${{ steps.app-token.outputs.token }}@github.com/bartekmp/osmosmjerka.git
+          # Verify token is working
+          echo "Verifying app token access..."
+          git ls-remote --heads origin main > /dev/null && echo "✓ Token authentication successful" || echo "✗ Token authentication failed"
 
       - name: Run semantic-release version
         id: semrel
         env:
           GITHUB_TOKEN: ${{ steps.app-token.outputs.token }}
+          GH_TOKEN: ${{ steps.app-token.outputs.token }}
         run: |          
+          # Verify token is set
+          if [ -z "$GITHUB_TOKEN" ]; then
+            echo "::error::GITHUB_TOKEN is not set"
+            exit 1
+          fi
+          echo "GITHUB_TOKEN is set (length: ${#GITHUB_TOKEN})"
+          
           # Run semantic-release version --push
           set +e
           python -m semantic_release version --push
