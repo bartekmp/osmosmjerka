@@ -6,7 +6,7 @@ from collections import defaultdict
 from functools import wraps
 from typing import Any, Callable, Dict, Optional, TypeVar
 
-from fastapi import HTTPException
+from fastapi import HTTPException, Request
 
 from osmosmjerka.logging_config import get_logger
 
@@ -80,12 +80,37 @@ phrases_cache = AsyncLRUCache(maxsize=100, ttl=180)  # 3 min TTL
 rate_limiter = RateLimiter()
 
 
+def _get_client_ip(request: Request) -> str:
+    """Extract client IP address from request, handling proxy headers."""
+    # Check X-Forwarded-For header (first IP in chain)
+    forwarded_for = request.headers.get("X-Forwarded-For")
+    if forwarded_for:
+        # X-Forwarded-For can contain multiple IPs, take the first one
+        client_ip = forwarded_for.split(",")[0].strip()
+        if client_ip:
+            return client_ip
+
+    # Check X-Real-IP header
+    real_ip = request.headers.get("X-Real-IP")
+    if real_ip:
+        return real_ip.strip()
+
+    # Fall back to direct client IP
+    if request.client:
+        return request.client.host
+
+    return "unknown"
+
+
 def rate_limit(max_requests: int, window_seconds: int) -> Callable[[F], F]:
     """Decorator to add rate limiting to FastAPI endpoints.
 
     Rate limiting is skipped for:
     - Test environment (TESTING=true)
     - Root admin users (role="root_admin")
+
+    Uses IP-based rate limiting for anonymous users to prevent single IP from
+    exhausting the shared anonymous rate limit bucket.
 
     Args:
         max_requests: Maximum number of requests allowed
@@ -102,8 +127,16 @@ def rate_limit(max_requests: int, window_seconds: int) -> Callable[[F], F]:
             if os.getenv("TESTING") == "true":
                 return await func(*args, **kwargs)
 
-            # Extract user from request
+            # Extract user and request from kwargs
             user = kwargs.get("user")
+            request = None
+            for arg in args:
+                if isinstance(arg, Request):
+                    request = arg
+                    break
+            if not request:
+                # Try to find request in kwargs
+                request = kwargs.get("request")
 
             # Skip rate limiting for root admin users
             if user and isinstance(user, dict):
@@ -111,11 +144,16 @@ def rate_limit(max_requests: int, window_seconds: int) -> Callable[[F], F]:
                 if user_role == "root_admin":
                     return await func(*args, **kwargs)
 
-            # Create identifier
+            # Create identifier - use user ID if authenticated, otherwise use IP
             if user and isinstance(user, dict) and "id" in user:
                 identifier = f"user_{user['id']}"
             else:
-                identifier = "anonymous"
+                # For anonymous users, use IP address to prevent single IP from exhausting shared bucket
+                if request:
+                    client_ip = _get_client_ip(request)
+                    identifier = f"ip_{client_ip}"
+                else:
+                    identifier = "anonymous"
 
             if not rate_limiter.is_allowed(identifier, max_requests, window_seconds):
                 logger.warning(

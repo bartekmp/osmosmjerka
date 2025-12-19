@@ -22,7 +22,8 @@ import {
   CircularProgress,
   Checkbox,
   Pagination,
-  Stack
+  Stack,
+  Tooltip
 } from '@mui/material';
 import DeleteIcon from '@mui/icons-material/Delete';
 import EditIcon from '@mui/icons-material/Edit';
@@ -1006,15 +1007,19 @@ export default function PrivateListManager({ open, onClose, languageSetId }) {
             >
               {t('privateListManager.phrases.addCustom')}
             </Button>
-            <Button
-              variant="outlined"
-              startIcon={<UploadFileIcon />}
-              onClick={() => setShowImportDialog(true)}
-              disabled={loading}
-              size="small"
-            >
-              {t('privateListManager.phrases.importCSV', 'Import CSV')}
-            </Button>
+            <Tooltip title={t('privateListManager.phrases.importMaxSize', 'Maximum file size: 5MB')}>
+              <span>
+                <Button
+                  variant="outlined"
+                  startIcon={<UploadFileIcon />}
+                  onClick={() => setShowImportDialog(true)}
+                  disabled={loading}
+                  size="small"
+                >
+                  {t('privateListManager.phrases.importCSV', 'Import CSV')}
+                </Button>
+              </span>
+            </Tooltip>
             <Button
               variant="outlined"
               startIcon={<ShareIcon />}

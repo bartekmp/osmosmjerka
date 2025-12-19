@@ -48,6 +48,9 @@ STATIC_FILE_EXTENSIONS = [
 DEVELOPMENT_MODE = os.getenv("DEVELOPMENT_MODE", "false").lower() == "true"
 FRONTEND_DEV_URL = "http://localhost:3210"
 
+# Request size limits (in bytes)
+MAX_REQUEST_SIZE = int(os.getenv("MAX_REQUEST_SIZE", str(2 * 1024 * 1024)))  # 2MB default
+
 # CORS configuration - restrict to actual domains
 ALLOWED_ORIGINS = [
     "https://osmosmjerka.app",
@@ -143,6 +146,58 @@ async def lifespan(_: FastAPI):
 
 
 app = FastAPI(lifespan=lifespan)
+
+
+# Request size limit middleware
+@app.middleware("http")
+async def check_request_size(request: Request, call_next):
+    """Check and reject requests that exceed size limits."""
+    content_length = request.headers.get("content-length")
+    if content_length:
+        try:
+            size = int(content_length)
+            if size > MAX_REQUEST_SIZE:
+                logger.warning(
+                    "Request size limit exceeded",
+                    extra={
+                        "size": size,
+                        "max_size": MAX_REQUEST_SIZE,
+                        "path": request.url.path,
+                        "client_ip": request.client.host if request.client else None,
+                    },
+                )
+                return JSONResponse(
+                    {"error": "Request too large."},
+                    status_code=413,
+                )
+        except ValueError:
+            # Invalid content-length header, let it through (will fail later if needed)
+            pass
+    return await call_next(request)
+
+
+# Error sanitization middleware
+@app.middleware("http")
+async def sanitize_errors(request: Request, call_next):
+    """Sanitize error messages in production to prevent information leakage."""
+    try:
+        response = await call_next(request)
+        return response
+    except Exception as exc:
+        # Log the full error for debugging
+        logger.exception("Unhandled exception in request", extra={"path": request.url.path})
+
+        # In production, return generic error message
+        if not DEVELOPMENT_MODE:
+            return JSONResponse(
+                {"error": "An internal error occurred. Please try again later."},
+                status_code=500,
+            )
+        # In development, return the actual error for debugging
+        return JSONResponse(
+            {"error": str(exc), "type": type(exc).__name__},
+            status_code=500,
+        )
 
 
 # Add security headers middleware

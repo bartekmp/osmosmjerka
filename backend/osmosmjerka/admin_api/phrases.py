@@ -2,10 +2,11 @@
 
 import csv
 import io
+import os
 import re
 from typing import Optional
 
-from fastapi import APIRouter, Depends, File, Query, Request, UploadFile, status
+from fastapi import APIRouter, Depends, File, HTTPException, Query, Request, UploadFile, status
 from fastapi.responses import JSONResponse, StreamingResponse
 from starlette.concurrency import run_in_threadpool
 
@@ -14,6 +15,9 @@ from osmosmjerka.cache import categories_cache, rate_limit
 from osmosmjerka.database import db_manager
 
 router = APIRouter()
+
+# Maximum file upload size (5MB)
+MAX_UPLOAD_SIZE = int(os.getenv("MAX_UPLOAD_SIZE", str(5 * 1024 * 1024)))  # 5MB default
 
 
 def _parse_phrases_csv(content: str, delimiter: Optional[str] = None) -> tuple[list[dict], str]:
@@ -254,7 +258,22 @@ async def upload(
         greeting;goodbye;до свидания
     """
     try:
+        # Check file size before reading
+        if file.size and file.size > MAX_UPLOAD_SIZE:
+            raise HTTPException(
+                status_code=status.HTTP_413_REQUEST_ENTITY_TOO_LARGE,
+                detail=f"File too large. Maximum size is {MAX_UPLOAD_SIZE / (1024 * 1024):.1f}MB.",
+            )
+
         content = (await file.read()).decode("utf-8")
+
+        # Also check content size after reading (in case size wasn't available)
+        content_size = len(content.encode("utf-8"))
+        if content_size > MAX_UPLOAD_SIZE:
+            raise HTTPException(
+                status_code=status.HTTP_413_REQUEST_ENTITY_TOO_LARGE,
+                detail=f"File too large. Maximum size is {MAX_UPLOAD_SIZE / (1024 * 1024):.1f}MB.",
+            )
         phrases_data, error_message = _parse_phrases_csv(content)
 
         if error_message:
@@ -277,7 +296,14 @@ async def upload(
                 {"error": "Upload failed - no valid phrases found"}, status_code=status.HTTP_400_BAD_REQUEST
             )
     except Exception as e:
-        return JSONResponse({"error": f"Upload failed: {str(e)}"}, status_code=status.HTTP_400_BAD_REQUEST)
+        # Sanitize error messages in production
+        from osmosmjerka.app import DEVELOPMENT_MODE
+
+        if DEVELOPMENT_MODE:
+            error_msg = f"Upload failed: {str(e)}"
+        else:
+            error_msg = "Upload failed. Please check the content format and try again."
+        return JSONResponse({"error": error_msg}, status_code=status.HTTP_400_BAD_REQUEST)
 
 
 @router.post("/upload-text")
@@ -320,7 +346,14 @@ async def upload_text(
                 {"error": "Upload failed - no valid phrases found"}, status_code=status.HTTP_400_BAD_REQUEST
             )
     except Exception as e:
-        return JSONResponse({"error": f"Upload failed: {str(e)}"}, status_code=status.HTTP_400_BAD_REQUEST)
+        # Sanitize error messages in production
+        from osmosmjerka.app import DEVELOPMENT_MODE
+
+        if DEVELOPMENT_MODE:
+            error_msg = f"Upload failed: {str(e)}"
+        else:
+            error_msg = "Upload failed. Please check the content format and try again."
+        return JSONResponse({"error": error_msg}, status_code=status.HTTP_400_BAD_REQUEST)
 
 
 @router.get("/all-categories")
