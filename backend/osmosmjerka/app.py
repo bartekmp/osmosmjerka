@@ -48,6 +48,13 @@ STATIC_FILE_EXTENSIONS = [
 DEVELOPMENT_MODE = os.getenv("DEVELOPMENT_MODE", "false").lower() == "true"
 FRONTEND_DEV_URL = "http://localhost:3210"
 
+# CORS configuration - restrict to actual domains
+ALLOWED_ORIGINS = [
+    "https://osmosmjerka.app",
+    "https://osmosmjerka.lel.lu",  # staging
+    FRONTEND_DEV_URL,  # localhost development server
+]
+
 
 # Initialize the FastAPI application
 def ensure_root_admin_account():
@@ -137,13 +144,28 @@ async def lifespan(_: FastAPI):
 
 app = FastAPI(lifespan=lifespan)
 
-# Enable CORS
+
+# Add security headers middleware
+@app.middleware("http")
+async def add_security_headers(request: Request, call_next):
+    """Add security headers to all responses."""
+    response = await call_next(request)
+    response.headers["X-Content-Type-Options"] = "nosniff"
+    response.headers["X-Frame-Options"] = "DENY"
+    response.headers["X-XSS-Protection"] = "1; mode=block"
+    # Only add HSTS in production (HTTPS)
+    if not DEVELOPMENT_MODE:
+        response.headers["Strict-Transport-Security"] = "max-age=31536000; includeSubDomains"
+    return response
+
+
+# Enable CORS with restricted origins
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["*"],
+    allow_origins=ALLOWED_ORIGINS,
     allow_credentials=True,
-    allow_methods=["*"],
-    allow_headers=["*"],
+    allow_methods=["GET", "POST", "PUT", "DELETE", "OPTIONS"],
+    allow_headers=["Content-Type", "Authorization"],
 )
 
 # Include API routers

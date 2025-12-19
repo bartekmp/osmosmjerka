@@ -75,10 +75,29 @@ class BaseDatabaseManager:
             pg_port = os.getenv("POSTGRES_PORT")
             pg_database = os.getenv("POSTGRES_DATABASE")
 
+            # Connection pool settings to protect against connection exhaustion
+            # Default pool size: 5-20 connections depending on load
+            pool_size = int(os.getenv("DB_POOL_SIZE", "10"))
+            max_overflow = int(os.getenv("DB_MAX_OVERFLOW", "5"))
+            pool_timeout = int(os.getenv("DB_POOL_TIMEOUT", "30"))
+
             if self.database is None:
-                self.database = Database(database_url)
+                # databases.Database uses asyncpg under the hood
+                # pool_size limits the number of connections
+                self.database = Database(
+                    database_url,
+                    min_size=pool_size,
+                    max_size=pool_size + max_overflow,
+                )
             if self.engine is None:
-                self.engine = create_engine(database_url)
+                # SQLAlchemy engine pool settings
+                self.engine = create_engine(
+                    database_url,
+                    pool_size=pool_size,
+                    max_overflow=max_overflow,
+                    pool_timeout=pool_timeout,
+                    pool_pre_ping=True,  # Verify connections before using
+                )
 
             await self.database.connect()
             logger.info(
@@ -87,6 +106,8 @@ class BaseDatabaseManager:
                     "db_host": pg_host,
                     "db_port": pg_port,
                     "db_name": pg_database,
+                    "pool_size": pool_size,
+                    "max_overflow": max_overflow,
                 },
             )
             self.create_tables()
