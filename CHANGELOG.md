@@ -2,6 +2,35 @@
 
 <!-- version list -->
 
+## v1.35.4 (2025-12-19)
+
+### Bug Fixes
+
+- Add debug logs for token evaluation
+  ([`6567601`](https://github.com/bartekmp/osmosmjerka/commit/6567601b50e84de777335ebfa4070fb339ce5557))
+
+- Add permissions to push tags
+  ([`93dedef`](https://github.com/bartekmp/osmosmjerka/commit/93dedef365925bbed0d4a38a63666bf2d5a3fb0d))
+
+- Semrel parameters
+  ([`5a5d5d3`](https://github.com/bartekmp/osmosmjerka/commit/5a5d5d30101254cf2c634de9cd0429d6c7e23817))
+
+- Use git config values for GH App
+  ([`06581ec`](https://github.com/bartekmp/osmosmjerka/commit/06581ece829cde472fda929c00d0c460d5dfd9c6))
+
+- Use GitHub App to generate valid permission token for tags push
+  ([`09f4041`](https://github.com/bartekmp/osmosmjerka/commit/09f4041274f25287d36dc1b3fa547780a96547fd))
+
+- Use proper names for the permission fields
+  ([`cdc8be1`](https://github.com/bartekmp/osmosmjerka/commit/cdc8be116af523f2a90179ea34a7927dadcff8f2))
+
+### Continuous Integration
+
+- Migrate semantic versioning from Jenkins to GH Actions
+  ([#126](https://github.com/bartekmp/osmosmjerka/pull/126),
+  [`4334f69`](https://github.com/bartekmp/osmosmjerka/commit/4334f6903df8049b8059988f3d124fb48d219b4c))
+
+
 ## v1.35.3 (2025-12-19)
 
 ### Improvement
