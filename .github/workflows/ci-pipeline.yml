@@ -231,21 +231,18 @@ jobs:
           python -m pip install --upgrade pip
           pip install -e .[dev]
 
-      - name: Configure Git
-        run: |
-          git config user.name "semantic-release"
-          git config user.email "semantic-release@github-actions"
-
       - name: Create GitHub App token
         id: app-token
         uses: actions/create-github-app-token@v1
         with:
-          app-id: ${{ secrets.SEMREL_GHA_APP_ID }}
+          app-id: ${{ vars.SEMREL_GHA_APP_ID }}
           private-key: ${{ secrets.SEMREL_GHA_APP_KEY }}
-          owner: bartekmp
-          repositories: osmosmjerka
-          permission-contents: write
-          permission-metadata: read
+
+      - name: Get GitHub App User ID
+        id: get-user-id
+        run: echo "user-id=$(gh api "/users/${{ steps.app-token.outputs.app-slug }}[bot]" --jq .id)" >> "$GITHUB_OUTPUT"
+        env:
+          GH_TOKEN: ${{ steps.app-token.outputs.token }}
 
       - name: Configure Git with App token
         run: |
@@ -255,6 +252,8 @@ jobs:
           # Verify token is working
           echo "Verifying app token access..."
           git ls-remote --heads origin main > /dev/null && echo "✓ Token authentication successful" || echo "✗ Token authentication failed"
+          git config --global user.name '${{ steps.app-token.outputs.app-slug }}[bot]'
+          git config --global user.email '${{ steps.get-user-id.outputs.user-id }}+${{ steps.app-token.outputs.app-slug }}[bot]@users.noreply.github.com'
 
       - name: Run semantic-release version
         id: semrel
