@@ -803,7 +803,7 @@ export default function PrivateListManager({ open, onClose, languageSetId }) {
                     ) : (
                       <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
                         {list.list_name}
-                        {list.is_system && (
+                        {list.is_system_list && (
                           <Chip label={t('privateListManager.lists.systemList')} size="small" color="primary" />
                         )}
                       </Box>
@@ -834,17 +834,17 @@ export default function PrivateListManager({ open, onClose, languageSetId }) {
                         <IconButton
                           size="small"
                           onClick={() => handleStartEdit(list)}
-                          disabled={list.is_system || loading}
-                          title={list.is_system ? t('privateListManager.lists.cannotRenameSystem') : ''}
+                          disabled={list.is_system_list || loading}
+                          title={list.is_system_list ? t('privateListManager.lists.cannotRenameSystem') : ''}
                         >
                           <EditIcon />
                         </IconButton>
                         <IconButton
                           size="small"
                           onClick={() => handleDeleteList(list)}
-                          disabled={list.is_system || loading}
+                          disabled={list.is_system_list || loading}
                           color="error"
-                          title={list.is_system ? t('privateListManager.lists.cannotDeleteSystem') : ''}
+                          title={list.is_system_list ? t('privateListManager.lists.cannotDeleteSystem') : ''}
                         >
                           <DeleteIcon />
                         </IconButton>
@@ -954,7 +954,7 @@ export default function PrivateListManager({ open, onClose, languageSetId }) {
             <Typography>
               {t('privateListManager.lists.deleteWarning', { name: deleteConfirmation?.list_name })}
             </Typography>
-            {deleteConfirmation?.is_system && (
+            {deleteConfirmation?.is_system_list && (
               <Typography color="error" sx={{ mt: 2 }}>
                 {t('privateListManager.lists.cannotDeleteSystem')}
               </Typography>
@@ -968,7 +968,7 @@ export default function PrivateListManager({ open, onClose, languageSetId }) {
               onClick={handleConfirmDelete}
               color="error"
               variant="contained"
-              disabled={loading || deleteConfirmation?.is_system}
+              disabled={loading || deleteConfirmation?.is_system_list}
             >
               {t('privateListManager.buttons.delete')}
             </Button>
