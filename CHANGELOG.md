@@ -2,6 +2,15 @@
 
 <!-- version list -->
 
+## v1.35.6 (2025-12-20)
+
+### Chores
+
+- **deps**: Update dependency fastapi to v0.126.0
+  ([#129](https://github.com/bartekmp/osmosmjerka/pull/129),
+  [`cd2d453`](https://github.com/bartekmp/osmosmjerka/commit/cd2d4537f84bbd0f5e40750affe264a9b6884557))
+
+
 ## v1.35.5 (2025-12-20)
 
 ### Chores
