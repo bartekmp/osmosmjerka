@@ -30,24 +30,13 @@ pipeline {
     stages {
         stage('Checkout') {
             steps {
-                // Checkout any branch that triggers the build, ensure it has entire history
-                checkout([
-                    $class: 'GitSCM',
-                    branches: [[name: '**']],
-                    doGenerateSubmoduleConfigurations: false,
-                    extensions: [
-                        [$class: 'CloneOption', noTags: false, shallow: false, depth: 0],
-                        [$class: 'LocalBranch', localBranch: env.BRANCH_NAME]
-                    ],
-                    submoduleCfg: [],
-                    userRemoteConfigs: [[url: 'git@github.com:bartekmp/osmosmjerka.git', credentialsId: 'github_token']]
-                ])
                 sh 'git config --global --add safe.directory $PWD'
                 sh 'git fetch --tags'
                 sh 'git fetch --all'
-                sh "git pull origin ${env.BRANCH_NAME}"
+                sh 'git checkout -f main'
                 sh 'git describe --tags || echo "No tags found"'
                 sh 'echo "Current branch: ${BRANCH_NAME}"'
+                sh 'echo "Current commit: $(git rev-parse HEAD)"'
             }
         }
         
