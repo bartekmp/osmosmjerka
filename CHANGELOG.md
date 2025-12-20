@@ -2,6 +2,14 @@
 
 <!-- version list -->
 
+## v1.35.8 (2025-12-20)
+
+### Bug Fixes
+
+- Remove unnecessary checkout step
+  ([`7dbf474`](https://github.com/bartekmp/osmosmjerka/commit/7dbf4743e8bcce219e4eb05077f6daaa48a952ab))
+
+
 ## v1.35.7 (2025-12-20)
 
 ### Bug Fixes
