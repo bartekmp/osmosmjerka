@@ -2,6 +2,19 @@
 
 <!-- version list -->
 
+## v1.35.5 (2025-12-20)
+
+### Chores
+
+- **deps**: Update python dependencies ([#128](https://github.com/bartekmp/osmosmjerka/pull/128),
+  [`060aaf7`](https://github.com/bartekmp/osmosmjerka/commit/060aaf7393fcb05356f0470011ca67b3759e202c))
+
+### Continuous Integration
+
+- Merge semrel actions
+  ([`e9557cf`](https://github.com/bartekmp/osmosmjerka/commit/e9557cf72ae3a03dd0e394964a924074904aecba))
+
+
 ## v1.35.4 (2025-12-19)
 
 ### Bug Fixes
