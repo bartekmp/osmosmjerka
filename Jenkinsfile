@@ -57,6 +57,11 @@ pipeline {
             }
             steps {
                 script {
+                    // Ensure we're on main branch and have latest changes
+                    sh 'git checkout main || true'
+                    sh 'git fetch origin main'
+                    sh 'git pull origin main || true'
+                    
                     // Fetch latest tags created by GitHub Actions semantic-release
                     sh 'git fetch --tags --force'
                     
@@ -67,6 +72,7 @@ pipeline {
                     def tagsOnCommit = sh(script: "git tag --points-at ${currentCommit}", returnStdout: true).trim()
                     
                     echo "Current commit: ${currentCommit}"
+                    echo "Current branch: ${env.BRANCH_NAME}"
                     echo "Tags on commit: ${tagsOnCommit}"
                     
                     if (tagsOnCommit) {
