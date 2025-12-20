@@ -2,6 +2,20 @@
 
 <!-- version list -->
 
+## v1.35.7 (2025-12-20)
+
+### Bug Fixes
+
+- Disable removing Learn This Later phrase list
+  ([#130](https://github.com/bartekmp/osmosmjerka/pull/130),
+  [`0f93166`](https://github.com/bartekmp/osmosmjerka/commit/0f93166a4b372cd403e9ba04c4f590141db7c492))
+
+### Continuous Integration
+
+- Ensure the branch is set to main
+  ([`04c0821`](https://github.com/bartekmp/osmosmjerka/commit/04c082153caedf8bd74ce37b5a3e58c229a0be49))
+
+
 ## v1.35.6 (2025-12-20)
 
 ### Chores
