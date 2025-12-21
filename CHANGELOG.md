@@ -2,6 +2,15 @@
 
 <!-- version list -->
 
+## v1.35.9 (2025-12-21)
+
+### Chores
+
+- **deps**: Update dependency reportlab to v4.4.7
+  ([#132](https://github.com/bartekmp/osmosmjerka/pull/132),
+  [`94c05e3`](https://github.com/bartekmp/osmosmjerka/commit/94c05e3b8316b62b3ec4ebda63a93b09797a5e07))
+
+
 ## v1.35.8 (2025-12-20)
 
 ### Bug Fixes
