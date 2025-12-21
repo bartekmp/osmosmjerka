@@ -2,6 +2,14 @@
 
 <!-- version list -->
 
+## v1.35.12 (2025-12-21)
+
+### Bug Fixes
+
+- Refactor deprecated md prop of MUI ([#135](https://github.com/bartekmp/osmosmjerka/pull/135),
+  [`51d151e`](https://github.com/bartekmp/osmosmjerka/commit/51d151ee8955dddc00d68eb0c01573dd71e55f21))
+
+
 ## v1.35.11 (2025-12-21)
 
 ### Chores
