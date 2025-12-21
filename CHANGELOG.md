@@ -2,6 +2,15 @@
 
 <!-- version list -->
 
+## v1.35.14 (2025-12-21)
+
+### Chores
+
+- **deps**: Update dependency pytest to v9
+  ([#127](https://github.com/bartekmp/osmosmjerka/pull/127),
+  [`af36ea6`](https://github.com/bartekmp/osmosmjerka/commit/af36ea6dbc9f0be42111d1560621fa911d388931))
+
+
 ## v1.35.13 (2025-12-21)
 
 ### Bug Fixes
