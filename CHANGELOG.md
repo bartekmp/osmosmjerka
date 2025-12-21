@@ -2,6 +2,27 @@
 
 <!-- version list -->
 
+## v1.35.10 (2025-12-21)
+
+### Chores
+
+- **deps**: Update dependency uvicorn to v0.39.0
+  ([#133](https://github.com/bartekmp/osmosmjerka/pull/133),
+  [`da5846e`](https://github.com/bartekmp/osmosmjerka/commit/da5846e4c81f618d67b86e77340b0f5af69953ec))
+
+### Improvement
+
+- Build docker image in GH Actions ([#131](https://github.com/bartekmp/osmosmjerka/pull/131),
+  [`1e52334`](https://github.com/bartekmp/osmosmjerka/commit/1e52334106ede3988876f5dbe4be5f6e029ee98e))
+
+- Container builds ([#131](https://github.com/bartekmp/osmosmjerka/pull/131),
+  [`1e52334`](https://github.com/bartekmp/osmosmjerka/commit/1e52334106ede3988876f5dbe4be5f6e029ee98e))
+
+- Remove creating .env file from Jenkins build, add missing env vars in README
+  ([#131](https://github.com/bartekmp/osmosmjerka/pull/131),
+  [`1e52334`](https://github.com/bartekmp/osmosmjerka/commit/1e52334106ede3988876f5dbe4be5f6e029ee98e))
+
+
 ## v1.35.9 (2025-12-21)
 
 ### Chores
