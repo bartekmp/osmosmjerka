@@ -52,4 +52,10 @@ spec:
             value: YOUR_POSTGRES_PASSWORD
           - name: POSTGRES_DATABASE
             value: YOUR_POSTGRES_DB
+          - name: ADMIN_USERNAME
+            value: YOUR_ADMIN_USERNAME
+          - name: ADMIN_PASSWORD_HASH
+            value: YOUR_BCRYPT_PASSWORD_HASH
+          - name: ADMIN_SECRET_KEY
+            value: YOUR_SECRET_KEY
 

@@ -195,29 +195,6 @@ pipeline {
                 }
             }
         }
- 
-        stage('Prepare .env') {
-            when {
-                allOf {
-                    branch 'main'
-                    not { buildingTag() }
-                }
-            }
-            steps {
-                script {
-                    writeFile file: '.env', text: """
-ADMIN_USERNAME=${env.ADMIN_USERNAME}
-ADMIN_PASSWORD_HASH=${env.ADMIN_PASSWORD_HASH}
-ADMIN_SECRET_KEY=${env.ADMIN_SECRET_KEY}
-POSTGRES_HOST=${env.POSTGRES_HOST}
-POSTGRES_PORT=${env.POSTGRES_PORT}
-POSTGRES_USER=${env.POSTGRES_USER}
-POSTGRES_PASSWORD=${env.POSTGRES_PASSWORD}
-POSTGRES_DATABASE=${env.POSTGRES_DATABASE}
-""".stripIndent()
-                }
-            }
-        }
 
         stage('Docker Build & Push') {
             when {
@@ -339,7 +316,6 @@ POSTGRES_DATABASE=${env.POSTGRES_DATABASE}
                 def versionTag = env.BRANCH_NAME == 'main' ? env.IMAGE_TAG : '999.0.0-dev'
                 sh "docker rm ${env.DOCKER_REGISTRY}/${IMAGE_NAME}:latest || true"
                 sh "docker rm ${env.DOCKER_REGISTRY}/${IMAGE_NAME}:${versionTag} || true"
-                sh 'rm -f .env || true'
                 sh 'rm -rf gitops-tmp || true'
                 sh 'rm -rf frontend/node_modules backend/.venv || true'
             }
