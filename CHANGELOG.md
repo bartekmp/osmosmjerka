@@ -2,6 +2,14 @@
 
 <!-- version list -->
 
+## v1.35.13 (2025-12-21)
+
+### Bug Fixes
+
+- Renovate breaking change prefix
+  ([`c09c71f`](https://github.com/bartekmp/osmosmjerka/commit/c09c71fbc70a075ea67a0d1991490e064cde2c0d))
+
+
 ## v1.35.12 (2025-12-21)
 
 ### Bug Fixes
