@@ -223,7 +223,7 @@ const ScoringRulesEditor = ({ scoringEnabled = true }) => {
           {t("admin.scoringRules.baseSettings", "Base Settings")}
         </Typography>
         <Grid container spacing={2}>
-          <Grid item xs={12} sm={4}>
+          <Grid size={{ xs: 12, sm: 4 }}>
             <TextField
               fullWidth
               label={t(
@@ -237,7 +237,7 @@ const ScoringRulesEditor = ({ scoringEnabled = true }) => {
               disabled={!scoringEnabled}
             />
           </Grid>
-          <Grid item xs={12} sm={4}>
+          <Grid size={{ xs: 12, sm: 4 }}>
             <TextField
               fullWidth
               label={t(
@@ -251,7 +251,7 @@ const ScoringRulesEditor = ({ scoringEnabled = true }) => {
               disabled={!scoringEnabled}
             />
           </Grid>
-          <Grid item xs={12} sm={4}>
+          <Grid size={{ xs: 12, sm: 4 }}>
             <TextField
               fullWidth
               label={t(
@@ -286,7 +286,7 @@ const ScoringRulesEditor = ({ scoringEnabled = true }) => {
         </Typography>
         <Grid container spacing={2}>
           {difficultyLevels.map(({ key, label }) => (
-            <Grid item xs={12} sm={6} md={2.4} key={key}>
+            <Grid size={{ xs: 12, sm: 6, md: 2.4 }} key={key}>
               <TextField
                 fullWidth
                 label={label}
@@ -339,7 +339,7 @@ const ScoringRulesEditor = ({ scoringEnabled = true }) => {
         </Typography>
         <Grid container spacing={2}>
           {difficultyLevels.map(({ key, label }) => (
-            <Grid item xs={12} sm={6} md={2.4} key={key}>
+            <Grid size={{ xs: 12, sm: 6, md: 2.4 }} key={key}>
               <TextField
                 fullWidth
                 label={label}
