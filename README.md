@@ -133,11 +133,11 @@ Run as a single Docker container on any cloud platform (AWS ECS, Google Cloud Ru
 docker run -d -p 8085:8085 \
   -e ADMIN_USERNAME=admin \
   -e ADMIN_PASSWORD_HASH=<your_hash> \
-  -e SECRET_KEY=<your_secret> \
+  -e ADMIN_SECRET_KEY=<your_secret> \
   -e POSTGRES_HOST=<your_db_host> \
   -e POSTGRES_USER=<db_user> \
   -e POSTGRES_PASSWORD=<db_pass> \
-  -e POSTGRES_DB=osmosmjerka \
+  -e POSTGRES_DATABASE=osmosmjerka \
   osmosmjerka:latest
 ```
 
@@ -182,23 +182,32 @@ See [DEVELOPMENT.md](DEVELOPMENT.md) for detailed development setup and workflow
 
 ### Environment Variables
 
-Create a `.env` file with the following variables:
+Environment variables are used to configure the application. You can either set them in your shell, use the `.env` file in the root project directory, or when deploying a locally built container use `-e` switches to provide each variable. 
+
+Supported variables:
 
 ```bash
 # Admin Credentials (required)
 ADMIN_USERNAME=admin
 ADMIN_PASSWORD_HASH=<bcrypt_hash>  # See below for generation
-SECRET_KEY=<your_secret_key>
+ADMIN_SECRET_KEY=<your_secret_key>  # Secret key for JWT token signing
 
 # Database (required)
 POSTGRES_USER=osmosmjerka
 POSTGRES_PASSWORD=<db_password>
-POSTGRES_DB=osmosmjerka
+POSTGRES_DATABASE=osmosmjerka
 POSTGRES_HOST=localhost
 POSTGRES_PORT=5432
 
-# Optional Settings
-IGNORED_CATEGORIES=test debug  # Space-separated list
+# Database Connection Pool (optional)
+DB_POOL_SIZE=10          # Number of connections to maintain in the pool (default: 10)
+DB_MAX_OVERFLOW=5        # Maximum number of connections to create beyond pool_size (default: 5)
+DB_POOL_TIMEOUT=30      # Timeout in seconds for getting a connection from the pool (default: 30)
+
+# Logging Configuration (optional)
+LOG_DEVELOPMENT_MODE=false  # Enable human-readable logs with colors (default: false)
+LOG_LEVEL=INFO              # Logging level: DEBUG, INFO, WARNING, ERROR, CRITICAL (default: INFO)
+LOG_COLORS=true             # Enable colored output in development mode (default: true)
 ```
 
 ### Generate Admin Password Hash
@@ -305,27 +314,9 @@ goodbye,adiós,farewell,Basic
 thank you,gracias,gratitude,Polite
 ```
 
-**JSON Format:**
-```json
-[
-  {
-    "source": "hello",
-    "translation": "hola",
-    "context": "greeting",
-    "category": "Basic"
-  },
-  {
-    "source": "goodbye",
-    "translation": "adiós",
-    "context": "farewell",
-    "category": "Basic"
-  }
-]
-```
-
 **Import Process:**
 1. Click the **Import** button in List Management
-2. Upload a CSV or JSON file with phrases
+2. Upload a CSV file with phrases
 3. Preview the phrases to be imported
 4. Confirm to add all phrases to your selected list
 

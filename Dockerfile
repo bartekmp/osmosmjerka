@@ -1,8 +1,11 @@
 FROM python:3.14-slim AS backend
 WORKDIR /app
 COPY backend/ backend/
-COPY .env backend/.env
 COPY pyproject.toml pyproject.toml
+
+# Copy .env if it exists (for local builds to override env vars)
+# Note: This requires .env to exist.
+# COPY .env backend/.env
 
 FROM node:24-slim AS frontend
 WORKDIR /app
