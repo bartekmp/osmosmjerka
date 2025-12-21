@@ -167,8 +167,7 @@
       ],
       "prPriority": 10,
       "automerge": false,
-      "groupName": null,
-      "commitMessagePrefix": "BREAKING:"
+      "groupName": null
     }
   ]
 }
