@@ -5,7 +5,27 @@ const useGameDifficulties = () => {
     const getAvailableDifficulties = () => {
         const screenWidth = window.innerWidth;
         const screenHeight = window.innerHeight;
-        const maxGridSize = Math.min(screenWidth * 0.9, screenHeight * 0.6);
+        const isTouchDevice = 'ontouchstart' in window || navigator.maxTouchPoints > 0;
+
+        // Minimum cell size based on device type
+        const minCellSize = isTouchDevice ? 32 : 15;
+        const padding = 16;
+
+        // Calculate available space similar to useGridSize hook
+        let availableWidth, availableHeight;
+
+        if (screenWidth < 900 || isTouchDevice) {
+            // Mobile/tablet or touch device
+            availableWidth = screenWidth - (padding * 3);
+            availableHeight = Math.min(screenHeight * (isTouchDevice ? 0.55 : 0.6), 600);
+        } else {
+            // Desktop
+            const baseWidth = screenWidth > 1200 ? screenWidth * 0.65 : screenWidth * 0.6;
+            availableWidth = Math.min(baseWidth, 900);
+            availableHeight = Math.min(screenHeight * 0.8, 900);
+        }
+
+        const availableSize = (screenWidth < 900 || isTouchDevice) ? availableWidth : Math.min(availableWidth, availableHeight);
 
         const difficulties = [
             { value: 'very_easy', label: 'Very Easy (8x8)', gridSize: 8 },
@@ -16,9 +36,10 @@ const useGameDifficulties = () => {
         ];
 
         return difficulties.filter(diff => {
-            // Calculate minimum space needed: grid size * (min cell size + spacing)
-            const minSpaceNeeded = diff.gridSize * 25; // 20px min cell + 5px spacing
-            return minSpaceNeeded <= maxGridSize;
+            // Calculate minimum space needed: (gridSize * minCellSize) + gaps (4px between cells)
+            const totalGap = (diff.gridSize + 1) * 4;
+            const minSpaceNeeded = diff.gridSize * minCellSize + totalGap;
+            return minSpaceNeeded <= availableSize;
         });
     };
 

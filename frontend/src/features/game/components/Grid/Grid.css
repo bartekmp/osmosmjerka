@@ -21,7 +21,8 @@
     -webkit-user-select: none;
     -moz-user-select: none;
     -ms-user-select: none;
-    overflow: hidden;
+    overflow: visible;
+    /* avoid clipping edge cells */
     border-radius: 8px;
 }
 
@@ -43,7 +44,7 @@
     display: flex;
     align-items: center;
     justify-content: center;
-    border: 3px solid var(--cell-border);
+    border: 2px solid var(--cell-border);
     border-radius: var(--radius-sm);
     box-shadow: var(--shadow-cell);
     cursor: pointer;
@@ -100,10 +101,13 @@
 }
 
 @keyframes cell-blink {
-    0%, 100% {
+
+    0%,
+    100% {
         background: var(--cell-bg);
         color: var(--text-primary);
     }
+
     50% {
         background: #ff6e6e;
         color: white;
@@ -111,23 +115,28 @@
 }
 
 @keyframes cell-celebrate {
-    0%, 100% {
+
+    0%,
+    100% {
         background: var(--cell-bg);
         color: var(--text-primary);
         transform: scale(1);
     }
+
     25% {
         background: #FFD700;
         color: #333;
         transform: scale(1.08);
         box-shadow: 0 0 15px #FFD700;
     }
+
     50% {
         background: #FF6B35;
         color: white;
         transform: scale(1.15);
         box-shadow: 0 0 25px #FF6B35;
     }
+
     75% {
         background: #4ECDC4;
         color: #333;
@@ -169,10 +178,13 @@
 }
 
 @keyframes hintPulse {
-    0%, 100% {
+
+    0%,
+    100% {
         box-shadow: 0 0 10px rgba(156, 39, 176, 0.4);
         border-color: #9c27b0;
     }
+
     50% {
         box-shadow: 0 0 20px rgba(156, 39, 176, 0.6);
         border-color: #e1bee7;
@@ -180,9 +192,12 @@
 }
 
 @keyframes arrowBounce {
-    0%, 100% {
+
+    0%,
+    100% {
         transform: scale(1);
     }
+
     50% {
         transform: scale(1.2);
     }
@@ -216,9 +231,9 @@
 
 @media (max-width: 900px) {
     .grid-wrapper {
-        padding: 4px;
+        padding: 1px;
     }
-    
+
     .grid-cell {
         font-size: 1em;
         min-width: 2.2em;

@@ -15,6 +15,7 @@ export { default as LanguageSetSelector } from './components/ui/LanguageSetSelec
 export { default as PrivateListSelector } from './components/ui/PrivateListSelector';
 export { RateLimitWarning } from './components/ui/RateLimitWarning';
 export { default as NotEnoughPhrasesOverlay } from './components/ui/NotEnoughPhrasesOverlay';
+export { default as ScreenTooSmallOverlay } from './components/ui/ScreenTooSmallOverlay';
 export { default as SplashScreen } from './components/ui/SplashScreen';
 
 // Styled Components

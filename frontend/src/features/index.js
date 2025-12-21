@@ -10,6 +10,10 @@ export { Timer } from './game/components/Timer';
 export { ScoreDisplay } from './game/components/ScoreDisplay';
 export { HintButton } from './game/components/HintButton';
 
+// Mobile components
+export { default as MobilePhraseListSheet } from './game/components/MobilePhraseListSheet';
+export { default as MobileFloatingActions } from './game/components/MobileFloatingActions';
+
 // Admin feature exports
 export { default as AdminPanel } from './admin/components/AdminPanel/AdminPanel';
 export { default as UserManagement } from './admin/components/AdminPanel/UserManagement';

@@ -42,8 +42,8 @@ const formatMultiplier = (value) => {
 const ScoreDisplay = ({
     currentScore = 0,
     scoreBreakdown = null,
-    phrasesFound = 0,
-    totalPhrases = 0,
+    _phrasesFound = 0,
+    _totalPhrases = 0,
     hintsUsed = 0,
     showScore = true,
     compact = false,
@@ -413,9 +413,6 @@ const ScoreDisplay = ({
                         >
                             🏆 {currentScore.toLocaleString()}
                         </Typography>
-                        <Typography variant="body2" color="text.secondary">
-                            {phrasesFound}/{totalPhrases} {t('phrases')}
-                        </Typography>
                     </Box>
                 </Tooltip>
                 {scoringDialog}
@@ -445,14 +442,8 @@ const ScoreDisplay = ({
                         </Box>
                     </Tooltip>
 
-                    <Box className="score-stats">
-                        <Chip
-                            label={`${phrasesFound}/${totalPhrases} ${t('phrases')}`}
-                            color="primary"
-                            variant="outlined"
-                            size="small"
-                        />
-                        {hintsUsed > 0 && (
+                    {hintsUsed > 0 && (
+                        <Box className="score-stats">
                             <Tooltip title={t('hints_penalty', { count: hintsUsed })}>
                                 <Chip
                                     label={`${hintsUsed} ${t('hints')}`}
@@ -461,8 +452,8 @@ const ScoreDisplay = ({
                                     size="small"
                                 />
                             </Tooltip>
-                        )}
-                    </Box>
+                        </Box>
+                    )}
 
                     {scoreBreakdown && (
                         <Box className="score-breakdown">

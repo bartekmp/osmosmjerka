@@ -277,8 +277,11 @@ test('resets timer and score when refreshing the puzzle', async () => {
     });
 
     await waitFor(() => {
-        expect(screen.getByTestId('mock-timer')).toHaveTextContent('Timer:0');
-        expect(screen.getByTestId('mock-timer')).toHaveTextContent('Reset:2');
-        expect(screen.getByTestId('mock-score')).toHaveTextContent('Score:0');
+        const timers = screen.getAllByTestId('mock-timer');
+        const scores = screen.getAllByTestId('mock-score');
+        // Check the first timer/score (there may be multiple due to responsive layouts)
+        expect(timers[0]).toHaveTextContent('Timer:0');
+        expect(timers[0]).toHaveTextContent('Reset:2');
+        expect(scores[0]).toHaveTextContent('Score:0');
     });
 });

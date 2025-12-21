@@ -21,7 +21,7 @@ test('hides phrases when hidePhrases is true', () => {
 
 test('disables show phrases button when disableShowPhrases is true', () => {
     render(withI18n(<PhraseList phrases={phrases} found={[]} hidePhrases={true} setHidePhrases={() => { }} allFound={false} showTranslations={false} setShowTranslations={() => { }} disableShowPhrases={true} />));
-    const button = screen.getByRole('button', { name: /show/i });
+    const button = screen.getByRole('button', { name: /0\/2/i });
     expect(button).toBeDisabled();
 });
 

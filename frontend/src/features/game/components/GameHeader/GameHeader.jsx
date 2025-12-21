@@ -83,6 +83,9 @@ const GameHeader = ({
                         textOverflow: 'ellipsis',
                         minWidth: 0,
                         maxWidth: '100%',
+                        '@media (max-width: 349px)': {
+                            display: 'none',
+                        },
                         // Add wobble animation when celebrating
                         animation: showCelebration ? 'title-wobble 0.5s ease-in-out 6' : 'none',
                         '@keyframes title-wobble': {

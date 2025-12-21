@@ -5,13 +5,14 @@ import HelpOutlineIcon from '@mui/icons-material/HelpOutline';
 import FlashOnIcon from '@mui/icons-material/FlashOn';
 import './HintButton.css';
 
-const HintButton = ({ 
+const HintButton = ({
     onHintRequest,
     remainingHints = 3,
     isProgressiveMode = false,
     disabled = false,
     currentHintLevel = 0,
-    showHintButton = true
+    showHintButton = true,
+    compact = false
 }) => {
     const { t } = useTranslation();
     const [isLoading, setIsLoading] = useState(false);
@@ -22,7 +23,7 @@ const HintButton = ({
 
     const handleHintClick = async () => {
         if (disabled || remainingHints <= 0) return;
-        
+
         setIsLoading(true);
         try {
             await onHintRequest();
@@ -48,14 +49,14 @@ const HintButton = ({
     const getTooltipText = () => {
         if (disabled) return t('no_phrases_available');
         if (remainingHints <= 0) return t('no_hints_remaining');
-        
+
         if (isProgressiveMode) {
-            return t('progressive_hint_tooltip', { 
+            return t('progressive_hint_tooltip', {
                 remaining: remainingHints,
-                level: currentHintLevel + 1 
+                level: currentHintLevel + 1
             });
         }
-        
+
         return t('hint_tooltip');
     };
 
@@ -66,13 +67,13 @@ const HintButton = ({
         <Box className="hint-button-container">
             <Tooltip title={getTooltipText()}>
                 <span>
-                    <Badge 
+                    <Badge
                         badgeContent={isProgressiveMode ? remainingHints : null}
                         color="error"
-                        sx={{ 
-                            '& .MuiBadge-badge': { 
-                                display: isProgressiveMode && remainingHints > 0 ? 'flex' : 'none' 
-                            } 
+                        sx={{
+                            '& .MuiBadge-badge': {
+                                display: isProgressiveMode && remainingHints > 0 ? 'flex' : 'none'
+                            }
                         }}
                     >
                         <Button
@@ -80,15 +81,19 @@ const HintButton = ({
                             color={buttonColor}
                             onClick={handleHintClick}
                             disabled={disabled || remainingHints <= 0 || isLoading}
-                            startIcon={icon}
+                            startIcon={compact ? null : icon}
                             className={`hint-button ${isProgressiveMode ? 'progressive' : 'classic'}`}
                             sx={{
-                                minWidth: '120px',
+                                minWidth: compact ? '48px' : '120px',
+                                width: compact ? '48px' : 'auto',
+                                height: compact ? '48px' : 'auto',
+                                padding: compact ? '12px' : undefined,
                                 fontSize: '0.9rem',
                                 textTransform: 'none',
                                 color: 'common.white',
                                 '& .MuiButton-startIcon': {
-                                    color: 'inherit'
+                                    color: 'inherit',
+                                    margin: compact ? 0 : undefined
                                 },
                                 '& .MuiButton-startIcon svg': {
                                     color: 'inherit'
@@ -104,15 +109,15 @@ const HintButton = ({
                                 }
                             }}
                         >
-                            {isLoading ? t('loading') : getHintButtonText()}
+                            {compact ? icon : (isLoading ? t('loading') : getHintButtonText())}
                         </Button>
                     </Badge>
                 </span>
             </Tooltip>
-            
-            {isProgressiveMode && (
-                <Typography 
-                    variant="caption" 
+
+            {isProgressiveMode && !compact && (
+                <Typography
+                    variant="caption"
                     color="text.secondary"
                     className="hint-counter"
                 >

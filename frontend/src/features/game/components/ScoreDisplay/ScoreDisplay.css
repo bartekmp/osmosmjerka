@@ -8,12 +8,15 @@
     display: flex;
     flex-direction: column;
     align-items: center;
+    justify-content: center;
     margin: 4px 0;
     gap: 4px;
 }
 
 .score-display-compact.score-clickable {
     padding: 8px 16px;
+    min-height: 48px;
+    box-sizing: border-box;
 }
 
 /* ====================
@@ -280,11 +283,11 @@
     .score-display-card {
         margin: 4px 0;
     }
-    
+
     .score-title {
         font-size: 1.25rem;
     }
-    
+
     .score-stats {
         gap: 4px;
     }
