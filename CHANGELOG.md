@@ -2,6 +2,14 @@
 
 <!-- version list -->
 
+## v1.35.17 (2025-12-22)
+
+### Chores
+
+- Trigger renovate once a month
+  ([`0d0ac7c`](https://github.com/bartekmp/osmosmjerka/commit/0d0ac7c62c48fbff220f3333eb275a80b802db27))
+
+
 ## v1.35.16 (2025-12-22)
 
 ### Chores
