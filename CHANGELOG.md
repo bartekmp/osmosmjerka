@@ -2,6 +2,14 @@
 
 <!-- version list -->
 
+## v1.35.18 (2025-12-22)
+
+### Bug Fixes
+
+- Renovate cron format
+  ([`fd10669`](https://github.com/bartekmp/osmosmjerka/commit/fd10669ee7caea50d8a0f837156aa62280e4eea7))
+
+
 ## v1.35.17 (2025-12-22)
 
 ### Chores
