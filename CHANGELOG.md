@@ -2,6 +2,15 @@
 
 <!-- version list -->
 
+## v1.35.15 (2025-12-22)
+
+### Chores
+
+- **deps**: Update actions/checkout action to v6
+  ([#136](https://github.com/bartekmp/osmosmjerka/pull/136),
+  [`2f659fd`](https://github.com/bartekmp/osmosmjerka/commit/2f659fddae5c9cad538daf20297c9ffc51711a32))
+
+
 ## v1.35.14 (2025-12-21)
 
 ### Chores
