@@ -2,6 +2,15 @@
 
 <!-- version list -->
 
+## v1.35.16 (2025-12-22)
+
+### Chores
+
+- **deps**: Update actions/create-github-app-token action to v2
+  ([#137](https://github.com/bartekmp/osmosmjerka/pull/137),
+  [`939b4d1`](https://github.com/bartekmp/osmosmjerka/commit/939b4d108bf5e0c4c35f96d48785dec2958a1128))
+
+
 ## v1.35.15 (2025-12-22)
 
 ### Chores
