@@ -17,7 +17,7 @@ jobs:
       skip_pipeline: ${{ steps.detect_semrel.outputs.skip_pipeline }}
     steps:
       - name: Checkout code
-        uses: actions/checkout@v5
+        uses: actions/checkout@8e8c483db84b4bee98b60c0593521ed34d9990e8 # v6
         with:
           fetch-depth: 0
 
@@ -88,7 +88,7 @@ jobs:
     if: needs.validate-format.outputs.skip_pipeline != 'true'
     steps:
       - name: Checkout code
-        uses: actions/checkout@v5
+        uses: actions/checkout@8e8c483db84b4bee98b60c0593521ed34d9990e8 # v6
 
       - name: Set up Python
         uses: actions/setup-python@v6
@@ -117,7 +117,7 @@ jobs:
     if: needs.validate-format.outputs.skip_pipeline != 'true'
     steps:
       - name: Checkout code
-        uses: actions/checkout@v5
+        uses: actions/checkout@8e8c483db84b4bee98b60c0593521ed34d9990e8 # v6
 
       - name: Set up Node.js
         uses: actions/setup-node@v6
@@ -158,7 +158,7 @@ jobs:
 
     steps:
       - name: Checkout code
-        uses: actions/checkout@v5
+        uses: actions/checkout@8e8c483db84b4bee98b60c0593521ed34d9990e8 # v6
 
       - name: Set up Python
         uses: actions/setup-python@v6
@@ -184,7 +184,7 @@ jobs:
     if: needs.validate-format.outputs.skip_pipeline != 'true'
     steps:
       - name: Checkout code
-        uses: actions/checkout@v5
+        uses: actions/checkout@8e8c483db84b4bee98b60c0593521ed34d9990e8 # v6
 
       - name: Set up Node.js
         uses: actions/setup-node@v6
@@ -220,7 +220,7 @@ jobs:
       id-token: write
     steps:
       - name: Checkout code
-        uses: actions/checkout@v5
+        uses: actions/checkout@8e8c483db84b4bee98b60c0593521ed34d9990e8 # v6
         with:
           fetch-depth: 0
 
@@ -309,7 +309,7 @@ jobs:
       IMAGE_NAME: osmosmjerka
     steps:
       - name: Checkout code
-        uses: actions/checkout@v5
+        uses: actions/checkout@8e8c483db84b4bee98b60c0593521ed34d9990e8 # v6
 
       - name: Set up Docker Buildx
         uses: docker/setup-buildx-action@v3
@@ -369,7 +369,7 @@ jobs:
       IMAGE_NAME: osmosmjerka
     steps:
       - name: Checkout code
-        uses: actions/checkout@v5
+        uses: actions/checkout@8e8c483db84b4bee98b60c0593521ed34d9990e8 # v6
 
       - name: Set up Docker Buildx
         uses: docker/setup-buildx-action@v3
