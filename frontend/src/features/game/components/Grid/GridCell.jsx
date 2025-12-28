@@ -1,11 +1,11 @@
 import React, { useRef, useCallback } from 'react';
 import Box from '@mui/material/Box';
 
-export default function GridCell({ 
-    r, c, cell, 
-    isSelected, isFound, isBlinking, isCelebrating, 
+export default function GridCell({
+    r, c, cell,
+    isSelected, isFound, isBlinking, isCelebrating,
     isHintCell = false, directionArrow = null, hintLevel = 0,
-    handleMouseDown, handleMouseEnter, cellSize 
+    handleMouseDown, handleMouseEnter, cellSize
 }) {
     const lastEnterTime = useRef(0);
 

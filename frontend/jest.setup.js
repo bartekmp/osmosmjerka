@@ -13,3 +13,18 @@ if (typeof window !== 'undefined') {
   window.URL.createObjectURL = jest.fn(() => 'mock-url');
   window.URL.revokeObjectURL = jest.fn();
 }
+
+// Mock window.matchMedia for responsive hooks
+Object.defineProperty(window, 'matchMedia', {
+  writable: true,
+  value: jest.fn().mockImplementation(query => ({
+    matches: false,
+    media: query,
+    onchange: null,
+    addListener: jest.fn(),
+    removeListener: jest.fn(),
+    addEventListener: jest.fn(),
+    removeEventListener: jest.fn(),
+    dispatchEvent: jest.fn(),
+  })),
+});

@@ -1,0 +1,46 @@
+.mobile-floating-actions {
+  position: relative;
+  display: flex;
+  flex-direction: row;
+  justify-content: center;
+  align-items: center;
+  gap: 16px;
+  width: 100%;
+  margin-top: 12px;
+  z-index: 5;
+}
+
+.mobile-fab {
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.mobile-fab.Mui-disabled {
+  opacity: 0.5;
+  pointer-events: none;
+}
+
+/* Ensure badges are visible and positioned correctly */
+.mobile-fab .MuiBadge-root {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.mobile-fab .MuiBadge-badge {
+  font-size: 0.75rem;
+  min-width: 20px;
+  height: 20px;
+  padding: 0 6px;
+  font-weight: bold;
+}
+
+/* Adjust for very small screens */
+@media (max-width: 360px) {
+  .mobile-floating-actions {
+    gap: 12px;
+    margin-top: 10px;
+  }
+}

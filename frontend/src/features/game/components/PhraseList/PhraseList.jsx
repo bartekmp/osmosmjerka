@@ -16,7 +16,9 @@ export default function PhraseList({
     onPhraseClick,
     progressiveHintsEnabled = false,
     currentUser = null,
-    languageSetId = null
+    languageSetId = null,
+    hideToggleButton = false,
+    compact = false
 }) {
     const { t } = useTranslation();
     const [blinkingPhrase, setBlinkingPhrase] = useState(null);
@@ -30,7 +32,7 @@ export default function PhraseList({
     const canToggleTranslations = found.length > 0 && !hidePhrases;
 
     // For consistent button width
-    const buttonWidth = "7.2em";
+    const buttonWidth = compact ? "5em" : "7.2em";
 
     const handlePhraseClick = (phrase) => {
         // Only allow phrase clicking when progressive hints are disabled
@@ -96,31 +98,48 @@ export default function PhraseList({
     return (
         <div className="phrase-list-container">
             {/* Top row: Hide/Show and Translation toggle buttons */}
-            <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 8 }}>
-                <button
-                    className="scrabble-btn phrase-list-hide-btn"
-                    type="button"
-                    onClick={() => setHidePhrases(h => !h)}
-                    disabled={allFound || disableShowPhrases}
-                    style={{ width: buttonWidth, textAlign: 'center', fontSize: '1.1em', display: 'flex', alignItems: 'center', justifyContent: 'center' }}
-                >
-                    <span style={{ marginRight: 6 }}>{hidePhrases ? '👁️' : '🙈'}</span>
-                    <span className="phrase-list-btn-label" style={{ display: 'none', sm: 'inline' }}>{hidePhrases ? t('show_phrases') : t('hide_phrases')}</span>
-                    <span className="phrase-list-btn-label" style={{ display: 'inline', sm: 'none' }}>{hidePhrases ? t('show') : t('hide')}</span>
-                </button>
-                {/* Only render translation toggle if enabled */}
-                {canToggleTranslations && (
+            {!hideToggleButton && (
+                <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 8 }}>
                     <button
-                        className={`scrabble-btn phrase-list-toggle-translations`}
+                        className="scrabble-btn phrase-list-hide-btn"
                         type="button"
-                        onClick={() => setShowTranslations(t => !t)}
-                        aria-label={showTranslations ? t('hide_all_translations') : t('show_all_translations')}
-                        style={{ fontSize: '1.1em', display: 'flex', alignItems: 'center', justifyContent: 'center' }}
+                        onClick={() => setHidePhrases(h => !h)}
+                        disabled={allFound || disableShowPhrases}
+                        style={{
+                            width: buttonWidth,
+                            textAlign: 'center',
+                            fontSize: compact ? '0.95em' : '1.1em',
+                            display: 'flex',
+                            alignItems: 'center',
+                            justifyContent: 'center',
+                            padding: compact ? '6px 8px' : undefined
+                        }}
                     >
-                        <span style={{ marginRight: 6 }}>{showTranslations ? '◀' : '▶'}</span>
+                        <span style={{ marginRight: compact ? 4 : 6 }}>{hidePhrases ? '👁️' : '🙈'}</span>
+                        <span className="phrase-list-btn-label">
+                            {found.length}/{phrases.length}
+                        </span>
                     </button>
-                )}
-            </div>
+                    {/* Only render translation toggle if enabled */}
+                    {canToggleTranslations && (
+                        <button
+                            className={`scrabble-btn phrase-list-toggle-translations`}
+                            type="button"
+                            onClick={() => setShowTranslations(t => !t)}
+                            aria-label={showTranslations ? t('hide_all_translations') : t('show_all_translations')}
+                            style={{
+                                fontSize: compact ? '0.95em' : '1.1em',
+                                display: 'flex',
+                                alignItems: 'center',
+                                justifyContent: 'center',
+                                padding: compact ? '6px 12px' : undefined
+                            }}
+                        >
+                            <span style={{ marginRight: compact ? 4 : 6 }}>{showTranslations ? '◀' : '▶'}</span>
+                        </button>
+                    )}
+                </div>
+            )}
 
             {/* Selection controls frame - only for logged-in users with found phrases */}
             {currentUser && foundPhrases.length > 0 && (

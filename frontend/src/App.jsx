@@ -1,5 +1,6 @@
 import {
   Box,
+  Button,
   CircularProgress,
   Container,
   CssBaseline,
@@ -28,6 +29,9 @@ import "./styles/features/all-found-message.css";
 import "./styles/controls/admin-controls.css";
 import "./styles/controls/game-controls.css";
 import "./styles/responsive/app-responsive.css";
+// Mobile component styles
+import "./features/game/components/MobilePhraseListSheet/MobilePhraseListSheet.css";
+import "./features/game/components/MobileFloatingActions/MobileFloatingActions.css";
 import { ThemeProvider, useThemeMode } from "./contexts/ThemeContext";
 import {
   AdminControls,
@@ -40,8 +44,10 @@ import {
   Timer,
   ScoreDisplay,
   HintButton,
+  MobilePhraseListSheet,
+  MobileFloatingActions,
 } from "./features";
-import { NotEnoughPhrasesOverlay, SplashScreen } from "./shared";
+import { NotEnoughPhrasesOverlay, ScreenTooSmallOverlay, SplashScreen } from "./shared";
 import "./style.css";
 import createAppTheme from "./theme";
 
@@ -50,6 +56,9 @@ import useCelebration from "./hooks/useCelebration";
 import useGameDifficulties from "./hooks/useGameDifficulties";
 import useLogoColor from "./hooks/useLogoColor";
 import { useDebouncedValue } from "./hooks/useDebounce";
+import { useTouchDevice } from "./hooks/useTouchDevice";
+import { useScreenTooSmall } from "./hooks/useScreenTooSmall";
+import { useGridTooSmall } from "./hooks/useGridTooSmall";
 
 import {
   loadPuzzle as loadPuzzleHelper,
@@ -172,6 +181,8 @@ function AppContent() {
   // Use custom hooks
   const { logoFilter, setLogoFilter, handleLogoClick } = useLogoColor();
   const { availableDifficulties } = useGameDifficulties();
+  const isTouchDevice = useTouchDevice();
+  const isScreenTooSmall = useScreenTooSmall();
 
   const [categories, setCategories] = useState([]);
   const [ignoredCategories, setIgnoredCategories] = useState([]);
@@ -201,6 +212,37 @@ function AppContent() {
     }
     return false;
   });
+
+  // Calculate if there's enough space for sidebar next to grid
+  const [showSidebarLayout, setShowSidebarLayout] = useState(false);
+
+  useEffect(() => {
+    const calculateLayout = () => {
+      const screenWidth = window.innerWidth;
+
+      // Calculate if sidebar can fit next to grid
+      if (isTouchDevice && grid.length > 0) {
+        // Use a more conservative threshold that accounts for actual rendered grid size
+        // For touch devices, we need at least 900px to comfortably fit grid + sidebar
+        // This prevents the awkward gap between 690-900px
+        const minRequiredWidth = 900;
+        setShowSidebarLayout(screenWidth >= minRequiredWidth);
+      } else {
+        setShowSidebarLayout(screenWidth >= 1200);
+      }
+    };
+
+    calculateLayout();
+    window.addEventListener('resize', calculateLayout);
+    return () => window.removeEventListener('resize', calculateLayout);
+  }, [isTouchDevice, grid.length]);
+
+  // Use mobile layout only if touch device AND not enough space for sidebar
+  const useMobileLayout = isTouchDevice && !showSidebarLayout;
+
+  // Check if grid cells would be too small
+  const isGridTooSmall = useGridTooSmall(grid.length, isTouchDevice, useMobileLayout);
+
   const [restored, setRestored] = useState(false);
   const [notEnoughPhrases, setNotEnoughPhrases] = useState(false);
   const [notEnoughPhrasesMsg, setNotEnoughPhrasesMsg] = useState("");
@@ -240,6 +282,9 @@ function AppContent() {
   const [hintsUsed, setHintsUsed] = useState(0);
   const [remainingHints, setRemainingHints] = useState(3);
   const [currentHintLevel, setCurrentHintLevel] = useState(0);
+
+  // Mobile UI state
+  const [mobileSheetOpen, setMobileSheetOpen] = useState(false);
 
   // Debounced language set ID to prevent excessive API calls
   const debouncedLanguageSetId = useDebouncedValue(selectedLanguageSetId, 500);
@@ -1351,13 +1396,14 @@ function AppContent() {
   );
   const shouldShowSplash = !isAdminRoute && showSplash;
 
-  // Auto-adjust difficulty if current one becomes unavailable
+  // Auto-adjust difficulty if current one becomes unavailable due to screen size
   React.useEffect(() => {
     const isCurrentDifficultyAvailable = availableDifficulties.some(
       (d) => d.value === difficulty
     );
     if (!isCurrentDifficultyAvailable && availableDifficulties.length > 0) {
-      setDifficulty(availableDifficulties[0].value);
+      // Switch to the highest available difficulty (last in array)
+      setDifficulty(availableDifficulties[availableDifficulties.length - 1].value);
     }
   }, [availableDifficulties, difficulty]);
 
@@ -1379,7 +1425,12 @@ function AppContent() {
       )}
       <Container
         maxWidth="xl"
-        sx={{ minHeight: "100vh", py: 2, position: "relative" }}
+        sx={{
+          minHeight: "100vh",
+          py: isTouchDevice ? 0.125 : 2, // 1px on mobile (0.125 * 8px = 1px), 16px on desktop
+          px: isTouchDevice ? 0.125 : 2, // 1px horizontal padding on mobile
+          position: "relative"
+        }}
       >
         {/* Top controls row for admin routes only */}
         {isAdminRoute && <AdminControls />}
@@ -1453,27 +1504,84 @@ function AppContent() {
                   }}
                 />
 
-                {/* All Found Message */}
-                <AllFoundMessage
-                  allFound={allFound}
-                  loadPuzzle={loadPuzzle}
-                  refreshPuzzle={refreshPuzzle}
-                  selectedCategory={selectedCategory}
-                  difficulty={difficulty}
-                  canShowBreakdown={scoringEnabled && !!scoreBreakdown}
-                  onShowBreakdown={openScoreBreakdownDialog}
-                />
+                {/* All Found Message - Desktop Only */}
+                {!isTouchDevice && (
+                  <AllFoundMessage
+                    allFound={allFound}
+                    loadPuzzle={loadPuzzle}
+                    refreshPuzzle={refreshPuzzle}
+                    selectedCategory={selectedCategory}
+                    difficulty={difficulty}
+                    canShowBreakdown={scoringEnabled && !!scoreBreakdown}
+                    onShowBreakdown={openScoreBreakdownDialog}
+                  />
+                )}
+
+                {/* Timer and Score Display at Top - Mobile Layout Only */}
+                {isTouchDevice && scoringEnabled && (
+                  <Box
+                    sx={{
+                      display: "flex",
+                      flexDirection: "row",
+                      alignItems: "center",
+                      justifyContent: "center",
+                      gap: 2,
+                      width: "100%",
+                      flexWrap: "wrap",
+                    }}
+                  >
+                    <Timer
+                      isActive={isTimerActive}
+                      isPaused={isPaused}
+                      onTimeUpdate={handleTimerUpdate}
+                      startTime={gameStartTime}
+                      resetTrigger={timerResetTrigger}
+                      showTimer={scoringEnabled}
+                      currentElapsedTime={currentElapsedTime}
+                      onTogglePause={handlePauseToggle}
+                      canPause={found.length > 0 && !allFound}
+                    />
+                    <ScoreDisplay
+                      currentScore={currentScore}
+                      scoreBreakdown={scoreBreakdown}
+                      phrasesFound={found.length}
+                      totalPhrases={phrases.length}
+                      hintsUsed={hintsUsed}
+                      showScore={scoringEnabled}
+                      compact={true}
+                      scoringRules={scoringRules}
+                      scoringRulesStatus={scoringRulesStatus}
+                      onReloadScoringRules={() =>
+                        loadScoringRules({ force: true })
+                      }
+                      registerDialogOpener={registerScoreDialogOpener}
+                    />
+                    {allFound && (
+                      <Button
+                        onClick={() => refreshPuzzle(selectedCategory, difficulty)}
+                        variant="contained"
+                        sx={{
+                          minWidth: '48px',
+                          minHeight: '48px',
+                          fontSize: '1.5rem'
+                        }}
+                      >
+                        🆕
+                      </Button>
+                    )}
+                  </Box>
+                )}
 
                 {/* Main Game Area */}
                 <Box
                   sx={{
                     display: "flex",
-                    flexDirection: { xs: "column", md: "row" },
-                    alignItems: { xs: "center", md: "flex-start" },
+                    flexDirection: "row",
+                    alignItems: "flex-start",
                     width: "100%",
                     maxWidth: "100vw",
                     position: "relative",
-                    gap: { xs: 3, md: 6 },
+                    gap: useMobileLayout ? 3 : { xs: 3, md: 6 },
                     justifyContent: "center",
                     overflow: "hidden", // Prevent horizontal overflow
                   }}
@@ -1485,22 +1593,31 @@ function AppContent() {
                       display: "flex",
                       justifyContent: "center",
                       alignItems: "center",
-                      width: { xs: "100%", md: "auto" },
+                      width: useMobileLayout ? "100%" : "auto",
                       maxWidth: "100%",
                     }}
                   >
-                    <ScrabbleGrid
-                      ref={gridRef}
-                      grid={grid}
-                      phrases={phrases}
-                      found={found}
-                      onFound={markFound}
-                      disabled={allFound}
-                      isDarkMode={isDarkMode}
-                      showCelebration={showCelebration}
-                      onHintUsed={() => { }} // Placeholder - hint tracking is handled in handleHintRequest
-                      onGridInteraction={handleGridInteraction}
-                    />
+                    <Box
+                      sx={{
+                        filter: (isScreenTooSmall || isGridTooSmall) ? 'blur(8px)' : 'none',
+                        pointerEvents: (isScreenTooSmall || isGridTooSmall) ? 'none' : 'auto',
+                      }}
+                    >
+                      <ScrabbleGrid
+                        ref={gridRef}
+                        grid={grid}
+                        phrases={phrases}
+                        found={found}
+                        onFound={markFound}
+                        disabled={allFound || isScreenTooSmall || isGridTooSmall}
+                        isDarkMode={isDarkMode}
+                        showCelebration={showCelebration}
+                        onHintUsed={() => { }} // Placeholder - hint tracking is handled in handleHintRequest
+                        onGridInteraction={handleGridInteraction}
+                        isTouchDevice={isTouchDevice}
+                        useMobileLayout={useMobileLayout}
+                      />
+                    </Box>
 
                     <LoadingOverlay
                       isLoading={isGridLoading}
@@ -1512,91 +1629,147 @@ function AppContent() {
                       message={notEnoughPhrasesMsg}
                       isDarkMode={isDarkMode}
                     />
-                  </Box>
-                  <Box
-                    sx={{
-                      width: { xs: "100%", md: 320 },
-                      maxWidth: 400,
-                      alignSelf: { xs: "flex-start", md: "flex-start" },
-                      position: { md: "relative" },
-                      left: { md: "0" },
-                      top: { md: "0" },
-                    }}
-                  >
-                    {/* Timer and Score Display */}
-                    {scoringEnabled && (
-                      <Box
-                        sx={{
-                          display: "flex",
-                          flexDirection: { xs: "row", sm: "row" },
-                          alignItems: "center",
-                          justifyContent: "flex-start",
-                          gap: 2,
-                          mb: 2,
-                          flexWrap: "wrap",
-                        }}
-                      >
-                        <Timer
-                          isActive={isTimerActive}
-                          isPaused={isPaused}
-                          onTimeUpdate={handleTimerUpdate}
-                          startTime={gameStartTime}
-                          resetTrigger={timerResetTrigger}
-                          showTimer={scoringEnabled}
-                          currentElapsedTime={currentElapsedTime}
-                          onTogglePause={handlePauseToggle}
-                          canPause={found.length > 0 && !allFound}
-                        />
-                        <ScoreDisplay
-                          currentScore={currentScore}
-                          scoreBreakdown={scoreBreakdown}
-                          phrasesFound={found.length}
-                          totalPhrases={phrases.length}
-                          hintsUsed={hintsUsed}
-                          showScore={scoringEnabled}
-                          compact={true}
-                          scoringRules={scoringRules}
-                          scoringRulesStatus={scoringRulesStatus}
-                          onReloadScoringRules={() =>
-                            loadScoringRules({ force: true })
-                          }
-                          registerDialogOpener={registerScoreDialogOpener}
-                        />
-                      </Box>
-                    )}
 
-                    {/* Hint Button - only show when progressive hints are enabled */}
-                    {progressiveHintsEnabled &&
-                      phrases.length > 0 &&
-                      found.length < phrases.length && (
-                        <HintButton
-                          onHintRequest={handleHintRequest}
-                          remainingHints={remainingHints}
-                          isProgressiveMode={progressiveHintsEnabled}
-                          disabled={allFound || phrases.length === 0}
-                          currentHintLevel={currentHintLevel}
-                          maxHints={3}
-                          showHintButton={true}
-                        />
-                      )}
+                    <ScreenTooSmallOverlay
+                      show={isScreenTooSmall}
+                      isDarkMode={isDarkMode}
+                    />
 
-                    <PhraseList
-                      phrases={phrases}
-                      found={found}
-                      hidePhrases={hidePhrases}
-                      setHidePhrases={setHidePhrases}
-                      allFound={allFound}
-                      showTranslations={showTranslations}
-                      setShowTranslations={setShowTranslations}
-                      disableShowPhrases={notEnoughPhrases}
-                      onPhraseClick={handlePhraseClick}
-                      progressiveHintsEnabled={progressiveHintsEnabled}
-                      currentUser={currentUser}
-                      languageSetId={selectedLanguageSetId}
-                      t={t}
+                    <ScreenTooSmallOverlay
+                      show={isGridTooSmall}
+                      isDarkMode={isDarkMode}
+                      message={t('grid_too_small_for_difficulty')}
                     />
                   </Box>
+
+                  {/* Desktop Layout - Sidebar */}
+                  {!useMobileLayout && (() => {
+                    // Determine if sidebar should be in compact mode based on screen width
+                    const isCompactSidebar = window.innerWidth < 1200;
+
+                    return (
+                      <Box
+                        sx={{
+                          width: isCompactSidebar ? 240 : { md: 320, lg: 360 },
+                          maxWidth: 400,
+                          minWidth: 240,
+                          alignSelf: "flex-start",
+                          position: "relative",
+                        }}
+                      >
+                        {/* Timer and Score Display */}
+                        {scoringEnabled && (
+                          <Box
+                            sx={{
+                              display: "flex",
+                              flexDirection: { xs: "row", sm: "row" },
+                              alignItems: "center",
+                              justifyContent: "flex-start",
+                              gap: 2,
+                              mb: 2,
+                              flexWrap: "wrap",
+                            }}
+                          >
+                            <Timer
+                              isActive={isTimerActive}
+                              isPaused={isPaused}
+                              onTimeUpdate={handleTimerUpdate}
+                              startTime={gameStartTime}
+                              resetTrigger={timerResetTrigger}
+                              showTimer={scoringEnabled}
+                              currentElapsedTime={currentElapsedTime}
+                              onTogglePause={handlePauseToggle}
+                              canPause={found.length > 0 && !allFound}
+                            />
+                            <ScoreDisplay
+                              currentScore={currentScore}
+                              scoreBreakdown={scoreBreakdown}
+                              phrasesFound={found.length}
+                              totalPhrases={phrases.length}
+                              hintsUsed={hintsUsed}
+                              showScore={scoringEnabled}
+                              compact={true}
+                              scoringRules={scoringRules}
+                              scoringRulesStatus={scoringRulesStatus}
+                              onReloadScoringRules={() =>
+                                loadScoringRules({ force: true })
+                              }
+                              registerDialogOpener={registerScoreDialogOpener}
+                            />
+                          </Box>
+                        )}
+
+                        {/* Hint Button - only show when progressive hints are enabled */}
+                        {progressiveHintsEnabled &&
+                          phrases.length > 0 &&
+                          found.length < phrases.length && (
+                            <HintButton
+                              onHintRequest={handleHintRequest}
+                              remainingHints={remainingHints}
+                              isProgressiveMode={progressiveHintsEnabled}
+                              disabled={allFound || phrases.length === 0 || isGridTooSmall}
+                              currentHintLevel={currentHintLevel}
+                              maxHints={3}
+                              showHintButton={true}
+                              compact={isCompactSidebar}
+                            />
+                          )}
+
+                        <PhraseList
+                          phrases={phrases}
+                          found={found}
+                          hidePhrases={hidePhrases}
+                          setHidePhrases={setHidePhrases}
+                          allFound={allFound}
+                          showTranslations={showTranslations}
+                          setShowTranslations={setShowTranslations}
+                          disableShowPhrases={notEnoughPhrases || isGridTooSmall}
+                          onPhraseClick={handlePhraseClick}
+                          progressiveHintsEnabled={progressiveHintsEnabled}
+                          currentUser={currentUser}
+                          languageSetId={selectedLanguageSetId}
+                          t={t}
+                          compact={isCompactSidebar}
+                        />
+                      </Box>
+                    );
+                  })()}
                 </Box>
+
+                {/* Mobile Layout - Floating Action Buttons */}
+                {useMobileLayout && (
+                  <MobileFloatingActions
+                    onPhraseListClick={() => setMobileSheetOpen(true)}
+                    onHintClick={handleHintRequest}
+                    phrasesFound={found.length}
+                    remainingHints={remainingHints}
+                    showHintButton={progressiveHintsEnabled && phrases.length > 0 && found.length < phrases.length}
+                    disabled={allFound || phrases.length === 0 || isGridTooSmall}
+                    isProgressiveMode={progressiveHintsEnabled}
+                    gridLength={grid.length}
+                  />
+                )}
+
+                {/* Mobile Layout - Bottom Sheet */}
+                {useMobileLayout && (
+                  <MobilePhraseListSheet
+                    open={mobileSheetOpen}
+                    onClose={() => setMobileSheetOpen(false)}
+                    phrases={phrases}
+                    found={found}
+                    hidePhrases={hidePhrases}
+                    setHidePhrases={setHidePhrases}
+                    allFound={allFound}
+                    showTranslations={showTranslations}
+                    setShowTranslations={setShowTranslations}
+                    disableShowPhrases={notEnoughPhrases}
+                    onPhraseClick={handlePhraseClick}
+                    progressiveHintsEnabled={progressiveHintsEnabled}
+                    currentUser={currentUser}
+                    languageSetId={selectedLanguageSetId}
+                    t={t}
+                  />
+                )}
               </Stack>
             }
           />
@@ -1612,29 +1785,34 @@ function AppContent() {
             borderColor: "divider",
             display: "flex",
             alignItems: "center",
-            justifyContent: "center",
+            justifyContent: isTouchDevice ? "flex-end" : "center",
             gap: 2,
+            px: 2,
           }}
         >
-          <Typography
-            variant="body2"
-            color="text.secondary"
-            component="a"
-            href={`https://github.com/bartekmp/osmosmjerka/releases/tag/v${packageJson.version}`}
-            target="_blank"
-            rel="noopener noreferrer"
-            sx={{
-              textDecoration: "none",
-              color: "text.secondary",
-              "&:hover": {
-                textDecoration: "underline",
-                color: "primary.main",
-              },
-            }}
-          >
-            Osmosmjerka v{packageJson.version}
-          </Typography>
-          <Box sx={{ height: 20, width: 1, bgcolor: "divider" }} />
+          {!isTouchDevice && (
+            <>
+              <Typography
+                variant="body2"
+                color="text.secondary"
+                component="a"
+                href={`https://github.com/bartekmp/osmosmjerka/releases/tag/v${packageJson.version}`}
+                target="_blank"
+                rel="noopener noreferrer"
+                sx={{
+                  textDecoration: "none",
+                  color: "text.secondary",
+                  "&:hover": {
+                    textDecoration: "underline",
+                    color: "primary.main",
+                  },
+                }}
+              >
+                Osmosmjerka v{packageJson.version}
+              </Typography>
+              <Box sx={{ height: 20, width: 1, bgcolor: "divider" }} />
+            </>
+          )}
           <IconButton
             size="small"
             href="https://github.com/bartekmp/osmosmjerka"

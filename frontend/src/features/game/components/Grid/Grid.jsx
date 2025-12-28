@@ -19,7 +19,9 @@ const ScrabbleGrid = forwardRef(({
     isDarkMode = false,
     showCelebration = false,
     onHintUsed = null,
-    onGridInteraction = null
+    onGridInteraction = null,
+    isTouchDevice = false,
+    useMobileLayout = false
 }, ref) => {
     const { t } = useTranslation();
 
@@ -28,7 +30,7 @@ const ScrabbleGrid = forwardRef(({
     const [blinkingCells, setBlinkingCells] = useState([]);
     const [celebrationCells, setCelebrationCells] = useState([]);
     const [, forceRender] = useState(0);
-    
+
     // Progressive hint states
     const [hintState, setHintState] = useState({
         targetPhrase: null,
@@ -39,7 +41,7 @@ const ScrabbleGrid = forwardRef(({
 
     // Custom hooks - MUST be called before any conditional returns
     const { isMouseDown, selectionStart, lastDirection, startSelection, endSelection } = useMouseSelection();
-    const cellSize = useGridSize(grid.length);
+    const cellSize = useGridSize(grid.length, isTouchDevice, useMobileLayout);
 
     // Refs for cleanup - MUST be called before any conditional returns
     const blinkTimeoutRef = useRef(null);
@@ -112,7 +114,7 @@ const ScrabbleGrid = forwardRef(({
         if (availablePhrases.length === 0) return null;
 
         const targetPhrase = availablePhrases[Math.floor(Math.random() * availablePhrases.length)];
-        
+
         if (isProgressiveMode) {
             // Progressive mode: start with first letter hint
             const firstCoord = targetPhrase.coords[0];
@@ -146,17 +148,17 @@ const ScrabbleGrid = forwardRef(({
             if (!prev.targetPhrase || prev.hintLevel >= 3) return prev;
 
             const newLevel = prev.hintLevel + 1;
-            
+
             if (newLevel === 2) {
                 // Show direction arrow
                 const coords = prev.targetPhrase.coords;
                 const startCoord = coords[0];
                 const endCoord = coords[coords.length - 1];
-                
+
                 // Calculate direction
                 const deltaRow = endCoord[0] - startCoord[0];
                 const deltaCol = endCoord[1] - startCoord[1];
-                
+
                 let arrow = '→';
                 if (deltaRow > 0 && deltaCol === 0) arrow = '↓';
                 else if (deltaRow < 0 && deltaCol === 0) arrow = '↑';
@@ -166,7 +168,7 @@ const ScrabbleGrid = forwardRef(({
                 else if (deltaRow > 0 && deltaCol < 0) arrow = '↙';
                 else if (deltaRow < 0 && deltaCol > 0) arrow = '↗';
                 else if (deltaRow < 0 && deltaCol < 0) arrow = '↖';
-                
+
                 return {
                     ...prev,
                     hintLevel: newLevel,
@@ -180,7 +182,7 @@ const ScrabbleGrid = forwardRef(({
                     hintCells: prev.targetPhrase.coords
                 };
             }
-            
+
             return prev;
         });
     }, []);
@@ -360,8 +362,8 @@ const ScrabbleGrid = forwardRef(({
 
                     // Check if this cell is part of a hint
                     const isHintCell = hintState.hintCells.some(([hr, hc]) => hr === r && hc === c);
-                    const hasDirectionArrow = hintState.directionArrow && 
-                        hintState.directionArrow.coord[0] === r && 
+                    const hasDirectionArrow = hintState.directionArrow &&
+                        hintState.directionArrow.coord[0] === r &&
                         hintState.directionArrow.coord[1] === c;
 
                     return (
