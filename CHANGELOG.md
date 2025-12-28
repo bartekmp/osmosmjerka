@@ -2,6 +2,15 @@
 
 <!-- version list -->
 
+## v1.36.0 (2025-12-28)
+
+### Feature
+
+- Improved mobile UI, tweaks to desktop frontend
+  ([#139](https://github.com/bartekmp/osmosmjerka/pull/139),
+  [`23de795`](https://github.com/bartekmp/osmosmjerka/commit/23de795134251924baa77b98cbb12390e504eccd))
+
+
 ## v1.35.18 (2025-12-22)
 
 ### Bug Fixes
