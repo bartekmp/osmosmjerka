@@ -2,6 +2,14 @@
 
 <!-- version list -->
 
+## v1.36.1 (2025-12-29)
+
+### Chores
+
+- **deps**: Pin dependencies ([#140](https://github.com/bartekmp/osmosmjerka/pull/140),
+  [`1e771ac`](https://github.com/bartekmp/osmosmjerka/commit/1e771aca6d30b137e4efe33b98e8c9698f41f460))
+
+
 ## v1.36.0 (2025-12-28)
 
 ### Feature
