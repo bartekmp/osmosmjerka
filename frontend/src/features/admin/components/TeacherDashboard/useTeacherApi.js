@@ -1,10 +1,12 @@
-import { useCallback, useMemo } from 'react';
+import { useCallback, useMemo, useState } from 'react';
 
 /**
  * API hook for Teacher Mode functionality.
  * Handles all teacher phrase set CRUD operations and session management.
  */
 export function useTeacherApi({ token, setError }) {
+    const [loading, setLoading] = useState(false);
+
     const authHeader = useMemo(() => token
         ? { Authorization: 'Bearer ' + token, 'Content-Type': 'application/json' }
         : { 'Content-Type': 'application/json' }, [token]);
@@ -13,6 +15,7 @@ export function useTeacherApi({ token, setError }) {
      * Make an authenticated API request
      */
     const apiRequest = useCallback(async (url, options = {}) => {
+        setLoading(true);
         try {
             const response = await fetch(url, {
                 ...options,
@@ -35,6 +38,8 @@ export function useTeacherApi({ token, setError }) {
                 setError(error.message);
             }
             throw error;
+        } finally {
+            setLoading(false);
         }
     }, [authHeader, setError]);
 
@@ -182,6 +187,7 @@ export function useTeacherApi({ token, setError }) {
     }, [getShareableLink]);
 
     return useMemo(() => ({
+        isLoading: loading,
         // Phrase Set CRUD
         fetchPhraseSets,
         createPhraseSet,
@@ -199,6 +205,7 @@ export function useTeacherApi({ token, setError }) {
         getShareableLink,
         copyLinkToClipboard,
     }), [
+        loading,
         fetchPhraseSets,
         createPhraseSet,
         getPhraseSet,

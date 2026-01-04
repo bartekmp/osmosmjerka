@@ -25,7 +25,8 @@ const AdminLayout = ({
   onDashboard,
   onLogout,
   maxWidth = 'xl',
-  currentUser = null
+  currentUser = null,
+  headerActions = null
 }) => {
   const { t } = useTranslation();
   const username = currentUser?.username?.trim();
@@ -41,29 +42,29 @@ const AdminLayout = ({
     },
     ...(isCompactLogout
       ? {
-          width: 'auto',
-          minWidth: 64,
-          px: 1.25,
-          height: 40,
-          fontSize: '0.85rem'
-        }
+        width: 'auto',
+        minWidth: 64,
+        px: 1.25,
+        height: 40,
+        fontSize: '0.85rem'
+      }
       : {
-          minWidth: 120,
-          px: 2,
-          fontSize: '0.95rem'
-        })
+        minWidth: 120,
+        px: 2,
+        fontSize: '0.95rem'
+      })
   };
 
   return (
     <Container maxWidth={maxWidth} sx={{ py: 4 }}>
       {/* Add spacing below top controls */}
       <Box sx={{ height: SPACING.adminControlsTop }} />
-      
+
       {/* Navigation bar */}
-      <Box sx={{ 
-        display: 'flex', 
-        justifyContent: 'space-between', 
-        alignItems: 'center', 
+      <Box sx={{
+        display: 'flex',
+        justifyContent: 'space-between',
+        alignItems: 'center',
         mb: 3,
         gap: 2
       }}>
@@ -85,9 +86,10 @@ const AdminLayout = ({
             />
           )}
         </Box>
-        
+
         {showLogout && (
           <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.5, flexWrap: 'wrap', justifyContent: 'flex-end' }}>
+            {headerActions}
             {username && (
               <Chip
                 label={username}
@@ -115,7 +117,7 @@ const AdminLayout = ({
           </Box>
         )}
       </Box>
-      
+
       {children}
     </Container>
   );

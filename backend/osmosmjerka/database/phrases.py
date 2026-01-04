@@ -2,10 +2,9 @@
 
 from typing import Optional
 
+from osmosmjerka.database.models import language_sets_table
 from sqlalchemy import func
 from sqlalchemy.sql import delete, insert, select, update
-
-from osmosmjerka.database.models import language_sets_table
 
 
 class PhrasesMixin:

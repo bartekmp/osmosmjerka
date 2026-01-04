@@ -1,7 +1,6 @@
 """Game API module combining all endpoint routers."""
 
 from fastapi import APIRouter
-
 from osmosmjerka.database import db_manager
 from osmosmjerka.game_api.export import router as export_router
 from osmosmjerka.game_api.game_sessions import router as game_sessions_router

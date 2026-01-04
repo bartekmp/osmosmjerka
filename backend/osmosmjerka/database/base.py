@@ -1,7 +1,5 @@
 """Base DatabaseManager class with connection management and utility methods."""
 
-"""Base DatabaseManager class with connection management and utility methods."""
-
 import datetime
 import os
 import urllib.parse
@@ -9,10 +7,9 @@ from typing import Optional
 
 from databases import Database
 from dotenv import load_dotenv
-from sqlalchemy import Table, create_engine
-
 from osmosmjerka.database.models import create_phrase_table, metadata
 from osmosmjerka.logging_config import get_logger
+from sqlalchemy import Table, create_engine
 
 # Load environment variables
 load_dotenv()

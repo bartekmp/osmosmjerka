@@ -617,6 +617,12 @@ class TeacherSetsMixin:
         if owner_id == user_id:
             return True
 
+        # Root admin can access all private puzzles
+        role_query = select(accounts_table.c.role).where(accounts_table.c.id == user_id)
+        user_role = await database.fetch_val(role_query)
+        if user_role == "root_admin":
+            return True
+
         # Check access table
         access_query = select(teacher_phrase_set_access_table.c.id).where(
             and_(
@@ -781,6 +787,46 @@ class TeacherSetsMixin:
             .values(**update_values)
         )
         await database.execute(update_query)
+
+        # Notify teacher if translations were submitted
+        if translation_submissions:
+            logger.info(
+                "Translation submissions received, creating notification",
+                extra={"count": len(translation_submissions), "session_token": session_token},
+            )
+            # Fetch phrase set to get teacher ID (created_by)
+            ps_query = select(teacher_phrase_sets_table.c.created_by, teacher_phrase_sets_table.c.name).where(
+                teacher_phrase_sets_table.c.id == session["phrase_set_id"]
+            )
+            ps = await database.fetch_one(ps_query)
+
+            if ps and ps[0] is not None:  # Ensure teacher exists (ID 0 is valid)
+                teacher_id = ps[0]
+                set_name = ps[1]
+                nickname = session["nickname"]
+
+                logger.info(
+                    "Creating notification for teacher",
+                    extra={"teacher_id": teacher_id, "set_name": set_name, "nickname": nickname},
+                )
+
+                await self.create_notification(
+                    user_id=teacher_id,
+                    type="translation_review",
+                    title="Translation Review Required",
+                    message=f"{nickname} submitted translations for '{set_name}'",
+                    link=f"/teacher-dashboard?tab=2&set_id={session['phrase_set_id']}",  # Deep link to sessions
+                    metadata={
+                        "session_id": session["id"],
+                        "phrase_set_id": session["phrase_set_id"],
+                        "nickname": nickname,
+                    },
+                )
+            else:
+                logger.warning(
+                    "Could not find teacher for notification",
+                    extra={"phrase_set_id": session["phrase_set_id"]},
+                )
 
         logger.info(
             "Completed teacher set session",

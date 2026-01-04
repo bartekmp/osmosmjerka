@@ -2,7 +2,6 @@
 
 from fastapi import APIRouter, Depends, status
 from fastapi.responses import JSONResponse
-
 from osmosmjerka.auth import require_admin_access
 from osmosmjerka.database import db_manager
 

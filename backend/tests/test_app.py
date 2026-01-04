@@ -2,6 +2,11 @@
 import sys
 import pytest
 
+import starlette.staticfiles
+
+from osmosmjerka.app import app
+from fastapi.testclient import TestClient
+
 
 # Patch StaticFiles before importing app
 class DummyStaticFiles:
@@ -12,13 +17,8 @@ class DummyStaticFiles:
         pass
 
 
-import starlette.staticfiles
-
 starlette.staticfiles.StaticFiles = DummyStaticFiles
 sys.modules.pop("osmosmjerka.app", None)
-
-from osmosmjerka.app import app
-from fastapi.testclient import TestClient
 
 
 @pytest.fixture

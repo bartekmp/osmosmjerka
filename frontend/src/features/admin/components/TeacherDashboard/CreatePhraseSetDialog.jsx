@@ -429,6 +429,19 @@ function CreatePhraseSetDialog({ open, onClose, onCreated, token, languageSets, 
                             </Select>
                         </FormControl>
 
+                        {accessType === 'private' && (
+                            <FormControl fullWidth>
+                                <TextField
+                                    label={t('teacher.create.study_groups_placeholder', 'Study Groups (Coming Soon)')}
+                                    disabled
+                                    helperText={t('teacher.create.study_groups_helper', 'Assign this puzzle to specific study groups')}
+                                    InputProps={{
+                                        readOnly: true,
+                                    }}
+                                />
+                            </FormControl>
+                        )}
+
                         <TextField
                             label={t('teacher.create.max_plays', 'Max Plays (optional)')}
                             type="number"

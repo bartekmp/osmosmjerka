@@ -360,3 +360,22 @@ teacher_phrase_set_sessions_table = Table(
     Index("idx_session_phrase_set", "phrase_set_id", "is_completed"),
     Index("idx_session_user", "user_id", "phrase_set_id"),
 )
+
+# Define the notifications table for user alerts and messages
+notifications_table = Table(
+    "notifications",
+    metadata,
+    Column("id", Integer, primary_key=True, index=True),
+    Column("user_id", Integer, ForeignKey("accounts.id", ondelete="CASCADE"), nullable=False, index=True),
+    Column("type", String(50), nullable=False),  # e.g., "translation_review", "system_alert"
+    Column("title", String(255), nullable=False),
+    Column("message", Text, nullable=False),
+    Column("link", String(512), nullable=True),  # Optional navigation link
+    Column("is_read", Boolean, nullable=False, default=False),
+    Column("created_at", DateTime, nullable=False, server_default=func.now()),
+    Column("expires_at", DateTime, nullable=True),  # For auto-cleanup
+    Column("metadata", Text, nullable=True),  # JSON string for extra data
+    # Indexes
+    Index("idx_notifications_user_read", "user_id", "is_read"),
+    Index("idx_notifications_created_at", "created_at"),
+)

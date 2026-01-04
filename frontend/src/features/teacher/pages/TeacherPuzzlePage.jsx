@@ -75,7 +75,7 @@ function TeacherPuzzlePage() {
             }
 
             try {
-                const response = await fetch('/api/user/profile', {
+                const response = await fetch('/admin/profile', {
                     headers: {
                         'Authorization': `Bearer ${authToken}`,
                         'Content-Type': 'application/json',
@@ -120,7 +120,11 @@ function TeacherPuzzlePage() {
         setLoading(true);
         setError(null);
         try {
-            const response = await fetch(`/admin/teacher/set/${token}`);
+            const authToken = localStorage.getItem('adminToken');
+            const headers = authToken
+                ? { 'Authorization': `Bearer ${authToken}` }
+                : {};
+            const response = await fetch(`/admin/teacher/set/${token}`, { headers });
             const data = await response.json();
 
             if (!response.ok) {
@@ -214,7 +218,7 @@ function TeacherPuzzlePage() {
     };
 
     // Mark phrase as found
-    const markFound = useCallback((phrase) => {
+    const markFound = useCallback((phrase, latestSubmissions = null) => {
         if (!found.includes(phrase)) {
             const newFound = [...found, phrase];
             setFound(newFound);
@@ -228,7 +232,7 @@ function TeacherPuzzlePage() {
             // Check if all found - complete session
             if (newFound.length === phrases.length) {
                 setHidePhrases(false);
-                completeSession(newFound.length);
+                completeSession(newFound.length, latestSubmissions);
             }
         }
     }, [found, phrases.length]);
@@ -259,26 +263,42 @@ function TeacherPuzzlePage() {
 
         // Find the phrase data to get the correct translation
         const phraseData = phrases.find(p => p.phrase === phrase);
-        const isCorrect = phraseData &&
-            translationInput.trim().toLowerCase() === phraseData.translation?.trim().toLowerCase();
 
-        // Store the submission
-        setTranslationSubmissions(prev => [...prev, {
+        // Sanitize the input: trim, remove HTML tags, limit length
+        const sanitizedInput = translationInput
+            .trim()
+            .replace(/<[^>]*>/g, '') // Remove HTML tags
+            .replace(/[<>]/g, '')    // Remove any remaining angle brackets
+            .slice(0, 50);           // Enforce max length
+
+        const isCorrect = phraseData &&
+            sanitizedInput.toLowerCase() === phraseData.translation?.trim().toLowerCase();
+
+        // Create the new submission object
+        const newSubmission = {
             phrase,
-            submitted: translationInput.trim(),
+            submitted: sanitizedInput,
             correct: phraseData?.translation || '',
             is_correct: isCorrect,
-        }]);
+        };
 
-        // Close dialog and mark as found
+        // Update state but capture the new list to pass down
+        const newSubmissionsList = [...translationSubmissions, newSubmission];
+        setTranslationSubmissions(newSubmissionsList);
+
+        // Close dialog and mark as found, passing the updated submissions list
         setTranslationDialog({ open: false, phrase: null });
         setTranslationInput('');
-        markFound(phrase);
-    }, [translationDialog.phrase, translationInput, phrases, markFound]);
+        markFound(phrase, newSubmissionsList);
+    }, [translationDialog.phrase, translationInput, phrases, markFound, translationSubmissions]);
 
     // Complete session
-    const completeSession = async (phrasesFound) => {
+    const completeSession = async (phrasesFound, finalSubmissions = null) => {
         if (!sessionData?.session_token) return;
+
+        // Use the passed finalSubmissions if provided, otherwise fall back to state
+        // This ensures we don't use stale state when the last move was a translation submission
+        const submissionsToSend = finalSubmissions || translationSubmissions;
 
         try {
             await fetch(`/admin/teacher/set/${token}/complete`, {
@@ -288,7 +308,7 @@ function TeacherPuzzlePage() {
                     session_token: sessionData.session_token,
                     phrases_found: phrasesFound,
                     duration_seconds: currentElapsedTime,
-                    translation_submissions: translationSubmissions.length > 0 ? translationSubmissions : undefined,
+                    translation_submissions: submissionsToSend.length > 0 ? submissionsToSend : undefined,
                 }),
             });
         } catch (err) {
@@ -311,6 +331,7 @@ function TeacherPuzzlePage() {
         setFound([]);
         setCurrentElapsedTime(0);
         setGameStartTime(null);
+        setTranslationSubmissions([]);  // Reset translation submissions for new session
         loadPuzzle();
     };
 
@@ -473,6 +494,8 @@ function TeacherPuzzlePage() {
                                     handleTranslationSubmit();
                                 }
                             }}
+                            inputProps={{ maxLength: 50 }}
+                            helperText={`${translationInput.length}/50`}
                         />
                     </DialogContent>
                     <DialogActions>

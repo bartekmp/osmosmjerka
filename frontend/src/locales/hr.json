@@ -682,6 +682,8 @@
       "access_private": "Privatno (potrebna prijava)",
       "max_plays": "Max igranja (opcionalno)",
       "max_plays_helper": "Ostavite prazno za neograničeno",
+      "study_groups_placeholder": "Učenici (Uskoro)",
+      "study_groups_helper": "Dodijelite ovu zagonetku određenim učenicima",
       "auto_delete_label": "Auto-brisanje nakon: {{days}}",
       "do_not_delete": "Ne brisati",
       "create_button": "Kreiraj zagonetku",
@@ -740,6 +742,20 @@
       "exit": "Izađi iz pregleda"
     },
     "tab_admin": "Administracija",
-    "teacher_mode": "Način za nastavnike"
+    "teacher_mode": "Način za nastavnike",
+    "section_title": "Alati za nastavnike",
+    "review": {
+      "title": "Pregled prijevoda",
+      "subtitle": "Igrač: {{player}}",
+      "no_submissions": "Nema prijevoda za ovu sesiju.",
+      "phrase": "Fraza",
+      "correct_translation": "Točan prijevod",
+      "student_submission": "Odgovor učenika",
+      "status": "Status",
+      "correct": "Točno",
+      "incorrect": "Netočno",
+      "copy": "Kopiraj rezultate",
+      "copied": "Rezultati kopirani u međuspremnik"
+    }
   }
 }

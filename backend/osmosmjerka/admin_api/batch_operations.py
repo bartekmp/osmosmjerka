@@ -2,10 +2,9 @@
 
 from fastapi import APIRouter, Depends, Query, status
 from fastapi.responses import JSONResponse
-from pydantic import BaseModel
-
 from osmosmjerka.auth import require_admin_access
 from osmosmjerka.database import db_manager
+from pydantic import BaseModel
 
 router = APIRouter()
 

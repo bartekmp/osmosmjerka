@@ -4,8 +4,6 @@ import datetime
 
 from fastapi import APIRouter, Body, Depends, Query
 from fastapi.responses import JSONResponse
-from pydantic import BaseModel, Field
-
 from osmosmjerka.auth import get_current_user
 from osmosmjerka.database import db_manager
 from osmosmjerka.logging_config import get_logger
@@ -18,6 +16,7 @@ from osmosmjerka.scoring_rules import (
     TARGET_TIMES_SECONDS,
     get_scoring_rules,
 )
+from pydantic import BaseModel, Field
 
 logger = get_logger(__name__)
 

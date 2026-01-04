@@ -1,7 +1,16 @@
 """Admin API router that registers all admin endpoints"""
 
 from fastapi import APIRouter
-from osmosmjerka.admin_api import batch_operations, language_sets, phrases, settings, statistics, teacher_sets, users
+from osmosmjerka.admin_api import (
+    batch_operations,
+    language_sets,
+    notifications,
+    phrases,
+    settings,
+    statistics,
+    teacher_sets,
+    users,
+)
 
 router = APIRouter(prefix="/admin")
 
@@ -13,5 +22,6 @@ router.include_router(users.router, tags=["Users & Auth"])
 router.include_router(statistics.router, tags=["Statistics"])
 router.include_router(settings.router, tags=["Settings"])
 router.include_router(teacher_sets.router, tags=["Teacher Mode"])
+router.include_router(notifications.router, tags=["Notifications"])
 
 __all__ = ["router"]

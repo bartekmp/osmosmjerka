@@ -2,15 +2,14 @@
 
 from typing import Optional
 
-from sqlalchemy import Integer, and_, desc, func
-from sqlalchemy.sql import delete, insert, select, update
-
 from osmosmjerka.database.models import (
     accounts_table,
     user_list_shares_table,
     user_private_list_phrases_table,
     user_private_lists_table,
 )
+from sqlalchemy import Integer, and_, desc, func
+from sqlalchemy.sql import delete, insert, select, update
 
 
 class ListSharingMixin:

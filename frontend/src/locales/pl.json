@@ -683,6 +683,8 @@
       "access_private": "Prywatny (wymagane logowanie)",
       "max_plays": "Maks. Rozgrywek (opcjonalne)",
       "max_plays_helper": "Zostaw puste dla braku limitu",
+      "study_groups_placeholder": "Uczniowie (Wkrótce)",
+      "study_groups_helper": "Przypisz tę łamigłówkę do konkretnych uczniów",
       "auto_delete_label": "Auto-usuwanie po: {{days}}",
       "do_not_delete": "Nie usuwaj",
       "create_button": "Utwórz Łamigłówkę",
@@ -741,6 +743,20 @@
       "exit": "Wyjdź z Podglądu"
     },
     "tab_admin": "Administracja",
-    "teacher_mode": "Tryb Nauczyciela"
+    "teacher_mode": "Tryb Nauczyciela",
+    "section_title": "Narzędzia Nauczyciela",
+    "review": {
+      "title": "Przegląd Tłumaczeń",
+      "subtitle": "Gracz: {{player}}",
+      "no_submissions": "Brak tłumaczeń dla tej sesji.",
+      "phrase": "Fraza",
+      "correct_translation": "Poprawne Tłumaczenie",
+      "student_submission": "Odpowiedź Ucznia",
+      "status": "Status",
+      "correct": "Poprawne",
+      "incorrect": "Niepoprawne",
+      "copy": "Kopiuj Wyniki",
+      "copied": "Wyniki skopiowane do schowka"
+    }
   }
 }

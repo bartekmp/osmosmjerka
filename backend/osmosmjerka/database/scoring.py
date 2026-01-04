@@ -4,10 +4,9 @@ import datetime
 import json
 from typing import Any, Dict, List, Optional
 
+from osmosmjerka.database.models import accounts_table, game_scores_table, scoring_rules_table
 from sqlalchemy import desc
 from sqlalchemy.sql import insert, select
-
-from osmosmjerka.database.models import accounts_table, game_scores_table, scoring_rules_table
 
 
 class ScoringMixin:
