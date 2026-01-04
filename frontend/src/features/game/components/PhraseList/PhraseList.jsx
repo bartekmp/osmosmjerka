@@ -29,7 +29,7 @@ export default function PhraseList({
     // Instead of dynamic calculation, use a consistent width
     const translationMinWidth = "12em"; // Fixed width for stability
 
-    const canToggleTranslations = found.length > 0 && !hidePhrases;
+    const canToggleTranslations = setShowTranslations && found.length > 0 && !hidePhrases;
 
     // For consistent button width
     const buttonWidth = compact ? "5em" : "7.2em";

@@ -3,8 +3,6 @@
 import bcrypt
 from fastapi import APIRouter, Body, Depends, status
 from fastapi.responses import JSONResponse
-from pydantic import BaseModel
-
 from osmosmjerka.auth import (
     authenticate_user,
     create_access_token,
@@ -13,6 +11,7 @@ from osmosmjerka.auth import (
 )
 from osmosmjerka.database import db_manager
 from osmosmjerka.logging_config import get_logger
+from pydantic import BaseModel
 
 logger = get_logger(__name__)
 
@@ -61,8 +60,7 @@ async def create_user(
     self_description: str = Body(""),
     user=Depends(require_admin_access),
 ) -> JSONResponse:
-
-    if role not in ["regular", "administrative"]:
+    if role not in ["regular", "teacher", "administrative"]:
         return JSONResponse({"error": "Invalid role"}, status_code=status.HTTP_400_BAD_REQUEST)
     existing_user = await db_manager.get_account_by_username(username)
     if existing_user:
@@ -83,7 +81,7 @@ async def update_user(
     # Prevent administrative users from editing root admin
     if user_id == 0 and user["role"] != "root_admin":
         return JSONResponse({"error": "Cannot update root admin account"}, status_code=status.HTTP_403_FORBIDDEN)
-    if role and role not in ["regular", "administrative"]:
+    if role and role not in ["regular", "teacher", "administrative"]:
         return JSONResponse({"error": "Invalid role"}, status_code=status.HTTP_400_BAD_REQUEST)
     existing_user = await db_manager.get_account_by_id(user_id)
     if not existing_user:

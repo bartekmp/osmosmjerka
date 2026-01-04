@@ -23,9 +23,7 @@ dependencies = [
 
 [project.optional-dependencies]
 dev = [
-    "black==25.12.0",
-    "flake8==7.3.0",
-    "isort==7.0.0",
+
     "pytest==9.0.2",
     "pytest-mock==3.15.1",
     "pytest-asyncio==1.3.0",
@@ -33,6 +31,7 @@ dev = [
     "httpx==0.28.1",
     "python-semantic-release==10.5.3",
     "setuptools_scm==9.2.2",
+    "ruff==0.8.4",
 ]
 
 [tool.setuptools.packages.find]
@@ -58,17 +57,13 @@ include-package-data = true
 version_scheme = "guess-next-dev"
 local_scheme = "node-and-date"
 
-[tool.black]
+[tool.ruff]
 line-length = 120
-preview = true
-include = "\\.py$"
-target-version = ["py312"]
-exclude = "(\\.git|\\.hg|\\.mypy_cache|\\.tox|\\.venv|_build|buck-out|build|dist|node_modules|venv|__pycache__)"
+target-version = "py312"
 
-[tool.isort]
-profile = "black"
-line_length = 120
-skip_gitignore = true
+[tool.ruff.lint]
+select = ["E", "F", "I"]
+
 
 [tool.semantic_release]
 branch = "main"

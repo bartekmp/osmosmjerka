@@ -103,12 +103,10 @@ jobs:
       - name: Run Python linting
         run: |
           echo "🔍 Checking Python code style..."
-          echo "🐍 Running flake8..."
-          flake8 backend/ --max-line-length=120 --count --statistics
-          echo "🐍 Running black..."
-          black --check backend/ --diff
-          echo "🐍 Running isort..."
-          isort --check-only backend/ --diff
+          echo "🐍 Running ruff check..."
+          ruff check backend/
+          echo "🐍 Running ruff format..."
+          ruff format --check backend/ --diff
 
   lint-frontend:
     name: "⚛️ Lint Frontend Code"

@@ -79,6 +79,9 @@ const UserManagement = lazy(() =>
 const UserProfile = lazy(() =>
   import("./features").then((module) => ({ default: module.UserProfile }))
 );
+const TeacherPuzzlePage = lazy(() =>
+  import("./features/teacher").then((module) => ({ default: module.TeacherPuzzlePage }))
+);
 
 const SPLASH_EXIT_DURATION = 600;
 const SPLASH_MIN_VISIBLE_DURATION = 1200;
@@ -1394,7 +1397,8 @@ function AppContent() {
     (cat) =>
       !ignoredCategories.includes(cat) && !userIgnoredCategories.includes(cat)
   );
-  const shouldShowSplash = !isAdminRoute && showSplash;
+  const isTeacherPuzzleRoute = location.pathname.startsWith("/t/");
+  const shouldShowSplash = !isAdminRoute && !isTeacherPuzzleRoute && showSplash;
 
   // Auto-adjust difficulty if current one becomes unavailable due to screen size
   React.useEffect(() => {
@@ -1461,6 +1465,14 @@ function AppContent() {
             element={
               <Suspense fallback={<CircularProgress />}>
                 <UserProfile />
+              </Suspense>
+            }
+          />
+          <Route
+            path="/t/:token"
+            element={
+              <Suspense fallback={<CircularProgress />}>
+                <TeacherPuzzlePage />
               </Suspense>
             }
           />
