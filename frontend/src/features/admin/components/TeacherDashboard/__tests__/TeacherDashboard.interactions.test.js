@@ -108,15 +108,10 @@ describe('TeacherDashboard Interactions', () => {
             />
         );
 
-        // Wait for initial load
-        try {
-            await waitFor(() => {
-                expect(screen.queryByRole('progressbar')).not.toBeInTheDocument();
-            });
-        } catch (e) {
-            screen.debug();
-            throw e;
-        }
+        // Wait for initial load to complete before proceeding
+        await waitFor(() => {
+            expect(screen.queryByRole('progressbar')).not.toBeInTheDocument();
+        });
 
         // Click create button (there might be two, one in header, one in empty state if empty)
         // Since we possess data, there is one in header.
@@ -138,8 +133,9 @@ describe('TeacherDashboard Interactions', () => {
             />
         );
 
+        // Wait for initial load
         await waitFor(() => {
-            expect(screen.getByText('Test Set 1')).toBeInTheDocument();
+            expect(screen.queryByRole('progressbar')).not.toBeInTheDocument();
         });
 
         // Find delete button for first item
@@ -180,6 +176,10 @@ describe('TeacherDashboard Interactions', () => {
         );
 
         await waitFor(() => {
+            expect(screen.queryByRole('progressbar')).not.toBeInTheDocument();
+        });
+
+        await waitFor(() => {
             expect(screen.getByDisplayValue('http://localhost/t/token1')).toBeInTheDocument();
         });
 
@@ -206,6 +206,11 @@ describe('TeacherDashboard Interactions', () => {
                 currentLanguageSetId={1}
             />
         );
+
+        // Wait for initial load
+        await waitFor(() => {
+            expect(screen.queryByRole('progressbar')).not.toBeInTheDocument();
+        });
 
         await waitFor(() => {
             expect(screen.getByText('Test Set 1')).toBeInTheDocument();
