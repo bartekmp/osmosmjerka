@@ -5,6 +5,7 @@ from typing import Optional
 from osmosmjerka.database.accounts import AccountsMixin
 from osmosmjerka.database.base import BaseDatabaseManager
 from osmosmjerka.database.game_sessions import GameSessionsMixin
+from osmosmjerka.database.groups import TeacherGroupsMixin
 from osmosmjerka.database.language_sets import LanguageSetsMixin
 from osmosmjerka.database.list_sharing import ListSharingMixin
 from osmosmjerka.database.notifications import NotificationsMixin
@@ -29,6 +30,7 @@ class DatabaseManager(
     ListSharingMixin,
     TeacherSetsMixin,
     NotificationsMixin,
+    TeacherGroupsMixin,
 ):
     """Database manager class that encapsulates all database operations using hybrid approach.
 

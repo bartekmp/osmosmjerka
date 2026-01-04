@@ -379,3 +379,27 @@ notifications_table = Table(
     Index("idx_notifications_user_read", "user_id", "is_read"),
     Index("idx_notifications_created_at", "created_at"),
 )
+
+# Define the teacher_groups table for creating classes/studying groups
+teacher_groups_table = Table(
+    "teacher_groups",
+    metadata,
+    Column("id", Integer, primary_key=True, index=True),
+    Column("teacher_id", Integer, ForeignKey("accounts.id", ondelete="CASCADE"), nullable=False, index=True),
+    Column("name", String(255), nullable=False),
+    Column("created_at", DateTime, nullable=False, server_default=func.now()),
+    # Unique constraint: teacher cannot have duplicate group names
+    UniqueConstraint("teacher_id", "name", name="uq_teacher_group_name"),
+)
+
+# Define the teacher_group_members table
+teacher_group_members_table = Table(
+    "teacher_group_members",
+    metadata,
+    Column("id", Integer, primary_key=True, index=True),
+    Column("group_id", Integer, ForeignKey("teacher_groups.id", ondelete="CASCADE"), nullable=False, index=True),
+    Column("user_id", Integer, ForeignKey("accounts.id", ondelete="CASCADE"), nullable=False, index=True),
+    Column("added_at", DateTime, nullable=False, server_default=func.now()),
+    # Unique constraint: student can only be in a group once
+    UniqueConstraint("group_id", "user_id", name="uq_group_member"),
+)

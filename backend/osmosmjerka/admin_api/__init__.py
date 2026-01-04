@@ -3,6 +3,7 @@
 from fastapi import APIRouter
 from osmosmjerka.admin_api import (
     batch_operations,
+    groups,
     language_sets,
     notifications,
     phrases,
@@ -23,5 +24,6 @@ router.include_router(statistics.router, tags=["Statistics"])
 router.include_router(settings.router, tags=["Settings"])
 router.include_router(teacher_sets.router, tags=["Teacher Mode"])
 router.include_router(notifications.router, tags=["Notifications"])
+router.include_router(groups.router, tags=["Teacher Groups"])
 
 __all__ = ["router"]

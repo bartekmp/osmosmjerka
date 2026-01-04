@@ -31,6 +31,7 @@ import {
 } from '@mui/material';
 import { useTranslation } from 'react-i18next';
 import { useTeacherApi } from './useTeacherApi';
+import { useGroups } from './useGroups';
 
 const STEP_KEYS = ['teacher.create.steps.basic', 'teacher.create.steps.select', 'teacher.create.steps.configure'];
 
@@ -71,8 +72,13 @@ function CreatePhraseSetDialog({ open, onClose, onCreated, token, languageSets, 
 
     const [neverDelete, setNeverDelete] = useState(false);
 
+    // Group selection state
+    const [groups, setGroups] = useState([]);
+    const [selectedGroupIds, setSelectedGroupIds] = useState([]);
+
     const { t } = useTranslation();
     const api = useTeacherApi({ token, setError });
+    const groupsApi = useGroups({ token, setError });
 
     // Reset form when dialog opens
     useEffect(() => {
@@ -97,9 +103,22 @@ function CreatePhraseSetDialog({ open, onClose, onCreated, token, languageSets, 
             setMaxPlays('');
             setAutoDeleteDays(14);
             setNeverDelete(false);
+            setSelectedGroupIds([]);
             setError('');
+
+            // Load groups if private access is possible (or just always load to be ready)
+            loadGroups();
         }
     }, [open, currentLanguageSetId]);
+
+    const loadGroups = async () => {
+        try {
+            const data = await groupsApi.fetchGroups();
+            setGroups(data);
+        } catch {
+            // Ignore (maybe teacher has no groups yet or error handled globally)
+        }
+    };
 
     // Load phrases when language set changes
     useEffect(() => {
@@ -166,6 +185,26 @@ function CreatePhraseSetDialog({ open, onClose, onCreated, token, languageSets, 
         setLoading(true);
         setError('');
         try {
+            let accessUserIds = [];
+
+            // If private and groups selected, fetch members
+            if (accessType === 'private' && selectedGroupIds.length > 0) {
+                const memberPromises = selectedGroupIds.map(id => groupsApi.fetchGroupMembers(id));
+                const results = await Promise.all(memberPromises);
+
+                // Flatten and unique IDs
+                const uniqueIds = new Set();
+                results.forEach(members => {
+                    members.forEach(m => uniqueIds.add(m.id));
+                });
+                accessUserIds = Array.from(uniqueIds);
+
+                if (accessUserIds.length === 0) {
+                    // Optional: warn if selected groups are empty? 
+                    // For now just proceed, maybe they will add students later (though snapshot means they won't update)
+                }
+            }
+
             const result = await api.createPhraseSet({
                 name: name.trim(),
                 description: description.trim() || null,
@@ -175,6 +214,7 @@ function CreatePhraseSetDialog({ open, onClose, onCreated, token, languageSets, 
                 access_type: accessType,
                 max_plays: maxPlays ? parseInt(maxPlays) : null,
                 auto_delete_days: neverDelete ? null : autoDeleteDays,
+                access_user_ids: accessUserIds.length > 0 ? accessUserIds : undefined,
             });
             onCreated(result);
             onClose();
@@ -431,14 +471,33 @@ function CreatePhraseSetDialog({ open, onClose, onCreated, token, languageSets, 
 
                         {accessType === 'private' && (
                             <FormControl fullWidth>
-                                <TextField
-                                    label={t('teacher.create.study_groups_placeholder', 'Study Groups (Coming Soon)')}
-                                    disabled
-                                    helperText={t('teacher.create.study_groups_helper', 'Assign this puzzle to specific study groups')}
-                                    InputProps={{
-                                        readOnly: true,
-                                    }}
-                                />
+                                <InputLabel>{t('teacher.create.select_groups', 'Assign to Groups')}</InputLabel>
+                                <Select
+                                    multiple
+                                    value={selectedGroupIds}
+                                    onChange={(e) => setSelectedGroupIds(e.target.value)}
+                                    label={t('teacher.create.select_groups', 'Assign to Groups')}
+                                    renderValue={(selected) => (
+                                        <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 0.5 }}>
+                                            {selected.map((value) => {
+                                                const group = groups.find(g => g.id === value);
+                                                return <Chip key={value} label={group ? group.name : value} size="small" />;
+                                            })}
+                                        </Box>
+                                    )}
+                                >
+                                    {groups.length === 0 ? (
+                                        <MenuItem disabled value="">
+                                            <em>{t('teacher.create.no_groups', 'No groups available')}</em>
+                                        </MenuItem>
+                                    ) : (
+                                        groups.map((group) => (
+                                            <MenuItem key={group.id} value={group.id}>
+                                                {group.name} ({group.member_count} students)
+                                            </MenuItem>
+                                        ))
+                                    )}
+                                </Select>
                             </FormControl>
                         )}
 

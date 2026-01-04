@@ -35,6 +35,8 @@ import { useTeacherApi } from './useTeacherApi';
 import CreatePhraseSetDialog from './CreatePhraseSetDialog';
 import SessionListDialog from './SessionListDialog';
 import PreviewDialog from './PreviewDialog';
+import GroupsView from './GroupsView';
+import { Tabs, Tab } from '@mui/material';
 
 /**
  * Teacher Dashboard Component
@@ -52,6 +54,7 @@ function TeacherDashboard({ token, languageSets, currentLanguageSetId }) {
     const [selectedSet, setSelectedSet] = useState(null);
     const [deleteConfirmOpen, setDeleteConfirmOpen] = useState(false);
     const [setToDelete, setSetToDelete] = useState(null);
+    const [currentTab, setCurrentTab] = useState(0);
 
     const { t } = useTranslation();
     // API hook
@@ -186,211 +189,222 @@ function TeacherDashboard({ token, languageSets, currentLanguageSetId }) {
                 </Stack>
             </Stack>
 
-            {/* Error Alert */}
-            {error && (
-                <Alert severity="error" sx={{ mb: 2 }} onClose={() => setError('')}>
-                    {error}
-                </Alert>
-            )}
+            <Tabs value={currentTab} onChange={(e, v) => setCurrentTab(v)} sx={{ mb: 3, borderBottom: 1, borderColor: 'divider' }}>
+                <Tab label={t('teacher.dashboard.tab_puzzles', 'Puzzles')} />
+                <Tab label={t('teacher.groups.title', 'Groups')} />
+            </Tabs>
 
-            {/* Empty State */}
-            {phraseSets.length === 0 && !error && (
-                <Paper sx={{ p: 4, textAlign: 'center' }}>
-                    <Typography variant="h6" color="text.secondary" gutterBottom>
-                        {t('teacher.dashboard.no_puzzles', 'No puzzles yet')}
-                    </Typography>
-                    <Typography color="text.secondary" sx={{ mb: 2 }}>
-                        {t('teacher.dashboard.no_puzzles_sub', 'Create your first puzzle to share with students')}
-                    </Typography>
-                    <Button
-                        startIcon={<AddIcon />}
-                        onClick={() => setCreateDialogOpen(true)}
-                        variant="contained"
-                    >
-                        {t('teacher.dashboard.create_puzzle', 'Create Puzzle')}
-                    </Button>
-                </Paper>
-            )}
+            {currentTab === 1 ? (
+                <GroupsView token={token} />
+            ) : (
+                <Box>
+                    {/* Error Alert */}
+                    {error && (
+                        <Alert severity="error" sx={{ mb: 2 }} onClose={() => setError('')}>
+                            {error}
+                        </Alert>
+                    )}
 
-            {/* Phrase Set Cards */}
-            <Stack spacing={2}>
-                {phraseSets.map((set) => (
-                    <Card key={set.id} variant="outlined">
-                        <CardContent>
-                            <Stack direction="row" justifyContent="space-between" alignItems="flex-start">
-                                <Box sx={{ flex: 1 }}>
-                                    <Typography variant="h6" component="h2">
-                                        {set.name}
-                                    </Typography>
-                                    {set.description && (
-                                        <Typography variant="body2" color="text.secondary" sx={{ mt: 0.5 }}>
-                                            {set.description}
-                                        </Typography>
-                                    )}
-                                </Box>
-                                <Stack direction="row" spacing={1}>
-                                    <Chip
-                                        size="small"
-                                        label={`${set.phrase_count || 0} ${t('phrases', 'phrases')}`}
-                                        color="primary"
-                                        variant="outlined"
-                                    />
-                                    <Chip
-                                        size="small"
-                                        icon={<PeopleIcon />}
-                                        label={`${set.session_count || 0} ${t('plays', 'plays')}`}
-                                    />
-                                    {set.access_type === 'private' && (
-                                        <Chip size="small" label={t('teacher.create.access_private', 'Private').split(' ')[0]} color="warning" />
-                                    )}
-                                </Stack>
-                            </Stack>
+                    {/* Empty State */}
+                    {phraseSets.length === 0 && !error && (
+                        <Paper sx={{ p: 4, textAlign: 'center' }}>
+                            <Typography variant="h6" color="text.secondary" gutterBottom>
+                                {t('teacher.dashboard.no_puzzles', 'No puzzles yet')}
+                            </Typography>
+                            <Typography color="text.secondary" sx={{ mb: 2 }}>
+                                {t('teacher.dashboard.no_puzzles_sub', 'Create your first puzzle to share with students')}
+                            </Typography>
+                            <Button
+                                startIcon={<AddIcon />}
+                                onClick={() => setCreateDialogOpen(true)}
+                                variant="contained"
+                            >
+                                {t('teacher.dashboard.create_puzzle', 'Create Puzzle')}
+                            </Button>
+                        </Paper>
+                    )}
 
-                            <Divider sx={{ my: 1.5 }} />
-
-                            <Stack direction="row" spacing={3} flexWrap="wrap">
-                                {/* Shareable Link */}
-                                <Box sx={{ flex: 1, minWidth: 250 }}>
-                                    <Typography variant="caption" color="text.secondary">
-                                        {t('teacher.dashboard.shareable_link', 'Shareable Link')}
-                                    </Typography>
-                                    <Stack direction="row" spacing={1} alignItems="center">
-                                        <TextField
-                                            size="small"
-                                            value={api.getShareableLink(set.current_hotlink_token)}
-                                            InputProps={{
-                                                readOnly: true,
-                                                sx: { fontFamily: 'monospace', fontSize: '0.85rem' },
-                                            }}
-                                            fullWidth
-                                        />
-                                        <Tooltip title={t('teacher.dashboard.copy_link', 'Copy link')}>
-                                            <IconButton
+                    {/* Phrase Set Cards */}
+                    <Stack spacing={2}>
+                        {phraseSets.map((set) => (
+                            <Card key={set.id} variant="outlined">
+                                <CardContent>
+                                    <Stack direction="row" justifyContent="space-between" alignItems="flex-start">
+                                        <Box sx={{ flex: 1 }}>
+                                            <Typography variant="h6" component="h2">
+                                                {set.name}
+                                            </Typography>
+                                            {set.description && (
+                                                <Typography variant="body2" color="text.secondary" sx={{ mt: 0.5 }}>
+                                                    {set.description}
+                                                </Typography>
+                                            )}
+                                        </Box>
+                                        <Stack direction="row" spacing={1}>
+                                            <Chip
                                                 size="small"
-                                                onClick={() => handleCopyLink(set.current_hotlink_token)}
-                                            >
-                                                <CopyIcon />
-                                            </IconButton>
-                                        </Tooltip>
-                                        <Tooltip title={t('teacher.dashboard.regenerate_link', 'Generate new link (invalidates old)')}>
-                                            <IconButton
+                                                label={`${set.phrase_count || 0} ${t('phrases', 'phrases')}`}
+                                                color="primary"
+                                                variant="outlined"
+                                            />
+                                            <Chip
                                                 size="small"
-                                                onClick={() => handleRegenerateLink(set.id)}
-                                            >
-                                                <RefreshIcon />
-                                            </IconButton>
-                                        </Tooltip>
+                                                icon={<PeopleIcon />}
+                                                label={`${set.session_count || 0} ${t('plays', 'plays')}`}
+                                            />
+                                            {set.access_type === 'private' && (
+                                                <Chip size="small" label={t('teacher.create.access_private', 'Private').split(' ')[0]} color="warning" />
+                                            )}
+                                        </Stack>
                                     </Stack>
-                                </Box>
 
-                                {/* Stats */}
-                                <Box>
-                                    <Typography variant="caption" color="text.secondary">
-                                        {t('teacher.dashboard.completed', 'Completed')}
-                                    </Typography>
-                                    <Typography variant="body2">
-                                        {set.completed_count || 0} / {set.session_count || 0}
-                                    </Typography>
-                                </Box>
+                                    <Divider sx={{ my: 1.5 }} />
 
-                                {/* Expires */}
-                                {set.auto_delete_at && (
-                                    <Box>
-                                        <Typography variant="caption" color="text.secondary">
-                                            {t('teacher.dashboard.auto_delete_in', 'Auto-delete in')}
-                                        </Typography>
-                                        <Typography
-                                            variant="body2"
-                                            color={getTimeRemaining(set.auto_delete_at) === 'Expired' ? 'error' : 'text.primary'}
-                                        >
-                                            <ScheduleIcon sx={{ fontSize: 14, mr: 0.5, verticalAlign: 'middle' }} />
-                                            {getTimeRemaining(set.auto_delete_at)}
-                                        </Typography>
-                                    </Box>
-                                )}
-                            </Stack>
-                        </CardContent>
+                                    <Stack direction="row" spacing={3} flexWrap="wrap">
+                                        {/* Shareable Link */}
+                                        <Box sx={{ flex: 1, minWidth: 250 }}>
+                                            <Typography variant="caption" color="text.secondary">
+                                                {t('teacher.dashboard.shareable_link', 'Shareable Link')}
+                                            </Typography>
+                                            <Stack direction="row" spacing={1} alignItems="center">
+                                                <TextField
+                                                    size="small"
+                                                    value={api.getShareableLink(set.current_hotlink_token)}
+                                                    InputProps={{
+                                                        readOnly: true,
+                                                        sx: { fontFamily: 'monospace', fontSize: '0.85rem' },
+                                                    }}
+                                                    fullWidth
+                                                />
+                                                <Tooltip title={t('teacher.dashboard.copy_link', 'Copy link')}>
+                                                    <IconButton
+                                                        size="small"
+                                                        onClick={() => handleCopyLink(set.current_hotlink_token)}
+                                                    >
+                                                        <CopyIcon />
+                                                    </IconButton>
+                                                </Tooltip>
+                                                <Tooltip title={t('teacher.dashboard.regenerate_link', 'Generate new link (invalidates old)')}>
+                                                    <IconButton
+                                                        size="small"
+                                                        onClick={() => handleRegenerateLink(set.id)}
+                                                    >
+                                                        <RefreshIcon />
+                                                    </IconButton>
+                                                </Tooltip>
+                                            </Stack>
+                                        </Box>
 
-                        <CardActions sx={{ justifyContent: 'flex-end', pt: 0 }}>
-                            <Button
-                                size="small"
-                                startIcon={<ViewIcon />}
-                                onClick={() => handlePreview(set)}
-                            >
-                                {t('teacher.dashboard.preview', 'Preview')}
-                            </Button>
-                            <Button
-                                size="small"
-                                startIcon={<PeopleIcon />}
-                                onClick={() => handleViewSessions(set)}
-                            >
-                                {t('teacher.dashboard.sessions', 'Sessions')}
-                            </Button>
-                            <Button
-                                size="small"
-                                color="error"
-                                startIcon={<DeleteIcon />}
-                                onClick={() => handleDeleteClick(set)}
-                            >
+                                        {/* Stats */}
+                                        <Box>
+                                            <Typography variant="caption" color="text.secondary">
+                                                {t('teacher.dashboard.completed', 'Completed')}
+                                            </Typography>
+                                            <Typography variant="body2">
+                                                {set.completed_count || 0} / {set.session_count || 0}
+                                            </Typography>
+                                        </Box>
+
+                                        {/* Expires */}
+                                        {set.auto_delete_at && (
+                                            <Box>
+                                                <Typography variant="caption" color="text.secondary">
+                                                    {t('teacher.dashboard.auto_delete_in', 'Auto-delete in')}
+                                                </Typography>
+                                                <Typography
+                                                    variant="body2"
+                                                    color={getTimeRemaining(set.auto_delete_at) === 'Expired' ? 'error' : 'text.primary'}
+                                                >
+                                                    <ScheduleIcon sx={{ fontSize: 14, mr: 0.5, verticalAlign: 'middle' }} />
+                                                    {getTimeRemaining(set.auto_delete_at)}
+                                                </Typography>
+                                            </Box>
+                                        )}
+                                    </Stack>
+                                </CardContent>
+
+                                <CardActions sx={{ justifyContent: 'flex-end', pt: 0 }}>
+                                    <Button
+                                        size="small"
+                                        startIcon={<ViewIcon />}
+                                        onClick={() => handlePreview(set)}
+                                    >
+                                        {t('teacher.dashboard.preview', 'Preview')}
+                                    </Button>
+                                    <Button
+                                        size="small"
+                                        startIcon={<PeopleIcon />}
+                                        onClick={() => handleViewSessions(set)}
+                                    >
+                                        {t('teacher.dashboard.sessions', 'Sessions')}
+                                    </Button>
+                                    <Button
+                                        size="small"
+                                        color="error"
+                                        startIcon={<DeleteIcon />}
+                                        onClick={() => handleDeleteClick(set)}
+                                    >
+                                        {t('teacher.dashboard.delete', 'Delete')}
+                                    </Button>
+                                </CardActions>
+                            </Card>
+                        ))}
+                    </Stack>
+
+                    {/* Create Dialog */}
+                    <CreatePhraseSetDialog
+                        open={createDialogOpen}
+                        onClose={() => setCreateDialogOpen(false)}
+                        onCreated={handleSetCreated}
+                        token={token}
+                        languageSets={languageSets}
+                        currentLanguageSetId={currentLanguageSetId}
+                    />
+
+                    {/* Sessions Dialog */}
+                    <SessionListDialog
+                        open={sessionsDialogOpen}
+                        onClose={() => setSessionsDialogOpen(false)}
+                        phraseSet={selectedSet}
+                        token={token}
+                    />
+
+                    {/* Preview Dialog */}
+                    <PreviewDialog
+                        open={previewDialogOpen}
+                        onClose={() => setPreviewDialogOpen(false)}
+                        phraseSet={selectedSet}
+                        token={token}
+                    />
+
+                    {/* Delete Confirmation */}
+                    <Dialog open={deleteConfirmOpen} onClose={() => setDeleteConfirmOpen(false)}>
+                        <DialogTitle>{t('teacher.dashboard.delete_confirm_title', 'Delete Puzzle?')}</DialogTitle>
+                        <DialogContent>
+                            <Typography>
+                                {t('teacher.dashboard.delete_confirm_message', { name: setToDelete?.name || '' })}
+                            </Typography>
+                        </DialogContent>
+                        <DialogActions>
+                            <Button onClick={() => setDeleteConfirmOpen(false)}>{t('cancel', 'Cancel')}</Button>
+                            <Button onClick={handleDeleteConfirm} color="error" variant="contained">
                                 {t('teacher.dashboard.delete', 'Delete')}
                             </Button>
-                        </CardActions>
-                    </Card>
-                ))}
-            </Stack>
+                        </DialogActions>
+                    </Dialog>
 
-            {/* Create Dialog */}
-            <CreatePhraseSetDialog
-                open={createDialogOpen}
-                onClose={() => setCreateDialogOpen(false)}
-                onCreated={handleSetCreated}
-                token={token}
-                languageSets={languageSets}
-                currentLanguageSetId={currentLanguageSetId}
-            />
-
-            {/* Sessions Dialog */}
-            <SessionListDialog
-                open={sessionsDialogOpen}
-                onClose={() => setSessionsDialogOpen(false)}
-                phraseSet={selectedSet}
-                token={token}
-            />
-
-            {/* Preview Dialog */}
-            <PreviewDialog
-                open={previewDialogOpen}
-                onClose={() => setPreviewDialogOpen(false)}
-                phraseSet={selectedSet}
-                token={token}
-            />
-
-            {/* Delete Confirmation */}
-            <Dialog open={deleteConfirmOpen} onClose={() => setDeleteConfirmOpen(false)}>
-                <DialogTitle>{t('teacher.dashboard.delete_confirm_title', 'Delete Puzzle?')}</DialogTitle>
-                <DialogContent>
-                    <Typography>
-                        {t('teacher.dashboard.delete_confirm_message', { name: setToDelete?.name || '' })}
-                    </Typography>
-                </DialogContent>
-                <DialogActions>
-                    <Button onClick={() => setDeleteConfirmOpen(false)}>{t('cancel', 'Cancel')}</Button>
-                    <Button onClick={handleDeleteConfirm} color="error" variant="contained">
-                        {t('teacher.dashboard.delete', 'Delete')}
-                    </Button>
-                </DialogActions>
-            </Dialog>
-
-            {/* Snackbar */}
-            <Snackbar
-                open={snackbar.open}
-                autoHideDuration={4000}
-                onClose={() => setSnackbar({ ...snackbar, open: false })}
-            >
-                <Alert severity={snackbar.severity} onClose={() => setSnackbar({ ...snackbar, open: false })}>
-                    {snackbar.message}
-                </Alert>
-            </Snackbar>
+                    {/* Snackbar */}
+                    <Snackbar
+                        open={snackbar.open}
+                        autoHideDuration={4000}
+                        onClose={() => setSnackbar({ ...snackbar, open: false })}
+                    >
+                        <Alert severity={snackbar.severity} onClose={() => setSnackbar({ ...snackbar, open: false })}>
+                            {snackbar.message}
+                        </Alert>
+                    </Snackbar>
+                </Box>
+            )}
         </Box>
     );
 }
