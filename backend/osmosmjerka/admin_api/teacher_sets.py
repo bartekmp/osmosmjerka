@@ -43,6 +43,8 @@ class CreatePhraseSetRequest(BaseModel):
     expires_at: Optional[datetime] = None
     auto_delete_days: Optional[int] = Field(default=14, ge=1, le=90)
     access_user_ids: Optional[List[int]] = None
+    access_group_ids: Optional[List[int]] = None
+    access_usernames: Optional[List[str]] = None
 
 
 class UpdatePhraseSetRequest(BaseModel):
@@ -53,6 +55,9 @@ class UpdatePhraseSetRequest(BaseModel):
     expires_at: Optional[datetime] = None
     is_active: Optional[bool] = None
     config: Optional[PhraseSetConfig] = None
+    access_user_ids: Optional[List[int]] = None
+    access_group_ids: Optional[List[int]] = None
+    access_usernames: Optional[List[str]] = None
 
 
 class ExtendRequest(BaseModel):
@@ -128,6 +133,19 @@ async def create_phrase_set(
         # Allow None for indefinite retention
         auto_delete_days = body.auto_delete_days
 
+        # Resolve usernames to IDs
+        access_user_ids = body.access_user_ids or []
+        if body.access_usernames:
+            # Only allow adding users if they are members of the teacher's groups
+            valid_user_ids = await db_manager.get_users_in_teacher_groups(
+                teacher_id=user["id"],
+                usernames=[u.strip() for u in body.access_usernames],
+            )
+            for uid in valid_user_ids:
+                if uid not in access_user_ids:
+                    access_user_ids.append(uid)
+            # Users not found in groups are silently ignored
+
         result = await db_manager.create_teacher_phrase_set(
             name=body.name,
             description=body.description,
@@ -139,7 +157,8 @@ async def create_phrase_set(
             max_plays=body.max_plays,
             expires_at=body.expires_at,
             auto_delete_days=auto_delete_days,
-            access_user_ids=body.access_user_ids,
+            access_user_ids=access_user_ids if access_user_ids else None,
+            access_group_ids=body.access_group_ids,
         )
 
         return JSONResponse(result, status_code=status.HTTP_201_CREATED)
@@ -185,6 +204,24 @@ async def update_phrase_set(
         update_data = body.model_dump(exclude_unset=True)
         if "config" in update_data and update_data["config"]:
             update_data["config"] = body.config.model_dump()
+
+        # Handle access_usernames
+        if "access_usernames" in update_data:
+            usernames = update_data.pop("access_usernames")
+            # If access_usernames is provided, we assume we are updating the access list.
+            # Start with provided ID list or empty if not provided.
+            access_user_ids = update_data.get("access_user_ids") or []
+
+            # Filter provided usernames - must be in teacher's groups
+            valid_user_ids = await db_manager.get_users_in_teacher_groups(
+                teacher_id=user["id"], usernames=[u.strip() for u in usernames]
+            )
+
+            for uid in valid_user_ids:
+                if uid not in access_user_ids:
+                    access_user_ids.append(uid)
+
+            update_data["access_user_ids"] = access_user_ids
 
         result = await db_manager.update_teacher_phrase_set(
             set_id=set_id,

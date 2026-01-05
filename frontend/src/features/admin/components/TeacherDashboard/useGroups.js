@@ -83,12 +83,14 @@ export function useGroups({ token, setError }) {
     }, [apiRequest]);
 
     /**
-     * Add member to group
+     * Invite members to group (bulk support)
+     * @param {number} groupId
+     * @param {string[]} usernames - Array of usernames to invite
      */
-    const addMember = useCallback(async (groupId, username) => {
-        return apiRequest(`/admin/teacher/groups/${groupId}/members`, {
+    const inviteMembers = useCallback(async (groupId, usernames) => {
+        return apiRequest(`/admin/teacher/groups/${groupId}/invite`, {
             method: 'POST',
-            body: JSON.stringify({ username }),
+            body: JSON.stringify({ usernames }),
         });
     }, [apiRequest]);
 
@@ -108,7 +110,7 @@ export function useGroups({ token, setError }) {
         getGroup,
         deleteGroup,
         fetchGroupMembers,
-        addMember,
+        inviteMembers,
         removeMember,
     }), [
         loading,
@@ -117,7 +119,7 @@ export function useGroups({ token, setError }) {
         getGroup,
         deleteGroup,
         fetchGroupMembers,
-        addMember,
+        inviteMembers,
         removeMember,
     ]);
 }

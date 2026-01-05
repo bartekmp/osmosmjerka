@@ -26,6 +26,7 @@ import DuplicateManagement from './DuplicateManagement';
 import { useAdminApi } from './useAdminApi';
 import UserManagement from './UserManagement';
 import UserProfile from './UserProfile';
+import MyStudy from './MyStudy';
 import StatisticsDashboard from '../StatisticsDashboard/StatisticsDashboard';
 import SystemSettings from '../SystemSettings/SystemSettings';
 import TeacherDashboard from '../TeacherDashboard/TeacherDashboard';
@@ -84,6 +85,7 @@ export default function AdminPanel({
     const [showListManager, setShowListManager] = useState(false);
     const [selectedLanguageSetForLists, setSelectedLanguageSetForLists] = useState(null);
     const [teacherDashboard, setTeacherDashboard] = useState(false);
+    const [myStudy, setMyStudy] = useState(false);
     const [currentUser, setCurrentUser] = useState(null);
     const [categories, setCategories] = useState([]);
     const [languageSets, setLanguageSets] = useState([]);
@@ -736,6 +738,7 @@ export default function AdminPanel({
         setStatisticsDashboard(false);
         setSystemSettings(false);
         setTeacherDashboard(false);
+        setMyStudy(false);
         window.dispatchEvent(new window.Event('admin-auth-changed'));
     };
 
@@ -749,6 +752,7 @@ export default function AdminPanel({
         setStatisticsDashboard(false);
         setSystemSettings(false);
         setTeacherDashboard(false);
+        setMyStudy(false);
         setDashboard(true);
     };
 
@@ -929,6 +933,20 @@ export default function AdminPanel({
         </Button>
     );
 
+    userButtons.push(
+        <Button
+            key="my-study-groups"
+            onClick={() => {
+                setDashboard(false);
+                setMyStudy(true);
+            }}
+            variant="contained"
+            color="success"
+        >
+            {t('student.study.title', 'My Study')}
+        </Button>
+    );
+
     const systemButtons = [];
 
     if (canManageAdvanced) {
@@ -1071,6 +1089,8 @@ export default function AdminPanel({
                         </Paper>
                     ) : userProfile ? (
                         <UserProfile currentUser={currentUser} />
+                    ) : myStudy ? (
+                        <MyStudy token={token} />
                     ) : duplicateManagement ? (
                         <Paper sx={{ p: 3 }}>
                             <DuplicateManagement

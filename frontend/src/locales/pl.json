@@ -757,6 +757,41 @@
       "incorrect": "Niepoprawne",
       "copy": "Kopiuj Wyniki",
       "copied": "Wyniki skopiowane do schowka"
+    },
+    "groups": {
+      "title": "Moje Grupy",
+      "accepted_count": "{{count}} zaakceptowanych",
+      "create": "Utwórz Grupę",
+      "confirm_delete": "Czy na pewno chcesz usunąć tę grupę?",
+      "create_title": "Utwórz Nową Grupę",
+      "name_label": "Nazwa Grupy",
+      "manage": "Zarządzaj Członkami",
+      "manage_title": "Zarządzaj {{name}}",
+      "add_student_label": "Nazwy Użytkowników Uczniów",
+      "invite": "Zaproś",
+      "members_list": "Członkowie",
+      "no_members": "Brak uczniów w tej grupie"
+    }
+  },
+  "student": {
+    "study": {
+      "title": "Moja Nauka",
+      "puzzles_title": "Przypisane Puzzle",
+      "groups_title": "Moje Grupy",
+      "start_puzzle": "Start",
+      "no_puzzles": "Brak przypisanych puzzli.",
+      "expires_in": "Wygasa za {{time}}",
+      "completed": "Ukończono",
+      "pending_invitations": "Oczekujące Zaproszenia",
+      "invited_by": "Zaproszony przez {{teacher}}",
+      "expires": "Wygasa: {{date}}",
+      "accept": "Akceptuj",
+      "decline": "Odrzuć",
+      "my_groups": "Moje Grupy",
+      "no_groups": "Nie należysz jeszcze do żadnej grupy.",
+      "joined_on": "Dołączono {{date}}",
+      "leave": "Opuść Grupę",
+      "confirm_leave": "Czy na pewno chcesz opuścić tę grupę?"
     }
   }
 }

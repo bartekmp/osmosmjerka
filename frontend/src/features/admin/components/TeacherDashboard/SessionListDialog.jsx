@@ -59,13 +59,13 @@ function SessionListDialog({ open, onClose, phraseSet, token }) {
         } finally {
             setLoading(false);
         }
-    }, [phraseSet?.id, api]);
+    }, [phraseSet?.id]);
 
     useEffect(() => {
         if (open && phraseSet) {
             loadSessions();
         }
-    }, [open, phraseSet, loadSessions]);
+    }, [open, phraseSet?.id]);
 
     const handleDeleteSession = async (sessionId) => {
         try {

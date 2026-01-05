@@ -1,3 +1,5 @@
+"""Tests for teacher groups API."""
+
 from unittest.mock import patch
 
 import pytest
@@ -23,12 +25,17 @@ def mock_teacher_user():
 
 @pytest.fixture
 def mock_group():
-    return {"id": 1, "name": "Class A", "created_at": "2026-01-01T10:00:00", "member_count": 0}
+    return {
+        "id": 1,
+        "name": "Class A",
+        "created_at": "2026-01-01T10:00:00",
+        "accepted_count": 3,
+        "pending_count": 2,
+    }
 
 
 def test_list_groups(client, mock_teacher_user, mock_group):
     app.dependency_overrides[get_current_user_optional] = lambda: mock_teacher_user
-    # Some endpoints use require_teacher_access directly as dependency
     app.dependency_overrides[require_teacher_access] = lambda: mock_teacher_user
 
     with patch("osmosmjerka.database.db_manager.get_teacher_groups") as mock_get:
@@ -39,6 +46,8 @@ def test_list_groups(client, mock_teacher_user, mock_group):
     data = response.json()
     assert len(data) == 1
     assert data[0]["name"] == "Class A"
+    assert data[0]["accepted_count"] == 3
+    assert data[0]["pending_count"] == 2
 
 
 def test_create_group(client, mock_teacher_user):
@@ -52,6 +61,8 @@ def test_create_group(client, mock_teacher_user):
     data = response.json()
     assert data["id"] == 1
     assert data["name"] == "New Group"
+    assert data["accepted_count"] == 0
+    assert data["pending_count"] == 0
 
 
 def test_get_group_details(client, mock_teacher_user, mock_group):
@@ -60,25 +71,59 @@ def test_get_group_details(client, mock_teacher_user, mock_group):
     with patch("osmosmjerka.database.db_manager.get_teacher_group_by_id") as mock_get:
         mock_get.return_value = mock_group
         with patch("osmosmjerka.database.db_manager.get_group_members") as mock_members:
-            mock_members.return_value = []
+            mock_members.return_value = [
+                {
+                    "id": 1,
+                    "username": "student1",
+                    "status": "accepted",
+                    "invited_at": None,
+                    "responded_at": None,
+                },
+                {
+                    "id": 2,
+                    "username": "student2",
+                    "status": "pending",
+                    "invited_at": None,
+                    "responded_at": None,
+                },
+            ]
             response = client.get("/admin/teacher/groups/1")
 
     assert response.status_code == 200
     data = response.json()
     assert data["name"] == "Class A"
+    assert data["accepted_count"] == 1
+    assert data["pending_count"] == 1
 
 
-def test_add_group_member(client, mock_teacher_user, mock_group):
+def test_invite_members(client, mock_teacher_user, mock_group):
     app.dependency_overrides[require_teacher_access] = lambda: mock_teacher_user
 
-    with patch("osmosmjerka.database.db_manager.get_teacher_group_by_id") as mock_get_group:
-        mock_get_group.return_value = mock_group
-        with patch("osmosmjerka.database.db_manager.add_group_member") as mock_add:
-            mock_add.return_value = 123
-            response = client.post("/admin/teacher/groups/1/members", json={"username": "student1"})
+    with patch("osmosmjerka.database.db_manager.invite_group_member") as mock_invite:
+        mock_invite.return_value = {"success": True, "user_id": 123}
+        with patch("osmosmjerka.database.db_manager.get_teacher_group_by_id") as mock_get:
+            mock_get.return_value = mock_group
+            with patch("osmosmjerka.database.db_manager.create_notification"):
+                response = client.post("/admin/teacher/groups/1/invite", json={"usernames": ["student1"]})
 
     assert response.status_code == 200
-    assert response.json()["user_id"] == 123
+    data = response.json()
+    assert len(data) == 1
+    assert data[0]["success"] is True
+    assert data[0]["user_id"] == 123
+
+
+def test_invite_members_user_not_found(client, mock_teacher_user, mock_group):
+    app.dependency_overrides[require_teacher_access] = lambda: mock_teacher_user
+
+    with patch("osmosmjerka.database.db_manager.invite_group_member") as mock_invite:
+        mock_invite.return_value = {"success": False, "error": "user_not_found"}
+        response = client.post("/admin/teacher/groups/1/invite", json={"usernames": ["nonexistent"]})
+
+    assert response.status_code == 200
+    data = response.json()
+    assert data[0]["success"] is False
+    assert data[0]["error"] == "user_not_found"
 
 
 def test_remove_group_member(client, mock_teacher_user, mock_group):
@@ -88,7 +133,8 @@ def test_remove_group_member(client, mock_teacher_user, mock_group):
         mock_get_group.return_value = mock_group
         with patch("osmosmjerka.database.db_manager.remove_group_member") as mock_remove:
             mock_remove.return_value = None
-            response = client.delete("/admin/teacher/groups/1/members/123")
+            with patch("osmosmjerka.database.db_manager.create_notification"):
+                response = client.delete("/admin/teacher/groups/1/members/123")
 
     assert response.status_code == 200
 

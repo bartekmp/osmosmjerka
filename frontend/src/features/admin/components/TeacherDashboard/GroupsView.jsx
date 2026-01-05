@@ -46,8 +46,9 @@ export default function GroupsView({ token }) {
 
     // Member management state
     const [members, setMembers] = useState([]);
-    const [newMemberUsername, setNewMemberUsername] = useState('');
+    const [newMemberUsernames, setNewMemberUsernames] = useState('');  // Bulk input
     const [loadingMembers, setLoadingMembers] = useState(false);
+    const [inviteResults, setInviteResults] = useState([]);  // Show invite status
 
     const api = useGroups({ token, setError });
 
@@ -58,11 +59,11 @@ export default function GroupsView({ token }) {
         } catch {
             // Error handled by hook
         }
-    }, [api]);
+    }, []);
 
     useEffect(() => {
         loadGroups();
-    }, [loadGroups]);
+    }, []);
 
     const handleCreateGroup = async () => {
         if (!newGroupName.trim()) return;
@@ -106,10 +107,14 @@ export default function GroupsView({ token }) {
     };
 
     const handleAddMember = async () => {
-        if (!newMemberUsername.trim() || !selectedGroup) return;
+        if (!newMemberUsernames.trim() || !selectedGroup) return;
+        // Parse usernames (comma or newline separated)
+        const usernames = newMemberUsernames.split(/[,\n]/).map(u => u.trim()).filter(Boolean);
+        if (usernames.length === 0) return;
         try {
-            await api.addMember(selectedGroup.id, newMemberUsername);
-            setNewMemberUsername('');
+            const results = await api.inviteMembers(selectedGroup.id, usernames);
+            setInviteResults(results);
+            setNewMemberUsernames('');
             // Refresh members
             const data = await api.fetchGroupMembers(selectedGroup.id);
             setMembers(data);
@@ -168,7 +173,10 @@ export default function GroupsView({ token }) {
                                     <Typography variant="h6">{group.name}</Typography>
                                 </Stack>
                                 <Typography variant="body2" color="text.secondary">
-                                    {t('teacher.groups.member_count', { count: group.member_count, defaultValue: '{{count}} students' })}
+                                    {t('teacher.groups.accepted_count', { count: group.accepted_count || 0, defaultValue: '{{count}} accepted' })}
+                                    {(group.pending_count > 0) && (
+                                        <span style={{ marginLeft: 8 }}>({group.pending_count} pending)</span>
+                                    )}
                                 </Typography>
                             </CardContent>
                             <CardActions>
@@ -215,23 +223,37 @@ export default function GroupsView({ token }) {
                 </DialogTitle>
                 <DialogContent>
                     <Stack spacing={2} sx={{ mt: 1 }}>
-                        <Stack direction="row" spacing={1}>
+                        <Stack direction="row" spacing={1} alignItems="flex-start">
                             <TextField
-                                label={t('teacher.groups.add_student_label', 'Student Username')}
+                                label={t('teacher.groups.add_student_label', 'Student Usernames')}
+                                placeholder="Enter usernames (comma or newline separated)"
                                 fullWidth
                                 size="small"
-                                value={newMemberUsername}
-                                onChange={(e) => setNewMemberUsername(e.target.value)}
+                                multiline
+                                rows={2}
+                                value={newMemberUsernames}
+                                onChange={(e) => setNewMemberUsernames(e.target.value)}
                             />
                             <Button
                                 variant="contained"
                                 startIcon={<PersonAddIcon />}
                                 onClick={handleAddMember}
-                                disabled={!newMemberUsername}
+                                disabled={!newMemberUsernames}
+                                sx={{ height: 'fit-content', mt: 1 }}
                             >
-                                {t('add', 'Add')}
+                                {t('teacher.groups.invite', 'Invite')}
                             </Button>
                         </Stack>
+
+                        {inviteResults.length > 0 && (
+                            <Box sx={{ mt: 1 }}>
+                                {inviteResults.map((r, i) => (
+                                    <Typography key={i} variant="body2" color={r.success ? 'success.main' : 'error.main'}>
+                                        {r.username}: {r.success ? 'Invited' : r.error}
+                                    </Typography>
+                                ))}
+                            </Box>
+                        )}
 
                         <Typography variant="subtitle2" sx={{ mt: 2 }}>
                             {t('teacher.groups.members_list', 'Members')}
@@ -249,7 +271,26 @@ export default function GroupsView({ token }) {
                                     </ListItem>
                                 ) : members.map(member => (
                                     <ListItem key={member.id}>
-                                        <ListItemText primary={member.username} secondary={new Date(member.added_at).toLocaleDateString()} />
+                                        <ListItemText
+                                            primary={
+                                                <Stack direction="row" spacing={1} alignItems="center">
+                                                    <span>{member.username}</span>
+                                                    <Typography
+                                                        variant="caption"
+                                                        sx={{
+                                                            px: 1,
+                                                            py: 0.25,
+                                                            borderRadius: 1,
+                                                            bgcolor: member.status === 'accepted' ? 'success.light' : member.status === 'pending' ? 'warning.light' : 'error.light',
+                                                            color: '#fff',
+                                                        }}
+                                                    >
+                                                        {member.status}
+                                                    </Typography>
+                                                </Stack>
+                                            }
+                                            secondary={member.invited_at ? new Date(member.invited_at).toLocaleDateString() : ''}
+                                        />
                                         <ListItemSecondaryAction>
                                             <IconButton edge="end" size="small" onClick={() => handleRemoveMember(member.id)}>
                                                 <PersonRemoveIcon />

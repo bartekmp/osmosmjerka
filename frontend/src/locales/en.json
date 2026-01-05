@@ -755,6 +755,41 @@
       "incorrect": "Incorrect",
       "copy": "Copy Results",
       "copied": "Results copied to clipboard"
+    },
+    "groups": {
+      "title": "My Groups",
+      "accepted_count": "{{count}} accepted",
+      "create": "Create Group",
+      "confirm_delete": "Are you sure you want to delete this group?",
+      "create_title": "Create New Group",
+      "name_label": "Group Name",
+      "manage": "Manage Members",
+      "manage_title": "Manage {{name}}",
+      "add_student_label": "Student Usernames",
+      "invite": "Invite",
+      "members_list": "Members",
+      "no_members": "No students in this group yet"
+    }
+  },
+  "student": {
+    "study": {
+      "title": "My Study",
+      "puzzles_title": "Assigned Puzzles",
+      "groups_title": "My Study Groups",
+      "start_puzzle": "Start",
+      "no_puzzles": "No puzzles assigned yet.",
+      "expires_in": "Expires in {{time}}",
+      "completed": "Completed",
+      "pending_invitations": "Pending Invitations",
+      "invited_by": "Invited by {{teacher}}",
+      "expires": "Expires: {{date}}",
+      "accept": "Accept",
+      "decline": "Decline",
+      "my_groups": "My Groups",
+      "no_groups": "You are not a member of any study groups yet.",
+      "joined_on": "Joined on {{date}}",
+      "leave": "Leave Group",
+      "confirm_leave": "Are you sure you want to leave this group?"
     }
   }
 }

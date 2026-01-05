@@ -8,7 +8,9 @@ from typing import Any, Dict, List, Optional
 
 from osmosmjerka.database.models import (
     accounts_table,
+    teacher_group_members_table,
     teacher_phrase_set_access_table,
+    teacher_phrase_set_groups_table,
     teacher_phrase_set_phrases_table,
     teacher_phrase_set_sessions_table,
     teacher_phrase_sets_table,
@@ -57,6 +59,7 @@ class TeacherSetsMixin:
         expires_at: Optional[datetime] = None,
         auto_delete_days: Optional[int] = 14,
         access_user_ids: Optional[List[int]] = None,
+        access_group_ids: Optional[List[int]] = None,
     ) -> Dict[str, Any]:
         """Create a new teacher phrase set with phrases and access control.
 
@@ -71,7 +74,9 @@ class TeacherSetsMixin:
             max_plays: Max number of plays (None = unlimited)
             expires_at: Optional expiration date
             auto_delete_days: Days until auto-delete (None = never)
+            auto_delete_days: Days until auto-delete (None = never)
             access_user_ids: User IDs for private access
+            access_group_ids: Group IDs for private access
 
         Returns:
             Created phrase set with hotlink token
@@ -139,6 +144,17 @@ class TeacherSetsMixin:
                 for uid in access_user_ids
             ]
             await database.execute_many(insert(teacher_phrase_set_access_table), access_values)
+
+        # Insert group access records
+        if access_type == "private" and access_group_ids:
+            group_values = [
+                {
+                    "phrase_set_id": phrase_set_id,
+                    "group_id": gid,
+                }
+                for gid in access_group_ids
+            ]
+            await database.execute_many(insert(teacher_phrase_set_groups_table), group_values)
 
         logger.info(
             "Created teacher phrase set",
@@ -326,6 +342,31 @@ class TeacherSetsMixin:
         row_dict["session_count"] = session_counts.get(set_id, {}).get("total", 0)
         row_dict["completed_count"] = session_counts.get(set_id, {}).get("completed", 0)
 
+        # Get access data for private sets
+        if row_dict.get("access_type") == "private":
+            # Users
+            # Users
+            users_query = (
+                select(teacher_phrase_set_access_table.c.user_id, accounts_table.c.username)
+                .select_from(
+                    teacher_phrase_set_access_table.join(
+                        accounts_table,
+                        teacher_phrase_set_access_table.c.user_id == accounts_table.c.id,
+                    )
+                )
+                .where(teacher_phrase_set_access_table.c.phrase_set_id == set_id)
+            )
+            users_result = await database.fetch_all(users_query)
+            row_dict["access_user_ids"] = [r["user_id"] for r in users_result]
+            row_dict["access_usernames"] = [r["username"] for r in users_result]
+
+            # Groups
+            groups_query = select(teacher_phrase_set_groups_table.c.group_id).where(
+                teacher_phrase_set_groups_table.c.phrase_set_id == set_id
+            )
+            groups_result = await database.fetch_all(groups_query)
+            row_dict["access_group_ids"] = [r["group_id"] for r in groups_result]
+
         return self._serialize_datetimes(row_dict)
 
     async def update_teacher_phrase_set(
@@ -376,20 +417,55 @@ class TeacherSetsMixin:
                 else:
                     update_values[key] = value
 
-        if not update_values:
-            return existing
+        if update_values:
+            update_values["updated_at"] = datetime.utcnow()
 
-        update_values["updated_at"] = datetime.utcnow()
+            query = (
+                update(teacher_phrase_sets_table)
+                .where(teacher_phrase_sets_table.c.id == set_id)
+                .values(**update_values)
+            )
+            await database.execute(query)
 
-        query = (
-            update(teacher_phrase_sets_table).where(teacher_phrase_sets_table.c.id == set_id).values(**update_values)
-        )
-        await database.execute(query)
+            logger.info(
+                "Updated teacher phrase set",
+                extra={
+                    "phrase_set_id": set_id,
+                    "updated_fields": list(update_values.keys()),
+                },
+            )
 
-        logger.info(
-            "Updated teacher phrase set",
-            extra={"phrase_set_id": set_id, "updated_fields": list(update_values.keys())},
-        )
+        # Handle access list updates
+        if "access_user_ids" in kwargs:
+            # Clear existing
+            await database.execute(
+                delete(teacher_phrase_set_access_table).where(teacher_phrase_set_access_table.c.phrase_set_id == set_id)
+            )
+            if kwargs["access_user_ids"]:
+                values = [
+                    {
+                        "phrase_set_id": set_id,
+                        "user_id": uid,
+                        "granted_by": user_id,
+                    }
+                    for uid in kwargs["access_user_ids"]
+                ]
+                await database.execute_many(insert(teacher_phrase_set_access_table), values)
+
+        if "access_group_ids" in kwargs:
+            # Clear existing
+            await database.execute(
+                delete(teacher_phrase_set_groups_table).where(teacher_phrase_set_groups_table.c.phrase_set_id == set_id)
+            )
+            if kwargs["access_group_ids"]:
+                values = [
+                    {
+                        "phrase_set_id": set_id,
+                        "group_id": gid,
+                    }
+                    for gid in kwargs["access_group_ids"]
+                ]
+                await database.execute_many(insert(teacher_phrase_set_groups_table), values)
 
         return await self.get_teacher_phrase_set_by_id(set_id, user_id, is_admin)
 
@@ -480,7 +556,11 @@ class TeacherSetsMixin:
 
         logger.info(
             "Extended auto-delete date",
-            extra={"phrase_set_id": set_id, "days": days, "new_date": new_date.isoformat()},
+            extra={
+                "phrase_set_id": set_id,
+                "days": days,
+                "new_date": new_date.isoformat(),
+            },
         )
 
         return new_date
@@ -631,7 +711,28 @@ class TeacherSetsMixin:
             )
         )
         result = await database.fetch_one(access_query)
-        return result is not None
+        if result:
+            return True
+
+        # Check group access
+        group_query = (
+            select(teacher_phrase_set_groups_table.c.id)
+            .select_from(
+                teacher_phrase_set_groups_table.join(
+                    teacher_group_members_table,
+                    teacher_phrase_set_groups_table.c.group_id == teacher_group_members_table.c.group_id,
+                )
+            )
+            .where(
+                and_(
+                    teacher_phrase_set_groups_table.c.phrase_set_id == set_id,
+                    teacher_group_members_table.c.user_id == user_id,
+                    teacher_group_members_table.c.status == "accepted",
+                )
+            )
+        )
+        group_result = await database.fetch_one(group_query)
+        return group_result is not None
 
     async def _update_last_accessed(self, set_id: int):
         """Update the last_accessed_at timestamp."""
@@ -643,6 +744,86 @@ class TeacherSetsMixin:
             .values(last_accessed_at=datetime.utcnow())
         )
         await database.execute(query)
+
+    async def get_student_assigned_puzzles(self, user_id: int, limit: int = 50, offset: int = 0) -> Dict[str, Any]:
+        """Get puzzles assigned to a student (directly or via groups)."""
+        database = self._ensure_database()
+
+        # 1. Puzzles assigned directly
+        direct_query = select(teacher_phrase_set_access_table.c.phrase_set_id).where(
+            teacher_phrase_set_access_table.c.user_id == user_id
+        )
+
+        # 2. Puzzles assigned via groups
+        group_query = (
+            select(teacher_phrase_set_groups_table.c.phrase_set_id)
+            .select_from(
+                teacher_phrase_set_groups_table.join(
+                    teacher_group_members_table,
+                    teacher_phrase_set_groups_table.c.group_id == teacher_group_members_table.c.group_id,
+                )
+            )
+            .where(
+                and_(
+                    teacher_group_members_table.c.user_id == user_id,
+                    teacher_group_members_table.c.status == "accepted",
+                )
+            )
+        )
+
+        # Combine IDs
+        direct_ids = [r["phrase_set_id"] for r in await database.fetch_all(direct_query)]
+        group_ids = [r["phrase_set_id"] for r in await database.fetch_all(group_query)]
+        all_ids = list(set(direct_ids + group_ids))
+
+        if not all_ids:
+            return {"puzzles": [], "total": 0}
+
+        # Subquery for phrase count
+        phrase_count_subquery = (
+            select(func.count(teacher_phrase_set_phrases_table.c.phrase_id))
+            .where(teacher_phrase_set_phrases_table.c.phrase_set_id == teacher_phrase_sets_table.c.id)
+            .scalar_subquery()
+            .label("phrase_count")
+        )
+
+        query = (
+            select(teacher_phrase_sets_table, phrase_count_subquery)
+            .where(
+                and_(
+                    teacher_phrase_sets_table.c.id.in_(all_ids),
+                    teacher_phrase_sets_table.c.is_active,
+                )
+            )
+            .order_by(desc(teacher_phrase_sets_table.c.created_at))
+            .limit(limit)
+            .offset(offset)
+        )
+
+        # Count total
+        count_query = select(func.count(teacher_phrase_sets_table.c.id)).where(
+            and_(
+                teacher_phrase_sets_table.c.id.in_(all_ids),
+                teacher_phrase_sets_table.c.is_active,
+            )
+        )
+        total = await database.fetch_val(count_query)
+
+        result = await database.fetch_all(query)
+        puzzles = []
+        for row in result:
+            row_dict = dict(row)
+            if row_dict.get("config"):
+                try:
+                    row_dict["config"] = json.loads(row_dict["config"])
+                except json.JSONDecodeError:
+                    row_dict["config"] = DEFAULT_CONFIG.copy()
+            puzzles.append(self._serialize_datetimes(row_dict))
+
+        return {
+            "puzzles": puzzles,
+            "total": total,
+        }
 
     async def get_phrase_set_phrases(self, set_id: int) -> List[Dict[str, Any]]:
         """Get all phrases for a phrase set with their details."""
@@ -792,7 +973,10 @@ class TeacherSetsMixin:
         if translation_submissions:
             logger.info(
                 "Translation submissions received, creating notification",
-                extra={"count": len(translation_submissions), "session_token": session_token},
+                extra={
+                    "count": len(translation_submissions),
+                    "session_token": session_token,
+                },
             )
             # Fetch phrase set to get teacher ID (created_by)
             ps_query = select(teacher_phrase_sets_table.c.created_by, teacher_phrase_sets_table.c.name).where(
@@ -807,7 +991,11 @@ class TeacherSetsMixin:
 
                 logger.info(
                     "Creating notification for teacher",
-                    extra={"teacher_id": teacher_id, "set_name": set_name, "nickname": nickname},
+                    extra={
+                        "teacher_id": teacher_id,
+                        "set_name": set_name,
+                        "nickname": nickname,
+                    },
                 )
 
                 await self.create_notification(

@@ -25,6 +25,7 @@ import {
     Add as AddIcon,
     ContentCopy as CopyIcon,
     Delete as DeleteIcon,
+    Edit as EditIcon,
     People as PeopleIcon,
     Refresh as RefreshIcon,
     Schedule as ScheduleIcon,
@@ -33,6 +34,7 @@ import {
 import { useTranslation } from 'react-i18next';
 import { useTeacherApi } from './useTeacherApi';
 import CreatePhraseSetDialog from './CreatePhraseSetDialog';
+import EditPhraseSetDialog from './EditPhraseSetDialog';
 import SessionListDialog from './SessionListDialog';
 import PreviewDialog from './PreviewDialog';
 import GroupsView from './GroupsView';
@@ -49,6 +51,7 @@ function TeacherDashboard({ token, languageSets, currentLanguageSetId }) {
     const [error, setError] = useState('');
     const [snackbar, setSnackbar] = useState({ open: false, message: '', severity: 'success' });
     const [createDialogOpen, setCreateDialogOpen] = useState(false);
+    const [editDialogOpen, setEditDialogOpen] = useState(false);
     const [sessionsDialogOpen, setSessionsDialogOpen] = useState(false);
     const [previewDialogOpen, setPreviewDialogOpen] = useState(false);
     const [selectedSet, setSelectedSet] = useState(null);
@@ -72,11 +75,11 @@ function TeacherDashboard({ token, languageSets, currentLanguageSetId }) {
         } finally {
             setLoading(false);
         }
-    }, [api]);
+    }, []);
 
     useEffect(() => {
         loadPhraseSets();
-    }, [loadPhraseSets]);
+    }, []);
 
     // Handle copy link
     const handleCopyLink = useCallback(async (hotlinkToken) => {
@@ -141,6 +144,18 @@ function TeacherDashboard({ token, languageSets, currentLanguageSetId }) {
         setPhraseSets(prev => [newSet, ...prev]);
         setSnackbar({ open: true, message: t('teacher.dashboard.create_success', 'Phrase set created!'), severity: 'success' });
     }, [t]);
+
+    // Handle set updated
+    const handleSetUpdated = useCallback((updatedSet) => {
+        setPhraseSets(prev => prev.map(s => s.id === updatedSet.id ? updatedSet : s));
+        setSnackbar({ open: true, message: t('teacher.dashboard.update_success', 'Phrase set updated!'), severity: 'success' });
+    }, [t]);
+
+    // Handle edit
+    const handleEdit = useCallback((phraseSet) => {
+        setSelectedSet(phraseSet);
+        setEditDialogOpen(true);
+    }, []);
 
     // Get time remaining
     const getTimeRemaining = (autoDeleteAt) => {
@@ -333,6 +348,13 @@ function TeacherDashboard({ token, languageSets, currentLanguageSetId }) {
                                     </Button>
                                     <Button
                                         size="small"
+                                        startIcon={<EditIcon />}
+                                        onClick={() => handleEdit(set)}
+                                    >
+                                        {t('edit', 'Edit')}
+                                    </Button>
+                                    <Button
+                                        size="small"
                                         startIcon={<PeopleIcon />}
                                         onClick={() => handleViewSessions(set)}
                                     >
@@ -359,6 +381,16 @@ function TeacherDashboard({ token, languageSets, currentLanguageSetId }) {
                         token={token}
                         languageSets={languageSets}
                         currentLanguageSetId={currentLanguageSetId}
+                    />
+
+                    {/* Edit Dialog */}
+                    <EditPhraseSetDialog
+                        open={editDialogOpen}
+                        onClose={() => setEditDialogOpen(false)}
+                        onUpdated={handleSetUpdated}
+                        token={token}
+                        languageSets={languageSets}
+                        phraseSet={selectedSet}
                     />
 
                     {/* Sessions Dialog */}

@@ -33,21 +33,22 @@ import { useTranslation } from 'react-i18next';
 import { useTeacherApi } from './useTeacherApi';
 import { useGroups } from './useGroups';
 
-const STEP_KEYS = ['teacher.create.steps.basic', 'teacher.create.steps.select', 'teacher.create.steps.configure'];
+const STEP_KEYS = ['teacher.create.steps.select', 'teacher.create.steps.configure'];
 
 /**
- * Dialog for creating a new phrase set
+ * Dialog for editing an existing phrase set
  */
-function CreatePhraseSetDialog({ open, onClose, onCreated, token, languageSets, currentLanguageSetId }) {
+function EditPhraseSetDialog({ open, onClose, onUpdated, token, phraseSet }) {
     // Stepper state
     const [activeStep, setActiveStep] = useState(0);
     const [loading, setLoading] = useState(false);
+    const [initialLoading, setInitialLoading] = useState(false);
     const [error, setError] = useState('');
 
     // Form state - Step 1: Basic Info
     const [name, setName] = useState('');
     const [description, setDescription] = useState('');
-    const [languageSetId, setLanguageSetId] = useState(currentLanguageSetId || '');
+    const [languageSetId, setLanguageSetId] = useState('');
 
     // Form state - Step 2: Phrases (phrases loaded from API)
     const [availablePhrases, setAvailablePhrases] = useState([]);
@@ -69,7 +70,6 @@ function CreatePhraseSetDialog({ open, onClose, onCreated, token, languageSets, 
     const [accessType, setAccessType] = useState('public');
     const [maxPlays, setMaxPlays] = useState('');
     const [autoDeleteDays, setAutoDeleteDays] = useState(14);
-
     const [neverDelete, setNeverDelete] = useState(false);
 
     // Group selection state
@@ -81,56 +81,81 @@ function CreatePhraseSetDialog({ open, onClose, onCreated, token, languageSets, 
     const api = useTeacherApi({ token, setError });
     const groupsApi = useGroups({ token, setError });
 
-    // Reset form when dialog opens
+    // Load data when dialog opens
     useEffect(() => {
-        if (open) {
-            setActiveStep(0);
-            setName('');
-            setDescription('');
-            setLanguageSetId(currentLanguageSetId || '');
-            setSelectedPhraseIds([]);
-            setPhraseFilter('');
-            setCategoryFilter('');
-            setConfig({
-                allow_hints: true,
-                show_translations: true,
-                require_translation_input: false,
-                show_timer: false,
-                strict_grid_size: false,
-                grid_size: 10,
-                difficulty: 'medium',
-            });
-            setAccessType('public');
-            setMaxPlays('');
-            setAutoDeleteDays(14);
-            setNeverDelete(false);
-            setMaxPlays('');
-            setAutoDeleteDays(14);
-            setNeverDelete(false);
-            setSelectedGroupIds([]);
-            setManualUsernames('');
-            setError('');
-
-            // Load groups if private access is possible (or just always load to be ready)
+        if (open && phraseSet) {
+            loadSetDetails();
             loadGroups();
         }
-    }, [open, currentLanguageSetId]);
+    }, [open, phraseSet]);
+
+    // Load phrases when language set changes
+    useEffect(() => {
+        if (languageSetId && activeStep === 0) {
+            loadPhrases();
+        }
+    }, [languageSetId, activeStep]);
+
+    const loadSetDetails = async () => {
+        setInitialLoading(true);
+        setActiveStep(0);
+        setError('');
+        try {
+            const data = await api.getPhraseSet(phraseSet.id);
+
+            // Populate form
+            setName(data.name || '');
+            setDescription(data.description || '');
+            setLanguageSetId(data.language_set_id || '');
+
+            // Phrases
+            if (data.phrases) {
+                setSelectedPhraseIds(data.phrases.map(p => p.id));
+            }
+
+            // Config
+            if (data.config) {
+                setConfig(prev => ({ ...prev, ...data.config }));
+            }
+
+            // Access
+            setAccessType(data.access_type || 'public');
+            setMaxPlays(data.max_plays ? data.max_plays.toString() : '');
+
+            if (data.auto_delete_days === null && data.auto_delete_at === null) {
+                setNeverDelete(true);
+            } else {
+                setNeverDelete(false);
+                // Calculate days remaining? Or just use default/stored days preference?
+                // The API doesn't return auto_delete_days stored configuration, it returns calculated date.
+                // But for edit, we might want to let them reset it.
+                // Assuming defaults 14 if not calculable.
+                setAutoDeleteDays(14);
+            }
+
+            // Access Groups & Users
+            setSelectedGroupIds(data.access_group_ids || []);
+            if (data.access_usernames) {
+                setManualUsernames(data.access_usernames.join(', '));
+            } else {
+                setManualUsernames('');
+            }
+
+        } catch {
+            setError(t('teacher.edit.load_error', 'Failed to load puzzle details'));
+        } finally {
+            setInitialLoading(false);
+        }
+    };
 
     const loadGroups = async () => {
         try {
             const data = await groupsApi.fetchGroups();
             setGroups(data);
         } catch {
-            // Ignore (maybe teacher has no groups yet or error handled globally)
+            // Ignore
         }
     };
-
-    // Load phrases when language set changes
-    useEffect(() => {
-        if (languageSetId && activeStep === 1) {
-            loadPhrases();
-        }
-    }, [languageSetId, activeStep]);
 
     const loadPhrases = async () => {
         setLoadingPhrases(true);
@@ -162,16 +187,6 @@ function CreatePhraseSetDialog({ open, onClose, onCreated, token, languageSets, 
 
     const handleNext = () => {
         if (activeStep === 0) {
-            if (!name.trim()) {
-                setError(t('teacher.create.error_name_required', 'Name is required'));
-                return;
-            }
-            if (!languageSetId) {
-                setError(t('teacher.create.error_language_set_required', 'Please select a language set'));
-                return;
-            }
-        }
-        if (activeStep === 1) {
             if (selectedPhraseIds.length === 0) {
                 setError(t('teacher.create.error_select_phrases', 'Please select at least one phrase'));
                 return;
@@ -186,7 +201,7 @@ function CreatePhraseSetDialog({ open, onClose, onCreated, token, languageSets, 
         setActiveStep(prev => prev - 1);
     };
 
-    const handleCreate = async () => {
+    const handleUpdate = async () => {
         setLoading(true);
         setError('');
         try {
@@ -195,19 +210,26 @@ function CreatePhraseSetDialog({ open, onClose, onCreated, token, languageSets, 
                 parsedUsernames = manualUsernames.split(',').map(u => u.trim()).filter(u => u);
             }
 
-            const result = await api.createPhraseSet({
+            const result = await api.updatePhraseSet(phraseSet.id, {
                 name: name.trim(),
                 description: description.trim() || null,
-                language_set_id: parseInt(languageSetId),
+                // language_set_id cannot be changed usually? Backend check?
+                // teacher_sets.py says: "Only allows updating fields... For config/phrases updates, check if sessions exist first."
+                // So we send everything, backend handles rules.
+
+                // Oops, update logic in backend:
+                // It takes kwargs.
                 phrase_ids: selectedPhraseIds,
                 config,
                 access_type: accessType,
                 max_plays: maxPlays ? parseInt(maxPlays) : null,
+                expires_at: null, // Should be date if we support specific date
                 auto_delete_days: neverDelete ? null : autoDeleteDays,
                 access_group_ids: accessType === 'private' && selectedGroupIds.length > 0 ? selectedGroupIds : undefined,
                 access_usernames: accessType === 'private' && parsedUsernames.length > 0 ? parsedUsernames : undefined,
             });
-            onCreated(result);
+
+            onUpdated(result);
             onClose();
         } catch (err) {
             setError(err.message);
@@ -249,9 +271,19 @@ function CreatePhraseSetDialog({ open, onClose, onCreated, token, languageSets, 
         return true;
     });
 
+    if (initialLoading) {
+        return (
+            <Dialog open={open} onClose={onClose}>
+                <DialogContent sx={{ display: 'flex', justifyContent: 'center', p: 4 }}>
+                    <CircularProgress />
+                </DialogContent>
+            </Dialog>
+        );
+    }
+
     return (
         <Dialog open={open} onClose={onClose} maxWidth="md" fullWidth>
-            <DialogTitle>{t('teacher.create.title', 'Create Puzzle')}</DialogTitle>
+            <DialogTitle>{t('teacher.edit.title', 'Edit Puzzle')}</DialogTitle>
             <DialogContent>
                 <Stepper activeStep={activeStep} sx={{ mb: 3, mt: 1 }}>
                     {STEP_KEYS.map(labelKey => (
@@ -267,75 +299,10 @@ function CreatePhraseSetDialog({ open, onClose, onCreated, token, languageSets, 
                     </Alert>
                 )}
 
-                {/* Step 1: Basic Info */}
-                {activeStep === 0 && (
-                    <Stack spacing={3}>
-                        <TextField
-                            label={t('teacher.create.name_label', 'Puzzle Name')}
-                            value={name}
-                            onChange={e => setName(e.target.value)}
-                            fullWidth
-                            required
-                            inputProps={{ maxLength: 255 }}
-                        />
-                        <TextField
-                            label={t('teacher.create.description_label', 'Description (optional)')}
-                            value={description}
-                            onChange={e => setDescription(e.target.value)}
-                            fullWidth
-                            multiline
-                            rows={2}
-                        />
-                        <FormControl fullWidth required>
-                            <InputLabel>{t('teacher.create.language_set_label', 'Language Set')}</InputLabel>
-                            <Select
-                                value={languageSetId}
-                                onChange={e => setLanguageSetId(e.target.value)}
-                                label={t('teacher.create.language_set_label', 'Language Set')}
-                            >
-                                {languageSets?.map(ls => (
-                                    <MenuItem key={ls.id} value={ls.id}>
-                                        {ls.display_name || ls.name}
-                                    </MenuItem>
-                                ))}
-                            </Select>
-                        </FormControl>
 
-                        {/* Grid Size - moved here so teacher knows capacity upfront */}
-                        <Box>
-                            <Stack direction="row" justifyContent="space-between" alignItems="center">
-                                <Typography gutterBottom sx={{ mb: 0 }}>
-                                    {t('teacher.create.grid_size_label', { size: config.grid_size, defaultValue: 'Grid Size: {{size}}x{{size}}' })}
-                                </Typography>
-                                <Chip
-                                    label={t('teacher.create.max_phrases_hint', { count: Math.floor(config.grid_size * 2), defaultValue: 'Max ~{{count}} phrases' })}
-                                    size="small"
-                                    color="info"
-                                    variant="outlined"
-                                />
-                            </Stack>
-                            <Slider
-                                value={config.grid_size}
-                                onChange={(e, v) => setConfig({ ...config, grid_size: v })}
-                                min={8}
-                                max={20}
-                                marks
-                                valueLabelDisplay="auto"
-                                sx={{ mt: 1 }}
-                            />
-                            <Typography variant="caption" color="text.secondary">
-                                {t('teacher.create.grid_size_help', {
-                                    min: Math.floor(config.grid_size * 1.2),
-                                    max: Math.floor(config.grid_size * 2),
-                                    defaultValue: '💡 Larger grids fit more phrases. Select {{min}} - {{max}} phrases for best results.'
-                                })}
-                            </Typography>
-                        </Box>
-                    </Stack>
-                )}
 
                 {/* Step 2: Select Phrases */}
-                {activeStep === 1 && (
+                {activeStep === 0 && (
                     <Box>
                         <Stack direction="row" spacing={2} justifyContent="space-between" alignItems="center" sx={{ mb: 2 }}>
                             <Typography variant="body2" color="text.secondary">
@@ -404,7 +371,7 @@ function CreatePhraseSetDialog({ open, onClose, onCreated, token, languageSets, 
                 )}
 
                 {/* Step 3: Configure */}
-                {activeStep === 2 && (
+                {activeStep === 1 && (
                     <Stack spacing={3}>
                         <Typography variant="subtitle2">{t('teacher.create.game_options', 'Game Options')}</Typography>
                         <FormGroup>
@@ -494,7 +461,7 @@ function CreatePhraseSetDialog({ open, onClose, onCreated, token, languageSets, 
 
                         {accessType === 'private' && (
                             <TextField
-                                label={t('teacher.create.manual_usernames', 'Assign to Studnets (by username)')}
+                                label={t('teacher.create.manual_usernames', 'Assign to Students (by username)')}
                                 placeholder={t('teacher.create.usernames_placeholder', 'Enter usernames separated by commas')}
                                 value={manualUsernames}
                                 onChange={e => setManualUsernames(e.target.value)}
@@ -558,8 +525,8 @@ function CreatePhraseSetDialog({ open, onClose, onCreated, token, languageSets, 
                         {t('next', 'Next')}
                     </Button>
                 ) : (
-                    <Button onClick={handleCreate} variant="contained" disabled={loading}>
-                        {loading ? <CircularProgress size={20} /> : t('teacher.create.create_button', 'Create Puzzle')}
+                    <Button onClick={handleUpdate} variant="contained" disabled={loading}>
+                        {loading ? <CircularProgress size={20} /> : t('save', 'Save')}
                     </Button>
                 )}
             </DialogActions>
@@ -567,4 +534,4 @@ function CreatePhraseSetDialog({ open, onClose, onCreated, token, languageSets, 
     );
 }
 
-export default CreatePhraseSetDialog;
+export default EditPhraseSetDialog;
