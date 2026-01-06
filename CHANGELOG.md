@@ -2,6 +2,37 @@
 
 <!-- version list -->
 
+## v1.37.0 (2026-01-06)
+
+### Bug Fixes
+
+- Add unit tests ([#141](https://github.com/bartekmp/osmosmjerka/pull/141),
+  [`2adb36d`](https://github.com/bartekmp/osmosmjerka/commit/2adb36d1a87b6711c99a3e238caebe6bc12267c7))
+
+- Check static directory exists before mounting (CI fix)
+  ([#141](https://github.com/bartekmp/osmosmjerka/pull/141),
+  [`2adb36d`](https://github.com/bartekmp/osmosmjerka/commit/2adb36d1a87b6711c99a3e238caebe6bc12267c7))
+
+### Feature
+
+- Add Teacher notifications ([#141](https://github.com/bartekmp/osmosmjerka/pull/141),
+  [`2adb36d`](https://github.com/bartekmp/osmosmjerka/commit/2adb36d1a87b6711c99a3e238caebe6bc12267c7))
+
+- Enhanced assignment system & My Study view
+  ([#141](https://github.com/bartekmp/osmosmjerka/pull/141),
+  [`2adb36d`](https://github.com/bartekmp/osmosmjerka/commit/2adb36d1a87b6711c99a3e238caebe6bc12267c7))
+
+- Enhanced Study Groups and "My Study" Experience
+  ([#141](https://github.com/bartekmp/osmosmjerka/pull/141),
+  [`2adb36d`](https://github.com/bartekmp/osmosmjerka/commit/2adb36d1a87b6711c99a3e238caebe6bc12267c7))
+
+- Student groups ([#141](https://github.com/bartekmp/osmosmjerka/pull/141),
+  [`2adb36d`](https://github.com/bartekmp/osmosmjerka/commit/2adb36d1a87b6711c99a3e238caebe6bc12267c7))
+
+- Teacher mode ([#141](https://github.com/bartekmp/osmosmjerka/pull/141),
+  [`2adb36d`](https://github.com/bartekmp/osmosmjerka/commit/2adb36d1a87b6711c99a3e238caebe6bc12267c7))
+
+
 ## v1.36.1 (2025-12-29)
 
 ### Chores
