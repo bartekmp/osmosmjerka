@@ -2,9 +2,8 @@
 
 from typing import Optional
 
-from sqlalchemy.sql import delete, insert, select, update
-
 from osmosmjerka.database.models import language_sets_table
+from sqlalchemy.sql import delete, insert, select, update
 
 
 class LanguageSetsMixin:

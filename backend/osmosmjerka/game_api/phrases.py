@@ -4,7 +4,6 @@ import random
 
 from fastapi import APIRouter, Query, Request, status
 from fastapi.responses import JSONResponse
-
 from osmosmjerka.auth import verify_token
 from osmosmjerka.cache import cache_response, categories_cache, language_sets_cache, phrases_cache, rate_limit
 from osmosmjerka.database import db_manager

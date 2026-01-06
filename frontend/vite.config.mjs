@@ -35,10 +35,21 @@ export default defineConfig({
                 target: 'http://localhost:8085',
                 changeOrigin: true,
             },
+            // Proxy /admin/ API calls to backend, but not the /admin SPA route
             '/admin': {
                 target: 'http://localhost:8085',
                 changeOrigin: true,
-            }
+                // Bypass proxy for SPA routes (HTML requests)
+                // Only proxy actual API calls (JSON requests)
+                bypass: (req) => {
+                    // If Accept header contains text/html, it's a browser navigation - serve SPA
+                    if (req.headers.accept && req.headers.accept.includes('text/html')) {
+                        return '/index.html';
+                    }
+                    // Otherwise, proxy to backend (API calls)
+                    return null;
+                }
+            },
         },
         // Ensure all routes fallback to index.html for SPA routing
         historyApiFallback: true,

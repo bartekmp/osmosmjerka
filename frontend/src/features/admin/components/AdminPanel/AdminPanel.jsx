@@ -1,27 +1,12 @@
-import { useThemeMode } from '@contexts/ThemeContext';
-import CloseIcon from '@mui/icons-material/Close';
-import UnfoldLessIcon from '@mui/icons-material/UnfoldLess';
-import UnfoldMoreIcon from '@mui/icons-material/UnfoldMore';
-import TranslateIcon from '@mui/icons-material/Translate';
-import CategoryIcon from '@mui/icons-material/Category';
-import VisibilityOffIcon from '@mui/icons-material/VisibilityOff';
+import SchoolIcon from '@mui/icons-material/School';
 import {
-    Alert,
-    Badge,
-    Chip,
-    Collapse,
     Divider,
-    IconButton,
-    MenuItem,
-    Snackbar,
     Stack,
     TextField,
-    Tooltip,
     Typography,
     Button,
 } from '@mui/material';
-import InputAdornment from '@mui/material/InputAdornment';
-import { AdminButton, AdminLayout, API_ENDPOINTS, ResponsiveActionButton, STORAGE_KEYS } from '@shared';
+import { AdminButton, AdminLayout, API_ENDPOINTS, STORAGE_KEYS } from '@shared';
 import { RateLimitWarning } from '@shared/components/ui/RateLimitWarning';
 import {
     PaddedContainer,
@@ -35,23 +20,23 @@ import {
 } from '@shared/components/ui/StyledComponents';
 import { useCallback, useEffect, useLayoutEffect, useRef, useState } from 'react';
 import { useTranslation } from 'react-i18next';
-import AdminTable from './AdminTable';
-import BatchOperationDialog from './BatchOperationDialog';
-import BatchOperationsToolbar from './BatchOperationsToolbar';
-import BatchResultDialog from './BatchResultDialog';
 import { isTokenExpired } from './helpers';
 import LanguageSetManagement from './LanguageSetManagement';
 import DuplicateManagement from './DuplicateManagement';
-import PageSizeSelector from './PageSizeSelector';
-import PaginationControls from './PaginationControls';
 import { useAdminApi } from './useAdminApi';
-import UploadForm from '../UploadForm';
 import UserManagement from './UserManagement';
 import UserProfile from './UserProfile';
+import MyStudy from './MyStudy';
 import StatisticsDashboard from '../StatisticsDashboard/StatisticsDashboard';
 import SystemSettings from '../SystemSettings/SystemSettings';
+import TeacherDashboard from '../TeacherDashboard/TeacherDashboard';
+import BrowseRecordsView from './BrowseRecordsView';
 import { PrivateListManager } from '../../../lists';
 import PlaylistAddCheckIcon from '@mui/icons-material/PlaylistAddCheck';
+import NotificationsIcon from '@mui/icons-material/Notifications';
+import { Badge, Popover, IconButton } from '@mui/material';
+import { useNotifications } from './useNotifications';
+import NotificationList from '../Notifications/NotificationList';
 import PropTypes from 'prop-types';
 
 const CONTROL_BAR_BREAKPOINTS = {
@@ -99,11 +84,13 @@ export default function AdminPanel({
     const [duplicateManagement, setDuplicateManagement] = useState(false);
     const [showListManager, setShowListManager] = useState(false);
     const [selectedLanguageSetForLists, setSelectedLanguageSetForLists] = useState(null);
+    const [teacherDashboard, setTeacherDashboard] = useState(false);
+    const [myStudy, setMyStudy] = useState(false);
     const [currentUser, setCurrentUser] = useState(null);
     const [categories, setCategories] = useState([]);
     const [languageSets, setLanguageSets] = useState([]);
     const [languageSetsLoading, setLanguageSetsLoading] = useState(true);
-    const [showIgnoredCategories, setShowIgnoredCategories] = useState(false);
+    const [showIgnoredCategories, _setShowIgnoredCategories] = useState(false);
     const [filterCategory, setFilterCategory] = useState('');
     const [selectedLanguageSetId, setSelectedLanguageSetId] = useState(() => {
         // Load from localStorage or default to null (will be set when language sets load)
@@ -113,7 +100,6 @@ export default function AdminPanel({
     const [totalRows, setTotalRows] = useState(0);
     const [offsetInput, setOffsetInput] = useState(0);
     const [searchTerm, setSearchTerm] = useState('');
-    const [isFilterPanelOpen, setIsFilterPanelOpen] = useState(false);
 
     const [languageSetsLoaded, setLanguageSetsLoaded] = useState(false);
     const [categoriesLoaded, setCategoriesLoaded] = useState(false);
@@ -180,42 +166,8 @@ export default function AdminPanel({
         }
     }, [autoControlMode, isControlBarCollapsed]);
 
-    const controlBarDisplayMode = isControlBarCollapsed ? 'compact' : autoControlMode;
-    const isControlBarCompact = controlBarDisplayMode === 'compact';
-    const isControlBarShort = controlBarDisplayMode === 'short';
     const isLayoutCompact = autoControlMode === 'compact';
-    const shouldShowControlToggle = autoControlMode !== 'compact';
-    const handleToggleControlMode = () => {
-        if (autoControlMode === 'compact') {
-            return;
-        }
-        setIsControlBarCollapsed(prev => {
-            const next = !prev;
-            manualCollapseRef.current = next;
-            return next;
-        });
-    };
-    const selectedLanguageSet = languageSets.find(set => set.id === selectedLanguageSetId);
     const ignoredCategoriesCount = ignoredCategories.length + userIgnoredCategories.length;
-    const adminControlsToggleLabel = !isControlBarCollapsed
-        ? t('collapse_admin_controls', 'Collapse admin controls')
-        : t('expand_admin_controls', 'Expand admin controls');
-    const adminControlsToggleColor = !isControlBarCollapsed ? 'success' : 'info';
-    const adminControlsTogglePalette = adminControlsToggleColor === 'success'
-        ? {
-            border: 'success.main',
-            bg: 'success.light',
-            hoverBg: 'success.main',
-            text: 'success.contrastText'
-        }
-        : {
-            border: 'info.main',
-            bg: 'info.light',
-            hoverBg: 'info.main',
-            text: 'info.contrastText'
-        };
-    const shouldForceMobileLabels = isControlBarShort;
-
     // Batch operations state
     const [batchMode, setBatchMode] = useState(false);
     const [selectedRows, setSelectedRows] = useState([]);
@@ -230,22 +182,17 @@ export default function AdminPanel({
     }, []);
     const [token, setToken] = useState(localStorage.getItem(STORAGE_KEYS.ADMIN_TOKEN) || '');
     const [tokenExpired, setTokenExpired] = useState(false); // Track if token expired (vs. user logged out)
-    const [clearLoading, setClearLoading] = useState(false);
-    const [reloadLoading, setReloadLoading] = useState(false);
     const [dataLoading, setDataLoading] = useState(false);
-    const [clearNotification, setClearNotification] = useState({
-        open: false,
-        message: '',
-        severity: 'success',
-        autoHideDuration: 3000,
-    });
-    const { isDarkMode } = useThemeMode();
+
+    const role = currentUser?.role;
+    const canAccessTeacher = ['teacher', 'admin', 'root_admin', 'administrative'].includes(role);
+    const canManageRecords = ['admin', 'root_admin', 'administrative'].includes(role);
+    const canManageAdvanced = ['root_admin', 'administrative'].includes(role);
 
     const {
         fetchRows: originalFetchRows,
         handleLogin,
         handleSave,
-        handleExportTxt,
         handleBatchDelete,
         handleBatchAddCategory,
         handleBatchRemoveCategory,
@@ -260,6 +207,40 @@ export default function AdminPanel({
         setToken,
         setIsLogged
     });
+
+    // Notifications
+    const {
+        notifications,
+        unreadCount,
+        loading: notificationsLoading,
+        fetchNotifications,
+        markAsRead,
+        markAllAsRead,
+        deleteNotification
+    } = useNotifications(token, isLogged);
+
+    const [notificationAnchorEl, setNotificationAnchorEl] = useState(null);
+    const handleNotificationClick = (event) => {
+        setNotificationAnchorEl(event.currentTarget);
+        fetchNotifications();
+    };
+    const handleNotificationClose = () => {
+        setNotificationAnchorEl(null);
+    };
+    const openNotifications = Boolean(notificationAnchorEl);
+
+    // Handle notification navigation
+    const handleNotificationNavigate = (link) => {
+        handleNotificationClose();
+        // Parse link: /teacher-dashboard?tab=2&set_id=123
+        if (link.startsWith('/teacher-dashboard')) {
+            setDashboard(false);
+            setTeacherDashboard(true);
+            // TODO: Handle deep linking to specific set in the future
+            // const url = new URL(link, window.location.origin);
+            // const setId = url.searchParams.get('set_id');
+        }
+    };
 
     // Wrap fetchRows to handle loading state
     const fetchRows = useCallback((...args) => {
@@ -400,13 +381,6 @@ export default function AdminPanel({
         if (!isNaN(val) && val >= 0 && val <= Math.max(totalRows - limit, 0)) {
             setOffset(val);
         }
-    };
-
-    // Page size handler
-    const handlePageSizeChange = (newLimit) => {
-        setLimit(newLimit);
-        setOffset(0); // Reset to first page when changing page size
-        localStorage.setItem(STORAGE_KEYS.ADMIN_PAGE_SIZE, newLimit.toString());
     };
 
     // Batch mode handlers
@@ -569,10 +543,10 @@ export default function AdminPanel({
     // When switching to Browse Phrases, auto-load first page
     useEffect(() => {
         if (isLogged && browseRecords && selectedLanguageSetId) {
-            setReloadLoading(true);
+
             fetchRows(0, limit, filterCategory, searchTerm, selectedLanguageSetId);
             setOffset(0);
-            setReloadLoading(false);
+
         }
 
     }, [isLogged, browseRecords, selectedLanguageSetId]);
@@ -706,53 +680,6 @@ export default function AdminPanel({
         }
     }, [offset, limit, filterCategory, selectedLanguageSetId, fetchRows, t]);
 
-    // Handle clear database with confirmation and notification
-    const handleClearDb = () => {
-        if (window.confirm(t('confirm_clear_db'))) {
-            setClearLoading(true);
-            setClearNotification((n) => ({ ...n, open: false }));
-            const token = localStorage.getItem(STORAGE_KEYS.ADMIN_TOKEN);
-            const headers = token ? { Authorization: 'Bearer ' + token } : {};
-            fetch(API_ENDPOINTS.ADMIN_CLEAR, { method: 'DELETE', headers })
-                .then(async res => {
-                    if (!res.ok) {
-                        if (handleAuthError(res)) {
-                            return;
-                        }
-                        const data = await res.json();
-                        setClearNotification({
-                            open: true,
-                            message: data.message || t('clear_db_failed'),
-                            severity: 'error',
-                            autoHideDuration: null,
-                        });
-                        return;
-                    }
-                    const data = await res.json();
-                    setClearNotification({
-                        open: true,
-                        message: data.message || t('db_cleared'),
-                        severity: 'success',
-                        autoHideDuration: 3000,
-                    });
-                    if (selectedLanguageSetId) {
-                        fetchRows(offset, limit, filterCategory, searchTerm, selectedLanguageSetId);
-                    }
-                })
-                .catch(() => {
-                    setClearNotification({
-                        open: true,
-                        message: t('clear_db_failed'),
-                        severity: 'error',
-                        autoHideDuration: null,
-                    });
-                })
-                .finally(() => setClearLoading(false));
-        }
-    };
-
-    const handleClearClose = () => setClearNotification((n) => ({ ...n, open: false }));
-
     // Function to toggle ignored categories for logged in users
     const toggleIgnoredCategory = async (category) => {
         if (!currentUser || !selectedLanguageSetId) return;
@@ -810,6 +737,8 @@ export default function AdminPanel({
         setUserProfile(false);
         setStatisticsDashboard(false);
         setSystemSettings(false);
+        setTeacherDashboard(false);
+        setMyStudy(false);
         window.dispatchEvent(new window.Event('admin-auth-changed'));
     };
 
@@ -822,6 +751,8 @@ export default function AdminPanel({
         setUserProfile(false);
         setStatisticsDashboard(false);
         setSystemSettings(false);
+        setTeacherDashboard(false);
+        setMyStudy(false);
         setDashboard(true);
     };
 
@@ -841,8 +772,8 @@ export default function AdminPanel({
                     </Typography>
                     <FormBox
                         component="form"
-                        onSubmit={e => { 
-                            e.preventDefault(); 
+                        onSubmit={e => {
+                            e.preventDefault();
                             handleLogin(auth, setError, (user) => {
                                 setCurrentUser(user);
                                 setTokenExpired(false); // Reset expired flag on successful login
@@ -888,874 +819,381 @@ export default function AdminPanel({
     }
 
     // Dashboard view
-    if (dashboard) {
-        const role = currentUser?.role;
-        const canManageRecords = ['admin', 'root_admin', 'administrative'].includes(role);
-        const canManageAdvanced = ['root_admin', 'administrative'].includes(role);
-        const isRootAdmin = role === 'root_admin';
+    // Dashboard view logic - now main view
+    const isRootAdmin = role === 'root_admin';
 
-        const recordsButtons = [];
+    const recordsButtons = [];
 
-        if (canManageRecords) {
-            recordsButtons.push(
-                <Button
-                    key="browse-records"
-                    onClick={() => {
-                        if (languageSetsLoading) return;
-                        if (languageSets.length === 0) {
-                            setDashboard(false);
-                            setLanguageSetManagement(true);
-                        } else {
-                            setDashboard(false);
-                            setBrowseRecords(true);
-                        }
-                    }}
-                    variant="contained"
-                    disabled={languageSetsLoading}
-                >
-                    {t('browse_phrases')}
-                </Button>
-            );
-        }
-
+    if (canManageRecords) {
         recordsButtons.push(
             <Button
-                key="language-sets"
+                key="browse-records"
+                onClick={() => {
+                    if (languageSetsLoading) return;
+                    if (languageSets.length === 0) {
+                        setDashboard(false);
+                        setLanguageSetManagement(true);
+                    } else {
+                        setDashboard(false);
+                        setBrowseRecords(true);
+                    }
+                }}
+                variant="contained"
+                disabled={languageSetsLoading}
+            >
+                {t('browse_phrases')}
+            </Button>
+        );
+    }
+
+    recordsButtons.push(
+        <Button
+            key="language-sets"
+            onClick={() => {
+                setDashboard(false);
+                setLanguageSetManagement(true);
+            }}
+            variant="contained"
+            color="warning"
+        >
+            {canManageRecords
+                ? t('language_sets_management')
+                : t('manage_ignored_categories', 'Manage Ignored Categories')}
+        </Button>
+    );
+
+    if (isRootAdmin) {
+        recordsButtons.push(
+            <Button
+                key="duplicate-management"
                 onClick={() => {
                     setDashboard(false);
-                    setLanguageSetManagement(true);
+                    setDuplicateManagement(true);
                 }}
                 variant="contained"
-                color="warning"
+                color="error"
             >
-                {canManageRecords
-                    ? t('language_sets_management')
-                    : t('manage_ignored_categories', 'Manage Ignored Categories')}
+                {t('duplicate_management', 'Duplicate Management')}
             </Button>
         );
+    }
 
-        if (isRootAdmin) {
-            recordsButtons.push(
-                <Button
-                    key="duplicate-management"
-                    onClick={() => {
-                        setDashboard(false);
-                        setDuplicateManagement(true);
-                    }}
-                    variant="contained"
-                    color="error"
-                >
-                    {t('duplicate_management', 'Duplicate Management')}
-                </Button>
-            );
-        }
+    // Add "Manage My Lists" button for all logged-in users
+    recordsButtons.push(
+        <Button
+            key="manage-my-lists"
+            onClick={() => {
+                // Auto-select first language set if available
+                if (languageSets.length > 0) {
+                    setSelectedLanguageSetForLists(languageSets[0].id);
+                }
+                setShowListManager(true);
+            }}
+            variant="contained"
+            color="info"
+            startIcon={<PlaylistAddCheckIcon />}
+            disabled={languageSets.length === 0 || languageSetsLoading}
+            title={languageSets.length === 0 ? t('no_language_sets_available', 'No language sets available') : ''}
+        >
+            {t('manage_my_lists')}
+        </Button>
+    );
 
-        // Add "Manage My Lists" button for all logged-in users
-        recordsButtons.push(
-            <Button
-                key="manage-my-lists"
-                onClick={() => {
-                    // Auto-select first language set if available
-                    if (languageSets.length > 0) {
-                        setSelectedLanguageSetForLists(languageSets[0].id);
-                    }
-                    setShowListManager(true);
-                }}
-                variant="contained"
-                color="info"
-                startIcon={<PlaylistAddCheckIcon />}
-                disabled={languageSets.length === 0 || languageSetsLoading}
-                title={languageSets.length === 0 ? t('no_language_sets_available', 'No language sets available') : ''}
-            >
-                {t('manage_my_lists')}
-            </Button>
-        );
 
-        const userButtons = [];
 
-        if (canManageAdvanced) {
-            userButtons.push(
-                <Button
-                    key="user-management"
-                    onClick={() => {
-                        setDashboard(false);
-                        setUserManagement(true);
-                    }}
-                    variant="contained"
-                    color="secondary"
-                >
-                    {t('user_management')}
-                </Button>
-            );
-        }
+    const userButtons = [];
 
+    if (canManageAdvanced) {
         userButtons.push(
             <Button
-                key="user-profile"
+                key="user-management"
                 onClick={() => {
                     setDashboard(false);
-                    setUserProfile(true);
+                    setUserManagement(true);
                 }}
                 variant="contained"
-                color="info"
+                color="secondary"
             >
-                {t('your_profile')}
+                {t('user_management')}
+            </Button>
+        );
+    }
+
+    userButtons.push(
+        <Button
+            key="user-profile"
+            onClick={() => {
+                setDashboard(false);
+                setUserProfile(true);
+            }}
+            variant="contained"
+            color="info"
+        >
+            {t('your_profile')}
+        </Button>
+    );
+
+    // Learning section buttons
+    const learningButtons = [
+        <Button
+            key="my-study-groups"
+            onClick={() => {
+                setDashboard(false);
+                setMyStudy(true);
+            }}
+            variant="contained"
+            color="success"
+        >
+            {t('student.study.title', 'My Study')}
+        </Button>
+    ];
+
+    const systemButtons = [];
+
+    if (canManageAdvanced) {
+        systemButtons.push(
+            <Button
+                key="statistics-dashboard"
+                onClick={() => {
+                    setDashboard(false);
+                    setStatisticsDashboard(true);
+                }}
+                variant="contained"
+                color="success"
+            >
+                {t('statistics_dashboard')}
             </Button>
         );
 
-        const systemButtons = [];
+        systemButtons.push(
+            <Button
+                key="system-settings"
+                onClick={() => {
+                    setDashboard(false);
+                    setSystemSettings(true);
+                }}
+                variant="contained"
+                color="primary"
+            >
+                {t('admin.settings.title')}
+            </Button>
+        );
+    }
 
-        if (canManageAdvanced) {
-            systemButtons.push(
-                <Button
-                    key="statistics-dashboard"
-                    onClick={() => {
-                        setDashboard(false);
-                        setStatisticsDashboard(true);
-                    }}
-                    variant="contained"
-                    color="success"
-                >
-                    {t('statistics_dashboard')}
-                </Button>
-            );
+    const teacherButtons = [];
+    if (canAccessTeacher) {
+        teacherButtons.push(
+            <Button
+                key="teacher-mode"
+                onClick={() => {
+                    setDashboard(false);
+                    setTeacherDashboard(true);
+                }}
+                variant="contained"
+                color="primary"
+                startIcon={<SchoolIcon />}
+            >
+                {t('teacher.teacher_mode', 'Teacher Mode')}
+            </Button>
+        );
+    }
 
-            systemButtons.push(
-                <Button
-                    key="system-settings"
-                    onClick={() => {
-                        setDashboard(false);
-                        setSystemSettings(true);
-                    }}
-                    variant="contained"
-                    color="primary"
-                >
-                    {t('admin.settings.title')}
-                </Button>
-            );
+    const sections = [
+        {
+            key: 'learning',
+            title: t('admin.dashboard.sections.learning', 'Learning'),
+            buttons: learningButtons
+        },
+        {
+            key: 'teacher',
+            title: t('teacher.section_title', 'Teacher Tools'),
+            buttons: teacherButtons
+        },
+        {
+            key: 'records',
+            title: t('admin.dashboard.sections.records', 'Records & Content'),
+            buttons: recordsButtons
+        },
+        {
+            key: 'users',
+            title: t('admin.dashboard.sections.users', 'User & Account Tools'),
+            buttons: userButtons
+        },
+        {
+            key: 'system',
+            title: t('admin.dashboard.sections.system', 'Insights & Settings'),
+            buttons: systemButtons
         }
-
-        const sections = [
-            {
-                key: 'records',
-                title: t('admin.dashboard.sections.records', 'Records & Content'),
-                buttons: recordsButtons
-            },
-            {
-                key: 'users',
-                title: t('admin.dashboard.sections.users', 'User & Account Tools'),
-                buttons: userButtons
-            },
-            {
-                key: 'system',
-                title: t('admin.dashboard.sections.system', 'Insights & Settings'),
-                buttons: systemButtons
-            }
-        ].filter(section => section.buttons.length > 0);
-
-        return (
-            <AdminLayout
-                maxWidth="md"
-                showBackToGame={true}
-                showLogout={true}
-                onLogout={handleLogout}
-                currentUser={currentUser}
-            >
-                <Paper sx={{ p: 4, borderRadius: 2, display: 'flex', flexDirection: 'column', gap: 3 }}>
-                    <Typography variant="h4" component="h2">
-                        {t('admin_dashboard')}
-                    </Typography>
-                    <Typography variant="body1" sx={{ color: 'text.secondary' }}>
-                        {t('welcome_user', { username: currentUser?.username, role: currentUser?.role })}
-                    </Typography>
-
-                    <Stack spacing={4} sx={{ mt: 1 }}>
-                        {sections.map(section => (
-                            <Box key={section.key}>
-                                <Typography variant="h6" sx={{ fontWeight: 600, mb: 1 }}>
-                                    {section.title}
-                                </Typography>
-                                <Divider sx={{ mb: 2, maxWidth: { xs: '100%', sm: 480 } }} />
-                                <Stack
-                                    direction="row"
-                                    spacing={1.5}
-                                    flexWrap="wrap"
-                                    useFlexGap
-                                    justifyContent="flex-start"
-                                    alignItems="center"
-                                >
-                                    {section.buttons}
-                                </Stack>
-                            </Box>
-                        ))}
-                    </Stack>
-
-                    {error && (
-                        <Box sx={{ mt: 1, p: 2, bgcolor: 'error.light', borderRadius: 1 }}>
-                            <Typography color="error.contrastText">{error}</Typography>
-                        </Box>
-                    )}
-                </Paper>
-
-                {/* Private List Manager Dialog */}
-                {showListManager && selectedLanguageSetForLists && (
-                    <PrivateListManager
-                        open={showListManager}
-                        onClose={() => {
-                            setShowListManager(false);
-                            setSelectedLanguageSetForLists(null);
-                        }}
-                        languageSetId={selectedLanguageSetForLists}
-                    />
-                )}
-            </AdminLayout>
-        );
-    }
-
-    // User Management View
-    if (userManagement) {
-        return (
-            <AdminLayout
-                showBackToGame={true}
-                showDashboard={true}
-                showLogout={true}
-                onDashboard={goToDashboard}
-                onLogout={handleLogout}
-                currentUser={currentUser}
-            >
-                <Paper sx={{ p: 3 }}>
-                    <UserManagement currentUser={currentUser} />
-                </Paper>
-            </AdminLayout>
-        );
-    }
-
-    // Statistics Dashboard View
-    if (statisticsDashboard) {
-        return (
-            <AdminLayout
-                showBackToGame={true}
-                showDashboard={true}
-                showLogout={true}
-                onDashboard={goToDashboard}
-                onLogout={handleLogout}
-                currentUser={currentUser}
-            >
-                <StatisticsDashboard token={token} setError={setError} currentUser={currentUser} />
-            </AdminLayout>
-        );
-    }
-
-    // System Settings View
-    if (systemSettings) {
-        return (
-            <AdminLayout
-                showBackToGame={true}
-                showDashboard={true}
-                showLogout={true}
-                onDashboard={goToDashboard}
-                onLogout={handleLogout}
-                currentUser={currentUser}
-            >
-                <SystemSettings />
-            </AdminLayout>
-        );
-    }
-
-    // Language Sets Management View
-    if (languageSetManagement) {
-        return (
-            <AdminLayout
-                showBackToGame={true}
-                showDashboard={true}
-                showLogout={true}
-                onDashboard={goToDashboard}
-                onLogout={handleLogout}
-                currentUser={currentUser}
-            >
-                <Paper sx={{ p: 3 }}>
-                    <LanguageSetManagement
-                        currentUser={currentUser}
-                        initialLanguageSets={languageSets}
-                        initialCategories={categories}
-                        showAdminActions={currentUser?.role === 'admin' || currentUser?.role === 'root_admin' || currentUser?.role === 'administrative'}
-                    />
-                </Paper>
-            </AdminLayout>
-        );
-    }
-
-    // User Profile View
-    if (userProfile) {
-        return (
-            <AdminLayout
-                maxWidth="md"
-                showBackToGame={true}
-                showDashboard={true}
-                showLogout={true}
-                onDashboard={goToDashboard}
-                onLogout={handleLogout}
-                currentUser={currentUser}
-            >
-                <UserProfile currentUser={currentUser} />
-            </AdminLayout>
-        );
-    }
-
-    // Duplicate Management View
-    if (duplicateManagement) {
-        return (
-            <AdminLayout
-                showBackToGame={true}
-                showDashboard={true}
-                showLogout={true}
-                onDashboard={goToDashboard}
-                onLogout={handleLogout}
-                currentUser={currentUser}
-            >
-                <Paper sx={{ p: 3 }}>
-                    <DuplicateManagement
-                        currentUser={currentUser}
-                        selectedLanguageSetId={selectedLanguageSetId}
-                    />
-                </Paper>
-            </AdminLayout>
-        );
-    }
+    ].filter(section => section.buttons.length > 0);
 
     return (
         <AdminLayout
+            maxWidth={teacherDashboard || browseRecords || userManagement || statisticsDashboard || systemSettings || languageSetManagement || userProfile || duplicateManagement ? 'xl' : 'md'}
             showBackToGame={true}
-            showDashboard={true}
+            showDashboard={!dashboard}
             showLogout={true}
             onDashboard={goToDashboard}
             onLogout={handleLogout}
             currentUser={currentUser}
-        >
-            {/* Error overlay for no language sets */}
-            {languageSets.length === 0 && browseRecords && !languageSetsLoading && (
-                <Box
-                    sx={{
-                        position: 'fixed',
-                        top: 0,
-                        left: 0,
-                        right: 0,
-                        bottom: 0,
-                        backgroundColor: isDarkMode ? 'rgba(30,30,30,0.9)' : 'rgba(0, 0, 0, 0.7)',
-                        backdropFilter: 'blur(3px)',
-                        display: 'flex',
-                        alignItems: 'center',
-                        justifyContent: 'center',
-                        zIndex: 9999
-                    }}
-                >
-                    <Box
-                        sx={{
-                            backgroundColor: isDarkMode ? '#222' : 'white',
-                            color: isDarkMode ? '#fff' : 'inherit',
-                            borderRadius: 2,
-                            p: 4,
-                            maxWidth: 500,
-                            mx: 2,
-                            textAlign: 'center',
-                            boxShadow: isDarkMode ? 8 : 2
-                        }}
+            headerActions={
+                <>
+                    <IconButton
+                        color="inherit"
+                        onClick={handleNotificationClick}
+                        size="large"
+                        aria-label="notifications"
                     >
-                        <Typography variant="h5" gutterBottom color="error">
-                            {t('no_language_sets_title')}
-                        </Typography>
-                        <Typography variant="body1" sx={{ mb: 3 }}>
-                            {t('no_language_sets_message')}
-                        </Typography>
-                        <Button
-                            variant="contained"
-                            color="primary"
-                            onClick={() => {
-                                setDashboard(true);
-                                setLanguageSetManagement(true);
-                            }}
-                            sx={{ mr: 2 }}
-                        >
-                            {t('go_to_language_sets')}
-                        </Button>
-                        <Button
-                            variant="outlined"
-                            onClick={goToDashboard}
-                        >
-                            {t('back_to_dashboard')}
-                        </Button>
-                    </Box>
-                </Box>
-            )}
-
-            {/* Browse Records Interface - Admin Only */}
-            {browseRecords && (
-                (currentUser?.role === 'admin' || currentUser?.role === 'root_admin' || currentUser?.role === 'administrative') ? (
-                    <>
-                        {/* Action Buttons */}
-                        <Paper
-                            sx={{
-                                p: 3,
-                                mb: 3,
-                                display: 'flex',
-                                flexDirection: 'column',
-                                gap: 2
-                            }}
-                        >
-                            <Typography
-                                variant="h5"
-                                component="h2"
-                                sx={{ fontWeight: 600 }}
-                            >
-                                {t('admin.records.title', 'Browse Records')}
-                            </Typography>
-                            <Stack
-                                ref={controlBarContainerRef}
-                                direction="row"
-                                spacing={isControlBarCompact ? 1 : (isControlBarShort ? 1.5 : 2)}
-                                alignItems="center"
-                                justifyContent="flex-start"
-                                sx={{
-                                    flexWrap: 'nowrap',
-                                    overflowX: 'hidden',
-                                    width: '100%'
-                                }}
-                            >
-                                <ResponsiveActionButton
-                                    fullWidth={false}
-                                    onClick={() => {
-                                        if (selectedLanguageSetId) {
-                                            setReloadLoading(true);
-                                            fetchRows(offset, limit, filterCategory, searchTerm, selectedLanguageSetId);
-                                            setTimeout(() => setReloadLoading(false), 500);
-                                        }
-                                    }}
-                                    loading={reloadLoading}
-                                    icon="📊"
-                                    desktopText={t('reload_data')}
-                                    mobileText={t('reload')}
-                                    compact={isControlBarCompact}
-                                    forceMobileText={shouldForceMobileLabels}
-                                    tooltip={t('reload_data')}
-                                    ariaLabel={t('reload_data')}
-                                    sx={{
-                                        ...(isControlBarCompact || shouldForceMobileLabels ? {} : { minWidth: { md: 180 } })
-                                    }}
-                                />
-                                <UploadForm
-                                    selectedLanguageSetId={selectedLanguageSetId}
-                                    onUpload={() => selectedLanguageSetId && fetchRows(offset, limit, filterCategory, searchTerm, selectedLanguageSetId)}
-                                    compact={isControlBarCompact}
-                                    forceMobileText={shouldForceMobileLabels}
-                                />
-                                <ResponsiveActionButton
-                                    fullWidth={false}
-                                    onClick={() => handleExportTxt(filterCategory)}
-                                    variant="outlined"
-                                    color="success"
-                                    icon="💾"
-                                    desktopText={t('download_phrases')}
-                                    mobileText={t('download')}
-                                    compact={isControlBarCompact}
-                                    forceMobileText={shouldForceMobileLabels}
-                                    tooltip={t('download_phrases')}
-                                    ariaLabel={t('download_phrases')}
-                                    sx={{
-                                        ...(isControlBarCompact || shouldForceMobileLabels ? {} : { minWidth: { md: 200 } })
-                                    }}
-                                />
-                                {currentUser?.role === 'root_admin' && (
-                                    <ResponsiveActionButton
-                                        fullWidth={false}
-                                        onClick={handleClearDb}
-                                        loading={clearLoading}
-                                        icon="🗑️"
-                                        desktopText={t('clear_database')}
-                                        mobileText={t('clear')}
-                                        compact={isControlBarCompact}
-                                        forceMobileText={shouldForceMobileLabels}
-                                        tooltip={t('clear_database')}
-                                        ariaLabel={t('clear_database')}
-                                        sx={{
-                                            bgcolor: 'error.main',
-                                            color: 'white',
-                                            '&:hover': {
-                                                bgcolor: 'error.dark',
-                                            }
-                                        }}
-                                    />
-                                )}
-                                {shouldShowControlToggle && (
-                                    <Tooltip title={adminControlsToggleLabel}>
-                                        <IconButton
-                                            size="small"
-                                            onClick={handleToggleControlMode}
-                                            aria-label={adminControlsToggleLabel}
-                                            color={adminControlsToggleColor}
-                                            sx={{
-                                                borderRadius: 1,
-                                                border: '1px solid',
-                                                borderColor: adminControlsTogglePalette.border,
-                                                bgcolor: adminControlsTogglePalette.bg,
-                                                color: adminControlsTogglePalette.text,
-                                                width: 48,
-                                                height: 48,
-                                                alignSelf: { xs: 'flex-end', lg: 'center' },
-                                                '&:hover': {
-                                                    bgcolor: adminControlsTogglePalette.hoverBg,
-                                                    color: 'common.white'
-                                                }
-                                            }}
-                                        >
-                                            {!isControlBarCollapsed
-                                                ? <UnfoldLessIcon fontSize="small" />
-                                                : <UnfoldMoreIcon fontSize="small" />}
-                                        </IconButton>
-                                    </Tooltip>
-                                )}
-                            </Stack>
-                            <Snackbar
-                                open={clearNotification.open}
-                                autoHideDuration={clearNotification.severity === 'success' ? clearNotification.autoHideDuration : null}
-                                onClose={handleClearClose}
-                                anchorOrigin={{ vertical: 'top', horizontal: 'center' }}
-                            >
-                                <Alert
-                                    severity={clearNotification.severity}
-                                    action={
-                                        <IconButton size="small" color="inherit" onClick={handleClearClose}>
-                                            <CloseIcon fontSize="small" />
-                                        </IconButton>
-                                    }
-                                    onClose={handleClearClose}
-                                >
-                                    {clearNotification.message}
-                                </Alert>
-                            </Snackbar>
+                        <Badge badgeContent={unreadCount} color="error">
+                            <NotificationsIcon />
+                        </Badge>
+                    </IconButton>
+                    <Popover
+                        open={openNotifications}
+                        anchorEl={notificationAnchorEl}
+                        onClose={handleNotificationClose}
+                        anchorOrigin={{ vertical: 'bottom', horizontal: 'right' }}
+                        transformOrigin={{ vertical: 'top', horizontal: 'right' }}
+                    >
+                        <NotificationList
+                            notifications={notifications}
+                            onRead={markAsRead}
+                            onDelete={deleteNotification}
+                            onReadAll={markAllAsRead}
+                            onNavigate={handleNotificationNavigate}
+                            loading={notificationsLoading}
+                        />
+                    </Popover>
+                </>
+            }
+        >
+            {teacherDashboard ? (
+                <TeacherDashboard
+                    token={token}
+                    setError={setError}
+                    currentUser={currentUser}
+                    languageSets={languageSets}
+                    currentLanguageSetId={selectedLanguageSetId}
+                />
+            ) : (
+                <>
+                    {userManagement ? (
+                        <Paper sx={{ p: 3 }}>
+                            <UserManagement currentUser={currentUser} />
                         </Paper>
-                        <Paper sx={{ p: 2, mb: 3 }}>
-                            <Stack spacing={1.5}>
-                                <Stack
-                                    direction="row"
-                                    spacing={1}
-                                    alignItems="center"
-                                    justifyContent="space-between"
-                                >
-                                    <Stack direction="row" spacing={1} alignItems="center">
-                                        <Typography variant="subtitle1" sx={{ fontWeight: 600 }}>
-                                            {t('admin.records.filters', 'Filters')}
-                                        </Typography>
-                                        <Tooltip
-                                            title={selectedLanguageSetId
-                                                ? t('current_language_set', {
-                                                    defaultValue: 'Language set: {{name}}',
-                                                    name: selectedLanguageSet?.display_name || t('not_selected', 'Not selected')
-                                                })
-                                                : t('filter_by_language_set', 'Filter by language set')}
-                                        >
-                                            <IconButton
-                                                size="small"
-                                                color={isLayoutCompact ? 'primary' : 'default'}
-                                                onClick={() => setIsFilterPanelOpen(true)}
-                                                aria-label={t('open_language_set_filter', 'Open language set filter')}
-                                            >
-                                                <TranslateIcon fontSize="small" />
-                                            </IconButton>
-                                        </Tooltip>
-                                        <Tooltip
-                                            title={filterCategory
-                                                ? t('filtering_by_category_label', {
-                                                    defaultValue: 'Category: {{category}}',
-                                                    category: filterCategory
-                                                })
-                                                : t('filter_by_category', 'Filter by category')}
-                                        >
-                                            {(filterCategory)
-                                                ? (
-                                                    <Badge color="primary" overlap="circular" variant="dot">
-                                                        <IconButton
-                                                            size="small"
-                                                            color="primary"
-                                                            onClick={() => setIsFilterPanelOpen(true)}
-                                                            aria-label={t('open_category_filter', 'Open category filter')}
-                                                        >
-                                                            <CategoryIcon fontSize="small" />
-                                                        </IconButton>
-                                                    </Badge>
-                                                ) : (
-                                                    <IconButton
-                                                        size="small"
-                                                        onClick={() => setIsFilterPanelOpen(true)}
-                                                        aria-label={t('open_category_filter', 'Open category filter')}
-                                                    >
-                                                        <CategoryIcon fontSize="small" />
-                                                    </IconButton>
-                                                )}
-                                        </Tooltip>
-                                        <Tooltip
-                                            title={ignoredCategoriesCount
-                                                ? t('ignored_categories_with_count', {
-                                                    defaultValue: 'Ignored categories ({{count}})',
-                                                    count: ignoredCategoriesCount
-                                                })
-                                                : t('ignored_categories', 'Ignored categories')}
-                                        >
-                                            <Badge
-                                                color={ignoredCategoriesCount ? 'warning' : 'default'}
-                                                overlap="circular"
-                                                badgeContent={ignoredCategoriesCount || null}
-                                            >
-                                                <IconButton
-                                                    size="small"
-                                                    onClick={() => setShowIgnoredCategories(prev => !prev)}
-                                                    aria-label={t('toggle_ignored_categories', 'Toggle ignored categories')}
-                                                    aria-pressed={showIgnoredCategories}
-                                                >
-                                                    <VisibilityOffIcon fontSize="small" />
-                                                </IconButton>
-                                            </Badge>
-                                        </Tooltip>
-                                    </Stack>
-                                </Stack>
-                                <Collapse in={isFilterPanelOpen} timeout="auto" unmountOnExit>
-                                    <Stack direction={{ xs: 'column', md: 'row' }} spacing={2}>
-                                        <TextField
-                                            select
-                                            size="small"
-                                            fullWidth
-                                            label={t('filter_by_language_set')}
-                                            value={selectedLanguageSetId || ''}
-                                            onChange={e => {
-                                                const value = parseInt(e.target.value);
-                                                setSelectedLanguageSetId(value);
-                                                setOffset(0);
-                                                setFilterCategory('');
-                                                localStorage.setItem(STORAGE_KEYS.SELECTED_LANGUAGE_SET, value.toString());
-                                            }}
-                                            InputProps={{
-                                                startAdornment: (
-                                                    <InputAdornment position="start">
-                                                        <TranslateIcon fontSize="small" />
-                                                    </InputAdornment>
-                                                )
-                                            }}
-                                        >
-                                            {languageSets.map(set => (
-                                                <MenuItem key={set.id} value={set.id}>
-                                                    {set.display_name}
-                                                </MenuItem>
-                                            ))}
-                                        </TextField>
-                                        <TextField
-                                            select
-                                            size="small"
-                                            fullWidth
-                                            label={t('filter_by_category')}
-                                            value={filterCategory}
-                                            onChange={e => { setFilterCategory(e.target.value); setOffset(0); }}
-                                            InputProps={{
-                                                startAdornment: (
-                                                    <InputAdornment position="start">
-                                                        <CategoryIcon fontSize="small" />
-                                                    </InputAdornment>
-                                                )
-                                            }}
-                                        >
-                                            <MenuItem value="">{`-- ${t('all_categories')} --`}</MenuItem>
-                                            {categories.map(cat => (
-                                                <MenuItem key={cat} value={cat}>{cat}</MenuItem>
-                                            ))}
-                                        </TextField>
-                                    </Stack>
-                                </Collapse>
-                                {(currentUser && selectedLanguageSetId) || ignoredCategoriesCount > 0 ? (
-                                    <Collapse in={showIgnoredCategories} timeout="auto">
-                                        <Box sx={{ mt: 1 }}>
-                                            {currentUser && userIgnoredCategories.length > 0 && (
-                                                <Box sx={{ mb: 1 }}>
-                                                    <Typography variant="caption" sx={{ fontWeight: 600, display: 'block', mb: 0.5 }}>
-                                                        {t('your_ignored_categories', 'Your Ignored Categories')}
-                                                    </Typography>
-                                                    <Stack direction="row" spacing={0.5} flexWrap="wrap" useFlexGap>
-                                                        {userIgnoredCategories.map(category => (
-                                                            <Tooltip key={category} title={t('click_to_remove_ignored', 'Click to remove from ignored categories')}>
-                                                                <Chip
-                                                                    label={category}
-                                                                    size="small"
-                                                                    color="warning"
-                                                                    variant="filled"
-                                                                    onClick={() => toggleIgnoredCategory(category)}
-                                                                    sx={{
-                                                                        cursor: 'pointer',
-                                                                        textDecoration: 'line-through',
-                                                                        mb: 0.5
-                                                                    }}
-                                                                />
-                                                            </Tooltip>
-                                                        ))}
-                                                    </Stack>
-                                                </Box>
-                                            )}
-                                            {ignoredCategories.length > 0 && (
-                                                <Box>
-                                                    <Typography variant="caption" sx={{ fontWeight: 600, display: 'block', mb: 0.5 }}>
-                                                        {t('global_ignored_categories', 'Global Ignored Categories')}
-                                                    </Typography>
-                                                    <Stack direction="row" spacing={0.5} flexWrap="wrap" useFlexGap>
-                                                        {ignoredCategories.map(category => (
-                                                            <Tooltip key={category} title={t('ignored_category_tooltip')}>
-                                                                <Chip
-                                                                    label={category}
-                                                                    size="small"
-                                                                    color="default"
-                                                                    variant="outlined"
-                                                                    sx={{
-                                                                        opacity: 0.7,
-                                                                        textDecoration: 'line-through',
-                                                                        mb: 0.5
-                                                                    }}
-                                                                />
-                                                            </Tooltip>
-                                                        ))}
-                                                    </Stack>
-                                                </Box>
-                                            )}
-                                            {currentUser && ignoredCategories.length === 0 && userIgnoredCategories.length === 0 && categories.length > 0 && (
-                                                <Box sx={{ mb: 1 }}>
-                                                    <Typography variant="caption" sx={{ fontStyle: 'italic', color: 'text.secondary' }}>
-                                                        {t('no_ignored_categories_yet', 'No categories are ignored yet. Click on categories below to ignore them.')}
-                                                    </Typography>
-                                                </Box>
-                                            )}
-                                            {currentUser && categories.length > 0 && (
-                                                <Box sx={{ mt: 1 }}>
-                                                    <Typography variant="caption" sx={{ fontWeight: 600, display: 'block', mb: 0.5 }}>
-                                                        {t('available_categories', 'Available Categories')} ({t('click_to_ignore', 'click to ignore')})
-                                                    </Typography>
-                                                    <Stack direction="row" spacing={0.5} flexWrap="wrap" useFlexGap>
-                                                        {categories
-                                                            .filter(cat => !userIgnoredCategories.includes(cat) && !ignoredCategories.includes(cat))
-                                                            .map(category => (
-                                                                <Tooltip key={category} title={t('click_to_add_ignored', 'Click to add to ignored categories')}>
-                                                                    <Chip
-                                                                        label={category}
-                                                                        size="small"
-                                                                        color="primary"
-                                                                        variant="outlined"
-                                                                        onClick={() => toggleIgnoredCategory(category)}
-                                                                        sx={{
-                                                                            cursor: 'pointer',
-                                                                            mb: 0.5
-                                                                        }}
-                                                                    />
-                                                                </Tooltip>
-                                                            ))}
-                                                    </Stack>
-                                                </Box>
-                                            )}
-                                        </Box>
-                                    </Collapse>
-                                ) : null}
-                            </Stack>
-                        </Paper>
-                        {/* Batch Operations Toolbar */}
-                        {batchMode && (
-                            <BatchOperationsToolbar
-                                selectedCount={selectedRows.length}
-                                onBatchDelete={handleBatchDeleteClick}
-                                onBatchAddCategory={handleBatchAddCategoryClick}
-                                onBatchRemoveCategory={handleBatchRemoveCategoryClick}
-                                disabled={batchLoading || selectedRows.length === 0}
+                    ) : statisticsDashboard ? (
+                        <StatisticsDashboard token={token} setError={setError} currentUser={currentUser} />
+                    ) : systemSettings ? (
+                        <SystemSettings />
+                    ) : languageSetManagement ? (
+                        <Paper sx={{ p: 3 }}>
+                            <LanguageSetManagement
+                                currentUser={currentUser}
+                                initialLanguageSets={languageSets}
+                                initialCategories={categories}
+                                showAdminActions={currentUser?.role === 'admin' || currentUser?.role === 'root_admin' || currentUser?.role === 'administrative'}
                             />
-                        )}
-                        {/* Data Table */}
-                        <AdminTable
+                        </Paper>
+                    ) : userProfile ? (
+                        <UserProfile currentUser={currentUser} />
+                    ) : myStudy ? (
+                        <MyStudy token={token} />
+                    ) : duplicateManagement ? (
+                        <Paper sx={{ p: 3 }}>
+                            <DuplicateManagement
+                                currentUser={currentUser}
+                                selectedLanguageSetId={selectedLanguageSetId}
+                            />
+                        </Paper>
+                    ) : browseRecords ? (
+                        <BrowseRecordsView
                             rows={rows}
-                            onSaveRow={handleInlineSave}
-                            onDeleteRow={handleInlineDelete}
                             totalRows={totalRows}
+                            loading={dataLoading}
+                            error={error}
+                            offset={offset}
+                            limit={limit}
+                            setOffset={setOffset}
+                            setLimit={setLimit}
+                            offsetInput={offsetInput}
+                            handleOffsetInput={handleOffsetInput}
+                            goToOffset={goToOffset}
                             searchTerm={searchTerm}
-                            onSearchChange={handleSearchChange}
-                            isLoading={dataLoading}
+                            handleSearchChange={handleSearchChange}
+                            languageSets={languageSets}
+                            selectedLanguageSetId={selectedLanguageSetId}
+                            setSelectedLanguageSetId={setSelectedLanguageSetId}
+                            categories={categories}
+                            filterCategory={filterCategory}
+                            setFilterCategory={setFilterCategory}
+                            currentUser={currentUser}
+                            userIgnoredCategories={userIgnoredCategories}
+                            ignoredCategories={ignoredCategories}
+                            toggleIgnoredCategory={toggleIgnoredCategory}
+                            ignoredCategoriesCount={ignoredCategoriesCount}
+                            showIgnoredCategories={showIgnoredCategories}
                             batchMode={batchMode}
+                            handleBatchModeToggle={handleBatchModeToggle}
                             selectedRows={selectedRows}
-                            onRowSelectionChange={handleRowSelectionChange}
-                            onBatchModeToggle={handleBatchModeToggle}
-                            onAddNewRow={handleStartAddRow}
+                            handleRowSelectionChange={handleRowSelectionChange}
+                            handleBatchDeleteClick={handleBatchDeleteClick}
+                            handleBatchAddCategoryClick={handleBatchAddCategoryClick}
+                            handleBatchRemoveCategoryClick={handleBatchRemoveCategoryClick}
+                            batchLoading={batchLoading}
+                            batchDialog={batchDialog}
+                            handleBatchDialogClose={handleBatchDialogClose}
+                            handleBatchConfirm={handleBatchConfirm}
+                            batchResult={batchResult}
+                            handleBatchResultClose={handleBatchResultClose}
+                            handleInlineSave={handleInlineSave}
+                            handleInlineDelete={handleInlineDelete}
+                            handleStartAddRow={handleStartAddRow}
                             newRow={newRow}
-                            onNewRowChange={handleNewRowFieldChange}
-                            onCancelNewRow={handleCancelNewRow}
-                            onConfirmNewRow={handleConfirmNewRow}
+                            handleNewRowFieldChange={handleNewRowFieldChange}
+                            handleCancelNewRow={handleCancelNewRow}
+                            handleConfirmNewRow={handleConfirmNewRow}
                             isSavingNewRow={isSavingNewRow}
                             canAddNewRow={Boolean(isLogged && selectedLanguageSetId)}
-                            categoryOptions={categories}
-                            compactMode={isLayoutCompact}
+                            isControlBarCollapsed={isControlBarCollapsed}
+                            isLayoutCompact={isLayoutCompact}
                         />
-                        {/* Pagination */}
-                        <Box sx={{ mt: 3 }}>
-                            <PaginationControls
-                                offset={offset}
-                                limit={limit}
-                                totalRows={totalRows}
-                                offsetInput={offsetInput}
-                                handleOffsetInput={handleOffsetInput}
-                                goToOffset={goToOffset}
-                                setOffset={setOffset}
-                                pageSizeSelector={
-                                    <PageSizeSelector
-                                        value={limit}
-                                        onChange={handlePageSizeChange}
-                                    />
-                                }
-                            />
-                        </Box>
-                        {/* Error Display */}
-                        {error && (
-                            <Box sx={{ mt: 2, p: 2, bgcolor: 'error.light', borderRadius: 1 }}>
-                                <Typography color="error.contrastText">{error}</Typography>
-                            </Box>
-                        )}
-
-                        {/* Batch Operation Dialogs */}
-                        <BatchOperationDialog
-                            open={batchDialog.open}
-                            onClose={handleBatchDialogClose}
-                            operation={batchDialog.operation}
-                            selectedCount={selectedRows.length}
-                            onConfirm={handleBatchConfirm}
-                            availableCategories={categories}
-                        />
-
-                        <BatchResultDialog
-                            open={batchResult.open}
-                            onClose={handleBatchResultClose}
-                            operation={batchResult.operation}
-                            result={batchResult.result}
-                        />
-                    </>) : (
-                    /* Regular users - Access Denied */
-                    <Box sx={{
-                        display: 'flex',
-                        flexDirection: 'column',
-                        alignItems: 'center',
-                        justifyContent: 'center',
-                        minHeight: '400px',
-                        textAlign: 'center'
-                    }}>
-                        <Typography variant="h5" gutterBottom color="error">
-                            {t('access_denied', 'Access Denied')}
-                        </Typography>
-                        <Typography variant="body1" sx={{ mb: 3 }}>
-                            {t('browse_records_admin_only', 'Browse records is only available for administrators.')}
-                        </Typography>
-                        <Button
-                            variant="contained"
-                            onClick={goToDashboard}
-                        >
-                            {t('back_to_dashboard')}
-                        </Button>
-                    </Box>
-                ))}
+                    ) : dashboard ? (
+                        // Default Dashboard View
+                        <Paper sx={{ p: 4, borderRadius: 2, display: 'flex', flexDirection: 'column', gap: 3 }}>
+                            <Typography variant="h4" component="h2">
+                                {t('admin_dashboard')}
+                            </Typography>
+                            <Typography variant="body1" sx={{ color: 'text.secondary' }}>
+                                {t('welcome_user', { username: currentUser?.username, role: currentUser?.role })}
+                            </Typography>
+                            <Stack spacing={4} sx={{ mt: 1 }}>
+                                {sections.map(section => (
+                                    <Box key={section.key}>
+                                        <Typography variant="h6" sx={{ fontWeight: 600, mb: 1 }}>
+                                            {section.title}
+                                        </Typography>
+                                        <Divider sx={{ mb: 2, maxWidth: { xs: '100%', sm: 480 } }} />
+                                        <Stack
+                                            direction="row"
+                                            spacing={1.5}
+                                            flexWrap="wrap"
+                                            useFlexGap
+                                            justifyContent="flex-start"
+                                            alignItems="center"
+                                        >
+                                            {section.buttons}
+                                        </Stack>
+                                    </Box>
+                                ))}
+                            </Stack>
+                            {error && (
+                                <Box sx={{ mt: 1, p: 2, bgcolor: 'error.light', borderRadius: 1 }}>
+                                    <Typography color="error.contrastText">{error}</Typography>
+                                </Box>
+                            )}
+                        </Paper>
+                    ) : null}
+                </>
+            )}
 
             {/* Rate Limit Warning */}
             <RateLimitWarning
@@ -1765,17 +1203,19 @@ export default function AdminPanel({
             />
 
             {/* Private List Manager Dialog */}
-            {showListManager && selectedLanguageSetForLists && (
-                <PrivateListManager
-                    open={showListManager}
-                    onClose={() => {
-                        setShowListManager(false);
-                        setSelectedLanguageSetForLists(null);
-                    }}
-                    languageSetId={selectedLanguageSetForLists}
-                />
-            )}
-        </AdminLayout>
+            {
+                showListManager && selectedLanguageSetForLists && (
+                    <PrivateListManager
+                        open={showListManager}
+                        onClose={() => {
+                            setShowListManager(false);
+                            setSelectedLanguageSetForLists(null);
+                        }}
+                        languageSetId={selectedLanguageSetForLists}
+                    />
+                )
+            }
+        </AdminLayout >
     );
 }
 

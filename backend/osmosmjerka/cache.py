@@ -7,7 +7,6 @@ from functools import wraps
 from typing import Any, Callable, Dict, Optional, TypeVar
 
 from fastapi import HTTPException, Request
-
 from osmosmjerka.logging_config import get_logger
 
 F = TypeVar("F", bound=Callable[..., Any])

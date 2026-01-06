@@ -2,10 +2,9 @@
 
 from typing import Any, Optional
 
+from osmosmjerka.database.models import accounts_table
 from sqlalchemy import func
 from sqlalchemy.sql import delete, insert, select, update
-
-from osmosmjerka.database.models import accounts_table
 
 
 class AccountsMixin:

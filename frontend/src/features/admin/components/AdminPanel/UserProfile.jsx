@@ -32,7 +32,7 @@ import { PrivateListManager } from '../../../lists';
 export default function UserProfile() {
     const { t } = useTranslation();
     const _ = useTheme();
-    
+
     const [profile, setProfile] = useState({
         username: '',
         role: '',
@@ -54,7 +54,7 @@ export default function UserProfile() {
     const [ignoredSummary, setIgnoredSummary] = useState({}); // eslint-disable-line no-unused-vars
     const [modifiedIgnoredSummary, setModifiedIgnoredSummary] = useState({});
     const [languageSets, setLanguageSets] = useState([]);
-    
+
     // Statistics state
     const [statistics, setStatistics] = useState(null);
     const [statisticsLoading, setStatisticsLoading] = useState(true);
@@ -124,7 +124,7 @@ export default function UserProfile() {
     const loadStatistics = async () => {
         setStatisticsLoading(true);
         setStatisticsError(null);
-        
+
         try {
             const response = await fetch('/admin/statistics/user-profile', {
                 headers: authHeader
@@ -176,11 +176,11 @@ export default function UserProfile() {
                     preference_value: enabled === null ? '' : enabled.toString()
                 })
             });
-            
+
             if (response.ok) {
                 setProgressiveHintsEnabled(enabled);
                 showNotification(
-                    enabled === null 
+                    enabled === null
                         ? t('progressive_hints_preference_reset', 'Progressive hints preference reset to global setting')
                         : t('progressive_hints_preference_updated', `Progressive hints ${enabled ? 'enabled' : 'disabled'} for your account`),
                     'success'
@@ -200,7 +200,7 @@ export default function UserProfile() {
         if (!seconds) return '0m';
         const hours = Math.floor(seconds / 3600);
         const minutes = Math.floor((seconds % 3600) / 60);
-        
+
         if (hours > 0) {
             return `${hours}h ${minutes}m`;
         }
@@ -220,7 +220,7 @@ export default function UserProfile() {
     const removeIgnoredCategory = async (languageSetId, category) => {
         try {
             setLoading(true);
-            
+
             // Update local state first
             setModifiedIgnoredSummary(prev => {
                 const newSummary = { ...prev };
@@ -235,7 +235,7 @@ export default function UserProfile() {
 
             // Get updated categories for this language set
             const updatedCategories = modifiedIgnoredSummary[languageSetId]?.filter(cat => cat !== category) || [];
-            
+
             // Save immediately to server
             const authHeader = { 'Authorization': `Bearer ${localStorage.getItem('adminToken')}`, 'Content-Type': 'application/json' };
             const response = await fetch('/api/user/ignored-categories', {
@@ -351,7 +351,7 @@ export default function UserProfile() {
     return (
         <Box>
             <Typography variant="h5" sx={{ mb: 3 }}>{t('user_profile')}</Typography>
-            
+
             {/* Account Information */}
             <Paper sx={{ p: 3, mb: 3 }}>
                 <Typography variant="h6" gutterBottom>{t('account_information')}</Typography>
@@ -388,7 +388,7 @@ export default function UserProfile() {
                     <TrophyIcon sx={{ mr: 1, verticalAlign: 'middle' }} />
                     {t('your_statistics', 'Your Statistics')}
                 </Typography>
-                
+
                 {statisticsLoading ? (
                     <Box display="flex" justifyContent="center" alignItems="center" minHeight="200px">
                         <CircularProgress />
@@ -403,7 +403,7 @@ export default function UserProfile() {
                         <Typography variant="subtitle1" gutterBottom color="primary">
                             {t('overall_statistics')}
                         </Typography>
-                        
+
                         <Grid container spacing={3} sx={{ mb: 3 }}>
                             <Grid size={{ xs: 12, sm: 6, md: 3 }}>
                                 <Card sx={{ textAlign: 'center', p: 2 }}>
@@ -415,7 +415,7 @@ export default function UserProfile() {
                                     </Typography>
                                 </Card>
                             </Grid>
-                            
+
                             <Grid size={{ xs: 12, sm: 6, md: 3 }}>
                                 <Card sx={{ textAlign: 'center', p: 2 }}>
                                     <Typography variant="h4" color="success.main">
@@ -427,8 +427,8 @@ export default function UserProfile() {
                                     <Typography variant="body2" color="textSecondary">
                                         {t('completion_rate')}
                                     </Typography>
-                                    <LinearProgress 
-                                        variant="determinate" 
+                                    <LinearProgress
+                                        variant="determinate"
                                         value={getCompletionRate(
                                             statistics.overall_statistics?.games_completed || 0,
                                             statistics.overall_statistics?.games_started || 0
@@ -437,7 +437,7 @@ export default function UserProfile() {
                                     />
                                 </Card>
                             </Grid>
-                            
+
                             <Grid size={{ xs: 12, sm: 6, md: 3 }}>
                                 <Card sx={{ textAlign: 'center', p: 2 }}>
                                     <Typography variant="h4" color="info.main">
@@ -448,7 +448,7 @@ export default function UserProfile() {
                                     </Typography>
                                 </Card>
                             </Grid>
-                            
+
                             <Grid size={{ xs: 12, sm: 6, md: 3 }}>
                                 <Card sx={{ textAlign: 'center', p: 2 }}>
                                     <Typography variant="h4" color="warning.main">
@@ -467,7 +467,7 @@ export default function UserProfile() {
                                 <Typography variant="subtitle1" gutterBottom color="primary">
                                     {t('by_language_set')}
                                 </Typography>
-                                
+
                                 <Grid container spacing={2}>
                                     {statistics.language_set_statistics.map((langSet, index) => (
                                         <Grid size={{ xs: 12, md: 6 }} key={index}>
@@ -511,7 +511,7 @@ export default function UserProfile() {
             <Paper sx={{ p: 3, mb: 3 }}>
                 <Typography variant="h6" gutterBottom>{t('profile_settings', 'Profile Settings')}</Typography>
                 <Divider sx={{ my: 2 }} />
-                
+
                 {/* Progressive Hints Setting */}
                 <Typography variant="subtitle1" sx={{ mb: 2 }}>{t('progressive_hints_setting', 'Progressive Hints Preference')}</Typography>
                 <Typography variant="body2" color="text.secondary" sx={{ mb: 2 }}>
@@ -530,25 +530,25 @@ export default function UserProfile() {
                         }}
                         disabled={progressiveHintsLoading}
                     >
-                        <FormControlLabel 
-                            value="global" 
-                            control={<Radio />} 
-                            label={t('use_global_setting', 'Use global system setting')} 
+                        <FormControlLabel
+                            value="global"
+                            control={<Radio />}
+                            label={t('use_global_setting', 'Use global system setting')}
                         />
-                        <FormControlLabel 
-                            value="true" 
-                            control={<Radio />} 
-                            label={t('enable_progressive_hints', 'Enable progressive hints')} 
+                        <FormControlLabel
+                            value="true"
+                            control={<Radio />}
+                            label={t('enable_progressive_hints', 'Enable progressive hints')}
                         />
-                        <FormControlLabel 
-                            value="false" 
-                            control={<Radio />} 
-                            label={t('disable_progressive_hints', 'Disable progressive hints')} 
+                        <FormControlLabel
+                            value="false"
+                            control={<Radio />}
+                            label={t('disable_progressive_hints', 'Disable progressive hints')}
                         />
                     </RadioGroup>
                 </FormControl>
                 <Divider sx={{ my: 2 }} />
-                
+
                 <Typography variant="subtitle1" sx={{ mb: 1 }}>{t('your_ignored_categories', 'Your Ignored Categories')}</Typography>
                 {Object.keys(modifiedIgnoredSummary).length === 0 && (
                     <Typography variant="body2" color="text.secondary" sx={{ mb: 2 }}>
@@ -565,11 +565,11 @@ export default function UserProfile() {
                             </Typography>
                             <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 0.5 }}>
                                 {cats.map(c => (
-                                    <Chip 
-                                        key={c} 
-                                        label={c} 
-                                        size="small" 
-                                        variant="outlined" 
+                                    <Chip
+                                        key={c}
+                                        label={c}
+                                        size="small"
+                                        variant="outlined"
                                         onDelete={loading ? undefined : () => removeIgnoredCategory(lsId, c)}
                                         disabled={loading}
                                         sx={{ cursor: loading ? 'default' : 'pointer' }}
@@ -580,13 +580,20 @@ export default function UserProfile() {
                     );
                 })}
                 <Divider sx={{ my: 2 }} />
+                <Typography variant="subtitle1" sx={{ mb: 1 }}>{t('your_profile_description', 'Your Profile Description')}</Typography>
                 <TextField
                     fullWidth
                     label={t('description')}
                     multiline
                     rows={3}
                     value={description}
-                    onChange={(e) => setDescription(e.target.value)}
+                    onChange={(e) => {
+                        // Sanitize: remove HTML tags and limit to 100 chars
+                        const sanitized = e.target.value.replace(/<[^>]*>/g, '').slice(0, 100);
+                        setDescription(sanitized);
+                    }}
+                    inputProps={{ maxLength: 100 }}
+                    helperText={`${description.length}/100`}
                     sx={{ mb: 2 }}
                 />
                 <Button

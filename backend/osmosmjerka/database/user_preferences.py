@@ -2,9 +2,8 @@
 
 from typing import Optional
 
-from sqlalchemy.sql import delete, func, insert, select, update
-
 from osmosmjerka.database.models import user_ignored_categories_table, user_preferences_table
+from sqlalchemy.sql import delete, func, insert, select, update
 
 
 class UserPreferencesMixin:

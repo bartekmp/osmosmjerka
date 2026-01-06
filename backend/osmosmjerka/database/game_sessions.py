@@ -3,9 +3,8 @@
 import time
 from typing import Dict, Optional
 
-from sqlalchemy.sql import func, insert, select, update
-
 from osmosmjerka.database.models import game_sessions_table, user_category_plays_table, user_statistics_table
+from sqlalchemy.sql import func, insert, select, update
 
 
 class GameSessionsMixin:

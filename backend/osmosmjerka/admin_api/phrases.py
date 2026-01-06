@@ -8,11 +8,10 @@ from typing import Optional
 
 from fastapi import APIRouter, Depends, File, HTTPException, Query, Request, UploadFile, status
 from fastapi.responses import JSONResponse, StreamingResponse
-from starlette.concurrency import run_in_threadpool
-
 from osmosmjerka.auth import require_admin_access, require_root_admin
 from osmosmjerka.cache import categories_cache, rate_limit
 from osmosmjerka.database import db_manager
+from starlette.concurrency import run_in_threadpool
 
 router = APIRouter()
 
@@ -71,7 +70,9 @@ def _parse_phrases_csv(content: str, delimiter: Optional[str] = None) -> tuple[l
         if len(first_parts) < 3:
             return (
                 [],
-                f"Invalid file format. Expected at least 3 columns (categories{detected_delim}phrase{detected_delim}translation), but found {len(first_parts)} column(s) in first line. First line: '{stripped_nonempty[0]}'",
+                f"Invalid file format. Expected at least 3 columns "
+                f"(categories{detected_delim}phrase{detected_delim}translation), "
+                f"but found {len(first_parts)} column(s) in first line. First line: '{stripped_nonempty[0]}'",
             )
     except csv.Error as e:
         return [], f"CSV parsing error in first line: {e}. Line: '{stripped_nonempty[0]}'"
@@ -112,7 +113,8 @@ def _parse_phrases_csv(content: str, delimiter: Optional[str] = None) -> tuple[l
 
                 if not categories or not phrase or not translation:
                     errors.append(
-                        f"Line {idx}: Empty required field(s). All three fields (category, phrase, translation) must be non-empty"
+                        f"Line {idx}: Empty required field(s). All three fields (category, phrase, translation)"
+                        " must be non-empty"
                     )
                     continue
 

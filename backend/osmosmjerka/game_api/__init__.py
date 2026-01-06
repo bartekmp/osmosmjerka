@@ -1,15 +1,19 @@
 """Game API module combining all endpoint routers."""
 
 from fastapi import APIRouter
-
 from osmosmjerka.database import db_manager
 from osmosmjerka.game_api.export import router as export_router
 from osmosmjerka.game_api.game_sessions import router as game_sessions_router
-from osmosmjerka.game_api.helpers import _generate_grid_with_exact_phrase_count, get_grid_size_and_num_phrases
+from osmosmjerka.game_api.helpers import (
+    _generate_grid_with_exact_phrase_count,
+    get_grid_size_and_num_phrases,
+)
 from osmosmjerka.game_api.list_sharing import router as list_sharing_router
 from osmosmjerka.game_api.phrases import router as phrases_router
 from osmosmjerka.game_api.private_lists import router as private_lists_router
 from osmosmjerka.game_api.scoring import router as scoring_router
+from osmosmjerka.game_api.student_groups import router as student_groups_router
+from osmosmjerka.game_api.student_study import router as student_study_router
 from osmosmjerka.game_api.user_preferences import router as user_preferences_router
 from osmosmjerka.grid_generator import generate_grid
 from osmosmjerka.utils import export_to_docx, export_to_png
@@ -25,6 +29,8 @@ router.include_router(game_sessions_router)
 router.include_router(scoring_router)
 router.include_router(private_lists_router)
 router.include_router(list_sharing_router)
+router.include_router(student_groups_router)
+router.include_router(student_study_router)
 
 # Export functions for backward compatibility with tests and other code
 __all__ = [

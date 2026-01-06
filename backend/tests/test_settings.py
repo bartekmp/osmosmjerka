@@ -3,7 +3,6 @@ from unittest.mock import AsyncMock, patch
 import pytest
 from fastapi import FastAPI
 from fastapi.testclient import TestClient
-
 from osmosmjerka.admin_api import router
 from osmosmjerka.auth import require_root_admin
 

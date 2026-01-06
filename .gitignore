@@ -1,6 +1,7 @@
 .env
 .venv/
 .vscode/
+.agent/
 
 __pycache__/
 .pytest_cache/

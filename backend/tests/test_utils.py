@@ -1,5 +1,4 @@
 import pytest
-
 from osmosmjerka.utils import export_to_docx
 
 

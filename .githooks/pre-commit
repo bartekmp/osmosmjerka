@@ -56,16 +56,13 @@ STAGED_PYTHON_FILES=($(git diff --cached --name-only --diff-filter=ACM | grep -E
 
 if [[ ${#STAGED_PYTHON_FILES[@]} -gt 0 ]]; then
   info "Running Python linters on ${#STAGED_PYTHON_FILES[@]} staged file(s)..."
-  for tool in flake8 black isort; do
-    if ! command_exists "$tool"; then
-      error "Missing '$tool'. Install with 'pip install -e .[dev]'."
-      exit 1
-    fi
-  done
+  if ! command_exists "ruff"; then
+    error "Missing 'ruff'. Install with 'pip install -e .[dev]'."
+    exit 1
+  fi
 
-  flake8 "${STAGED_PYTHON_FILES[@]}" --max-line-length=120 --count --statistics
-  black --check "${STAGED_PYTHON_FILES[@]}" --diff
-  isort --check-only "${STAGED_PYTHON_FILES[@]}" --diff
+  ruff check "${STAGED_PYTHON_FILES[@]}"
+  ruff format --check "${STAGED_PYTHON_FILES[@]}" --diff
 else
   info "No staged Python files to lint."
 fi

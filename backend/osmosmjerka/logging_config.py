@@ -106,7 +106,8 @@ class JSONFormatter(logging.Formatter):
     Structured JSON formatter for production/Kubernetes.
 
     Each log entry is a single-line JSON object with structured fields.
-    Example: {"timestamp":"2025-10-02T14:32:15.234Z","level":"INFO","component":"osmosmjerka.auth","message":"User login successful","user":"john_doe","user_id":42}
+    Example: {"timestamp":"2025-10-02T14:32:15.234Z","level":"INFO","component":"osmosmjerka.auth",
+              "message":"User login successful","user":"john_doe","user_id":42}
     """
 
     def format(self, record: logging.LogRecord) -> str:

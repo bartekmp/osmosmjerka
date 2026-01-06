@@ -6,7 +6,6 @@ from dotenv import load_dotenv
 from fastapi import Depends, HTTPException, Request
 from fastapi.security import OAuth2PasswordBearer
 from jose import JWTError, jwt
-
 from osmosmjerka.database import db_manager
 from osmosmjerka.logging_config import get_logger
 
@@ -184,6 +183,8 @@ def require_role(required_role: str):
             raise HTTPException(status_code=403, detail="Root admin access required")
         elif required_role == "administrative" and user["role"] not in ["root_admin", "administrative"]:
             raise HTTPException(status_code=403, detail="Administrative access required")
+        elif required_role == "teacher" and user["role"] not in ["root_admin", "administrative", "teacher"]:
+            raise HTTPException(status_code=403, detail="Teacher access required")
         return user
 
     return role_checker
@@ -192,3 +193,4 @@ def require_role(required_role: str):
 # Convenience dependencies
 require_root_admin = require_role("root_admin")
 require_admin_access = require_role("administrative")
+require_teacher_access = require_role("teacher")

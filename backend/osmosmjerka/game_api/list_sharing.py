@@ -2,7 +2,6 @@
 
 from fastapi import APIRouter, Body, Depends, HTTPException, Query, status
 from fastapi.responses import JSONResponse
-
 from osmosmjerka.auth import get_current_user
 from osmosmjerka.cache import rate_limit
 from osmosmjerka.database import db_manager

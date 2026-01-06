@@ -5,7 +5,6 @@ Comprehensive tests for user private lists functionality
 from unittest.mock import AsyncMock, patch
 
 import pytest
-
 from osmosmjerka.database import db_manager
 
 

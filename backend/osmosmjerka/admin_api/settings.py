@@ -1,6 +1,5 @@
 from fastapi import APIRouter, Body, Depends, HTTPException
 from fastapi.responses import JSONResponse
-
 from osmosmjerka.auth import require_root_admin
 from osmosmjerka.database import db_manager
 

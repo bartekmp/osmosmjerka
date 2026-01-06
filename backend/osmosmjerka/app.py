@@ -227,8 +227,8 @@ app.add_middleware(
 app.include_router(game_router)
 app.include_router(admin_router)
 
-# Serve static files at /static (only if not in development mode)
-if not DEVELOPMENT_MODE:
+# Serve static files at /static (only if not in development mode and directory exists)
+if not DEVELOPMENT_MODE and os.path.isdir("static"):
     app.mount("/static", StaticFiles(directory="static", html=True), name="static")
 
 

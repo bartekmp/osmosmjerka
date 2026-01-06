@@ -57,7 +57,8 @@ accounts_table = Table(
     Column("id", Integer, primary_key=True, index=True),
     Column("username", String, nullable=False, unique=True),
     Column("password_hash", String, nullable=False),
-    Column("role", String, nullable=False, default="regular"),  # root_admin, administrative, regular
+    Column("role", String, nullable=False, default="regular"),  # root_admin, administrative, teacher, regular
+    Column("account_tier", String(20), nullable=False, default="tier1"),  # tier1 (default), tier2 (premium)
     Column("self_description", Text),
     Column("created_at", DateTime, nullable=False, server_default=func.now()),
     Column("updated_at", DateTime, nullable=False, server_default=func.now()),
@@ -195,13 +196,31 @@ user_private_lists_table = Table(
     "user_private_lists",
     metadata,
     Column("id", Integer, primary_key=True, index=True),
-    Column("user_id", Integer, ForeignKey("accounts.id", ondelete="CASCADE"), nullable=False, index=True),
-    Column("language_set_id", Integer, ForeignKey("language_sets.id", ondelete="CASCADE"), nullable=False, index=True),
+    Column(
+        "user_id",
+        Integer,
+        ForeignKey("accounts.id", ondelete="CASCADE"),
+        nullable=False,
+        index=True,
+    ),
+    Column(
+        "language_set_id",
+        Integer,
+        ForeignKey("language_sets.id", ondelete="CASCADE"),
+        nullable=False,
+        index=True,
+    ),
     Column("list_name", String(255), nullable=False),
     Column("description", Text, nullable=True),
     Column("is_system_list", Boolean, nullable=False, default=False),  # TRUE for "Learn This Later"
     Column("created_at", DateTime, nullable=False, server_default=func.now()),
-    Column("updated_at", DateTime, nullable=False, server_default=func.now(), onupdate=func.now()),
+    Column(
+        "updated_at",
+        DateTime,
+        nullable=False,
+        server_default=func.now(),
+        onupdate=func.now(),
+    ),
     # Unique constraint: user cannot have duplicate list names in same language set
     UniqueConstraint("user_id", "language_set_id", "list_name", name="uq_user_list_name"),
     # Composite index for common query pattern
@@ -213,7 +232,13 @@ user_private_list_phrases_table = Table(
     "user_private_list_phrases",
     metadata,
     Column("id", Integer, primary_key=True, index=True),
-    Column("list_id", Integer, ForeignKey("user_private_lists.id", ondelete="CASCADE"), nullable=False, index=True),
+    Column(
+        "list_id",
+        Integer,
+        ForeignKey("user_private_lists.id", ondelete="CASCADE"),
+        nullable=False,
+        index=True,
+    ),
     Column("phrase_id", Integer, nullable=True),  # NULL if it's a user-defined phrase
     Column("language_set_id", Integer, nullable=False, index=True),
     # User-defined phrase fields (only populated if phrase_id IS NULL)
@@ -240,12 +265,26 @@ user_list_shares_table = Table(
     "user_list_shares",
     metadata,
     Column("id", Integer, primary_key=True, index=True),
-    Column("list_id", Integer, ForeignKey("user_private_lists.id", ondelete="CASCADE"), nullable=False, index=True),
     Column(
-        "owner_user_id", Integer, ForeignKey("accounts.id", ondelete="CASCADE"), nullable=False, index=True
+        "list_id",
+        Integer,
+        ForeignKey("user_private_lists.id", ondelete="CASCADE"),
+        nullable=False,
+        index=True,
+    ),
+    Column(
+        "owner_user_id",
+        Integer,
+        ForeignKey("accounts.id", ondelete="CASCADE"),
+        nullable=False,
+        index=True,
     ),  # Original list owner
     Column(
-        "shared_with_user_id", Integer, ForeignKey("accounts.id", ondelete="CASCADE"), nullable=False, index=True
+        "shared_with_user_id",
+        Integer,
+        ForeignKey("accounts.id", ondelete="CASCADE"),
+        nullable=False,
+        index=True,
     ),  # User receiving access
     Column("permission", String(20), nullable=False, default="read"),  # 'read' or 'write'
     Column("shared_at", DateTime, nullable=False, server_default=func.now()),
@@ -256,4 +295,247 @@ user_list_shares_table = Table(
     # Composite indexes for performance
     Index("idx_shared_with_list", "shared_with_user_id", "list_id"),
     Index("idx_list_shared_with", "list_id", "shared_with_user_id"),
+)
+
+# ============================================================================
+# Teacher Mode Tables
+# ============================================================================
+
+# Define the teacher_phrase_sets table for teacher-created phrase sets
+teacher_phrase_sets_table = Table(
+    "teacher_phrase_sets",
+    metadata,
+    Column("id", Integer, primary_key=True, index=True),
+    Column("name", String(255), nullable=False),
+    Column("description", Text, nullable=True),
+    Column(
+        "language_set_id",
+        Integer,
+        ForeignKey("language_sets.id", ondelete="CASCADE"),
+        nullable=False,
+        index=True,
+    ),
+    Column(
+        "created_by",
+        Integer,
+        ForeignKey("accounts.id", ondelete="CASCADE"),
+        nullable=False,
+        index=True,
+    ),
+    # Game configuration stored as JSON string
+    Column(
+        "config",
+        Text,
+        nullable=False,
+        default='{"allow_hints":true,"show_translations":true,"require_translation_input":false,"show_timer":false,"strict_grid_size":false,"grid_size":10,"time_limit_minutes":null,"difficulty":"medium"}',
+    ),
+    # Link management
+    Column("current_hotlink_token", String(16), nullable=False, unique=True, index=True),
+    Column("hotlink_version", Integer, nullable=False, default=1),
+    # Access control
+    Column("access_type", String(20), nullable=False, default="public"),  # public, private
+    Column("max_plays", Integer, nullable=True),  # NULL = unlimited, 1 = one-time, N = N plays
+    # Lifecycle
+    Column("is_active", Boolean, nullable=False, default=True),
+    Column("expires_at", DateTime, nullable=True),
+    Column("auto_delete_at", DateTime, nullable=True),  # NULL for admins, NOW()+14d for teachers
+    # Timestamps
+    Column("created_at", DateTime, nullable=False, server_default=func.now()),
+    Column("updated_at", DateTime, nullable=False, server_default=func.now()),
+    Column("last_accessed_at", DateTime, nullable=True),
+    # Constraints
+    CheckConstraint("access_type IN ('public', 'private')", name="check_access_type"),
+)
+
+# Define the teacher_phrase_set_phrases junction table
+teacher_phrase_set_phrases_table = Table(
+    "teacher_phrase_set_phrases",
+    metadata,
+    Column("id", Integer, primary_key=True, index=True),
+    Column(
+        "phrase_set_id",
+        Integer,
+        ForeignKey("teacher_phrase_sets.id", ondelete="CASCADE"),
+        nullable=False,
+        index=True,
+    ),
+    Column("phrase_id", Integer, nullable=False),
+    Column("language_set_id", Integer, nullable=False),
+    Column("position", Integer, nullable=False, default=0),
+    # Unique constraint: prevent duplicate phrases in same set
+    UniqueConstraint("phrase_set_id", "phrase_id", "language_set_id", name="uq_set_phrase"),
+    # Composite index for common query
+    Index("idx_phrase_set_phrases", "phrase_set_id", "phrase_id"),
+)
+
+# Define the teacher_phrase_set_access table for private set permissions
+teacher_phrase_set_access_table = Table(
+    "teacher_phrase_set_access",
+    metadata,
+    Column("id", Integer, primary_key=True, index=True),
+    Column(
+        "phrase_set_id",
+        Integer,
+        ForeignKey("teacher_phrase_sets.id", ondelete="CASCADE"),
+        nullable=False,
+        index=True,
+    ),
+    Column(
+        "user_id",
+        Integer,
+        ForeignKey("accounts.id", ondelete="CASCADE"),
+        nullable=False,
+        index=True,
+    ),
+    Column("granted_at", DateTime, nullable=False, server_default=func.now()),
+    Column("granted_by", Integer, ForeignKey("accounts.id"), nullable=False),
+    # Unique constraint: prevent duplicate access grants
+    UniqueConstraint("phrase_set_id", "user_id", name="uq_set_user_access"),
+    # Composite index for user access lookup
+    Index("idx_user_set_access", "user_id", "phrase_set_id"),
+)
+
+# Define the teacher_phrase_set_sessions table for tracking game sessions
+teacher_phrase_set_sessions_table = Table(
+    "teacher_phrase_set_sessions",
+    metadata,
+    Column("id", Integer, primary_key=True, index=True),
+    Column(
+        "phrase_set_id",
+        Integer,
+        ForeignKey("teacher_phrase_sets.id", ondelete="CASCADE"),
+        nullable=False,
+        index=True,
+    ),
+    Column("hotlink_version", Integer, nullable=False),
+    # Player info (user_id NULL for anonymous)
+    Column(
+        "user_id",
+        Integer,
+        ForeignKey("accounts.id", ondelete="SET NULL"),
+        nullable=True,
+        index=True,
+    ),
+    Column("nickname", String(100), nullable=False),  # From input (anonymous) or username (logged in)
+    Column("session_token", String(36), nullable=False, unique=True, index=True),  # UUID format
+    # Game metadata
+    Column("grid_size", Integer, nullable=False),
+    Column("difficulty", String(20), nullable=False),
+    Column("total_phrases", Integer, nullable=False),
+    # Progress
+    Column("phrases_found", Integer, nullable=False, default=0),
+    Column("translation_submissions", Text, nullable=True),  # JSON array: [{"phrase_id": 1, "answer": "..."}]
+    # Timing
+    Column("started_at", DateTime, nullable=False, server_default=func.now()),
+    Column("completed_at", DateTime, nullable=True),
+    Column("duration_seconds", Integer, nullable=True),
+    # Status
+    Column("is_completed", Boolean, nullable=False, default=False),
+    # Composite indexes for common queries
+    Index("idx_session_phrase_set", "phrase_set_id", "is_completed"),
+    Index("idx_session_user", "user_id", "phrase_set_id"),
+)
+
+# Define the notifications table for user alerts and messages
+notifications_table = Table(
+    "notifications",
+    metadata,
+    Column("id", Integer, primary_key=True, index=True),
+    Column(
+        "user_id",
+        Integer,
+        ForeignKey("accounts.id", ondelete="CASCADE"),
+        nullable=False,
+        index=True,
+    ),
+    Column("type", String(50), nullable=False),  # e.g., "translation_review", "system_alert"
+    Column("title", String(255), nullable=False),
+    Column("message", Text, nullable=False),
+    Column("link", String(512), nullable=True),  # Optional navigation link
+    Column("is_read", Boolean, nullable=False, default=False),
+    Column("created_at", DateTime, nullable=False, server_default=func.now()),
+    Column("expires_at", DateTime, nullable=True),  # For auto-cleanup
+    Column("metadata", Text, nullable=True),  # JSON string for extra data
+    # Indexes
+    Index("idx_notifications_user_read", "user_id", "is_read"),
+    Index("idx_notifications_created_at", "created_at"),
+)
+
+# Define the teacher_groups table for creating classes/studying groups
+teacher_groups_table = Table(
+    "teacher_groups",
+    metadata,
+    Column("id", Integer, primary_key=True, index=True),
+    Column(
+        "teacher_id",
+        Integer,
+        ForeignKey("accounts.id", ondelete="CASCADE"),
+        nullable=False,
+        index=True,
+    ),
+    Column("name", String(255), nullable=False),
+    Column("created_at", DateTime, nullable=False, server_default=func.now()),
+    # Unique constraint: teacher cannot have duplicate group names
+    UniqueConstraint("teacher_id", "name", name="uq_teacher_group_name"),
+)
+
+# Define the teacher_group_members table
+teacher_group_members_table = Table(
+    "teacher_group_members",
+    metadata,
+    Column("id", Integer, primary_key=True, index=True),
+    Column(
+        "group_id",
+        Integer,
+        ForeignKey("teacher_groups.id", ondelete="CASCADE"),
+        nullable=False,
+        index=True,
+    ),
+    Column(
+        "user_id",
+        Integer,
+        ForeignKey("accounts.id", ondelete="CASCADE"),
+        nullable=False,
+        index=True,
+    ),
+    Column("status", String(20), nullable=False, default="pending"),  # pending, accepted, declined
+    Column("invited_at", DateTime, nullable=False, server_default=func.now()),
+    Column("responded_at", DateTime, nullable=True),  # When accepted/declined
+    Column("expires_at", DateTime, nullable=True),  # Invitation expiry (7 days)
+    # Unique constraint: student can only be in a group once
+    UniqueConstraint("group_id", "user_id", name="uq_group_member"),
+    Index("idx_group_members_status", "group_id", "status"),
+)
+
+# Define the admin_settings table for configurable limits
+admin_settings_table = Table(
+    "admin_settings",
+    metadata,
+    Column("key", String(100), primary_key=True),
+    Column("value", Text, nullable=False),  # JSON encoded
+    Column("description", Text, nullable=True),
+    Column("updated_at", DateTime, nullable=False, server_default=func.now()),
+)
+
+# Define junction table for assigning phrase sets to groups (dynamic access)
+teacher_phrase_set_groups_table = Table(
+    "teacher_phrase_set_groups",
+    metadata,
+    Column("id", Integer, primary_key=True, index=True),
+    Column(
+        "phrase_set_id",
+        Integer,
+        ForeignKey("teacher_phrase_sets.id", ondelete="CASCADE"),
+        nullable=False,
+        index=True,
+    ),
+    Column(
+        "group_id",
+        Integer,
+        ForeignKey("teacher_groups.id", ondelete="CASCADE"),
+        nullable=False,
+        index=True,
+    ),
+    Column("assigned_at", DateTime, nullable=False, server_default=func.now()),
+    UniqueConstraint("phrase_set_id", "group_id", name="uq_phrase_set_group"),
 )

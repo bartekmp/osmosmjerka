@@ -5,7 +5,6 @@ import re
 
 from fastapi import APIRouter, Body, HTTPException
 from fastapi.responses import StreamingResponse
-
 from osmosmjerka.cache import rate_limit
 from osmosmjerka.utils import export_to_docx, export_to_png
 

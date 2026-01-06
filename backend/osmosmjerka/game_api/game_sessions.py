@@ -2,7 +2,6 @@
 
 from fastapi import APIRouter, Body, Depends
 from fastapi.responses import JSONResponse
-
 from osmosmjerka.auth import get_current_user
 from osmosmjerka.database import db_manager
 from osmosmjerka.logging_config import get_logger

@@ -8,7 +8,6 @@ from unittest.mock import AsyncMock, patch
 import pytest
 from fastapi import FastAPI
 from fastapi.testclient import TestClient
-
 from osmosmjerka.auth import get_current_user
 from osmosmjerka.game_api import router
 

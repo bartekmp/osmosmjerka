@@ -4,9 +4,6 @@ import datetime
 import time
 from typing import Dict, List, Optional
 
-from sqlalchemy import desc, func
-from sqlalchemy.sql import delete, insert, select, update
-
 from osmosmjerka.database.models import (
     accounts_table,
     game_sessions_table,
@@ -15,6 +12,8 @@ from osmosmjerka.database.models import (
     user_category_plays_table,
     user_statistics_table,
 )
+from sqlalchemy import desc, func
+from sqlalchemy.sql import delete, insert, select, update
 
 
 class StatisticsMixin:
