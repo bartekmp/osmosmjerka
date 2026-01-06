@@ -161,7 +161,7 @@
   "grid_too_small_for_difficulty": "Prozor je premalen za prikaz ove težine. Molimo povećajte prozor, odaberite lakšu težinu ili koristite veći ekran.",
   "error_loading_puzzle": "Greška pri učitavanju zagonetke.",
   "loading_puzzle": "Čitanje zagonetke...",
-  "admin_dashboard": "Administratorska ploča",
+  "admin_dashboard": "Nadzorna ploča",
   "rows_per_page": "Redaka po stranici",
   "of": "od",
   "page": "Stranica",
@@ -439,6 +439,7 @@
   "full_outline": "Potpuni obris",
   "show_hint": "Pokaži savjet",
   "loading": "Učitava...",
+  "unknown": "Nepoznato",
   "loading_game": "Učitavanje Osmosmjerke...",
   "hint_tooltip": "Pokaži lokaciju nasumične fraze",
   "progressive_hint_tooltip": "Postupni savjet ({{remaining}} preostalo, razina {{level}})",
@@ -448,6 +449,7 @@
   "admin": {
     "dashboard": {
       "sections": {
+        "learning": "Učenje",
         "records": "Zapisi i sadržaj",
         "users": "Alati za korisnike i račune",
         "system": "Uvidi i postavke"
@@ -504,6 +506,14 @@
       "loadError": "Neuspješno učitavanje pravila bodovanja",
       "saveError": "Neuspješno spremanje pravila bodovanja",
       "saveSuccess": "Pravila bodovanja su uspješno ažurirana"
+    },
+    "notifications": {
+      "title": "Obavijesti",
+      "empty": "Nema obavijesti",
+      "mark_all_read": "Označi sve kao pročitano",
+      "review": "Za pregled",
+      "session_completed": "{{player}} je završio zagonetku \"{{puzzle}}\"",
+      "session_started": "{{player}} je započeo zagonetku \"{{puzzle}}\""
     }
   },
   "learnLater": {
@@ -652,7 +662,9 @@
       "link_failed": "Kopiranje poveznice nije uspjelo",
       "link_regenerated": "Poveznica regenerirana! Stare poveznice više neće raditi.",
       "delete_success": "Skup fraza obrisan",
-      "create_success": "Skup fraza kreiran!"
+      "create_success": "Skup fraza kreiran!",
+      "tab_puzzles": "Zagonetke",
+      "update_success": "Skup fraza ažuriran!"
     },
     "create": {
       "title": "Nova zagonetka",
@@ -680,6 +692,11 @@
       "access_type": "Vrsta pristupa",
       "access_public": "Javno (bilo tko s poveznicom)",
       "access_private": "Privatno (potrebna prijava)",
+      "select_groups": "Dodijeli grupama",
+      "no_groups": "Nema dostupnih grupa",
+      "manual_usernames": "Dodijeli učenicima (po korisničkom imenu)",
+      "usernames_placeholder": "Unesite korisnička imena odvojena zarezima",
+      "usernames_helper": "Pojedini učenici za pozivanje",
       "max_plays": "Max igranja (opcionalno)",
       "max_plays_helper": "Ostavite prazno za neograničeno",
       "study_groups_placeholder": "Učenici (Uskoro)",
@@ -756,6 +773,56 @@
       "incorrect": "Netočno",
       "copy": "Kopiraj rezultate",
       "copied": "Rezultati kopirani u međuspremnik"
+    },
+    "groups": {
+      "title": "Moje grupe",
+      "accepted_count": "{{count}} prihvaćenih",
+      "pending_count": "{{count}} na čekanju",
+      "create": "Kreiraj grupu",
+      "confirm_delete": "Jeste li sigurni da želite obrisati ovu grupu?",
+      "create_title": "Kreiraj novu grupu",
+      "name_label": "Naziv grupe",
+      "manage": "Upravljaj članovima",
+      "manage_title": "Upravljaj {{name}}",
+      "add_student_label": "Korisnička imena učenika",
+      "add_student_placeholder": "Unesite korisnička imena (odvojena zarezima ili novim redom)",
+      "invite": "Pozovi",
+      "invited_success": "Pozvan",
+      "members_list": "Članovi",
+      "no_members": "Još nema učenika u ovoj grupi",
+      "status_accepted": "prihvaćen",
+      "status_pending": "na čekanju",
+      "member_count": "{{count}} učenika"
+    }
+  },
+  "student": {
+    "study": {
+      "title": "Moje učenje",
+      "puzzles_title": "Dodijeljene zagonetke",
+      "groups_title": "Moje grupe",
+      "start_puzzle": "Start",
+      "no_puzzles": "Još nema dodijeljenih zagonetki.",
+      "expires_in": "Ističe za {{time}}",
+      "completed": "Završeno",
+      "pending_invitations": "Pozivnice na čekanju",
+      "invited_by": "Pozvao {{teacher}}",
+      "expires": "Ističe: {{date}}",
+      "accept": "Prihvati",
+      "decline": "Odbij",
+      "my_groups": "Moje grupe",
+      "no_groups": "Još niste član nijedne grupe.",
+      "joined_on": "Pridruženo {{date}}",
+      "leave": "Napusti grupu",
+      "confirm_leave": "Jeste li sigurni da želite napustiti ovu grupu?",
+      "phrase_count": "{{count}} fraza",
+      "teacher": "Nastavnik: {{name}}",
+      "solved": "Riješeno",
+      "new": "Novo",
+      "new_puzzles": "Nove Zagonetke",
+      "solved_puzzles": "Riješene Zagonetke",
+      "no_new_puzzles": "Nema novih zagonetki.",
+      "no_solved_puzzles": "Nema riješenih zagonetki.",
+      "created_by_date": "Kreirao {{name}} dana {{date}}"
     }
   }
 }

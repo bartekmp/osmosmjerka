@@ -933,7 +933,8 @@ export default function AdminPanel({
         </Button>
     );
 
-    userButtons.push(
+    // Learning section buttons
+    const learningButtons = [
         <Button
             key="my-study-groups"
             onClick={() => {
@@ -945,7 +946,7 @@ export default function AdminPanel({
         >
             {t('student.study.title', 'My Study')}
         </Button>
-    );
+    ];
 
     const systemButtons = [];
 
@@ -998,6 +999,11 @@ export default function AdminPanel({
     }
 
     const sections = [
+        {
+            key: 'learning',
+            title: t('admin.dashboard.sections.learning', 'Learning'),
+            buttons: learningButtons
+        },
         {
             key: 'teacher',
             title: t('teacher.section_title', 'Teacher Tools'),

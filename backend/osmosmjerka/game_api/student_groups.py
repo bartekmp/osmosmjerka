@@ -19,6 +19,7 @@ class StudentGroupOut(BaseModel):
     id: int
     name: str
     joined_at: Optional[str] = None
+    teacher_username: Optional[str] = None
 
 
 class InvitationOut(BaseModel):
@@ -44,6 +45,7 @@ async def get_my_groups(current_user: dict = Depends(get_current_user)):
             "id": g["id"],
             "name": g["name"],
             "joined_at": g["joined_at"].isoformat() if g.get("joined_at") else None,
+            "teacher_username": g.get("teacher_username"),
         }
         for g in groups
     ]

@@ -163,40 +163,6 @@ describe('TeacherDashboard Interactions', () => {
         });
     });
 
-    test('regenerates link when refresh icon is clicked', async () => {
-        // Mock API responses for this test
-        mockApi.regenerateLink.mockResolvedValue({ token: 'new-token', version: 2 });
-
-        render(
-            <TeacherDashboard
-                token="test-token"
-                languageSets={mockLanguageSets}
-                currentLanguageSetId={1}
-            />
-        );
-
-        await waitFor(() => {
-            expect(screen.queryByRole('progressbar')).not.toBeInTheDocument();
-        });
-
-        await waitFor(() => {
-            expect(screen.getByDisplayValue('http://localhost/t/token1')).toBeInTheDocument();
-        });
-
-        // Use accessible name provided by Tooltip
-        const regenButtons = screen.getAllByRole('button', { name: 'Generate new link (invalidates old)' });
-        fireEvent.click(regenButtons[0]);
-
-        await waitFor(() => {
-            expect(mockRegenerateLink).toHaveBeenCalledWith(1);
-        });
-
-        // Check if value updated in UI (implicitly waits for re-render)
-        await waitFor(() => {
-            expect(screen.getByDisplayValue('http://localhost/t/new-token')).toBeInTheDocument();
-        });
-    });
-
     test('copies link to clipboard', async () => {
         const user = userEvent.setup();
         render(

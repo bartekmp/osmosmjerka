@@ -49,8 +49,8 @@ describe('GroupsView', () => {
 
     test('renders groups list', async () => {
         const groups = [
-            { id: 1, name: 'Group A', member_count: 5 },
-            { id: 2, name: 'Group B', member_count: 0 },
+            { id: 1, name: 'Group A', accepted_count: 5 },
+            { id: 2, name: 'Group B', accepted_count: 0 },
         ];
         mockFetchGroups.mockResolvedValue(groups);
 
@@ -60,8 +60,8 @@ describe('GroupsView', () => {
             expect(screen.getByText('Group A')).toBeInTheDocument();
             expect(screen.getByText('Group B')).toBeInTheDocument();
         });
-        expect(screen.getByText('5 students')).toBeInTheDocument();
-        expect(screen.getByText('0 students')).toBeInTheDocument();
+        expect(screen.getByText('5 accepted')).toBeInTheDocument();
+        expect(screen.getByText('0 accepted')).toBeInTheDocument();
     });
 
     test('opens create group dialog and creates group', async () => {
@@ -81,7 +81,7 @@ describe('GroupsView', () => {
     });
 
     test('deletes group after confirmation', async () => {
-        const groups = [{ id: 1, name: 'Group A', member_count: 0 }];
+        const groups = [{ id: 1, name: 'Group A', accepted_count: 0 }];
         mockFetchGroups.mockResolvedValue(groups);
         window.confirm = jest.fn(() => true);
 
@@ -100,7 +100,7 @@ describe('GroupsView', () => {
     });
 
     test('opens manage members dialog', async () => {
-        const groups = [{ id: 1, name: 'Group A', member_count: 0 }];
+        const groups = [{ id: 1, name: 'Group A', accepted_count: 0 }];
         mockFetchGroups.mockResolvedValue(groups);
         mockFetchGroupMembers.mockResolvedValue([
             { id: 101, username: 'student1', added_at: '2025-01-01' }

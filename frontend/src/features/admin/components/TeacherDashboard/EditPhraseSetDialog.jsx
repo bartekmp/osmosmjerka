@@ -451,7 +451,7 @@ function EditPhraseSetDialog({ open, onClose, onUpdated, token, phraseSet }) {
                                     ) : (
                                         groups.map((group) => (
                                             <MenuItem key={group.id} value={group.id}>
-                                                {group.name} ({group.member_count} students)
+                                                {group.name} ({t('teacher.groups.member_count', { count: group.member_count, defaultValue: '{{count}} students' })})
                                             </MenuItem>
                                         ))
                                     )}

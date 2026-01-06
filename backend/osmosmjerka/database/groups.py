@@ -331,11 +331,15 @@ class TeacherGroupsMixin:
                 teacher_groups_table.c.id,
                 teacher_groups_table.c.name,
                 teacher_group_members_table.c.responded_at.label("joined_at"),
+                accounts_table.c.username.label("teacher_username"),
             )
             .select_from(
                 teacher_group_members_table.join(
                     teacher_groups_table,
                     teacher_group_members_table.c.group_id == teacher_groups_table.c.id,
+                ).join(
+                    accounts_table,
+                    teacher_groups_table.c.teacher_id == accounts_table.c.id,
                 )
             )
             .where(

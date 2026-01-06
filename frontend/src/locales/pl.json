@@ -161,7 +161,7 @@
   "grid_too_small_for_difficulty": "Okno jest za małe, aby wyświetlić ten poziom trudności. Powiększ okno, wybierz łatwiejszy poziom lub użyj większego ekranu.",
   "error_loading_puzzle": "Błąd podczas ładowania łamigłówki.",
   "loading_puzzle": "Ładowanie łamigłówki...",
-  "admin_dashboard": "Panel administratora",
+  "admin_dashboard": "Panel",
   "rows_per_page": "Wierszy na stronę",
   "of": "z",
   "page": "Strona",
@@ -440,6 +440,7 @@
   "full_outline": "Pełny zarys",
   "show_hint": "Pokaż podpowiedź",
   "loading": "Ładowanie...",
+  "unknown": "Nieznany",
   "loading_game": "Ładowanie Osmosmjerki...",
   "hint_tooltip": "Pokaż lokalizację losowej frazy",
   "progressive_hint_tooltip": "Progresywna podpowiedź ({{remaining}} pozostało, poziom {{level}})",
@@ -449,6 +450,7 @@
   "admin": {
     "dashboard": {
       "sections": {
+        "learning": "Nauka",
         "records": "Rekordy i treści",
         "users": "Narzędzia użytkowników i kont",
         "system": "Analizy i ustawienia"
@@ -505,6 +507,14 @@
       "loadError": "Nie udało się załadować zasad punktacji",
       "saveError": "Nie udało się zapisać zasad punktacji",
       "saveSuccess": "Zasady punktacji zostały pomyślnie zaktualizowane"
+    },
+    "notifications": {
+      "title": "Powiadomienia",
+      "empty": "Brak powiadomień",
+      "mark_all_read": "Oznacz wszystkie jako przeczytane",
+      "review": "Do przeglądu",
+      "session_completed": "{{player}} ukończył łamigłówkę \"{{puzzle}}\"",
+      "session_started": "{{player}} rozpoczął łamigłówkę \"{{puzzle}}\""
     }
   },
   "learnLater": {
@@ -653,7 +663,9 @@
       "link_failed": "Nie udało się skopiować linku",
       "link_regenerated": "Link wygenerowany ponownie! Stare linki nie będą już działać.",
       "delete_success": "Zestaw fraz usunięty",
-      "create_success": "Zestaw fraz utworzony!"
+      "create_success": "Zestaw fraz utworzony!",
+      "tab_puzzles": "Puzzle",
+      "update_success": "Zestaw fraz zaktualizowany!"
     },
     "create": {
       "title": "Utwórz Łamigłówkę",
@@ -681,6 +693,11 @@
       "access_type": "Typ Dostępu",
       "access_public": "Publiczny (każdy z linkiem)",
       "access_private": "Prywatny (wymagane logowanie)",
+      "select_groups": "Przypisz do Grup",
+      "no_groups": "Brak dostępnych grup",
+      "manual_usernames": "Przypisz do Uczniów (wg nazwy użytkownika)",
+      "usernames_placeholder": "Wprowadź nazwy użytkowników oddzielone przecinkami",
+      "usernames_helper": "Poszczególni uczniowie do zaproszenia",
       "max_plays": "Maks. Rozgrywek (opcjonalne)",
       "max_plays_helper": "Zostaw puste dla braku limitu",
       "study_groups_placeholder": "Uczniowie (Wkrótce)",
@@ -761,6 +778,7 @@
     "groups": {
       "title": "Moje Grupy",
       "accepted_count": "{{count}} zaakceptowanych",
+      "pending_count": "{{count}} oczekujących",
       "create": "Utwórz Grupę",
       "confirm_delete": "Czy na pewno chcesz usunąć tę grupę?",
       "create_title": "Utwórz Nową Grupę",
@@ -768,9 +786,18 @@
       "manage": "Zarządzaj Członkami",
       "manage_title": "Zarządzaj {{name}}",
       "add_student_label": "Nazwy Użytkowników Uczniów",
+      "add_student_placeholder": "Wprowadź nazwy użytkowników (oddzielone przecinkami lub nowymi liniami)",
       "invite": "Zaproś",
+      "invited_success": "Zaproszono",
       "members_list": "Członkowie",
-      "no_members": "Brak uczniów w tej grupie"
+      "no_members": "Brak uczniów w tej grupie",
+      "status_accepted": "zaakceptowany",
+      "status_pending": "oczekujący",
+      "member_count": "{{count}} uczniów"
+    },
+    "edit": {
+      "title": "Edytuj Puzzle",
+      "load_error": "Nie udało się załadować szczegółów puzzla"
     }
   },
   "student": {
@@ -791,7 +818,16 @@
       "no_groups": "Nie należysz jeszcze do żadnej grupy.",
       "joined_on": "Dołączono {{date}}",
       "leave": "Opuść Grupę",
-      "confirm_leave": "Czy na pewno chcesz opuścić tę grupę?"
+      "confirm_leave": "Czy na pewno chcesz opuścić tę grupę?",
+      "phrase_count": "{{count}} fraz",
+      "teacher": "Nauczyciel: {{name}}",
+      "solved": "Rozwiązane",
+      "new": "Nowe",
+      "new_puzzles": "Nowe Łamigłówki",
+      "solved_puzzles": "Rozwiązane Łamigłówki",
+      "no_new_puzzles": "Brak nowych łamigłówek.",
+      "no_solved_puzzles": "Brak rozwiązanych łamigłówek.",
+      "created_by_date": "Utworzone przez {{name}} dnia {{date}}"
     }
   }
 }

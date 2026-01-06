@@ -145,7 +145,7 @@
   "grid_too_small_for_difficulty": "Window too small to display this difficulty. Please resize the window, choose an easier difficulty, or use a larger screen.",
   "error_loading_puzzle": "Error loading puzzle.",
   "loading_puzzle": "Loading puzzle...",
-  "admin_dashboard": "Admin Dashboard",
+  "admin_dashboard": "Dashboard",
   "rows_per_page": "Rows per page",
   "of": "of",
   "page": "Page",
@@ -438,6 +438,7 @@
   "full_outline": "Full Outline",
   "show_hint": "Show Hint",
   "loading": "Loading...",
+  "unknown": "Unknown",
   "loading_game": "Loading Osmosmjerka...",
   "hint_tooltip": "Show a random phrase location",
   "progressive_hint_tooltip": "Progressive hint ({{remaining}} remaining, level {{level}})",
@@ -447,6 +448,7 @@
   "admin": {
     "dashboard": {
       "sections": {
+        "learning": "Learning",
         "records": "Records & Content",
         "users": "User & Account Tools",
         "system": "Insights & Settings"
@@ -503,6 +505,14 @@
       "loadError": "Failed to load scoring rules",
       "saveError": "Failed to save scoring rules",
       "saveSuccess": "Scoring rules updated successfully"
+    },
+    "notifications": {
+      "title": "Notifications",
+      "empty": "No notifications",
+      "mark_all_read": "Mark all as read",
+      "review": "Review",
+      "session_completed": "{{player}} completed puzzle \"{{puzzle}}\"",
+      "session_started": "{{player}} started puzzle \"{{puzzle}}\""
     }
   },
   "learnLater": {
@@ -651,7 +661,9 @@
       "link_failed": "Failed to copy link",
       "link_regenerated": "Link regenerated! Old links will no longer work.",
       "delete_success": "Phrase set deleted",
-      "create_success": "Phrase set created!"
+      "create_success": "Phrase set created!",
+      "tab_puzzles": "Puzzles",
+      "update_success": "Phrase set updated!"
     },
     "create": {
       "title": "Create Puzzle",
@@ -679,6 +691,11 @@
       "access_type": "Access Type",
       "access_public": "Public (anyone with link)",
       "access_private": "Private (login required)",
+      "select_groups": "Assign to Groups",
+      "no_groups": "No groups available",
+      "manual_usernames": "Assign to Students (by username)",
+      "usernames_placeholder": "Enter usernames separated by commas",
+      "usernames_helper": "Individual students to invite",
       "max_plays": "Max Plays (optional)",
       "max_plays_helper": "Leave empty for unlimited plays",
       "study_groups_placeholder": "Students (Coming Soon)",
@@ -759,6 +776,7 @@
     "groups": {
       "title": "My Groups",
       "accepted_count": "{{count}} accepted",
+      "pending_count": "{{count}} pending",
       "create": "Create Group",
       "confirm_delete": "Are you sure you want to delete this group?",
       "create_title": "Create New Group",
@@ -766,9 +784,14 @@
       "manage": "Manage Members",
       "manage_title": "Manage {{name}}",
       "add_student_label": "Student Usernames",
+      "add_student_placeholder": "Enter usernames (comma or newline separated)",
       "invite": "Invite",
+      "invited_success": "Invited",
       "members_list": "Members",
-      "no_members": "No students in this group yet"
+      "no_members": "No students in this group yet",
+      "status_accepted": "accepted",
+      "status_pending": "pending",
+      "member_count": "{{count}} students"
     }
   },
   "student": {
@@ -789,7 +812,16 @@
       "no_groups": "You are not a member of any study groups yet.",
       "joined_on": "Joined on {{date}}",
       "leave": "Leave Group",
-      "confirm_leave": "Are you sure you want to leave this group?"
+      "confirm_leave": "Are you sure you want to leave this group?",
+      "phrase_count": "{{count}} phrases",
+      "teacher": "Teacher: {{name}}",
+      "solved": "Solved",
+      "new": "New",
+      "new_puzzles": "New Puzzles",
+      "solved_puzzles": "Solved Puzzles",
+      "no_new_puzzles": "No new puzzles.",
+      "no_solved_puzzles": "No solved puzzles yet.",
+      "created_by_date": "Created by {{name}} on {{date}}"
     }
   }
 }

@@ -788,7 +788,15 @@ class TeacherSetsMixin:
         )
 
         query = (
-            select(teacher_phrase_sets_table, phrase_count_subquery)
+            select(
+                teacher_phrase_sets_table,
+                phrase_count_subquery,
+                accounts_table.c.username.label("creator_username"),
+            )
+            .join(
+                accounts_table,
+                teacher_phrase_sets_table.c.created_by == accounts_table.c.id,
+            )
             .where(
                 and_(
                     teacher_phrase_sets_table.c.id.in_(all_ids),

@@ -175,7 +175,7 @@ export default function GroupsView({ token }) {
                                 <Typography variant="body2" color="text.secondary">
                                     {t('teacher.groups.accepted_count', { count: group.accepted_count || 0, defaultValue: '{{count}} accepted' })}
                                     {(group.pending_count > 0) && (
-                                        <span style={{ marginLeft: 8 }}>({group.pending_count} pending)</span>
+                                        <span style={{ marginLeft: 8 }}>({t('teacher.groups.pending_count', { count: group.pending_count, defaultValue: '{{count}} pending' })})</span>
                                     )}
                                 </Typography>
                             </CardContent>
@@ -226,7 +226,7 @@ export default function GroupsView({ token }) {
                         <Stack direction="row" spacing={1} alignItems="flex-start">
                             <TextField
                                 label={t('teacher.groups.add_student_label', 'Student Usernames')}
-                                placeholder="Enter usernames (comma or newline separated)"
+                                placeholder={t('teacher.groups.add_student_placeholder', 'Enter usernames (comma or newline separated)')}
                                 fullWidth
                                 size="small"
                                 multiline
@@ -249,7 +249,7 @@ export default function GroupsView({ token }) {
                             <Box sx={{ mt: 1 }}>
                                 {inviteResults.map((r, i) => (
                                     <Typography key={i} variant="body2" color={r.success ? 'success.main' : 'error.main'}>
-                                        {r.username}: {r.success ? 'Invited' : r.error}
+                                        {r.username}: {r.success ? t('teacher.groups.invited_success', 'Invited') : r.error}
                                     </Typography>
                                 ))}
                             </Box>
@@ -285,7 +285,7 @@ export default function GroupsView({ token }) {
                                                             color: '#fff',
                                                         }}
                                                     >
-                                                        {member.status}
+                                                        {member.status === 'accepted' ? t('teacher.groups.status_accepted', 'accepted') : member.status === 'pending' ? t('teacher.groups.status_pending', 'pending') : member.status}
                                                     </Typography>
                                                 </Stack>
                                             }

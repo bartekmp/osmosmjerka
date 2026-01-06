@@ -1,11 +1,13 @@
 """Student study API endpoints."""
 
-from typing import List, Optional
+from typing import List, Optional, Set
 
 from fastapi import APIRouter, Depends, Query
 from osmosmjerka.auth import get_current_user
 from osmosmjerka.database import db_manager
+from osmosmjerka.database.models import teacher_phrase_set_sessions_table
 from pydantic import BaseModel
+from sqlalchemy import select
 
 router = APIRouter(prefix="/user/study", tags=["student_study"])
 
@@ -20,6 +22,8 @@ class AssignedPuzzleOut(BaseModel):
     name: str
     description: Optional[str] = None
     created_by: int
+    creator_username: Optional[str] = None
+    created_at: Optional[str] = None
     phrase_count: int
     completed_count: int
     total_sessions: int
@@ -45,33 +49,52 @@ async def list_assigned_puzzles(
     current_user: dict = Depends(get_current_user),
 ):
     """List puzzles assigned to the current user (directly or via groups)."""
+    user_id = current_user["id"]
     result = await db_manager.get_student_assigned_puzzles(
-        user_id=current_user["id"],
+        user_id=user_id,
         limit=limit,
         offset=offset,
     )
 
-    # Needs to determine if completed by user?
-    # The get_student_assigned_puzzles returns puzzle details.
-    # We might want to check completion status efficiently.
-    # For now, we will return basic info.
-    # TODO: Fetch completion status per puzzle for this user.
+    # Get the set of completed puzzle IDs for this user
+    completed_ids: Set[int] = set()
+    database = db_manager._ensure_database()
+    completed_query = (
+        select(teacher_phrase_set_sessions_table.c.phrase_set_id)
+        .where(
+            teacher_phrase_set_sessions_table.c.user_id == user_id,
+            teacher_phrase_set_sessions_table.c.is_completed == True,  # noqa: E712
+        )
+        .distinct()
+    )
+    completed_rows = await database.fetch_all(completed_query)
+    for row in completed_rows:
+        completed_ids.add(row["phrase_set_id"])
 
     puzzles = []
     for p in result["puzzles"]:
+        puzzle_id = p["id"]
         puzzles.append(
             {
-                "id": p["id"],
+                "id": puzzle_id,
                 "name": p["name"],
                 "description": p["description"],
                 "created_by": p["created_by"],
+                "creator_username": p.get("creator_username"),
+                "created_at": (
+                    p["created_at"]
+                    if isinstance(p.get("created_at"), str)
+                    else (p["created_at"].isoformat() if p.get("created_at") else None)
+                ),
                 "phrase_count": p["phrase_count"],
-                "completed_count": p.get(
-                    "completed_count", 0
-                ),  # Total completions globally? No, teacher set dict has global stats.
+                "completed_count": p.get("completed_count", 0),
                 "total_sessions": p.get("session_count", 0),
-                "is_completed": False,  # TODO
-                "expires_at": (p["expires_at"].isoformat() if p.get("expires_at") else None),
+                "is_completed": puzzle_id in completed_ids,
+                "expires_at": (
+                    p["expires_at"]
+                    if isinstance(p.get("expires_at"), str)
+                    else (p["expires_at"].isoformat() if p.get("expires_at") else None)
+                ),
                 "token": p["current_hotlink_token"],
             }
         )

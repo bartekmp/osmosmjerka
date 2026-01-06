@@ -91,22 +91,6 @@ function TeacherDashboard({ token, languageSets, currentLanguageSetId }) {
         }
     }, [api, t]);
 
-    // Handle regenerate link
-    const handleRegenerateLink = useCallback(async (setId) => {
-        try {
-            const result = await api.regenerateLink(setId);
-            setSnackbar({ open: true, message: t('teacher.dashboard.link_regenerated', 'Link regenerated! Old links will no longer work.'), severity: 'success' });
-            // Update the set in state
-            setPhraseSets(prev => prev.map(s =>
-                s.id === setId
-                    ? { ...s, current_hotlink_token: result.token, hotlink_version: result.version }
-                    : s
-            ));
-        } catch (err) {
-            setSnackbar({ open: true, message: err.message, severity: 'error' });
-        }
-    }, [api, t]);
-
     // Handle delete
     const handleDeleteClick = useCallback((phraseSet) => {
         setSetToDelete(phraseSet);
@@ -297,14 +281,6 @@ function TeacherDashboard({ token, languageSets, currentLanguageSetId }) {
                                                         onClick={() => handleCopyLink(set.current_hotlink_token)}
                                                     >
                                                         <CopyIcon />
-                                                    </IconButton>
-                                                </Tooltip>
-                                                <Tooltip title={t('teacher.dashboard.regenerate_link', 'Generate new link (invalidates old)')}>
-                                                    <IconButton
-                                                        size="small"
-                                                        onClick={() => handleRegenerateLink(set.id)}
-                                                    >
-                                                        <RefreshIcon />
                                                     </IconButton>
                                                 </Tooltip>
                                             </Stack>

@@ -152,9 +152,12 @@ export default function MyStudy({ token }) {
                                 {t('student.study.no_puzzles', 'No puzzles assigned yet.')}
                             </Typography>
                         ) : (
-                            <Grid container spacing={3}>
-                                {puzzles.map(puzzle => (
-                                    <Grid item xs={12} sm={6} md={4} key={puzzle.id}>
+                            <>
+                                {(() => {
+                                    const solvedPuzzles = puzzles.filter(p => p.is_completed);
+                                    const newPuzzles = puzzles.filter(p => !p.is_completed);
+
+                                    const renderPuzzleCard = (puzzle) => (
                                         <Card variant="outlined" sx={{ height: '100%', display: 'flex', flexDirection: 'column' }}>
                                             <CardContent sx={{ flex: 1 }}>
                                                 <Typography variant="h6" gutterBottom component="div">
@@ -165,10 +168,16 @@ export default function MyStudy({ token }) {
                                                         {puzzle.description}
                                                     </Typography>
                                                 )}
+                                                <Typography variant="caption" display="block" color="text.secondary" sx={{ mb: 1 }}>
+                                                    {t('student.study.created_by_date', {
+                                                        name: puzzle.creator_username || t('unknown'),
+                                                        date: formatDate(puzzle.created_at)
+                                                    })}
+                                                </Typography>
                                                 <Stack direction="row" spacing={1} flexWrap="wrap" useFlexGap sx={{ mt: 1 }}>
                                                     <Chip
                                                         size="small"
-                                                        label={`${puzzle.phrase_count} phrases`}
+                                                        label={t('student.study.phrase_count', { count: puzzle.phrase_count, defaultValue: '{{count}} phrases' })}
                                                         variant="outlined"
                                                     />
                                                     {puzzle.expires_at && (
@@ -176,6 +185,20 @@ export default function MyStudy({ token }) {
                                                             size="small"
                                                             label={t('student.study.expires', { date: formatDate(puzzle.expires_at) })}
                                                             color="warning"
+                                                            variant="outlined"
+                                                        />
+                                                    )}
+                                                    {puzzle.is_completed ? (
+                                                        <Chip
+                                                            size="small"
+                                                            label={t('student.study.solved', 'Solved')}
+                                                            color="success"
+                                                        />
+                                                    ) : (
+                                                        <Chip
+                                                            size="small"
+                                                            label={t('student.study.new', 'New')}
+                                                            color="info"
                                                             variant="outlined"
                                                         />
                                                     )}
@@ -193,9 +216,57 @@ export default function MyStudy({ token }) {
                                                 </Button>
                                             </CardActions>
                                         </Card>
-                                    </Grid>
-                                ))}
-                            </Grid>
+                                    );
+
+                                    return (
+                                        <Stack spacing={4}>
+                                            {/* New Puzzles Section */}
+                                            <Box>
+                                                <Typography variant="h6" sx={{ mb: 2, display: 'flex', alignItems: 'center', gap: 1 }}>
+                                                    {t('student.study.new_puzzles', 'New Puzzles')}
+                                                    <Chip label={newPuzzles.length} size="small" color="default" />
+                                                </Typography>
+                                                {newPuzzles.length > 0 ? (
+                                                    <Grid container spacing={3}>
+                                                        {newPuzzles.map(puzzle => (
+                                                            <Grid item xs={12} sm={6} md={4} key={puzzle.id}>
+                                                                {renderPuzzleCard(puzzle)}
+                                                            </Grid>
+                                                        ))}
+                                                    </Grid>
+                                                ) : (
+                                                    <Typography color="text.secondary" sx={{ fontStyle: 'italic' }}>
+                                                        {t('student.study.no_new_puzzles', 'No new puzzles.')}
+                                                    </Typography>
+                                                )}
+                                            </Box>
+
+                                            <Divider />
+
+                                            {/* Solved Puzzles Section */}
+                                            <Box>
+                                                <Typography variant="h6" sx={{ mb: 2, display: 'flex', alignItems: 'center', gap: 1 }}>
+                                                    {t('student.study.solved_puzzles', 'Solved Puzzles')}
+                                                    <Chip label={solvedPuzzles.length} size="small" color="success" variant="outlined" />
+                                                </Typography>
+                                                {solvedPuzzles.length > 0 ? (
+                                                    <Grid container spacing={3}>
+                                                        {solvedPuzzles.map(puzzle => (
+                                                            <Grid item xs={12} sm={6} md={4} key={puzzle.id}>
+                                                                {renderPuzzleCard(puzzle)}
+                                                            </Grid>
+                                                        ))}
+                                                    </Grid>
+                                                ) : (
+                                                    <Typography color="text.secondary" sx={{ fontStyle: 'italic' }}>
+                                                        {t('student.study.no_solved_puzzles', 'No solved puzzles yet.')}
+                                                    </Typography>
+                                                )}
+                                            </Box>
+                                        </Stack>
+                                    );
+                                })()}
+                            </>
                         )}
                     </Box>
                 )}
@@ -282,6 +353,11 @@ export default function MyStudy({ token }) {
                                                         <Typography variant="subtitle1" fontWeight="bold">
                                                             {group.name}
                                                         </Typography>
+                                                        {group.teacher_username && (
+                                                            <Typography variant="body2" color="text.secondary">
+                                                                {t('student.study.teacher', { name: group.teacher_username })}
+                                                            </Typography>
+                                                        )}
                                                         {group.joined_at && (
                                                             <Typography variant="body2" color="text.secondary">
                                                                 {t('student.study.joined_on', { date: formatDate(group.joined_at) })}
@@ -306,8 +382,9 @@ export default function MyStudy({ token }) {
                             </Grid>
                         )}
                     </Box>
-                )}
-            </div>
-        </Box>
+                )
+                }
+            </div >
+        </Box >
     );
 }
