@@ -2,6 +2,15 @@
 
 <!-- version list -->
 
+## v1.38.0 (2026-01-07)
+
+### Feature
+
+- Improve mobile responsiveness, add header and controls
+  ([#142](https://github.com/bartekmp/osmosmjerka/pull/142),
+  [`b0e8cdc`](https://github.com/bartekmp/osmosmjerka/commit/b0e8cdc1c0a626c3a48af8f1ea11775fd422ecb1))
+
+
 ## v1.37.0 (2026-01-06)
 
 ### Bug Fixes
