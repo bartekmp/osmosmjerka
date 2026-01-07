@@ -14,14 +14,22 @@ import {
     DialogTitle,
     Stack,
     TextField,
+    Tooltip,
     Typography,
 } from '@mui/material';
+import ArrowBackIcon from '@mui/icons-material/ArrowBack';
+import ListIcon from '@mui/icons-material/List';
 import { useTranslation } from 'react-i18next';
 import confetti from 'canvas-confetti';
 import ScrabbleGrid from '../../game/components/Grid/Grid';
 import PhraseList from '../../game/components/PhraseList/PhraseList';
 import { Timer } from '../../game/components/Timer';
+import MobilePhraseListSheet from '../../game/components/MobilePhraseListSheet';
+import { LanguageSwitcher, NightModeButton } from '../../../shared';
+import { getAssetUrl } from '../../../shared/utils/assets';
 import { useThemeMode } from '../../../contexts/ThemeContext';
+import { useTouchDevice } from '../../../hooks/useTouchDevice';
+import '../../game/components/MobilePhraseListSheet/MobilePhraseListSheet.css';
 
 /**
  * TeacherPuzzlePage - Student-facing page for teacher-created puzzles
@@ -56,8 +64,22 @@ function TeacherPuzzlePage() {
     const [translationDialog, setTranslationDialog] = useState({ open: false, phrase: null });
     const [translationInput, setTranslationInput] = useState('');
     const [translationSubmissions, setTranslationSubmissions] = useState([]);
+    const [mobileSheetOpen, setMobileSheetOpen] = useState(false);
 
     const gridRef = useRef(null);
+
+    // Mobile layout detection
+    const isTouchDevice = useTouchDevice();
+    const [useMobileLayout, setUseMobileLayout] = useState(false);
+
+    useEffect(() => {
+        const checkMobileLayout = () => {
+            setUseMobileLayout(isTouchDevice && window.innerWidth < 900);
+        };
+        checkMobileLayout();
+        window.addEventListener('resize', checkMobileLayout);
+        return () => window.removeEventListener('resize', checkMobileLayout);
+    }, [isTouchDevice]);
     const allFound = found.length === phrases.length && phrases.length > 0;
 
     // Clear any existing session on mount - every refresh starts fresh
@@ -379,14 +401,146 @@ function TeacherPuzzlePage() {
         const showTranslationsSetting = !requireTranslationInput && sessionData?.config?.show_translations !== false;
 
         return (
-            <Container maxWidth="lg" sx={{ py: 2 }}>
-                <Stack spacing={2}>
-                    {/* Header */}
-                    <Box sx={{ textAlign: 'center' }}>
-                        <Typography variant="h5">
+            <Container maxWidth="lg" sx={{ py: useMobileLayout ? 1 : 2, px: useMobileLayout ? 0.5 : 2 }}>
+                <Stack spacing={useMobileLayout ? 1 : 2}>
+                    {/* Header with logo, title, and controls */}
+                    <Box sx={{
+                        position: 'relative',
+                        width: '100%',
+                        display: 'flex',
+                        alignItems: 'center',
+                        px: { xs: 1, sm: 2 },
+                        minHeight: { xs: 48, sm: 56, md: 64 }
+                    }}>
+                        {/* Logo and Osmosmjerka title */}
+                        <Box sx={{
+                            position: 'absolute',
+                            left: 0,
+                            right: { xs: '80px', sm: '100px' },
+                            display: 'flex',
+                            alignItems: 'center',
+                            justifyContent: { xs: 'flex-start', sm: 'center' },
+                            gap: { xs: 1, sm: 2 },
+                            cursor: 'pointer',
+                            overflow: 'hidden',
+                            px: { xs: 1, sm: 2 }
+                        }}
+                            onClick={() => navigate('/')}
+                        >
+                            <Box
+                                sx={{
+                                    height: { xs: 28, sm: 32, md: 36 },
+                                    width: { xs: 28, sm: 32, md: 36 },
+                                    flexShrink: 0,
+                                }}
+                            >
+                                <Box
+                                    component="img"
+                                    src={getAssetUrl("android-chrome-512x512.png")}
+                                    alt="Osmosmjerka logo"
+                                    sx={{
+                                        height: '100%',
+                                        width: '100%',
+                                        userSelect: 'none',
+                                    }}
+                                    onError={e => {
+                                        e.target.onerror = null;
+                                        e.target.src = getAssetUrl("favicon-32x32.png");
+                                    }}
+                                />
+                            </Box>
+                            <Typography
+                                variant="h1"
+                                sx={{
+                                    fontSize: { xs: '1.1rem', sm: '1.5rem', md: '2rem' },
+                                    userSelect: 'none',
+                                    whiteSpace: 'nowrap',
+                                    overflow: 'hidden',
+                                    textOverflow: 'ellipsis',
+                                    '@media (max-width: 349px)': {
+                                        display: 'none',
+                                    },
+                                }}
+                            >
+                                Osmosmjerka
+                            </Typography>
+                        </Box>
+
+                        {/* Controls - positioned on the right */}
+                        <Box
+                            sx={{
+                                position: 'absolute',
+                                right: 0,
+                                display: 'flex',
+                                flexDirection: 'row',
+                                alignItems: 'center',
+                                gap: { xs: 0.5, sm: 1 },
+                                zIndex: 1
+                            }}
+                        >
+                            <LanguageSwitcher
+                                sx={{
+                                    minWidth: { xs: 36, sm: 44 },
+                                    height: { xs: 36, sm: 44 },
+                                }}
+                            />
+                            <NightModeButton
+                                sx={{
+                                    minWidth: { xs: 36, sm: 44 },
+                                    height: { xs: 36, sm: 44 },
+                                    padding: { xs: 0.5, sm: 0.75 },
+                                }}
+                            />
+                        </Box>
+                    </Box>
+
+                    {/* Puzzle title with back button on desktop */}
+                    <Box sx={{
+                        display: 'flex',
+                        alignItems: 'center',
+                        justifyContent: 'center',
+                        gap: 2,
+                    }}>
+                        {/* Back Button - Desktop only */}
+                        {!useMobileLayout && (
+                            <Tooltip title={t('back_to_game', 'Back to Game')} placement="top" arrow>
+                                <Button
+                                    variant="contained"
+                                    onClick={() => navigate('/')}
+                                    aria-label={t('back_to_game', 'Back to Game')}
+                                    sx={{
+                                        minWidth: '40px',
+                                        width: '40px',
+                                        height: '40px',
+                                        padding: 0,
+                                        borderRadius: '10px',
+                                        border: (theme) => `2px solid ${theme.palette.mode === 'dark' ? '#6b5b3a' : '#b89c4e'}`,
+                                        boxShadow: (theme) => `1px 2px 0 ${theme.palette.mode === 'dark' ? '#6b5b3a' : '#b89c4e'}`,
+                                        background: (theme) => theme.palette.mode === 'dark' ? '#4a4a4a' : '#f9e7b3',
+                                        color: (theme) => theme.palette.mode === 'dark' ? '#e0e0e0' : '#333',
+                                        '&:hover': {
+                                            background: (theme) => theme.palette.mode === 'dark' ? '#5a5a5a' : '#f0d99a',
+                                        },
+                                    }}
+                                >
+                                    <ArrowBackIcon />
+                                </Button>
+                            </Tooltip>
+                        )}
+                        <Typography
+                            variant="h5"
+                            sx={{
+                                color: 'text.secondary',
+                                fontSize: { xs: '1.1rem', sm: '1.25rem', md: '1.4rem' },
+                            }}
+                        >
                             {sessionData?.puzzleName || t('teacher.puzzle.title', 'Puzzle')}
                         </Typography>
-                        {showTimer && (
+                    </Box>
+
+                    {/* Timer */}
+                    {showTimer && (
+                        <Box sx={{ textAlign: 'center' }}>
                             <Timer
                                 isActive={!allFound && gameStartTime !== null}
                                 onTimeUpdate={handleTimerUpdate}
@@ -394,8 +548,8 @@ function TeacherPuzzlePage() {
                                 showTimer={true}
                                 currentElapsedTime={currentElapsedTime}
                             />
-                        )}
-                    </Box>
+                        </Box>
+                    )}
 
                     {/* All found message */}
                     {allFound && (
@@ -409,14 +563,26 @@ function TeacherPuzzlePage() {
                     <Box
                         sx={{
                             display: 'flex',
-                            flexDirection: { xs: 'column', md: 'row' },
-                            gap: 3,
+                            flexDirection: 'row',
+                            gap: useMobileLayout ? 2 : 3,
                             justifyContent: 'center',
-                            alignItems: { xs: 'center', md: 'flex-start' },
+                            alignItems: 'flex-start',
+                            width: '100%',
+                            maxWidth: '100vw',
+                            overflow: 'hidden',
                         }}
                     >
                         {/* Grid */}
-                        <Box>
+                        <Box
+                            sx={{
+                                flex: '0 0 auto',
+                                display: 'flex',
+                                justifyContent: 'center',
+                                alignItems: 'center',
+                                width: useMobileLayout ? '100%' : 'auto',
+                                maxWidth: '100%',
+                            }}
+                        >
                             <ScrabbleGrid
                                 ref={gridRef}
                                 grid={grid}
@@ -426,44 +592,126 @@ function TeacherPuzzlePage() {
                                 disabled={allFound || translationDialog.open}
                                 isDarkMode={isDarkMode}
                                 showCelebration={allFound}
+                                isTouchDevice={isTouchDevice}
+                                useMobileLayout={useMobileLayout}
                             />
                         </Box>
 
-                        {/* Phrase list */}
-                        <Box sx={{ width: { xs: '100%', md: 280 } }}>
-                            <PhraseList
-                                phrases={phrases}
-                                found={found}
-                                hidePhrases={hidePhrases}
-                                setHidePhrases={setHidePhrases}
-                                allFound={allFound}
-                                showTranslations={showTranslationsSetting && showTranslations}
-                                setShowTranslations={showTranslationsSetting ? setShowTranslations : null}
-                                disableShowPhrases={false}
-                                onPhraseClick={handlePhraseClick}
-                                progressiveHintsEnabled={false}
-                                t={t}
-                            />
-                        </Box>
+                        {/* Phrase list - Desktop only */}
+                        {!useMobileLayout && (
+                            <Box sx={{ width: 280, minWidth: 240 }}>
+                                <PhraseList
+                                    phrases={phrases}
+                                    found={found}
+                                    hidePhrases={hidePhrases}
+                                    setHidePhrases={setHidePhrases}
+                                    allFound={allFound}
+                                    showTranslations={showTranslationsSetting && showTranslations}
+                                    setShowTranslations={showTranslationsSetting ? setShowTranslations : null}
+                                    disableShowPhrases={false}
+                                    onPhraseClick={handlePhraseClick}
+                                    progressiveHintsEnabled={false}
+                                    t={t}
+                                />
+                            </Box>
+                        )}
                     </Box>
 
-                    {/* Actions */}
-                    <Stack direction="row" spacing={2} justifyContent="center">
-                        {allFound && (
+                    {/* Mobile Layout - Floating Action Buttons */}
+                    {useMobileLayout && (
+                        <Box
+                            sx={{
+                                display: 'flex',
+                                flexDirection: 'row',
+                                justifyContent: 'center',
+                                alignItems: 'center',
+                                gap: 2,
+                                width: '100%',
+                                mt: 1.5,
+                            }}
+                        >
+                            {/* Back Button */}
+                            <Tooltip title={t('back_to_game', 'Back to Game')} placement="top" arrow>
+                                <Button
+                                    variant="contained"
+                                    onClick={() => navigate('/')}
+                                    aria-label={t('back_to_game', 'Back to Game')}
+                                    sx={{
+                                        minWidth: '48px',
+                                        width: '48px',
+                                        height: '48px',
+                                        padding: 0,
+                                        borderRadius: '12px',
+                                        border: (theme) => `2px solid ${theme.palette.mode === 'dark' ? '#6b5b3a' : '#b89c4e'}`,
+                                        boxShadow: (theme) => `1px 2px 0 ${theme.palette.mode === 'dark' ? '#6b5b3a' : '#b89c4e'}`,
+                                        background: (theme) => theme.palette.mode === 'dark' ? '#4a4a4a' : '#f9e7b3',
+                                        color: (theme) => theme.palette.mode === 'dark' ? '#e0e0e0' : '#333',
+                                        '&:hover': {
+                                            background: (theme) => theme.palette.mode === 'dark' ? '#5a5a5a' : '#f0d99a',
+                                        },
+                                    }}
+                                >
+                                    <ArrowBackIcon />
+                                </Button>
+                            </Tooltip>
+
+                            {/* Phrase List Button */}
+                            <Tooltip title={t('phrases_capitalized', 'Phrases')} placement="top" arrow>
+                                <Button
+                                    variant="contained"
+                                    onClick={() => setMobileSheetOpen(true)}
+                                    aria-label={t('show_phrases', 'Show Phrases')}
+                                    sx={{
+                                        minWidth: '48px',
+                                        width: '48px',
+                                        height: '48px',
+                                        padding: 0,
+                                        borderRadius: '12px',
+                                        border: (theme) => `2px solid ${theme.palette.mode === 'dark' ? '#6b5b3a' : '#b89c4e'}`,
+                                        boxShadow: (theme) => `1px 2px 0 ${theme.palette.mode === 'dark' ? '#6b5b3a' : '#b89c4e'}`,
+                                        background: (theme) => theme.palette.mode === 'dark' ? '#4a4a4a' : '#f9e7b3',
+                                        color: (theme) => theme.palette.mode === 'dark' ? '#e0e0e0' : '#333',
+                                        '&:hover': {
+                                            background: (theme) => theme.palette.mode === 'dark' ? '#5a5a5a' : '#f0d99a',
+                                        },
+                                    }}
+                                >
+                                    <ListIcon />
+                                </Button>
+                            </Tooltip>
+                        </Box>
+                    )}
+
+                    {/* Mobile Layout - Bottom Sheet */}
+                    {useMobileLayout && (
+                        <MobilePhraseListSheet
+                            open={mobileSheetOpen}
+                            onClose={() => setMobileSheetOpen(false)}
+                            phrases={phrases}
+                            found={found}
+                            hidePhrases={hidePhrases}
+                            setHidePhrases={setHidePhrases}
+                            allFound={allFound}
+                            showTranslations={showTranslationsSetting && showTranslations}
+                            setShowTranslations={showTranslationsSetting ? setShowTranslations : null}
+                            disableShowPhrases={false}
+                            onPhraseClick={handlePhraseClick}
+                            progressiveHintsEnabled={false}
+                            t={t}
+                        />
+                    )}
+
+                    {/* Actions - Only show Play Again when all found */}
+                    {allFound && (
+                        <Stack direction="row" spacing={2} justifyContent="center" alignItems="center">
                             <Button
                                 variant="contained"
                                 onClick={handleRestart}
                             >
                                 {t('play_again', 'Play Again')}
                             </Button>
-                        )}
-                        <Button
-                            variant="outlined"
-                            onClick={() => navigate('/')}
-                        >
-                            {t('back_to_game', 'Back to Game')}
-                        </Button>
-                    </Stack>
+                        </Stack>
+                    )}
                 </Stack>
 
                 {/* Translation Input Dialog */}
