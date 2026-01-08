@@ -10,6 +10,7 @@ __pycache__/
 *.pyd
 *.pkl
 osmosmjerka.egg-info/
+.ruff_cache/
 
 *.db
 *.sqlite3

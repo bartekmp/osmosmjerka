@@ -162,10 +162,10 @@ function TeacherDashboard({ token, languageSets, currentLanguageSetId }) {
     }
 
     return (
-        <Box sx={{ p: 2 }}>
+        <Paper sx={{ p: 3 }}>
             {/* Header */}
             <Stack direction="row" justifyContent="space-between" alignItems="center" sx={{ mb: 3 }}>
-                <Typography variant="h5" component="h1">
+                <Typography variant="h5" gutterBottom>
                     {t('teacher.dashboard.title', 'Teacher Mode')}
                 </Typography>
                 <Stack direction="row" spacing={1}>
@@ -413,7 +413,7 @@ function TeacherDashboard({ token, languageSets, currentLanguageSetId }) {
                     </Snackbar>
                 </Box>
             )}
-        </Box>
+        </Paper>
     );
 }
 

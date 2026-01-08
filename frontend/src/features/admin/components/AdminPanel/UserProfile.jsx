@@ -349,8 +349,8 @@ export default function UserProfile() {
     };
 
     return (
-        <Box>
-            <Typography variant="h5" sx={{ mb: 3 }}>{t('user_profile')}</Typography>
+        <Paper sx={{ p: 3 }}>
+            <Typography variant="h5" gutterBottom>{t('user_profile')}</Typography>
 
             {/* Account Information */}
             <Paper sx={{ p: 3, mb: 3 }}>
@@ -676,6 +676,6 @@ export default function UserProfile() {
                     languageSetId={selectedLanguageSetForLists}
                 />
             )}
-        </Box>
+        </Paper>
     );
 }

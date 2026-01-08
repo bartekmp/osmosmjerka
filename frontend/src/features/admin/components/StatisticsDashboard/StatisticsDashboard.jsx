@@ -51,23 +51,23 @@ import axios from 'axios';
 const StatisticsDashboard = ({ token, setError: onError, currentUser }) => {
   const { t } = useTranslation();
   const theme = useTheme();
-  
+
   // Create a minimal configuration for useAdminApi, only providing what's needed
   const { getWithAuth } = useAdminApi({
     token,
-    setRows: () => {}, // Not used in statistics dashboard
-    setTotalRows: () => {}, // Not used in statistics dashboard
-    setDashboard: () => {}, // Not used in statistics dashboard
+    setRows: () => { }, // Not used in statistics dashboard
+    setTotalRows: () => { }, // Not used in statistics dashboard
+    setDashboard: () => { }, // Not used in statistics dashboard
     setError: onError,
-    setToken: () => {}, // Not used in statistics dashboard
-    setIsLogged: () => {} // Not used in statistics dashboard
+    setToken: () => { }, // Not used in statistics dashboard
+    setIsLogged: () => { } // Not used in statistics dashboard
   });
-  
+
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [activeTab, setActiveTab] = useState(0);
   const [selectedLanguageSet, setSelectedLanguageSet] = useState('');
-  
+
   // Data states
   const [overview, setOverview] = useState(null);
   const [languageSets, setLanguageSets] = useState([]);
@@ -96,18 +96,18 @@ const StatisticsDashboard = ({ token, setError: onError, currentUser }) => {
   const loadData = async () => {
     setLoading(true);
     setError(null);
-    
+
     try {
       const [overviewData, languageSetsData, languageSetStatsData] = await Promise.all([
         getWithAuth('/admin/statistics/overview'),
         getWithAuth('/admin/language-sets'),
         getWithAuth('/admin/statistics/by-language-set')
       ]);
-      
+
       setOverview(overviewData);
       setLanguageSets(languageSetsData);
       setLanguageSetStats(languageSetStatsData);
-      
+
       // Load user statistics for selected language set
       await loadUserStatistics();
     } catch (err) {
@@ -134,7 +134,7 @@ const StatisticsDashboard = ({ token, setError: onError, currentUser }) => {
       if (category) params.append('category', category);
       if (difficulty) params.append('difficulty', difficulty);
       if (limit) params.append('limit', limit);
-      
+
       const queryString = params.toString();
       const data = await getWithAuth(`/admin/statistics/leaderboard${queryString ? `?${queryString}` : ''}`);
       setHighScores(data);
@@ -185,7 +185,7 @@ const StatisticsDashboard = ({ token, setError: onError, currentUser }) => {
     if (!seconds) return '0m';
     const hours = Math.floor(seconds / 3600);
     const minutes = Math.floor((seconds % 3600) / 60);
-    
+
     if (hours > 0) {
       return `${hours}h ${minutes}m`;
     }
@@ -200,7 +200,7 @@ const StatisticsDashboard = ({ token, setError: onError, currentUser }) => {
   // Root admin settings functions
   const loadStatisticsSettings = async () => {
     if (currentUser?.role !== 'root_admin') return;
-    
+
     try {
       const response = await getWithAuth('/admin/settings/statistics-enabled');
       setStatisticsEnabled(response.enabled);
@@ -211,10 +211,10 @@ const StatisticsDashboard = ({ token, setError: onError, currentUser }) => {
 
   const handleToggleStatistics = async () => {
     if (currentUser?.role !== 'root_admin') return;
-    
+
     setSettingsLoading(true);
     try {
-      await axios.post('/admin/settings/statistics-enabled', 
+      await axios.post('/admin/settings/statistics-enabled',
         { enabled: !statisticsEnabled },
         {
           headers: {
@@ -234,7 +234,7 @@ const StatisticsDashboard = ({ token, setError: onError, currentUser }) => {
 
   const handleClearAllStatistics = async () => {
     if (currentUser?.role !== 'root_admin') return;
-    
+
     setSettingsLoading(true);
     try {
       await axios.delete('/admin/settings/clear-all-statistics', {
@@ -276,8 +276,8 @@ const StatisticsDashboard = ({ token, setError: onError, currentUser }) => {
   }
 
   return (
-    <Box sx={{ width: '100%', p: 3 }}>
-      <Typography variant="h4" gutterBottom>
+    <Paper sx={{ p: 3 }}>
+      <Typography variant="h5" gutterBottom>
         {t('statistics_dashboard')}
       </Typography>
 
@@ -289,12 +289,12 @@ const StatisticsDashboard = ({ token, setError: onError, currentUser }) => {
               <SettingsIcon sx={{ mr: 1 }} />
               <Typography variant="h6">{t('admin_settings')}</Typography>
             </Box>
-            
+
             <Grid container spacing={2} alignItems="center">
               <Grid size={{ xs: 12, md: 6 }}>
                 <FormControlLabel
                   control={
-                    <Switch 
+                    <Switch
                       checked={statisticsEnabled}
                       onChange={() => setToggleStatsDialogOpen(true)}
                       disabled={settingsLoading}
@@ -306,7 +306,7 @@ const StatisticsDashboard = ({ token, setError: onError, currentUser }) => {
                   {t('statistics_tracking_description')}
                 </Typography>
               </Grid>
-              
+
               <Grid size={{ xs: 12, md: 6 }}>
                 <Button
                   variant="outlined"
@@ -354,7 +354,7 @@ const StatisticsDashboard = ({ token, setError: onError, currentUser }) => {
               </CardContent>
             </Card>
           </Grid>
-          
+
           <Grid size={{ xs: 12, sm: 6, md: 3 }}>
             <Card>
               <CardContent>
@@ -372,7 +372,7 @@ const StatisticsDashboard = ({ token, setError: onError, currentUser }) => {
               </CardContent>
             </Card>
           </Grid>
-          
+
           <Grid size={{ xs: 12, sm: 6, md: 3 }}>
             <Card>
               <CardContent>
@@ -390,7 +390,7 @@ const StatisticsDashboard = ({ token, setError: onError, currentUser }) => {
               </CardContent>
             </Card>
           </Grid>
-          
+
           <Grid size={{ xs: 12, sm: 6, md: 3 }}>
             <Card>
               <CardContent>
@@ -421,7 +421,7 @@ const StatisticsDashboard = ({ token, setError: onError, currentUser }) => {
                   <Typography variant="h6" gutterBottom>
                     {stat.language_set_display_name}
                   </Typography>
-                  
+
                   <Grid container spacing={2}>
                     <Grid size={6}>
                       <Typography variant="body2" color="textSecondary">
@@ -431,7 +431,7 @@ const StatisticsDashboard = ({ token, setError: onError, currentUser }) => {
                         {stat.games_completed}/{stat.games_started}
                       </Typography>
                     </Grid>
-                    
+
                     <Grid size={6}>
                       <Typography variant="body2" color="textSecondary">
                         {t('unique_players')}
@@ -440,7 +440,7 @@ const StatisticsDashboard = ({ token, setError: onError, currentUser }) => {
                         {stat.unique_players}
                       </Typography>
                     </Grid>
-                    
+
                     <Grid size={6}>
                       <Typography variant="body2" color="textSecondary">
                         {t('phrases_found')}
@@ -449,7 +449,7 @@ const StatisticsDashboard = ({ token, setError: onError, currentUser }) => {
                         {stat.phrases_found}
                       </Typography>
                     </Grid>
-                    
+
                     <Grid size={6}>
                       <Typography variant="body2" color="textSecondary">
                         {t('time_played')}
@@ -501,7 +501,7 @@ const StatisticsDashboard = ({ token, setError: onError, currentUser }) => {
                 {userStatistics.map((user) => (
                   <TableRow
                     key={user.id}
-                    sx={{ 
+                    sx={{
                       cursor: 'pointer',
                       '&:hover': { backgroundColor: theme.palette.action.hover }
                     }}
@@ -538,7 +538,7 @@ const StatisticsDashboard = ({ token, setError: onError, currentUser }) => {
                 <Typography variant="h6" gutterBottom>
                   {t('detailed_statistics')} - {selectedUserDetail.user?.username || `User ${selectedUserDetail.statistics.user_id}`}
                 </Typography>
-                
+
                 {(selectedUserDetail.favorite_categories || []).map((langSetData, index) => (
                   <Accordion key={index}>
                     <AccordionSummary expandIcon={<ExpandMoreIcon />}>
@@ -597,7 +597,7 @@ const StatisticsDashboard = ({ token, setError: onError, currentUser }) => {
                 </Select>
               </FormControl>
             </Grid>
-            
+
             <Grid size={{ xs: 12, sm: 6, md: 3 }}>
               <FormControl fullWidth>
                 <InputLabel>{t('category')}</InputLabel>
@@ -614,7 +614,7 @@ const StatisticsDashboard = ({ token, setError: onError, currentUser }) => {
                 </Select>
               </FormControl>
             </Grid>
-            
+
             <Grid size={{ xs: 12, sm: 6, md: 3 }}>
               <FormControl fullWidth>
                 <InputLabel>{t('difficulty')}</InputLabel>
@@ -635,7 +635,7 @@ const StatisticsDashboard = ({ token, setError: onError, currentUser }) => {
                 </Select>
               </FormControl>
             </Grid>
-            
+
             <Grid size={{ xs: 12, sm: 6, md: 3 }}>
               <FormControl fullWidth>
                 <InputLabel>{t('limit')}</InputLabel>
@@ -678,11 +678,11 @@ const StatisticsDashboard = ({ token, setError: onError, currentUser }) => {
                     <TableCell>
                       <Box display="flex" alignItems="center">
                         {index < 3 && (
-                          <StarIcon 
-                            sx={{ 
+                          <StarIcon
+                            sx={{
                               mr: 1,
                               color: index === 0 ? '#FFD700' : index === 1 ? '#C0C0C0' : '#CD7F32'
-                            }} 
+                            }}
                           />
                         )}
                         #{index + 1}
@@ -700,15 +700,15 @@ const StatisticsDashboard = ({ token, setError: onError, currentUser }) => {
                     </TableCell>
                     <TableCell>{score.category}</TableCell>
                     <TableCell>
-                      <Chip 
-                        label={t(score.difficulty)} 
+                      <Chip
+                        label={t(score.difficulty)}
                         size="small"
                         color={
                           score.difficulty === 'very_easy' ? 'info' :
-                          score.difficulty === 'easy' ? 'success' :
-                          score.difficulty === 'medium' ? 'warning' :
-                          score.difficulty === 'hard' ? 'error' :
-                          'secondary'
+                            score.difficulty === 'easy' ? 'success' :
+                              score.difficulty === 'medium' ? 'warning' :
+                                score.difficulty === 'hard' ? 'error' :
+                                  'secondary'
                         }
                       />
                     </TableCell>
@@ -763,9 +763,9 @@ const StatisticsDashboard = ({ token, setError: onError, currentUser }) => {
           <Button onClick={() => setClearStatsDialogOpen(false)}>
             {t('cancel')}
           </Button>
-          <Button 
-            onClick={handleClearAllStatistics} 
-            color="error" 
+          <Button
+            onClick={handleClearAllStatistics}
+            color="error"
             variant="contained"
             disabled={settingsLoading}
           >
@@ -783,7 +783,7 @@ const StatisticsDashboard = ({ token, setError: onError, currentUser }) => {
         </DialogTitle>
         <DialogContent>
           <DialogContentText>
-            {statisticsEnabled 
+            {statisticsEnabled
               ? t('disable_statistics_warning')
               : t('enable_statistics_confirmation')
             }
@@ -793,9 +793,9 @@ const StatisticsDashboard = ({ token, setError: onError, currentUser }) => {
           <Button onClick={() => setToggleStatsDialogOpen(false)}>
             {t('cancel')}
           </Button>
-          <Button 
-            onClick={handleToggleStatistics} 
-            color="primary" 
+          <Button
+            onClick={handleToggleStatistics}
+            color="primary"
             variant="contained"
             disabled={settingsLoading}
           >
@@ -803,7 +803,7 @@ const StatisticsDashboard = ({ token, setError: onError, currentUser }) => {
           </Button>
         </DialogActions>
       </Dialog>
-    </Box>
+    </Paper>
   );
 };
 

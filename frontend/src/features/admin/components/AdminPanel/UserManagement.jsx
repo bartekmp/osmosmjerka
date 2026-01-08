@@ -241,7 +241,7 @@ export default function UserManagement({ currentUser }) {
     }
 
     return (
-        <Box>
+        <Paper sx={{ p: 3 }}>
             <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 3 }}>
                 <Typography variant="h5">{t('user_management')}</Typography>
                 <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
@@ -402,6 +402,6 @@ export default function UserManagement({ currentUser }) {
                     {notification.message}
                 </Alert>
             </Snackbar>
-        </Box>
+        </Paper>
     );
 }

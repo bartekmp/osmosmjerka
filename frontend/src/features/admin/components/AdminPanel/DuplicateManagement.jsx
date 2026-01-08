@@ -26,7 +26,9 @@ import {
     FormControl,
     InputLabel,
     Select,
-    MenuItem
+    MenuItem,
+    useMediaQuery,
+    useTheme
 } from '@mui/material';
 import {
     ExpandMore as ExpandMoreIcon,
@@ -38,6 +40,8 @@ import { API_ENDPOINTS } from '../../../../shared/constants/constants';
 
 export default function DuplicateManagement({ currentUser, selectedLanguageSetId }) {
     const { t } = useTranslation();
+    const theme = useTheme();
+    const isMobile = useMediaQuery(theme.breakpoints.down('sm'));
     const [duplicateGroups, setDuplicateGroups] = useState([]);
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState('');
@@ -45,13 +49,13 @@ export default function DuplicateManagement({ currentUser, selectedLanguageSetId
     const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
     const [phrasesToDelete, setPhrasesToDelete] = useState([]);
     const [deleting, setDeleting] = useState(false);
-    
+
     // Pagination state
     const [currentPage, setCurrentPage] = useState(1);
     const [pageSize, setPageSize] = useState(10);
     const [totalCount, setTotalCount] = useState(0);
     const [totalPages, setTotalPages] = useState(0);
-    
+
     // Operation results state
     const [operationResult, setOperationResult] = useState(null);
 
@@ -65,7 +69,7 @@ export default function DuplicateManagement({ currentUser, selectedLanguageSetId
 
         setLoading(true);
         setError('');
-        
+
         try {
             const token = localStorage.getItem('adminToken');
             const response = await fetch(
@@ -82,7 +86,7 @@ export default function DuplicateManagement({ currentUser, selectedLanguageSetId
             }
 
             const data = await response.json();
-            
+
             // Handle paginated response
             if (data.duplicates) {
                 setDuplicateGroups(data.duplicates);
@@ -140,10 +144,10 @@ export default function DuplicateManagement({ currentUser, selectedLanguageSetId
 
     const handleMergeCategories = useCallback(async (phrases, keepPhraseId) => {
         const duplicateIds = phrases.filter(p => p.id !== keepPhraseId).map(p => p.id);
-        
+
         try {
             const token = localStorage.getItem('adminToken');
-            
+
             const response = await fetch(
                 `/admin/merge-categories?language_set_id=${selectedLanguageSetId}`,
                 {
@@ -164,33 +168,33 @@ export default function DuplicateManagement({ currentUser, selectedLanguageSetId
             }
 
             const result = await response.json();
-            
+
             // Store the operation result for display
             setOperationResult({
                 type: 'merge',
                 data: result
             });
-            
+
             // Show success message
             setError(''); // Clear any previous errors
-            
+
             // Reload duplicates to reflect changes
             await loadDuplicates();
-            
+
             // Clear selections
             setSelectedPhrases(new Set());
-            
+
         } catch (err) {
             console.error('Error merging categories:', err);
-            setError(t('merge_categories_failed', 'Failed to merge categories: {{error}}', { 
-                error: err.message 
+            setError(t('merge_categories_failed', 'Failed to merge categories: {{error}}', {
+                error: err.message
             }));
         }
     }, [selectedLanguageSetId, loadDuplicates, t]);
 
     const handleDeleteSelected = useCallback(() => {
         if (selectedPhrases.size === 0) return;
-        
+
         const allPhrases = duplicateGroups.flatMap(group => group.duplicates);
         const toDelete = allPhrases.filter(phrase => selectedPhrases.has(phrase.id));
         setPhrasesToDelete(toDelete);
@@ -204,7 +208,7 @@ export default function DuplicateManagement({ currentUser, selectedLanguageSetId
         try {
             const token = localStorage.getItem('adminToken');
             const phraseIds = phrasesToDelete.map(p => p.id);
-            
+
             const response = await fetch(
                 `${API_ENDPOINTS.ADMIN_DUPLICATES}?language_set_id=${selectedLanguageSetId}`,
                 {
@@ -222,17 +226,17 @@ export default function DuplicateManagement({ currentUser, selectedLanguageSetId
             }
 
             const result = await response.json();
-            
+
             // Store the operation result for display
             setOperationResult({
                 type: 'delete',
                 data: result
             });
-            
+
             // Clear selections and reload duplicates
             setSelectedPhrases(new Set());
             await loadDuplicates();
-            
+
             setDeleteDialogOpen(false);
             setPhrasesToDelete([]);
         } catch (err) {
@@ -276,8 +280,8 @@ export default function DuplicateManagement({ currentUser, selectedLanguageSetId
     }
 
     return (
-        <Box>
-                        <Box display="flex" justifyContent="space-between" alignItems="center" mb={2}>
+        <Paper sx={{ p: 3 }}>
+            <Box display="flex" justifyContent="space-between" alignItems="center" mb={2}>
                 <Typography variant="h6">
                     {t('duplicate_management', 'Duplicate Management')}
                 </Typography>
@@ -295,23 +299,29 @@ export default function DuplicateManagement({ currentUser, selectedLanguageSetId
                             <MenuItem value={50}>50</MenuItem>
                         </Select>
                     </FormControl>
-                    <Button
-                        onClick={() => loadDuplicates(currentPage, pageSize)}
-                        disabled={loading}
-                        variant="outlined"
-                        size="small"
-                    >
-                        {loading ? <CircularProgress size={20} /> : t('refresh', 'Refresh')}
-                    </Button>
-                    <Button
-                        onClick={handleDeleteSelected}
-                        disabled={selectedPhrases.size === 0}
-                        variant="contained"
-                        color="error"
-                        startIcon={<DeleteIcon />}
-                    >
-                        {t('delete_selected', 'Delete Selected')} ({selectedPhrases.size})
-                    </Button>
+                    <Tooltip title={t('refresh', 'Refresh')}>
+                        <Button
+                            onClick={() => loadDuplicates(currentPage, pageSize)}
+                            disabled={loading}
+                            variant="outlined"
+                            size="small"
+                        >
+                            {loading ? <CircularProgress size={20} /> : (isMobile ? '🔄' : t('refresh', 'Refresh'))}
+                        </Button>
+                    </Tooltip>
+                    <Tooltip title={`${t('delete_selected', 'Delete Selected')} (${selectedPhrases.size})`}>
+                        <span>
+                            <Button
+                                onClick={handleDeleteSelected}
+                                disabled={selectedPhrases.size === 0}
+                                variant="contained"
+                                color="error"
+                                startIcon={<DeleteIcon />}
+                            >
+                                {isMobile ? selectedPhrases.size : `${t('delete_selected', 'Delete Selected')} (${selectedPhrases.size})`}
+                            </Button>
+                        </span>
+                    </Tooltip>
                 </Box>
             </Box>
 
@@ -320,10 +330,10 @@ export default function DuplicateManagement({ currentUser, selectedLanguageSetId
                     {error}
                 </Alert>
             )}
-            
+
             {operationResult && (
-                <Alert 
-                    severity="success" 
+                <Alert
+                    severity="success"
                     sx={{ mb: 2 }}
                     onClose={() => setOperationResult(null)}
                 >
@@ -334,25 +344,25 @@ export default function DuplicateManagement({ currentUser, selectedLanguageSetId
                             </Typography>
                             <Box mt={1}>
                                 <Typography variant="body2">
-                                    <strong>{t('kept_phrase_info', 'Kept Phrase:')}</strong> 
+                                    <strong>{t('kept_phrase_info', 'Kept Phrase:')}</strong>
                                     "{operationResult.data.kept_phrase?.phrase}" (ID: {operationResult.data.kept_phrase?.id})
                                 </Typography>
                                 <Typography variant="body2">
-                                    <strong>{t('merged_categories_info', 'Merged Categories:')}</strong> 
+                                    <strong>{t('merged_categories_info', 'Merged Categories:')}</strong>
                                     {operationResult.data.merged_categories}
                                 </Typography>
                                 {operationResult.data.category_stats && (
                                     <Typography variant="body2" color="text.secondary">
                                         {operationResult.data.category_stats.duplicates_removed > 0 ? (
                                             <>
-                                                {t('categories_merged_from', 'Categories merged from {{count}} duplicates', { 
-                                                    count: operationResult.data.deleted_count 
+                                                {t('categories_merged_from', 'Categories merged from {{count}} duplicates', {
+                                                    count: operationResult.data.deleted_count
                                                 })} - {operationResult.data.category_stats.duplicates_removed} {t('duplicate_categories_removed', 'duplicate categories removed')}
                                             </>
                                         ) : (
                                             <>
-                                                {t('categories_merged_from', 'Categories merged from {{count}} duplicates', { 
-                                                    count: operationResult.data.deleted_count 
+                                                {t('categories_merged_from', 'Categories merged from {{count}} duplicates', {
+                                                    count: operationResult.data.deleted_count
                                                 })} - {t('no_duplicate_categories_found', 'no duplicate categories found')}
                                             </>
                                         )}
@@ -376,8 +386,8 @@ export default function DuplicateManagement({ currentUser, selectedLanguageSetId
                                         </Typography>
                                     ))}
                                     <Typography variant="body2" color="text.secondary">
-                                        {t('phrases_remaining_after_deletion', '{{count}} phrases remaining after deletion', { 
-                                            count: operationResult.data.remaining_phrases.length 
+                                        {t('phrases_remaining_after_deletion', '{{count}} phrases remaining after deletion', {
+                                            count: operationResult.data.remaining_phrases.length
                                         })}
                                     </Typography>
                                 </Box>
@@ -403,12 +413,12 @@ export default function DuplicateManagement({ currentUser, selectedLanguageSetId
                 <Box>
                     <Alert severity="info" sx={{ mb: 2 }}>
                         <Typography variant="body2">
-                            {t('duplicates_found', 'Found {{count}} groups of duplicate phrases.', { 
-                                count: totalCount 
+                            {t('duplicates_found', 'Found {{count}} groups of duplicate phrases.', {
+                                count: totalCount
                             })} {totalCount > duplicateGroups.length && (
-                                <span> {t('showing_page', 'Showing page {{page}} of {{total}}.', { 
-                                    page: currentPage, 
-                                    total: totalPages 
+                                <span> {t('showing_page', 'Showing page {{page}} of {{total}}.', {
+                                    page: currentPage,
+                                    total: totalPages
                                 })}</span>
                             )}
                         </Typography>
@@ -422,9 +432,9 @@ export default function DuplicateManagement({ currentUser, selectedLanguageSetId
                                     <Typography variant="subtitle1" sx={{ flexGrow: 1 }}>
                                         "{formatPreview(group.duplicates[0].phrase)}"
                                     </Typography>
-                                    <Chip 
-                                        label={`${group.count} duplicates`} 
-                                        color="warning" 
+                                    <Chip
+                                        label={`${group.count} duplicates`}
+                                        color="warning"
                                         size="small"
                                         sx={{ mr: 1 }}
                                     />
@@ -436,11 +446,11 @@ export default function DuplicateManagement({ currentUser, selectedLanguageSetId
                                         <Button
                                             size="small"
                                             onClick={() => handleSelectAllInGroup(
-                                                group.duplicates, 
+                                                group.duplicates,
                                                 !group.duplicates.every(p => selectedPhrases.has(p.id))
                                             )}
                                         >
-                                            {group.duplicates.every(p => selectedPhrases.has(p.id)) 
+                                            {group.duplicates.every(p => selectedPhrases.has(p.id))
                                                 ? t('unselect_all', 'Unselect All')
                                                 : t('select_all', 'Select All')
                                             }
@@ -520,7 +530,7 @@ export default function DuplicateManagement({ currentUser, selectedLanguageSetId
                             </AccordionDetails>
                         </Accordion>
                     ))}
-                    
+
                     {totalPages > 1 && (
                         <Box display="flex" justifyContent="center" alignItems="center" mt={3} gap={2}>
                             <Typography variant="body2" color="text.secondary">
@@ -569,6 +579,6 @@ export default function DuplicateManagement({ currentUser, selectedLanguageSetId
                     </Button>
                 </DialogActions>
             </Dialog>
-        </Box>
+        </Paper>
     );
 }
