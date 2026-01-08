@@ -2,6 +2,15 @@
 
 <!-- version list -->
 
+## v1.38.1 (2026-01-08)
+
+### Enhancement
+
+- Unify admin dashboard design and restore browse records features
+  ([#143](https://github.com/bartekmp/osmosmjerka/pull/143),
+  [`8a29ba5`](https://github.com/bartekmp/osmosmjerka/commit/8a29ba56ce3d8686ed29e5c297fe77a6b0f44cfa))
+
+
 ## v1.38.0 (2026-01-07)
 
 ### Feature
