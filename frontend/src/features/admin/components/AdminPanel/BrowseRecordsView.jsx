@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState } from 'react';
 import {
     Box,
     Collapse,
@@ -8,7 +8,12 @@ import {
     Typography,
     Chip,
     Tooltip,
-    InputAdornment
+    InputAdornment,
+    Paper,
+    Divider,
+    Button,
+    useMediaQuery,
+    useTheme
 } from '@mui/material';
 import TranslateIcon from '@mui/icons-material/Translate';
 import CategoryIcon from '@mui/icons-material/Category';
@@ -20,7 +25,8 @@ import BatchResultDialog from './BatchResultDialog';
 import PageSizeSelector from './PageSizeSelector';
 import PaginationControls from './PaginationControls';
 import PropTypes from 'prop-types';
-import { STORAGE_KEYS } from '@shared';
+import { STORAGE_KEYS, ResponsiveActionButton } from '@shared';
+import { UploadForm } from '../';
 
 const BrowseRecordsView = ({
     rows,
@@ -85,9 +91,18 @@ const BrowseRecordsView = ({
 
     // Layout
     isControlBarCollapsed,
-    isLayoutCompact
+    isLayoutCompact,
+
+    // Admin Actions
+    onReloadData,
+    onDownloadPhrases,
+    onClearDatabase,
+    canManageAdvanced
 }) => {
     const { t } = useTranslation();
+    const theme = useTheme();
+    const isMobile = useMediaQuery(theme.breakpoints.down('md'));
+    const [adminControlsOpen, setAdminControlsOpen] = useState(!isMobile);
 
     const handlePageSizeChange = (newLimit) => {
         setLimit(newLimit);
@@ -96,7 +111,76 @@ const BrowseRecordsView = ({
     };
 
     return (
-        <>
+        <Paper sx={{ p: 3 }}>
+            <Typography variant="h5" gutterBottom>
+                {t('browse_phrases')}
+            </Typography>
+
+            {/* Admin Action Buttons */}
+            {canManageAdvanced && (
+                <Box sx={{ mb: 2 }}>
+                    {isMobile && (
+                        <Button
+                            size="small"
+                            variant="text"
+                            onClick={() => setAdminControlsOpen(!adminControlsOpen)}
+                            sx={{ mb: 1, minWidth: 'auto', px: 1 }}
+                        >
+                            {adminControlsOpen ? '▼' : '▶'}
+                        </Button>
+                    )}
+                    <Collapse in={adminControlsOpen || !isMobile} timeout="auto">
+                        <Stack
+                            direction="row"
+                            spacing={1}
+                            flexWrap="wrap"
+                            useFlexGap
+                        >
+                            <ResponsiveActionButton
+                                fullWidth={false}
+                                onClick={onReloadData}
+                                icon="🔄"
+                                variant="outlined"
+                                color="primary"
+                                desktopText={t('reload_data', 'Reload Data')}
+                                mobileText={t('reload', 'Reload')}
+                                tooltip={t('reload_data', 'Reload Data')}
+                                ariaLabel={t('reload_data', 'Reload Data')}
+                            />
+                            <UploadForm
+                                onUpload={onReloadData}
+                                selectedLanguageSetId={selectedLanguageSetId}
+                                compact={false}
+                            />
+                            <ResponsiveActionButton
+                                fullWidth={false}
+                                onClick={onDownloadPhrases}
+                                icon="📥"
+                                variant="outlined"
+                                color="secondary"
+                                desktopText={t('download_phrases', 'Download Phrases')}
+                                mobileText={t('download', 'Download')}
+                                tooltip={t('download_phrases', 'Download Phrases')}
+                                ariaLabel={t('download_phrases', 'Download Phrases')}
+                            />
+                            <ResponsiveActionButton
+                                fullWidth={false}
+                                onClick={onClearDatabase}
+                                icon="🗑️"
+                                variant="contained"
+                                color="error"
+                                desktopText={t('clear_database', 'Clear Database')}
+                                mobileText={t('clear', 'Clear')}
+                                tooltip={t('clear_database', 'Clear Database')}
+                                ariaLabel={t('clear_database', 'Clear Database')}
+                            />
+                        </Stack>
+                    </Collapse>
+                </Box>
+            )}
+
+            <Divider sx={{ mb: 2 }} />
+
             {/* Filter Controls */}
             <Collapse in={!isControlBarCollapsed} timeout="auto">
                 <Stack direction="row" spacing={2} sx={{ mb: 2, alignItems: 'center' }}>
@@ -316,7 +400,7 @@ const BrowseRecordsView = ({
                 operation={batchResult.operation}
                 result={batchResult.result}
             />
-        </>
+        </Paper>
     );
 };
 
@@ -383,7 +467,13 @@ BrowseRecordsView.propTypes = {
 
     // Layout
     isControlBarCollapsed: PropTypes.bool,
-    isLayoutCompact: PropTypes.bool
+    isLayoutCompact: PropTypes.bool,
+
+    // Admin Actions
+    onReloadData: PropTypes.func,
+    onDownloadPhrases: PropTypes.func,
+    onClearDatabase: PropTypes.func,
+    canManageAdvanced: PropTypes.bool
 };
 
 export default BrowseRecordsView;

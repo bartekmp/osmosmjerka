@@ -184,8 +184,8 @@ const SystemSettings = () => {
   }
 
   return (
-    <Box>
-      <Typography variant="h4" gutterBottom>
+    <Paper sx={{ p: 3 }}>
+      <Typography variant="h5" gutterBottom>
         {t("admin.settings.title")}
       </Typography>
 
@@ -348,7 +348,7 @@ const SystemSettings = () => {
           {notification.message}
         </Alert>
       </Snackbar>
-    </Box>
+    </Paper>
   );
 };
 

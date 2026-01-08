@@ -82,6 +82,7 @@ export default function AdminPanel({
     const [systemSettings, setSystemSettings] = useState(false);
     const [languageSetManagement, setLanguageSetManagement] = useState(false);
     const [duplicateManagement, setDuplicateManagement] = useState(false);
+    const [listManagement, setListManagement] = useState(false);
     const [showListManager, setShowListManager] = useState(false);
     const [selectedLanguageSetForLists, setSelectedLanguageSetForLists] = useState(null);
     const [teacherDashboard, setTeacherDashboard] = useState(false);
@@ -193,6 +194,8 @@ export default function AdminPanel({
         fetchRows: originalFetchRows,
         handleLogin,
         handleSave,
+        handleExportTxt,
+        clearDb,
         handleBatchDelete,
         handleBatchAddCategory,
         handleBatchRemoveCategory,
@@ -748,6 +751,7 @@ export default function AdminPanel({
         setUserManagement(false);
         setLanguageSetManagement(false);
         setDuplicateManagement(false);
+        setListManagement(false);
         setUserProfile(false);
         setStatisticsDashboard(false);
         setSystemSettings(false);
@@ -887,7 +891,8 @@ export default function AdminPanel({
                 if (languageSets.length > 0) {
                     setSelectedLanguageSetForLists(languageSets[0].id);
                 }
-                setShowListManager(true);
+                setDashboard(false);
+                setListManagement(true);
             }}
             variant="contained"
             color="info"
@@ -1028,7 +1033,7 @@ export default function AdminPanel({
 
     return (
         <AdminLayout
-            maxWidth={teacherDashboard || browseRecords || userManagement || statisticsDashboard || systemSettings || languageSetManagement || userProfile || duplicateManagement ? 'xl' : 'md'}
+            maxWidth={teacherDashboard || browseRecords || userManagement || statisticsDashboard || systemSettings || languageSetManagement || userProfile || duplicateManagement || listManagement ? 'xl' : 'md'}
             showBackToGame={true}
             showDashboard={!dashboard}
             showLogout={true}
@@ -1077,33 +1082,32 @@ export default function AdminPanel({
             ) : (
                 <>
                     {userManagement ? (
-                        <Paper sx={{ p: 3 }}>
-                            <UserManagement currentUser={currentUser} />
-                        </Paper>
+                        <UserManagement currentUser={currentUser} />
                     ) : statisticsDashboard ? (
                         <StatisticsDashboard token={token} setError={setError} currentUser={currentUser} />
                     ) : systemSettings ? (
                         <SystemSettings />
                     ) : languageSetManagement ? (
-                        <Paper sx={{ p: 3 }}>
-                            <LanguageSetManagement
-                                currentUser={currentUser}
-                                initialLanguageSets={languageSets}
-                                initialCategories={categories}
-                                showAdminActions={currentUser?.role === 'admin' || currentUser?.role === 'root_admin' || currentUser?.role === 'administrative'}
-                            />
-                        </Paper>
+                        <LanguageSetManagement
+                            currentUser={currentUser}
+                            initialLanguageSets={languageSets}
+                            initialCategories={categories}
+                            showAdminActions={currentUser?.role === 'admin' || currentUser?.role === 'root_admin' || currentUser?.role === 'administrative'}
+                        />
                     ) : userProfile ? (
                         <UserProfile currentUser={currentUser} />
                     ) : myStudy ? (
                         <MyStudy token={token} />
                     ) : duplicateManagement ? (
-                        <Paper sx={{ p: 3 }}>
-                            <DuplicateManagement
-                                currentUser={currentUser}
-                                selectedLanguageSetId={selectedLanguageSetId}
-                            />
-                        </Paper>
+                        <DuplicateManagement
+                            currentUser={currentUser}
+                            selectedLanguageSetId={selectedLanguageSetId}
+                        />
+                    ) : listManagement ? (
+                        <PrivateListManager
+                            languageSetId={selectedLanguageSetForLists}
+                            isFullPage={true}
+                        />
                     ) : browseRecords ? (
                         <BrowseRecordsView
                             rows={rows}
@@ -1155,6 +1159,10 @@ export default function AdminPanel({
                             canAddNewRow={Boolean(isLogged && selectedLanguageSetId)}
                             isControlBarCollapsed={isControlBarCollapsed}
                             isLayoutCompact={isLayoutCompact}
+                            onReloadData={() => fetchRows(offset, limit, filterCategory, searchTerm, selectedLanguageSetId)}
+                            onDownloadPhrases={() => handleExportTxt(filterCategory)}
+                            onClearDatabase={() => clearDb(() => fetchRows(offset, limit, filterCategory, searchTerm, selectedLanguageSetId))}
+                            canManageAdvanced={canManageAdvanced}
                         />
                     ) : dashboard ? (
                         // Default Dashboard View

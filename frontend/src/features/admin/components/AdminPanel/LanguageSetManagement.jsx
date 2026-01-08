@@ -347,9 +347,9 @@ export default function LanguageSetManagement({ currentUser, initialLanguageSets
     };
 
     return (
-        <Paper sx={{ p: 3, mt: 3 }}>
+        <Paper sx={{ p: 3 }}>
             <Box display="flex" justifyContent="space-between" alignItems="center" mb={2}>
-                <Typography variant="h5" component="h2">
+                <Typography variant="h5" gutterBottom>
                     {showAdminActions ? t('language_sets_management') : t('manage_ignored_categories', 'Manage Ignored Categories')}
                 </Typography>
                 {showAdminActions && (
@@ -474,143 +474,143 @@ export default function LanguageSetManagement({ currentUser, initialLanguageSets
             {/* Create/Edit Dialog - Admin Only */}
             {showAdminActions && (
                 <Dialog open={dialogOpen} onClose={handleClose} maxWidth="sm" fullWidth>
-                <DialogTitle>
-                    {editingSet ? t('edit_language_set') : t('create_language_set')}
-                </DialogTitle>
-                <DialogContent>
-                    <TextField
-                        fullWidth
-                        label={t('name')}
-                        value={formData.name}
-                        onChange={(e) => setFormData({ ...formData, name: e.target.value })}
-                        margin="normal"
-                        helperText={t('name_helper_text')}
-                        disabled={loading}
-                    />
-                    <TextField
-                        fullWidth
-                        label={t('display_name')}
-                        value={formData.display_name}
-                        onChange={(e) => setFormData({ ...formData, display_name: e.target.value })}
-                        margin="normal"
-                        disabled={loading}
-                    />
-                    <TextField
-                        fullWidth
-                        label={t('description')}
-                        value={formData.description}
-                        onChange={(e) => setFormData({ ...formData, description: e.target.value })}
-                        margin="normal"
-                        multiline
-                        rows={2}
-                        disabled={loading}
-                    />
-                    <TextField
-                        fullWidth
-                        label={t('author')}
-                        value={formData.author}
-                        onChange={(e) => setFormData({ ...formData, author: e.target.value })}
-                        margin="normal"
-                        disabled={loading || editingSet} // Disable when editing
-                        helperText={editingSet ? t('author_cannot_edit', 'Author cannot be changed when editing') : t('author_auto_set', 'Author is automatically set to current user')}
-                    />
-                    <Box sx={{ mt: 2 }}>
-                        <Typography variant="subtitle2" sx={{ mb: 1 }}>
-                            {t('default_ignored_categories', 'Default Ignored Categories')}
-                        </Typography>
-                        <Typography variant="caption" color="text.secondary" sx={{ display: 'block', mb: 1 }}>
-                            {t('default_ignored_categories_help', 'Categories that will be ignored by default for this language set')}
-                        </Typography>
+                    <DialogTitle>
+                        {editingSet ? t('edit_language_set') : t('create_language_set')}
+                    </DialogTitle>
+                    <DialogContent>
+                        <TextField
+                            fullWidth
+                            label={t('name')}
+                            value={formData.name}
+                            onChange={(e) => setFormData({ ...formData, name: e.target.value })}
+                            margin="normal"
+                            helperText={t('name_helper_text')}
+                            disabled={loading}
+                        />
+                        <TextField
+                            fullWidth
+                            label={t('display_name')}
+                            value={formData.display_name}
+                            onChange={(e) => setFormData({ ...formData, display_name: e.target.value })}
+                            margin="normal"
+                            disabled={loading}
+                        />
+                        <TextField
+                            fullWidth
+                            label={t('description')}
+                            value={formData.description}
+                            onChange={(e) => setFormData({ ...formData, description: e.target.value })}
+                            margin="normal"
+                            multiline
+                            rows={2}
+                            disabled={loading}
+                        />
+                        <TextField
+                            fullWidth
+                            label={t('author')}
+                            value={formData.author}
+                            onChange={(e) => setFormData({ ...formData, author: e.target.value })}
+                            margin="normal"
+                            disabled={loading || editingSet} // Disable when editing
+                            helperText={editingSet ? t('author_cannot_edit', 'Author cannot be changed when editing') : t('author_auto_set', 'Author is automatically set to current user')}
+                        />
+                        <Box sx={{ mt: 2 }}>
+                            <Typography variant="subtitle2" sx={{ mb: 1 }}>
+                                {t('default_ignored_categories', 'Default Ignored Categories')}
+                            </Typography>
+                            <Typography variant="caption" color="text.secondary" sx={{ display: 'block', mb: 1 }}>
+                                {t('default_ignored_categories_help', 'Categories that will be ignored by default for this language set')}
+                            </Typography>
 
-                        {/* Selected default ignored categories */}
-                        {formData.default_ignored_categories.length > 0 && (
-                            <Box sx={{ mb: 2 }}>
-                                <Typography variant="caption" sx={{ fontWeight: 600, display: 'block', mb: 0.5 }}>
-                                    {t('selected_ignored_categories', 'Selected Ignored Categories')}
-                                </Typography>
-                                <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 0.5 }}>
-                                    {formData.default_ignored_categories.map(category => (
-                                        <Chip
-                                            key={category}
-                                            label={category}
-                                            size="small"
-                                            color="warning"
-                                            variant="filled"
-                                            onDelete={() => removeDefaultIgnoredCategory(category)}
-                                            disabled={loading}
-                                            sx={{ textDecoration: 'line-through' }}
-                                        />
-                                    ))}
-                                </Box>
-                            </Box>
-                        )}
-
-                        {/* Available categories to select from */}
-                        {availableCategories.length > 0 && (
-                            <Box>
-                                <Typography variant="caption" sx={{ fontWeight: 600, display: 'block', mb: 0.5 }}>
-                                    {t('available_categories', 'Available Categories')} ({t('click_to_ignore', 'click to ignore')})
-                                </Typography>
-                                <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 0.5 }}>
-                                    {availableCategories
-                                        .filter(cat => !formData.default_ignored_categories.includes(cat))
-                                        .map(category => (
+                            {/* Selected default ignored categories */}
+                            {formData.default_ignored_categories.length > 0 && (
+                                <Box sx={{ mb: 2 }}>
+                                    <Typography variant="caption" sx={{ fontWeight: 600, display: 'block', mb: 0.5 }}>
+                                        {t('selected_ignored_categories', 'Selected Ignored Categories')}
+                                    </Typography>
+                                    <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 0.5 }}>
+                                        {formData.default_ignored_categories.map(category => (
                                             <Chip
                                                 key={category}
                                                 label={category}
                                                 size="small"
-                                                color="primary"
-                                                variant="outlined"
-                                                onClick={() => addDefaultIgnoredCategory(category)}
+                                                color="warning"
+                                                variant="filled"
+                                                onDelete={() => removeDefaultIgnoredCategory(category)}
                                                 disabled={loading}
-                                                sx={{ cursor: 'pointer' }}
+                                                sx={{ textDecoration: 'line-through' }}
                                             />
                                         ))}
+                                    </Box>
                                 </Box>
-                            </Box>
-                        )}
-                    </Box>
-                    <Box mt={2}>
-                        <input
-                            ref={fileInputRef}
-                            type="file"
-                            accept=".txt,.csv"
-                            style={{ display: 'none' }}
-                            onChange={(e) => setFile(e.target.files?.[0] || null)}
-                        />
-                        <Button variant="outlined" size="small" onClick={() => fileInputRef.current?.click()} disabled={loading}>
-                            {editingSet ? t('upload_new_phrases_replace', 'Upload phrases (replace)') : t('upload_initial_phrases', 'Upload phrases (initial)')}
+                            )}
+
+                            {/* Available categories to select from */}
+                            {availableCategories.length > 0 && (
+                                <Box>
+                                    <Typography variant="caption" sx={{ fontWeight: 600, display: 'block', mb: 0.5 }}>
+                                        {t('available_categories', 'Available Categories')} ({t('click_to_ignore', 'click to ignore')})
+                                    </Typography>
+                                    <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 0.5 }}>
+                                        {availableCategories
+                                            .filter(cat => !formData.default_ignored_categories.includes(cat))
+                                            .map(category => (
+                                                <Chip
+                                                    key={category}
+                                                    label={category}
+                                                    size="small"
+                                                    color="primary"
+                                                    variant="outlined"
+                                                    onClick={() => addDefaultIgnoredCategory(category)}
+                                                    disabled={loading}
+                                                    sx={{ cursor: 'pointer' }}
+                                                />
+                                            ))}
+                                    </Box>
+                                </Box>
+                            )}
+                        </Box>
+                        <Box mt={2}>
+                            <input
+                                ref={fileInputRef}
+                                type="file"
+                                accept=".txt,.csv"
+                                style={{ display: 'none' }}
+                                onChange={(e) => setFile(e.target.files?.[0] || null)}
+                            />
+                            <Button variant="outlined" size="small" onClick={() => fileInputRef.current?.click()} disabled={loading}>
+                                {editingSet ? t('upload_new_phrases_replace', 'Upload phrases (replace)') : t('upload_initial_phrases', 'Upload phrases (initial)')}
+                            </Button>
+                            {file && (
+                                <Typography variant="caption" sx={{ ml: 1 }}>
+                                    {file.name}
+                                </Typography>
+                            )}
+                            {editingSet && (
+                                <Typography variant="caption" display="block" color="text.secondary" sx={{ mt: 1 }}>
+                                    {t('upload_replace_hint', 'Uploading a file while editing will erase previous contents and replace them.')}
+                                </Typography>
+                            )}
+                        </Box>
+                    </DialogContent>
+                    <DialogActions>
+                        <Button onClick={handleClose} disabled={loading}>
+                            {t('cancel')}
                         </Button>
-                        {file && (
-                            <Typography variant="caption" sx={{ ml: 1 }}>
-                                {file.name}
-                            </Typography>
-                        )}
-                        {editingSet && (
-                            <Typography variant="caption" display="block" color="text.secondary" sx={{ mt: 1 }}>
-                                {t('upload_replace_hint', 'Uploading a file while editing will erase previous contents and replace them.')}
-                            </Typography>
-                        )}
-                    </Box>
-                </DialogContent>
-                <DialogActions>
-                    <Button onClick={handleClose} disabled={loading}>
-                        {t('cancel')}
-                    </Button>
-                    <Button onClick={handleSave} variant="contained" disabled={loading}>
-                        {loading ? <CircularProgress size={20} /> : t('save')}
-                    </Button>
-                </DialogActions>
-                <Backdrop
-                    sx={{ color: '#fff', zIndex: (theme) => theme.zIndex.modal + 1, display: 'flex', flexDirection: 'column', gap: 2 }}
-                    open={saving}
-                >
-                    <CircularProgress color="inherit" />
-                    <Typography variant="body1" sx={{ textAlign: 'center' }}>
-                        {t('saving_language_set', 'Saving language set, please wait...')}
-                    </Typography>
-                </Backdrop>
-            </Dialog>
+                        <Button onClick={handleSave} variant="contained" disabled={loading}>
+                            {loading ? <CircularProgress size={20} /> : t('save')}
+                        </Button>
+                    </DialogActions>
+                    <Backdrop
+                        sx={{ color: '#fff', zIndex: (theme) => theme.zIndex.modal + 1, display: 'flex', flexDirection: 'column', gap: 2 }}
+                        open={saving}
+                    >
+                        <CircularProgress color="inherit" />
+                        <Typography variant="body1" sx={{ textAlign: 'center' }}>
+                            {t('saving_language_set', 'Saving language set, please wait...')}
+                        </Typography>
+                    </Backdrop>
+                </Dialog>
             )}
 
             {/* Ignored Categories Dialog */}

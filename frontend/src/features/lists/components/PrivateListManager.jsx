@@ -23,7 +23,8 @@ import {
   Checkbox,
   Pagination,
   Stack,
-  Tooltip
+  Tooltip,
+  Paper
 } from '@mui/material';
 import DeleteIcon from '@mui/icons-material/Delete';
 import EditIcon from '@mui/icons-material/Edit';
@@ -38,7 +39,7 @@ import { useTranslation } from 'react-i18next';
 import axios from 'axios';
 import { STORAGE_KEYS } from '../../../shared/constants/constants';
 
-export default function PrivateListManager({ open, onClose, languageSetId }) {
+export default function PrivateListManager({ open, onClose, languageSetId, isFullPage = false }) {
   const { t } = useTranslation();
   const [activeTab, setActiveTab] = useState(0);
   const [lists, setLists] = useState([]);
@@ -202,8 +203,10 @@ export default function PrivateListManager({ open, onClose, languageSetId }) {
   }, [selectedListId, phrasesPagination.limit, phrasesPagination.offset, getAuthHeader, t]);
 
   // Load data when dialog opens or language set changes
+  // For full page mode, check if there's languageSetId instead of open prop
   useEffect(() => {
-    if (open && languageSetId) {
+    const shouldLoad = isFullPage ? languageSetId : (open && languageSetId);
+    if (shouldLoad) {
       setListsPagination({ limit: 50, offset: 0, total: 0, hasMore: false });
       // Use a ref to avoid dependency issues
       const fetchData = async () => {
@@ -242,7 +245,8 @@ export default function PrivateListManager({ open, onClose, languageSetId }) {
 
   // Load phrases when tab changes or list selection changes
   useEffect(() => {
-    if (open && activeTab === 1 && selectedListId) {
+    const shouldLoad = isFullPage ? (activeTab === 1 && selectedListId) : (open && activeTab === 1 && selectedListId);
+    if (shouldLoad) {
       setPhrasesPagination({ limit: 100, offset: 0, total: 0, hasMore: false });
       const fetchData = async () => {
         setLoading(true);
@@ -1240,30 +1244,46 @@ export default function PrivateListManager({ open, onClose, languageSetId }) {
     );
   };
 
+  // Shared content for both modal and full page views
+  const mainContent = (
+    <>
+      <Tabs value={activeTab} onChange={handleTabChange} sx={{ borderBottom: 1, borderColor: 'divider' }}>
+        <Tab label={t('privateListManager.tabs.lists')} />
+        <Tab
+          label={
+            selectedListId && lists.find(l => l.id === selectedListId)
+              ? `${t('privateListManager.tabs.phrases')} - ${lists.find(l => l.id === selectedListId).list_name}`
+              : t('privateListManager.tabs.phrases')
+          }
+        />
+      </Tabs>
+      <Box sx={{ mt: 2 }}>
+        {activeTab === 0 && renderListsTab()}
+        {activeTab === 1 && renderPhrasesTab()}
+      </Box>
+    </>
+  );
+
   return (
     <>
-      <Dialog open={open} onClose={onClose} maxWidth="lg" fullWidth>
-        <DialogTitle>{t('privateListManager.title')}</DialogTitle>
-        <DialogContent>
-          <Tabs value={activeTab} onChange={handleTabChange} sx={{ borderBottom: 1, borderColor: 'divider' }}>
-            <Tab label={t('privateListManager.tabs.lists')} />
-            <Tab
-              label={
-                selectedListId && lists.find(l => l.id === selectedListId)
-                  ? `${t('privateListManager.tabs.phrases')} - ${lists.find(l => l.id === selectedListId).list_name}`
-                  : t('privateListManager.tabs.phrases')
-              }
-            />
-          </Tabs>
-          <Box sx={{ mt: 2 }}>
-            {activeTab === 0 && renderListsTab()}
-            {activeTab === 1 && renderPhrasesTab()}
-          </Box>
-        </DialogContent>
-        <DialogActions>
-          <Button onClick={onClose}>{t('privateListManager.buttons.close')}</Button>
-        </DialogActions>
-      </Dialog>
+      {isFullPage ? (
+        <Paper sx={{ p: 3 }}>
+          <Typography variant="h5" gutterBottom>
+            {t('privateListManager.title')}
+          </Typography>
+          {mainContent}
+        </Paper>
+      ) : (
+        <Dialog open={open} onClose={onClose} maxWidth="lg" fullWidth>
+          <DialogTitle>{t('privateListManager.title')}</DialogTitle>
+          <DialogContent>
+            {mainContent}
+          </DialogContent>
+          <DialogActions>
+            <Button onClick={onClose}>{t('privateListManager.buttons.close')}</Button>
+          </DialogActions>
+        </Dialog>
+      )}
 
       {/* Notification Snackbar */}
       <Snackbar
