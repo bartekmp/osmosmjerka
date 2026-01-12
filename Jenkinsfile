@@ -3,11 +3,10 @@ pipeline {
 
     parameters {
         booleanParam(name: 'TRIGGER_GITOPS_CD', defaultValue: true, description: 'Update GitOps repo after build? Set to false to skip deployment.')
-        booleanParam(name: 'SKIP_IMAGE_PUSH', defaultValue: false, description: 'Skip Docker image push? Set to false to skip.')
     }
 
     environment {
-        IMAGE_NAME = 'osmosmjerka'
+        GHCR_IMAGE = 'ghcr.io/bartekmp/osmosmjerka'
         BACKEND_DIR = 'backend'
         FRONTEND_DIR = 'frontend'
 
@@ -23,7 +22,6 @@ pipeline {
         POSTGRES_PASSWORD = credentials('osmosmjerka-db-password')
 
         TRIGGER_GITOPS_CD_PARAM = "${params.TRIGGER_GITOPS_CD.toString()}"
-        SKIP_IMAGE_PUSH_PARAM = "${params.SKIP_IMAGE_PUSH.toString()}"
         GH_TOKEN = credentials('github_token')
     }
 
@@ -71,7 +69,6 @@ pipeline {
                         echo "New release detected: ${releaseTag}"
                         env.IS_NEW_RELEASE = 'true'
                         env.TRIGGER_GITOPS_CD = env.TRIGGER_GITOPS_CD_PARAM ?: 'true'
-                        env.SKIP_IMAGE_PUSH = env.SKIP_IMAGE_PUSH_PARAM ?: 'false'
                         
                         // Extract version from pyproject.toml (semantic-release updates it)
                         // This ensures we get the exact version that was released
@@ -87,7 +84,6 @@ pipeline {
                         echo "No new release - commit does not have a release tag"
                         env.IS_NEW_RELEASE = 'false'
                         env.TRIGGER_GITOPS_CD = env.TRIGGER_GITOPS_CD_PARAM ?: 'false'
-                        env.SKIP_IMAGE_PUSH = env.SKIP_IMAGE_PUSH_PARAM ?: 'true'
                         env.IMAGE_TAG = "v999.0.0-dev"
                         
                         def shortCommit = sh(script: 'git rev-parse --short HEAD', returnStdout: true).trim()
@@ -97,7 +93,6 @@ pipeline {
                     }
                     
                     echo "Set TRIGGER_GITOPS_CD to: ${env.TRIGGER_GITOPS_CD}"
-                    echo "Set SKIP_IMAGE_PUSH to: ${env.SKIP_IMAGE_PUSH}"
                     echo "Set IS_NEW_RELEASE to: ${env.IS_NEW_RELEASE}"
                     echo "Set IMAGE_TAG to: ${env.IMAGE_TAG}"
                 }
@@ -196,30 +191,6 @@ pipeline {
             }
         }
 
-        stage('Docker Build & Push') {
-            when {
-                allOf {
-                    branch 'main'
-                    not { buildingTag() }
-                }
-            }
-            steps {
-                script {
-                    sh "docker build -t ${env.DOCKER_REGISTRY}/${IMAGE_NAME}:${env.IMAGE_TAG} . --build-arg VERSION=${env.IMAGE_TAG} --label=\"build_id=${env.BUILD_ID}\" --label=\"version=${env.IMAGE_TAG}\""
-                    if (env.SKIP_IMAGE_PUSH != 'true') {
-                        if(env.BRANCH_NAME == 'main') {
-                            sh "docker tag ${env.DOCKER_REGISTRY}/${IMAGE_NAME}:${env.IMAGE_TAG} ${env.DOCKER_REGISTRY}/${IMAGE_NAME}:latest"
-                        }
-                        sh "docker push ${env.DOCKER_REGISTRY}/${IMAGE_NAME}:latest"
-                        sh "docker push ${env.DOCKER_REGISTRY}/${IMAGE_NAME}:${env.IMAGE_TAG}"
-                    }
-                    else {
-                        echo 'Skipping Docker image push.'
-                    }
-                }
-            }
-        }
-
         stage('Deploy with GitOps (staging and prod)') {
             when {
                 branch 'main'
@@ -234,7 +205,7 @@ pipeline {
                         sh "git clone ${env.GITOPS_REPO} gitops-tmp"
                         // staging bump
                         dir('gitops-tmp/k8s/overlays/staging') {
-                            sh "kustomize edit set image ${env.DOCKER_REGISTRY}/${IMAGE_NAME}=${env.DOCKER_REGISTRY}/${IMAGE_NAME}:${env.IMAGE_TAG}"
+                            sh "kustomize edit set image ${env.GHCR_IMAGE}=${env.GHCR_IMAGE}:${env.IMAGE_TAG}"
 
                             // Generate new DB clone job for this version
                             echo "Creating database clone job for version ${env.IMAGE_TAG}"
@@ -313,9 +284,6 @@ pipeline {
     post {
         always {
             script {
-                def versionTag = env.BRANCH_NAME == 'main' ? env.IMAGE_TAG : '999.0.0-dev'
-                sh "docker rm ${env.DOCKER_REGISTRY}/${IMAGE_NAME}:latest || true"
-                sh "docker rm ${env.DOCKER_REGISTRY}/${IMAGE_NAME}:${versionTag} || true"
                 sh 'rm -rf gitops-tmp || true'
                 sh 'rm -rf frontend/node_modules backend/.venv || true'
             }
