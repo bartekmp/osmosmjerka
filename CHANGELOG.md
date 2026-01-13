@@ -2,6 +2,19 @@
 
 <!-- version list -->
 
+## v1.39.0 (2026-01-13)
+
+### Continuous Integration
+
+- Do not build docker image in Jenkins ([#144](https://github.com/bartekmp/osmosmjerka/pull/144),
+  [`05c98e3`](https://github.com/bartekmp/osmosmjerka/commit/05c98e3f6d510800685205a896794eb865c7b18c))
+
+### Feature
+
+- What's new popup, test refactoring ([#145](https://github.com/bartekmp/osmosmjerka/pull/145),
+  [`c913a9a`](https://github.com/bartekmp/osmosmjerka/commit/c913a9ab1898f8b1c96e04a6a10c0e0736c6a585))
+
+
 ## v1.38.1 (2026-01-08)
 
 ### Enhancement
