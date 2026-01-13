@@ -1,6 +1,28 @@
 pipeline {
     agent any
 
+    // Trigger from GitHub Actions via smee.io webhook relay
+    // This triggers when a GitHub Actions workflow completes successfully on main
+    triggers {
+        GenericTrigger(
+            genericVariables: [
+                [key: 'action', value: '$.action'],
+                [key: 'conclusion', value: '$.workflow_run.conclusion'],
+                [key: 'branch', value: '$.workflow_run.head_branch'],
+                [key: 'workflow_name', value: '$.workflow_run.name']
+            ],
+            causeString: 'GitHub Actions workflow "${workflow_name}" completed on ${branch}',
+            token: 'osmosmjerka-github-webhook',
+            tokenCredentialId: '',
+            printContributedVariables: true,
+            printPostContent: false,
+            silentResponse: false,
+            // Only trigger on successful CI workflow completion on main branch
+            regexpFilterText: '$action-$conclusion-$branch',
+            regexpFilterExpression: 'completed-success-main'
+        )
+    }
+
     parameters {
         booleanParam(name: 'TRIGGER_GITOPS_CD', defaultValue: true, description: 'Update GitOps repo after build? Set to false to skip deployment.')
     }
