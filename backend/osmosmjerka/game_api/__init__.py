@@ -2,6 +2,7 @@
 
 from fastapi import APIRouter
 from osmosmjerka.database import db_manager
+from osmosmjerka.game_api.changelog import router as changelog_router
 from osmosmjerka.game_api.export import router as export_router
 from osmosmjerka.game_api.game_sessions import router as game_sessions_router
 from osmosmjerka.game_api.helpers import (
@@ -31,6 +32,7 @@ router.include_router(private_lists_router)
 router.include_router(list_sharing_router)
 router.include_router(student_groups_router)
 router.include_router(student_study_router)
+router.include_router(changelog_router)
 
 # Export functions for backward compatibility with tests and other code
 __all__ = [

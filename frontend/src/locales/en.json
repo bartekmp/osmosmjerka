@@ -823,5 +823,14 @@
       "no_solved_puzzles": "No solved puzzles yet.",
       "created_by_date": "Created by {{name}} on {{date}}"
     }
+  },
+  "whatsNew": {
+    "title": "What's New",
+    "version": "Version {{version}}",
+    "features": "New Features",
+    "bugfixes": "Bug Fixes",
+    "improvements": "Improvements",
+    "dismiss": "Got it!",
+    "empty": "No updates since your last visit"
   }
 }

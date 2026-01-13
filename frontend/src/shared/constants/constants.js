@@ -42,7 +42,8 @@ export const STORAGE_KEYS = {
   LANGUAGE: 'lng',
   ADMIN_TOKEN: 'adminToken',
   SELECTED_LANGUAGE_SET: 'selectedLanguageSet',
-  ADMIN_PAGE_SIZE: 'adminPageSize'
+  ADMIN_PAGE_SIZE: 'adminPageSize',
+  LAST_SEEN_VERSION: 'lastSeenVersion'
 };
 
 // API endpoints
@@ -67,5 +68,8 @@ export const API_ENDPOINTS = {
   ADMIN_BATCH_REMOVE_CATEGORY: '/admin/batch/remove-category',
   ADMIN_DUPLICATES: '/admin/duplicates',
   ADMIN_PHRASES: '/admin/phrases',
-  ADMIN_UPLOAD_TEXT: '/admin/upload-text'
+  ADMIN_UPLOAD_TEXT: '/admin/upload-text',
+  // What's New feature endpoints
+  APP_VERSION: '/api/version',
+  WHATS_NEW: '/api/whats-new'
 };

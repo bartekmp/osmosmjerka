@@ -9,6 +9,21 @@ jest.mock('react-i18next', () => ({
 import TeacherDashboard from '../TeacherDashboard';
 
 describe('TeacherDashboard', () => {
+    // Suppress noisy React act() warnings in console output
+    const originalConsoleError = console.error;
+    beforeAll(() => {
+        console.error = (...args) => {
+            const first = args[0];
+            if (typeof first === 'string' && first.includes('not wrapped in act(...)')) {
+                return;
+            }
+            originalConsoleError(...args);
+        };
+    });
+    afterAll(() => {
+        console.error = originalConsoleError;
+    });
+
     beforeEach(() => {
         jest.clearAllMocks();
         // Mock clipboard

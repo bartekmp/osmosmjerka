@@ -829,5 +829,14 @@
       "no_solved_puzzles": "Brak rozwiązanych łamigłówek.",
       "created_by_date": "Utworzone przez {{name}} dnia {{date}}"
     }
+  },
+  "whatsNew": {
+    "title": "Co nowego",
+    "version": "Wersja {{version}}",
+    "features": "Nowe funkcje",
+    "bugfixes": "Poprawki błędów",
+    "improvements": "Ulepszenia",
+    "dismiss": "Rozumiem!",
+    "empty": "Brak aktualizacji od ostatniej wizyty"
   }
 }

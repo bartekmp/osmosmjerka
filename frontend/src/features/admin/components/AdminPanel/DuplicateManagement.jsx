@@ -300,14 +300,16 @@ export default function DuplicateManagement({ currentUser, selectedLanguageSetId
                         </Select>
                     </FormControl>
                     <Tooltip title={t('refresh', 'Refresh')}>
-                        <Button
-                            onClick={() => loadDuplicates(currentPage, pageSize)}
-                            disabled={loading}
-                            variant="outlined"
-                            size="small"
-                        >
-                            {loading ? <CircularProgress size={20} /> : (isMobile ? '🔄' : t('refresh', 'Refresh'))}
-                        </Button>
+                        <span>
+                            <Button
+                                onClick={() => loadDuplicates(currentPage, pageSize)}
+                                disabled={loading}
+                                variant="outlined"
+                                size="small"
+                            >
+                                {loading ? <CircularProgress size={20} /> : (isMobile ? '🔄' : t('refresh', 'Refresh'))}
+                            </Button>
+                        </span>
                     </Tooltip>
                     <Tooltip title={`${t('delete_selected', 'Delete Selected')} (${selectedPhrases.size})`}>
                         <span>
