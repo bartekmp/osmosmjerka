@@ -47,7 +47,14 @@ import {
   MobilePhraseListSheet,
   MobileFloatingActions,
 } from "./features";
-import { NotEnoughPhrasesOverlay, ScreenTooSmallOverlay, SplashScreen } from "./shared";
+import { NotEnoughPhrasesOverlay, ScreenTooSmallOverlay, SplashScreen, WhatsNewModal } from "./shared";
+import {
+  getLastSeenVersion,
+  setLastSeenVersion,
+  isNewerVersion,
+  fetchWhatsNew,
+  getCurrentVersion,
+} from "./shared/utils/versionUtils";
 import "./style.css";
 import createAppTheme from "./theme";
 
@@ -288,6 +295,10 @@ function AppContent() {
 
   // Mobile UI state
   const [mobileSheetOpen, setMobileSheetOpen] = useState(false);
+
+  // What's New modal state
+  const [showWhatsNew, setShowWhatsNew] = useState(false);
+  const [whatsNewEntries, setWhatsNewEntries] = useState([]);
 
   // Debounced language set ID to prevent excessive API calls
   const debouncedLanguageSetId = useDebouncedValue(selectedLanguageSetId, 500);
@@ -678,6 +689,58 @@ function AppContent() {
     return () =>
       window.removeEventListener("admin-auth-changed", handleAuthChanged);
   }, [checkStatisticsEnabled, checkUserPreferences]);
+
+  // Check for new version and show What's New modal for logged-in users
+  const checkWhatsNew = useCallback(async () => {
+    const token = localStorage.getItem(STORAGE_KEYS.ADMIN_TOKEN);
+    if (!token) return; // Only show for logged-in users
+
+    try {
+      const currentVersion = await getCurrentVersion();
+      if (!currentVersion) return;
+
+      const lastSeenVersion = getLastSeenVersion();
+
+      if (isNewerVersion(currentVersion, lastSeenVersion)) {
+        const entries = await fetchWhatsNew(lastSeenVersion, 5);
+        if (entries && entries.length > 0) {
+          setWhatsNewEntries(entries);
+          setShowWhatsNew(true);
+        } else {
+          // No changelog entries but version is newer, still update last seen
+          setLastSeenVersion(currentVersion);
+        }
+      }
+    } catch (error) {
+      console.warn("Failed to check for updates:", error);
+    }
+  }, []);
+
+  // Handle What's New modal close
+  const handleWhatsNewClose = useCallback(async () => {
+    setShowWhatsNew(false);
+    // Save the current version when user dismisses
+    const currentVersion = await getCurrentVersion();
+    if (currentVersion) {
+      setLastSeenVersion(currentVersion);
+    }
+  }, []);
+
+  // Check for new version on mount and when auth changes
+  useEffect(() => {
+    checkWhatsNew();
+  }, [checkWhatsNew]);
+
+  useEffect(() => {
+    const handleAuthChanged = () => {
+      // Small delay to ensure token is saved before checking
+      setTimeout(checkWhatsNew, 500);
+    };
+
+    window.addEventListener("admin-auth-changed", handleAuthChanged);
+    return () =>
+      window.removeEventListener("admin-auth-changed", handleAuthChanged);
+  }, [checkWhatsNew]);
 
   useEffect(() => {
     if (!scoringEnabled) {
@@ -1846,6 +1909,13 @@ function AppContent() {
           "common.rateLimitWarning",
           "Please wait before making another request. The server is processing your previous request."
         )}
+      />
+
+      {/* What's New Modal */}
+      <WhatsNewModal
+        open={showWhatsNew}
+        onClose={handleWhatsNewClose}
+        entries={whatsNewEntries}
       />
     </MUIThemeProvider>
   );

@@ -233,7 +233,7 @@ export default function MyStudy({ token }) {
                                                 {newPuzzles.length > 0 ? (
                                                     <Grid container spacing={3}>
                                                         {newPuzzles.map(puzzle => (
-                                                            <Grid item xs={12} sm={6} md={4} key={puzzle.id}>
+                                                            <Grid size={{ xs: 12, sm: 6, md: 4 }} key={puzzle.id}>
                                                                 {renderPuzzleCard(puzzle)}
                                                             </Grid>
                                                         ))}
@@ -256,7 +256,7 @@ export default function MyStudy({ token }) {
                                                 {solvedPuzzles.length > 0 ? (
                                                     <Grid container spacing={3}>
                                                         {solvedPuzzles.map(puzzle => (
-                                                            <Grid item xs={12} sm={6} md={4} key={puzzle.id}>
+                                                            <Grid size={{ xs: 12, sm: 6, md: 4 }} key={puzzle.id}>
                                                                 {renderPuzzleCard(puzzle)}
                                                             </Grid>
                                                         ))}
@@ -348,7 +348,7 @@ export default function MyStudy({ token }) {
                         ) : (
                             <Grid container spacing={2}>
                                 {groups.map(group => (
-                                    <Grid item xs={12} md={6} key={group.id}>
+                                    <Grid size={{ xs: 12, md: 6 }} key={group.id}>
                                         <Card variant="outlined">
                                             <CardContent>
                                                 <Stack direction="row" spacing={2} alignItems="center">

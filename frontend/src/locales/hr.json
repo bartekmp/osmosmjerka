@@ -824,5 +824,14 @@
       "no_solved_puzzles": "Nema riješenih zagonetki.",
       "created_by_date": "Kreirao {{name}} dana {{date}}"
     }
+  },
+  "whatsNew": {
+    "title": "Što je novo",
+    "version": "Verzija {{version}}",
+    "features": "Nove značajke",
+    "bugfixes": "Ispravci grešaka",
+    "improvements": "Poboljšanja",
+    "dismiss": "Razumijem!",
+    "empty": "Nema ažuriranja od vašeg zadnjeg posjeta"
   }
 }

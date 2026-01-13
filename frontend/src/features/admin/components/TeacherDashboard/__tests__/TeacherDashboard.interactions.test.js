@@ -43,6 +43,21 @@ jest.mock('../useTeacherApi', () => ({
 
 
 describe('TeacherDashboard Interactions', () => {
+    // Suppress noisy React act() warnings in console output
+    const originalConsoleError = console.error;
+    beforeAll(() => {
+        console.error = (...args) => {
+            const first = args[0];
+            if (typeof first === 'string' && first.includes('not wrapped in act(...)')) {
+                return; // suppress noisy act() warning for this suite
+            }
+            originalConsoleError(...args);
+        };
+    });
+    afterAll(() => {
+        console.error = originalConsoleError;
+    });
+
     // Define mock functions here so they are fresh for each test if needed, 
     // or keep them describing the shape.
     const mockFetchPhraseSets = jest.fn();

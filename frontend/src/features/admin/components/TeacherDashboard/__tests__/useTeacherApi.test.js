@@ -141,13 +141,10 @@ describe('useTeacherApi', () => {
 
         expect(result.current.isLoading).toBe(false);
 
-        const fetchPromise = act(async () => {
-            result.current.fetchPhraseSets();
-        });
-
-        // Wait for loading to start
+        // Start the fetch but don't await it yet
+        let fetchPromise;
         await act(async () => {
-            await new Promise(resolve => setTimeout(resolve, 0));
+            fetchPromise = result.current.fetchPhraseSets();
         });
 
         // Resolve the fetch
@@ -156,7 +153,9 @@ describe('useTeacherApi', () => {
             json: () => Promise.resolve({ sets: [] }),
         });
 
-        await fetchPromise;
+        await act(async () => {
+            await fetchPromise;
+        });
     });
 
     test('copyLinkToClipboard copies to clipboard', async () => {

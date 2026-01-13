@@ -17,6 +17,7 @@ export { RateLimitWarning } from './components/ui/RateLimitWarning';
 export { default as NotEnoughPhrasesOverlay } from './components/ui/NotEnoughPhrasesOverlay';
 export { default as ScreenTooSmallOverlay } from './components/ui/ScreenTooSmallOverlay';
 export { default as SplashScreen } from './components/ui/SplashScreen';
+export { default as WhatsNewModal } from './components/ui/WhatsNewModal';
 
 // Styled Components
 export * from './components/ui/StyledComponents';
@@ -24,4 +25,6 @@ export * from './components/ui/StyledComponents';
 // Utilities
 export * from './utils/responsive';
 export * from './utils/assets';
+export * from './utils/versionUtils';
 export * from './constants/constants';
+
