@@ -13,7 +13,7 @@ async def get_statistics_enabled(user=Depends(require_root_admin)) -> JSONRespon
         enabled = await db_manager.is_statistics_enabled()
         return JSONResponse({"enabled": enabled})
     except Exception as e:
-        raise HTTPException(status_code=500, detail=str(e))
+        raise HTTPException(status_code=500, detail=str(e)) from e
 
 
 @router.post("/statistics-enabled")
@@ -35,7 +35,7 @@ async def set_statistics_enabled(body: dict = Body(...), user=Depends(require_ro
             {"message": f"Statistics tracking {'enabled' if enabled else 'disabled'} successfully", "enabled": enabled}
         )
     except Exception as e:
-        raise HTTPException(status_code=500, detail=str(e))
+        raise HTTPException(status_code=500, detail=str(e)) from e
 
 
 @router.delete("/clear-all-statistics")
@@ -45,7 +45,7 @@ async def clear_all_statistics(user=Depends(require_root_admin)) -> JSONResponse
         await db_manager.clear_all_statistics()
         return JSONResponse({"message": "All statistics data cleared successfully"})
     except Exception as e:
-        raise HTTPException(status_code=500, detail=str(e))
+        raise HTTPException(status_code=500, detail=str(e)) from e
 
 
 @router.get("/scoring-enabled")
@@ -55,7 +55,7 @@ async def get_scoring_enabled(user=Depends(require_root_admin)) -> JSONResponse:
         enabled = await db_manager.is_scoring_enabled_globally()
         return JSONResponse({"enabled": enabled})
     except Exception as e:
-        raise HTTPException(status_code=500, detail=str(e))
+        raise HTTPException(status_code=500, detail=str(e)) from e
 
 
 @router.post("/scoring-enabled")
@@ -77,7 +77,7 @@ async def set_scoring_enabled(body: dict = Body(...), user=Depends(require_root_
             {"message": f"Scoring system {'enabled' if enabled else 'disabled'} successfully", "enabled": enabled}
         )
     except Exception as e:
-        raise HTTPException(status_code=500, detail=str(e))
+        raise HTTPException(status_code=500, detail=str(e)) from e
 
 
 @router.get("/progressive-hints-enabled")
@@ -87,7 +87,7 @@ async def get_progressive_hints_enabled(user=Depends(require_root_admin)) -> JSO
         enabled = await db_manager.is_progressive_hints_enabled_globally()
         return JSONResponse({"enabled": enabled})
     except Exception as e:
-        raise HTTPException(status_code=500, detail=str(e))
+        raise HTTPException(status_code=500, detail=str(e)) from e
 
 
 @router.post("/progressive-hints-enabled")
@@ -109,7 +109,7 @@ async def set_progressive_hints_enabled(body: dict = Body(...), user=Depends(req
             {"message": f"Progressive hints {'enabled' if enabled else 'disabled'} successfully", "enabled": enabled}
         )
     except Exception as e:
-        raise HTTPException(status_code=500, detail=str(e))
+        raise HTTPException(status_code=500, detail=str(e)) from e
 
 
 # Alternative endpoints that match frontend expectations
@@ -181,7 +181,7 @@ async def get_scoring_rules_setting(user=Depends(require_root_admin)) -> JSONRes
     except HTTPException:
         raise
     except Exception as e:
-        raise HTTPException(status_code=500, detail=str(e))
+        raise HTTPException(status_code=500, detail=str(e)) from e
 
 
 @router.put("/scoring-rules")
@@ -228,7 +228,7 @@ async def update_scoring_rules_setting(body: dict = Body(...), user=Depends(requ
     except HTTPException:
         raise
     except Exception as e:
-        raise HTTPException(status_code=500, detail=str(e))
+        raise HTTPException(status_code=500, detail=str(e)) from e
 
 
 # ===== Private List Limits =====
@@ -248,7 +248,7 @@ async def get_list_limits(user=Depends(require_root_admin)) -> JSONResponse:
             }
         )
     except Exception as e:
-        raise HTTPException(status_code=500, detail=str(e))
+        raise HTTPException(status_code=500, detail=str(e)) from e
 
 
 @router.put("/list-limits")
@@ -282,4 +282,4 @@ async def update_list_limits(body: dict = Body(...), user=Depends(require_root_a
     except HTTPException:
         raise
     except Exception as e:
-        raise HTTPException(status_code=500, detail=str(e))
+        raise HTTPException(status_code=500, detail=str(e)) from e

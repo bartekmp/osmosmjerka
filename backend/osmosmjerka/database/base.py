@@ -9,7 +9,7 @@ from databases import Database
 from dotenv import load_dotenv
 from osmosmjerka.database.models import create_phrase_table, metadata
 from osmosmjerka.logging_config import get_logger
-from sqlalchemy import Table, create_engine
+from sqlalchemy import Table, create_engine, text
 
 # Load environment variables
 load_dotenv()
@@ -159,7 +159,8 @@ class BaseDatabaseManager:
 
         # Check if table exists
         result = await database.fetch_one(
-            f"SELECT EXISTS (SELECT FROM information_schema.tables WHERE table_name = '{table_name}')"
+            text("SELECT EXISTS (SELECT FROM information_schema.tables WHERE table_name = :table_name)"),
+            {"table_name": table_name},
         )
 
         if not (result and result[0]):

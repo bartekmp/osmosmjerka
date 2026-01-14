@@ -141,8 +141,8 @@ async def get_current_user(request: Request) -> dict:
         if not account or not account.get("is_active", False):
             raise HTTPException(status_code=401, detail="Inactive or invalid user")
         return {"username": account["username"], "role": account["role"], "id": account["id"]}
-    except JWTError:
-        raise HTTPException(status_code=401, detail="Could not validate credentials")
+    except JWTError as e:
+        raise HTTPException(status_code=401, detail="Could not validate credentials") from e
 
 
 async def get_current_user_optional(request: Request) -> dict | None:

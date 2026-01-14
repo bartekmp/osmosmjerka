@@ -38,4 +38,4 @@ async def export_puzzle(
             headers={"Content-Disposition": f"attachment; filename={filename}"},
         )
     except Exception as e:
-        raise HTTPException(status_code=500, detail=f"Export failed: {str(e)}")
+        raise HTTPException(status_code=500, detail=f"Export failed: {str(e)}") from e

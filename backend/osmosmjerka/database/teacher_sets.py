@@ -411,7 +411,7 @@ class TeacherSetsMixin:
             elif key in session_locked:
                 # Check if sessions exist
                 if existing.get("session_count", 0) > 0:
-                    raise ValueError(f"Cannot update {key}: set has existing sessions")
+                    raise ValueError(f"Cannot update {key}: set has existing sessions")  # noqa: S608
                 if key == "config":
                     update_values[key] = json.dumps(value)
                 else:
