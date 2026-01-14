@@ -2,6 +2,14 @@
 
 <!-- version list -->
 
+## v1.39.2 (2026-01-14)
+
+### Bug Fixes
+
+- Wrong repository for image promotion
+  ([`660c10e`](https://github.com/bartekmp/osmosmjerka/commit/660c10e231908ade4d4cb6224b2de1bbe8c5aed7))
+
+
 ## v1.39.1 (2026-01-14)
 
 ### Continuous Integration
