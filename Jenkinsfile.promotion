@@ -7,6 +7,7 @@ pipeline {
 
     environment {
         IMAGE_NAME = 'osmosmjerka'
+        GHCR_IMAGE = 'ghcr.io/bartekmp/osmosmjerka'
         GITOPS_REPO = "${env.OSMOSMJERKA_GITOPS_REPO}"
         GH_TOKEN = credentials('github_token')
     }
@@ -40,7 +41,7 @@ pipeline {
                     sh 'rm -rf gitops-tmp'
                     sh "git clone ${env.GITOPS_REPO} gitops-tmp"
                     dir('gitops-tmp/k8s/overlays/prod') {
-                        sh "kustomize edit set image ${env.DOCKER_REGISTRY}/${IMAGE_NAME}=${env.DOCKER_REGISTRY}/${IMAGE_NAME}:${imageTag}"
+                        sh "kustomize edit set image ${env.GHCR_IMAGE}=${env.GHCR_IMAGE}:${imageTag}"
                         sh 'git config user.email "ci@example.com"'
                         sh 'git config user.name "CI Bot"'
                         sh "git commit -am 'Promote prod image to ${imageTag}' || echo 'No changes to commit'"
