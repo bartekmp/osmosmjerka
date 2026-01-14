@@ -2,6 +2,37 @@
 
 <!-- version list -->
 
+## v1.39.1 (2026-01-14)
+
+### Continuous Integration
+
+- Trigger Jenkins build with a GH Actions webhook
+  ([#146](https://github.com/bartekmp/osmosmjerka/pull/146),
+  [`21baef2`](https://github.com/bartekmp/osmosmjerka/commit/21baef252432392f543f30f2847a6e2ce20a0a58))
+
+### Enhancement
+
+- Add type annotations and pydantic schemas
+  ([#147](https://github.com/bartekmp/osmosmjerka/pull/147),
+  [`8f8c190`](https://github.com/bartekmp/osmosmjerka/commit/8f8c1907c499ac1517db2d36c609a89af090d309))
+
+- Add unit tests for cache and config logging
+  ([#147](https://github.com/bartekmp/osmosmjerka/pull/147),
+  [`8f8c190`](https://github.com/bartekmp/osmosmjerka/commit/8f8c1907c499ac1517db2d36c609a89af090d309))
+
+- Fix SQL Injections, preserve exception stack traces
+  ([#147](https://github.com/bartekmp/osmosmjerka/pull/147),
+  [`8f8c190`](https://github.com/bartekmp/osmosmjerka/commit/8f8c1907c499ac1517db2d36c609a89af090d309))
+
+- Silence linter warnings ([#147](https://github.com/bartekmp/osmosmjerka/pull/147),
+  [`8f8c190`](https://github.com/bartekmp/osmosmjerka/commit/8f8c1907c499ac1517db2d36c609a89af090d309))
+
+### Improvement
+
+- Refactor backend ([#147](https://github.com/bartekmp/osmosmjerka/pull/147),
+  [`8f8c190`](https://github.com/bartekmp/osmosmjerka/commit/8f8c1907c499ac1517db2d36c609a89af090d309))
+
+
 ## v1.39.0 (2026-01-13)
 
 ### Continuous Integration
