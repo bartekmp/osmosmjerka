@@ -1,9 +1,10 @@
 """User preferences endpoints for game API."""
 
-from fastapi import APIRouter, Body, Depends, Query
+from fastapi import APIRouter, Depends, Query
 from fastapi.responses import JSONResponse
 from osmosmjerka.auth import get_current_user, get_current_user_optional
 from osmosmjerka.database import db_manager
+from osmosmjerka.game_api.schemas import IgnoredCategoriesUpdate, UserPreferenceUpdate
 
 router = APIRouter()
 
@@ -21,16 +22,10 @@ async def get_user_ignored_categories(
 
 
 @router.put("/user/ignored-categories")
-async def put_user_ignored_categories(body: dict = Body(...), user=Depends(get_current_user)) -> JSONResponse:
-    language_set_id = body.get("language_set_id")
-    categories = body.get("categories", [])
-    if not isinstance(language_set_id, int):
-        return JSONResponse({"error": "language_set_id required"}, status_code=400)
-    if not isinstance(categories, list):
-        return JSONResponse({"error": "categories must be a list"}, status_code=400)
-
-    await db_manager.replace_user_ignored_categories(user["id"], language_set_id, categories)
-    return JSONResponse({"message": "Ignored categories updated", "categories": sorted(categories)})
+async def put_user_ignored_categories(body: IgnoredCategoriesUpdate, user=Depends(get_current_user)) -> JSONResponse:
+    """Update user's ignored categories for a language set."""
+    await db_manager.replace_user_ignored_categories(user["id"], body.language_set_id, body.categories)
+    return JSONResponse({"message": "Ignored categories updated", "categories": sorted(body.categories)})
 
 
 @router.get("/user/ignored-categories/all")
@@ -50,19 +45,10 @@ async def get_user_preferences(user=Depends(get_current_user)) -> JSONResponse:
 
 
 @router.put("/user/preferences")
-async def set_user_preference(body: dict = Body(...), user=Depends(get_current_user)) -> JSONResponse:
+async def set_user_preference(body: UserPreferenceUpdate, user=Depends(get_current_user)) -> JSONResponse:
     """Set a user preference"""
     try:
-        preference_key = body.get("preference_key")
-        preference_value = body.get("preference_value")
-
-        if not preference_key or preference_value is None:
-            return JSONResponse({"error": "Missing required fields: preference_key, preference_value"}, status_code=400)
-
-        if not isinstance(preference_key, str) or not isinstance(preference_value, str):
-            return JSONResponse({"error": "preference_key and preference_value must be strings"}, status_code=400)
-
-        await db_manager.set_user_preference(user["id"], preference_key, preference_value)
+        await db_manager.set_user_preference(user["id"], body.preference_key, body.preference_value)
         return JSONResponse({"message": "Preference updated successfully"})
     except Exception as e:
         return JSONResponse({"error": str(e)}, status_code=500)

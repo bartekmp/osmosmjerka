@@ -11,6 +11,7 @@ from osmosmjerka.auth import get_current_user
 from osmosmjerka.cache import rate_limit
 from osmosmjerka.database import db_manager
 from osmosmjerka.game_api.helpers import _generate_grid_with_exact_phrase_count, get_grid_size_and_num_phrases
+from osmosmjerka.game_api.schemas import LearnLaterBulkAddRequest, LearnLaterCheckRequest
 from osmosmjerka.logging_config import get_logger
 
 logger = get_logger(__name__)
@@ -21,23 +22,22 @@ router = APIRouter()
 # User Private Lists - Learn This Later endpoints
 @router.post("/user/learn-later/check")
 @rate_limit(max_requests=30, window_seconds=60)
-async def check_phrases_in_learn_later(body: dict = Body(...), user=Depends(get_current_user)) -> JSONResponse:
+async def check_phrases_in_learn_later(body: LearnLaterCheckRequest, user=Depends(get_current_user)) -> JSONResponse:
     """Check which phrases are already in user's Learn This Later list"""
     try:
-        language_set_id = body.get("language_set_id")
-        phrase_ids = body.get("phrase_ids", [])
-
-        if not language_set_id or not phrase_ids:
+        if not body.language_set_id or not body.phrase_ids:
             return JSONResponse({"in_list": []})
 
         # Get "Learn This Later" list (don't create if doesn't exist)
-        learn_later_list = await db_manager.get_learn_later_list(user["id"], language_set_id, create_if_missing=False)
+        learn_later_list = await db_manager.get_learn_later_list(
+            user["id"], body.language_set_id, create_if_missing=False
+        )
 
         if not learn_later_list:
             return JSONResponse({"in_list": []})
 
         # Check which phrases are already in the list
-        existing_phrases = await db_manager.get_phrase_ids_in_private_list(learn_later_list["id"], phrase_ids)
+        existing_phrases = await db_manager.get_phrase_ids_in_private_list(learn_later_list["id"], body.phrase_ids)
 
         return JSONResponse({"in_list": existing_phrases, "total_in_list": len(existing_phrases)})
 
@@ -48,28 +48,22 @@ async def check_phrases_in_learn_later(body: dict = Body(...), user=Depends(get_
 
 @router.post("/user/learn-later/bulk")
 @rate_limit(max_requests=20, window_seconds=60)
-async def bulk_add_to_learn_later(body: dict = Body(...), user=Depends(get_current_user)) -> JSONResponse:
+async def bulk_add_to_learn_later(body: LearnLaterBulkAddRequest, user=Depends(get_current_user)) -> JSONResponse:
     """Add multiple phrases to user's Learn This Later list"""
     try:
-        language_set_id = body.get("language_set_id")
-        phrase_ids = body.get("phrase_ids", [])
-
-        if not language_set_id or not phrase_ids:
-            raise HTTPException(status_code=400, detail="Missing required fields")
-
-        # Get or create "Learn This Later" list
-        learn_later_list = await db_manager.get_or_create_learn_later_list(user["id"], language_set_id)
+        # Get or create "Learn This Later" list (Pydantic validates required fields)
+        learn_later_list = await db_manager.get_or_create_learn_later_list(user["id"], body.language_set_id)
 
         # Add phrases (automatically skips duplicates)
         added_count = await db_manager.bulk_add_phrases_to_private_list(
-            learn_later_list["id"], phrase_ids, language_set_id, skip_duplicates=True
+            learn_later_list["id"], body.phrase_ids, body.language_set_id, skip_duplicates=True
         )
 
         return JSONResponse(
             {
                 "message": "Phrases added successfully",
                 "added_count": added_count,
-                "skipped": len(phrase_ids) - added_count,
+                "skipped": len(body.phrase_ids) - added_count,
                 "list_id": learn_later_list["id"],
             }
         )

@@ -305,23 +305,16 @@ def test_export_puzzle_default_format(client):
 
 
 def test_export_puzzle_invalid_format(client):
-    """Test exporting puzzle with invalid format"""
-    with (
-        patch("osmosmjerka.game_api.export_to_docx") as mock_docx,
-        patch("osmosmjerka.game_api.export.export_to_png") as mock_png,
-    ):
-        mock_docx.return_value = b"docxbytes"
-        mock_png.return_value = b"pngbytes"
-
-        data = {
-            "category": "Test",
-            "grid": [["A"]],
-            "phrases": [{"phrase": "A", "translation": "A"}],
-            "format": "invalid",
-        }
-        response = client.post("/api/export", json=data)
-        assert response.status_code == 500
-        assert "Export failed" in response.json()["detail"]
+    """Test exporting puzzle with invalid format returns 422 (Pydantic validation)"""
+    data = {
+        "category": "Test",
+        "grid": [["A"]],
+        "phrases": [{"phrase": "A", "translation": "A"}],
+        "format": "invalid",
+    }
+    response = client.post("/api/export", json=data)
+    # Pydantic regex pattern validation returns 422
+    assert response.status_code == 422
 
 
 def test_export_puzzle_filename_sanitization(client):

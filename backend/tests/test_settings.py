@@ -97,10 +97,11 @@ async def test_set_statistics_enabled_invalid_data(client, mock_root_admin_user)
         app.dependency_overrides[require_root_admin] = lambda: mock_root_admin_user
 
         response = client.post("/admin/settings/statistics-enabled", json={"enabled": "invalid"})
-        assert response.status_code == 400
+        # Pydantic returns 422 Unprocessable Entity for validation errors
+        assert response.status_code == 422
 
         response = client.post("/admin/settings/statistics-enabled", json={})
-        assert response.status_code == 400
+        assert response.status_code == 422
 
         # Ensure the database method was never called due to validation errors
         mock_set_setting.assert_not_called()

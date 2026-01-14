@@ -17,7 +17,7 @@ logger = get_logger(__name__)
 class AsyncLRUCache:
     """Simple async-compatible LRU cache with TTL support."""
 
-    def __init__(self, maxsize: int = 128, ttl: int = 300):
+    def __init__(self, maxsize: int = 128, ttl: int = 300) -> None:
         self.cache: Dict[str, tuple[Any, float]] = {}
         self.maxsize = maxsize
         self.ttl = ttl
@@ -53,7 +53,7 @@ class AsyncLRUCache:
 class RateLimiter:
     """Simple in-memory rate limiter."""
 
-    def __init__(self):
+    def __init__(self) -> None:
         self.requests: Dict[str, list[float]] = defaultdict(list)
 
     def is_allowed(self, identifier: str, max_requests: int, window_seconds: int) -> bool:
