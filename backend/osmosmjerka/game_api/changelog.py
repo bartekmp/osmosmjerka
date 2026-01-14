@@ -1,5 +1,6 @@
 """Changelog API module for What's New feature."""
 
+import logging
 import re
 import time
 from pathlib import Path
@@ -7,6 +8,8 @@ from typing import Optional
 
 from fastapi import APIRouter, Query, Request
 from osmosmjerka.cache import rate_limit
+
+logger = logging.getLogger(__name__)
 
 router = APIRouter(tags=["changelog"])
 
@@ -30,7 +33,7 @@ def get_current_version() -> Optional[str]:
             if match:
                 return match.group(1)
     except Exception:
-        pass
+        logger.debug("Could not read version from pyproject.toml", exc_info=True)
     return None
 
 
@@ -79,6 +82,7 @@ def parse_changelog() -> list[dict]:
     try:
         content = CHANGELOG_PATH.read_text(encoding="utf-8")
     except Exception:
+        logger.debug("Could not read CHANGELOG.md", exc_info=True)
         return []
 
     entries = []

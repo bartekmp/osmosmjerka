@@ -85,4 +85,4 @@ def _fill_empty_cells_with_random_letters(grid: List[List[str]]) -> None:
     for r in range(size):
         for c in range(size):
             if grid[r][c] == "":
-                grid[r][c] = random.choice("ABCDEFGHIJKLMNOPQRSTUVWXYZ")
+                grid[r][c] = random.choice("ABCDEFGHIJKLMNOPQRSTUVWXYZ")  # noqa: S311

@@ -81,7 +81,7 @@ async def get_phrases(
     # Don't override "ALL" selection
     if category != "ALL":
         if not category_filter or (category_filter and category_filter not in categories):
-            category_filter = random.choice(categories) if categories else None
+            category_filter = random.choice(categories) if categories else None  # noqa: S311
         if not category_filter and not categories:
             return JSONResponse(
                 {"error_code": "NO_CATEGORIES_AVAILABLE"},

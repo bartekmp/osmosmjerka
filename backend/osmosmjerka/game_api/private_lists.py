@@ -11,6 +11,7 @@ from osmosmjerka.auth import get_current_user
 from osmosmjerka.cache import rate_limit
 from osmosmjerka.database import db_manager
 from osmosmjerka.game_api.helpers import _generate_grid_with_exact_phrase_count, get_grid_size_and_num_phrases
+from osmosmjerka.game_api.schemas import LearnLaterBulkAddRequest, LearnLaterCheckRequest
 from osmosmjerka.logging_config import get_logger
 
 logger = get_logger(__name__)
@@ -21,23 +22,22 @@ router = APIRouter()
 # User Private Lists - Learn This Later endpoints
 @router.post("/user/learn-later/check")
 @rate_limit(max_requests=30, window_seconds=60)
-async def check_phrases_in_learn_later(body: dict = Body(...), user=Depends(get_current_user)) -> JSONResponse:
+async def check_phrases_in_learn_later(body: LearnLaterCheckRequest, user=Depends(get_current_user)) -> JSONResponse:
     """Check which phrases are already in user's Learn This Later list"""
     try:
-        language_set_id = body.get("language_set_id")
-        phrase_ids = body.get("phrase_ids", [])
-
-        if not language_set_id or not phrase_ids:
+        if not body.language_set_id or not body.phrase_ids:
             return JSONResponse({"in_list": []})
 
         # Get "Learn This Later" list (don't create if doesn't exist)
-        learn_later_list = await db_manager.get_learn_later_list(user["id"], language_set_id, create_if_missing=False)
+        learn_later_list = await db_manager.get_learn_later_list(
+            user["id"], body.language_set_id, create_if_missing=False
+        )
 
         if not learn_later_list:
             return JSONResponse({"in_list": []})
 
         # Check which phrases are already in the list
-        existing_phrases = await db_manager.get_phrase_ids_in_private_list(learn_later_list["id"], phrase_ids)
+        existing_phrases = await db_manager.get_phrase_ids_in_private_list(learn_later_list["id"], body.phrase_ids)
 
         return JSONResponse({"in_list": existing_phrases, "total_in_list": len(existing_phrases)})
 
@@ -48,28 +48,22 @@ async def check_phrases_in_learn_later(body: dict = Body(...), user=Depends(get_
 
 @router.post("/user/learn-later/bulk")
 @rate_limit(max_requests=20, window_seconds=60)
-async def bulk_add_to_learn_later(body: dict = Body(...), user=Depends(get_current_user)) -> JSONResponse:
+async def bulk_add_to_learn_later(body: LearnLaterBulkAddRequest, user=Depends(get_current_user)) -> JSONResponse:
     """Add multiple phrases to user's Learn This Later list"""
     try:
-        language_set_id = body.get("language_set_id")
-        phrase_ids = body.get("phrase_ids", [])
-
-        if not language_set_id or not phrase_ids:
-            raise HTTPException(status_code=400, detail="Missing required fields")
-
-        # Get or create "Learn This Later" list
-        learn_later_list = await db_manager.get_or_create_learn_later_list(user["id"], language_set_id)
+        # Get or create "Learn This Later" list (Pydantic validates required fields)
+        learn_later_list = await db_manager.get_or_create_learn_later_list(user["id"], body.language_set_id)
 
         # Add phrases (automatically skips duplicates)
         added_count = await db_manager.bulk_add_phrases_to_private_list(
-            learn_later_list["id"], phrase_ids, language_set_id, skip_duplicates=True
+            learn_later_list["id"], body.phrase_ids, body.language_set_id, skip_duplicates=True
         )
 
         return JSONResponse(
             {
                 "message": "Phrases added successfully",
                 "added_count": added_count,
-                "skipped": len(phrase_ids) - added_count,
+                "skipped": len(body.phrase_ids) - added_count,
                 "list_id": learn_later_list["id"],
             }
         )
@@ -78,7 +72,7 @@ async def bulk_add_to_learn_later(body: dict = Body(...), user=Depends(get_curre
         raise
     except Exception as e:
         logger.exception("Failed to add phrases to Learn This Later")
-        raise HTTPException(status_code=500, detail=str(e))
+        raise HTTPException(status_code=500, detail=str(e)) from e
 
 
 @router.get("/user/private-lists")
@@ -115,7 +109,7 @@ async def get_user_private_lists(
         )
     except Exception as e:
         logger.exception("Failed to get user private lists")
-        raise HTTPException(status_code=500, detail=str(e))
+        raise HTTPException(status_code=500, detail=str(e)) from e
 
 
 @router.get("/user/private-lists/{list_id}/phrases")
@@ -171,7 +165,7 @@ async def get_private_list_phrases_endpoint(
 
     except Exception as e:
         logger.exception(f"Failed to get phrases from private list {list_id}")
-        raise HTTPException(status_code=500, detail=str(e))
+        raise HTTPException(status_code=500, detail=str(e)) from e
 
 
 @router.get("/user/private-lists/{list_id}/categories")
@@ -187,7 +181,7 @@ async def get_private_list_categories_endpoint(
         return JSONResponse(categories)
     except Exception as e:
         logger.exception(f"Failed to get categories for private list {list_id}")
-        raise HTTPException(status_code=500, detail=str(e))
+        raise HTTPException(status_code=500, detail=str(e)) from e
 
 
 @router.get("/user/private-lists/{list_id}/entries")
@@ -224,9 +218,9 @@ async def get_private_list_entries_endpoint(
             }
         )
 
-    except Exception:
+    except Exception as e:
         logger.exception(f"Failed to load entries for private list {list_id}")
-        raise HTTPException(status_code=500, detail="Failed to load list entries")
+        raise HTTPException(status_code=500, detail="Failed to load list entries") from e
 
 
 @router.post("/user/private-lists")
@@ -268,7 +262,7 @@ async def create_private_list(list_data: dict, user=Depends(get_current_user)) -
 
     except Exception as e:
         logger.exception("Failed to create private list")
-        raise HTTPException(status_code=500, detail=str(e))
+        raise HTTPException(status_code=500, detail=str(e)) from e
 
 
 @router.put("/user/private-lists/{list_id}")
@@ -305,7 +299,7 @@ async def update_private_list(list_id: int, list_data: dict, user=Depends(get_cu
 
     except Exception as e:
         logger.exception(f"Failed to update private list {list_id}")
-        raise HTTPException(status_code=500, detail=str(e))
+        raise HTTPException(status_code=500, detail=str(e)) from e
 
 
 @router.delete("/user/private-lists/{list_id}")
@@ -328,7 +322,7 @@ async def delete_private_list_endpoint(list_id: int, user=Depends(get_current_us
 
     except Exception as e:
         logger.exception(f"Failed to delete private list {list_id}")
-        raise HTTPException(status_code=500, detail=str(e))
+        raise HTTPException(status_code=500, detail=str(e)) from e
 
 
 @router.post("/user/private-lists/{list_id}/phrases")
@@ -381,7 +375,7 @@ async def add_phrase_to_private_list(list_id: int, phrase_data: dict, user=Depen
         return JSONResponse({"error": error_msg}, status_code=status.HTTP_400_BAD_REQUEST)
     except Exception as e:
         logger.exception(f"Failed to add phrase to private list {list_id}")
-        raise HTTPException(status_code=500, detail=str(e))
+        raise HTTPException(status_code=500, detail=str(e)) from e
 
 
 @router.post("/user/private-lists/{list_id}/phrases/batch")
@@ -453,9 +447,9 @@ async def batch_add_phrases_to_private_list(
             }
         )
 
-    except Exception:
+    except Exception as e:
         logger.exception(f"Failed to batch add phrases to private list {list_id}")
-        raise HTTPException(status_code=500, detail="Batch import failed")
+        raise HTTPException(status_code=500, detail="Batch import failed") from e
 
 
 @router.delete("/user/private-lists/{list_id}/phrases/{phrase_entry_id}")
@@ -483,7 +477,7 @@ async def remove_phrase_from_private_list(
 
     except Exception as e:
         logger.exception(f"Failed to remove phrase from private list {list_id}")
-        raise HTTPException(status_code=500, detail=str(e))
+        raise HTTPException(status_code=500, detail=str(e)) from e
 
 
 @router.get("/user/private-lists/{list_id}/statistics")
@@ -509,9 +503,9 @@ async def get_list_statistics(list_id: int, user=Depends(get_current_user)) -> J
 
         return JSONResponse(stats)
 
-    except Exception:
+    except Exception as e:
         logger.exception(f"Failed to get statistics for list {list_id}")
-        raise HTTPException(status_code=500, detail="Failed to get statistics")
+        raise HTTPException(status_code=500, detail="Failed to get statistics") from e
 
 
 @router.get("/user/lists/statistics")
@@ -523,9 +517,9 @@ async def get_user_list_statistics(user=Depends(get_current_user)) -> JSONRespon
 
         return JSONResponse(stats)
 
-    except Exception:
+    except Exception as e:
         logger.exception("Failed to get user list statistics")
-        raise HTTPException(status_code=500, detail="Failed to get statistics")
+        raise HTTPException(status_code=500, detail="Failed to get statistics") from e
 
 
 @router.get("/user/private-lists/{list_id}/export")
@@ -590,4 +584,4 @@ async def export_private_list(
         raise
     except Exception as e:
         logger.exception(f"Failed to export list {list_id}")
-        raise HTTPException(status_code=500, detail=f"Export failed: {str(e)}")
+        raise HTTPException(status_code=500, detail=f"Export failed: {str(e)}") from e

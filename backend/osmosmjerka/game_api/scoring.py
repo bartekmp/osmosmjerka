@@ -2,10 +2,11 @@
 
 import datetime
 
-from fastapi import APIRouter, Body, Depends, Query
+from fastapi import APIRouter, Depends, Query
 from fastapi.responses import JSONResponse
 from osmosmjerka.auth import get_current_user
 from osmosmjerka.database import db_manager
+from osmosmjerka.game_api.schemas import SaveGameScoreRequest
 from osmosmjerka.logging_config import get_logger
 from osmosmjerka.scoring_rules import (
     BASE_POINTS_PER_PHRASE,
@@ -92,89 +93,50 @@ async def calculate_game_score(
 
 
 @router.post("/game/score")
-async def save_game_score(body: dict = Body(...), user=Depends(get_current_user)) -> JSONResponse:
+async def save_game_score(body: SaveGameScoreRequest, user=Depends(get_current_user)) -> JSONResponse:
     """Save game score and return score details"""
     try:
-        session_id = body.get("session_id")
-        language_set_id = body.get("language_set_id")
-        category = body.get("category")
-        difficulty = body.get("difficulty")
-        grid_size = body.get("grid_size")
-        total_phrases = body.get("total_phrases")
-        phrases_found = body.get("phrases_found")
-        hints_used = body.get("hints_used", 0)
-        duration_seconds = body.get("duration_seconds")
-        first_phrase_time = body.get("first_phrase_time")
-        completion_time = body.get("completion_time")
-
-        # Validate required fields and types
-        if (
-            session_id is None
-            or language_set_id is None
-            or category is None
-            or difficulty is None
-            or grid_size is None
-            or total_phrases is None
-            or phrases_found is None
-            or duration_seconds is None
-        ):
-            return JSONResponse({"error": "Missing required fields"}, status_code=400)
-
-        # Type validation
-        if (
-            not isinstance(session_id, int)
-            or not isinstance(language_set_id, int)
-            or not isinstance(grid_size, int)
-            or not isinstance(total_phrases, int)
-            or not isinstance(phrases_found, int)
-            or not isinstance(duration_seconds, int)
-            or not isinstance(hints_used, int)
-            or not isinstance(category, str)
-            or not isinstance(difficulty, str)
-        ):
-            return JSONResponse({"error": "Invalid field types"}, status_code=400)
-
-        # Calculate scoring
+        # Calculate scoring (Pydantic model handles validation)
         scoring_result = await calculate_game_score(
-            difficulty, phrases_found, total_phrases, duration_seconds, hints_used
+            body.difficulty, body.phrases_found, body.total_phrases, body.duration_seconds, body.hints_used
         )
 
         # Convert datetime strings to datetime objects if provided
         first_phrase_dt = None
         completion_dt = None
-        if first_phrase_time:
+        if body.first_phrase_time:
             try:
                 # Parse timezone-aware datetime and convert to naive UTC
-                dt_aware = datetime.datetime.fromisoformat(first_phrase_time.replace("Z", "+00:00"))
+                dt_aware = datetime.datetime.fromisoformat(body.first_phrase_time.replace("Z", "+00:00"))
                 first_phrase_dt = dt_aware.replace(tzinfo=None)
             except ValueError:
                 pass
-        if completion_time:
+        if body.completion_time:
             try:
                 # Parse timezone-aware datetime and convert to naive UTC
-                dt_aware = datetime.datetime.fromisoformat(completion_time.replace("Z", "+00:00"))
+                dt_aware = datetime.datetime.fromisoformat(body.completion_time.replace("Z", "+00:00"))
                 completion_dt = dt_aware.replace(tzinfo=None)
             except ValueError:
                 pass
 
         # Save score to database
         score_id = await db_manager.save_game_score(
-            session_id=session_id,
+            session_id=body.session_id,
             user_id=user["id"],
-            language_set_id=language_set_id,
-            category=category,
-            difficulty=difficulty,
-            grid_size=grid_size,
-            total_phrases=total_phrases,
-            phrases_found=phrases_found,
-            hints_used=hints_used,
+            language_set_id=body.language_set_id,
+            category=body.category,
+            difficulty=body.difficulty,
+            grid_size=body.grid_size,
+            total_phrases=body.total_phrases,
+            phrases_found=body.phrases_found,
+            hints_used=body.hints_used,
             base_score=scoring_result["base_score"],
             time_bonus=scoring_result["time_bonus"],
             difficulty_bonus=scoring_result["difficulty_bonus"],
             streak_bonus=scoring_result["streak_bonus"],
             hint_penalty=scoring_result["hint_penalty"],
             final_score=scoring_result["final_score"],
-            duration_seconds=duration_seconds,
+            duration_seconds=body.duration_seconds,
             first_phrase_time=first_phrase_dt,
             completion_time=completion_dt,
         )

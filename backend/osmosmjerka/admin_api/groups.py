@@ -70,8 +70,8 @@ async def create_group(group: GroupCreate, current_user: dict = Depends(require_
         }
     except Exception as e:
         if "uq_teacher_group_name" in str(e):
-            raise HTTPException(status_code=400, detail="Group with this name already exists")
-        raise HTTPException(status_code=500, detail=str(e))
+            raise HTTPException(status_code=400, detail="Group with this name already exists") from e
+        raise HTTPException(status_code=500, detail=str(e)) from e
 
 
 @router.get("/{group_id}")

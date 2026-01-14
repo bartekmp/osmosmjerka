@@ -1,5 +1,6 @@
-from fastapi import APIRouter, Body, Depends, HTTPException
+from fastapi import APIRouter, Depends, HTTPException
 from fastapi.responses import JSONResponse
+from osmosmjerka.admin_api.schemas import EnabledToggle, ListLimitsUpdate, ScoringRulesUpdate
 from osmosmjerka.auth import require_root_admin
 from osmosmjerka.database import db_manager
 
@@ -13,29 +14,28 @@ async def get_statistics_enabled(user=Depends(require_root_admin)) -> JSONRespon
         enabled = await db_manager.is_statistics_enabled()
         return JSONResponse({"enabled": enabled})
     except Exception as e:
-        raise HTTPException(status_code=500, detail=str(e))
+        raise HTTPException(status_code=500, detail=str(e)) from e
 
 
 @router.post("/statistics-enabled")
-async def set_statistics_enabled(body: dict = Body(...), user=Depends(require_root_admin)) -> JSONResponse:
+async def set_statistics_enabled(body: EnabledToggle, user=Depends(require_root_admin)) -> JSONResponse:
     """Enable or disable statistics tracking globally - root admin only"""
-    enabled = body.get("enabled")
-    if enabled is None or not isinstance(enabled, bool):
-        raise HTTPException(status_code=400, detail="'enabled' field must be a boolean")
-
     try:
         await db_manager.set_global_setting(
             "statistics_enabled",
-            "true" if enabled else "false",
+            "true" if body.enabled else "false",
             "Global flag to enable/disable statistics tracking",
             user["id"],
         )
 
         return JSONResponse(
-            {"message": f"Statistics tracking {'enabled' if enabled else 'disabled'} successfully", "enabled": enabled}
+            {
+                "message": f"Statistics tracking {'enabled' if body.enabled else 'disabled'} successfully",
+                "enabled": body.enabled,
+            }
         )
     except Exception as e:
-        raise HTTPException(status_code=500, detail=str(e))
+        raise HTTPException(status_code=500, detail=str(e)) from e
 
 
 @router.delete("/clear-all-statistics")
@@ -45,7 +45,7 @@ async def clear_all_statistics(user=Depends(require_root_admin)) -> JSONResponse
         await db_manager.clear_all_statistics()
         return JSONResponse({"message": "All statistics data cleared successfully"})
     except Exception as e:
-        raise HTTPException(status_code=500, detail=str(e))
+        raise HTTPException(status_code=500, detail=str(e)) from e
 
 
 @router.get("/scoring-enabled")
@@ -55,29 +55,28 @@ async def get_scoring_enabled(user=Depends(require_root_admin)) -> JSONResponse:
         enabled = await db_manager.is_scoring_enabled_globally()
         return JSONResponse({"enabled": enabled})
     except Exception as e:
-        raise HTTPException(status_code=500, detail=str(e))
+        raise HTTPException(status_code=500, detail=str(e)) from e
 
 
 @router.post("/scoring-enabled")
-async def set_scoring_enabled(body: dict = Body(...), user=Depends(require_root_admin)) -> JSONResponse:
+async def set_scoring_enabled(body: EnabledToggle, user=Depends(require_root_admin)) -> JSONResponse:
     """Enable or disable scoring system globally - root admin only"""
-    enabled = body.get("enabled")
-    if enabled is None or not isinstance(enabled, bool):
-        raise HTTPException(status_code=400, detail="'enabled' field must be a boolean")
-
     try:
         await db_manager.set_global_setting(
             "scoring_enabled",
-            "true" if enabled else "false",
+            "true" if body.enabled else "false",
             "Global flag to enable/disable scoring system",
             user["id"],
         )
 
         return JSONResponse(
-            {"message": f"Scoring system {'enabled' if enabled else 'disabled'} successfully", "enabled": enabled}
+            {
+                "message": f"Scoring system {'enabled' if body.enabled else 'disabled'} successfully",
+                "enabled": body.enabled,
+            }
         )
     except Exception as e:
-        raise HTTPException(status_code=500, detail=str(e))
+        raise HTTPException(status_code=500, detail=str(e)) from e
 
 
 @router.get("/progressive-hints-enabled")
@@ -87,29 +86,28 @@ async def get_progressive_hints_enabled(user=Depends(require_root_admin)) -> JSO
         enabled = await db_manager.is_progressive_hints_enabled_globally()
         return JSONResponse({"enabled": enabled})
     except Exception as e:
-        raise HTTPException(status_code=500, detail=str(e))
+        raise HTTPException(status_code=500, detail=str(e)) from e
 
 
 @router.post("/progressive-hints-enabled")
-async def set_progressive_hints_enabled(body: dict = Body(...), user=Depends(require_root_admin)) -> JSONResponse:
+async def set_progressive_hints_enabled(body: EnabledToggle, user=Depends(require_root_admin)) -> JSONResponse:
     """Enable or disable progressive hints globally - root admin only"""
-    enabled = body.get("enabled")
-    if enabled is None or not isinstance(enabled, bool):
-        raise HTTPException(status_code=400, detail="'enabled' field must be a boolean")
-
     try:
         await db_manager.set_global_setting(
             "progressive_hints_enabled",
-            "true" if enabled else "false",
+            "true" if body.enabled else "false",
             "Global flag to enable/disable progressive hints system",
             user["id"],
         )
 
         return JSONResponse(
-            {"message": f"Progressive hints {'enabled' if enabled else 'disabled'} successfully", "enabled": enabled}
+            {
+                "message": f"Progressive hints {'enabled' if body.enabled else 'disabled'} successfully",
+                "enabled": body.enabled,
+            }
         )
     except Exception as e:
-        raise HTTPException(status_code=500, detail=str(e))
+        raise HTTPException(status_code=500, detail=str(e)) from e
 
 
 # Alternative endpoints that match frontend expectations
@@ -120,7 +118,7 @@ async def get_statistics_setting(user=Depends(require_root_admin)) -> JSONRespon
 
 
 @router.put("/statistics")
-async def update_statistics_setting(body: dict = Body(...), user=Depends(require_root_admin)) -> JSONResponse:
+async def update_statistics_setting(body: EnabledToggle, user=Depends(require_root_admin)) -> JSONResponse:
     """Update statistics tracking status - alternative endpoint"""
     return await set_statistics_enabled(body, user)
 
@@ -132,7 +130,7 @@ async def get_scoring_setting(user=Depends(require_root_admin)) -> JSONResponse:
 
 
 @router.put("/scoring")
-async def update_scoring_setting(body: dict = Body(...), user=Depends(require_root_admin)) -> JSONResponse:
+async def update_scoring_setting(body: EnabledToggle, user=Depends(require_root_admin)) -> JSONResponse:
     """Update scoring system status - alternative endpoint"""
     return await set_scoring_enabled(body, user)
 
@@ -144,7 +142,7 @@ async def get_progressive_hints_setting(user=Depends(require_root_admin)) -> JSO
 
 
 @router.put("/progressive-hints")
-async def update_progressive_hints_setting(body: dict = Body(...), user=Depends(require_root_admin)) -> JSONResponse:
+async def update_progressive_hints_setting(body: EnabledToggle, user=Depends(require_root_admin)) -> JSONResponse:
     """Update progressive hints status - alternative endpoint"""
     return await set_progressive_hints_enabled(body, user)
 
@@ -181,54 +179,34 @@ async def get_scoring_rules_setting(user=Depends(require_root_admin)) -> JSONRes
     except HTTPException:
         raise
     except Exception as e:
-        raise HTTPException(status_code=500, detail=str(e))
+        raise HTTPException(status_code=500, detail=str(e)) from e
 
 
 @router.put("/scoring-rules")
-async def update_scoring_rules_setting(body: dict = Body(...), user=Depends(require_root_admin)) -> JSONResponse:
+async def update_scoring_rules_setting(body: ScoringRulesUpdate, user=Depends(require_root_admin)) -> JSONResponse:
     """Update scoring rules configuration - root admin only"""
     try:
-        # Validate required fields
-        required_fields = [
-            "base_points_per_phrase",
-            "difficulty_multipliers",
-            "completion_bonus_points",
-            "hint_penalty_per_hint",
-        ]
-
-        for field in required_fields:
-            if field not in body:
-                raise HTTPException(status_code=400, detail=f"Missing required field: {field}")
-
-        # Extract time bonus settings (can be nested or flat)
-        if "time_bonus" in body:
-            max_time_bonus_ratio = body["time_bonus"].get("max_ratio")
-            target_times_seconds = body["time_bonus"].get("target_times_seconds")
-        else:
-            max_time_bonus_ratio = body.get("max_time_bonus_ratio")
-            target_times_seconds = body.get("target_times_seconds")
-
-        if max_time_bonus_ratio is None or target_times_seconds is None:
-            raise HTTPException(
-                status_code=400, detail="Missing time bonus settings (max_ratio and target_times_seconds)"
-            )
+        # Extract time bonus settings (Pydantic model handles validation)
+        max_time_bonus_ratio, target_times_seconds = body.get_time_bonus_settings()
 
         # Update scoring rules
         await db_manager.update_scoring_rules(
-            base_points_per_phrase=int(body["base_points_per_phrase"]),
-            difficulty_multipliers=body["difficulty_multipliers"],
-            max_time_bonus_ratio=float(max_time_bonus_ratio),
+            base_points_per_phrase=body.base_points_per_phrase,
+            difficulty_multipliers=body.difficulty_multipliers,
+            max_time_bonus_ratio=max_time_bonus_ratio,
             target_times_seconds=target_times_seconds,
-            completion_bonus_points=int(body["completion_bonus_points"]),
-            hint_penalty_per_hint=int(body["hint_penalty_per_hint"]),
+            completion_bonus_points=body.completion_bonus_points,
+            hint_penalty_per_hint=body.hint_penalty_per_hint,
             updated_by=user["id"],
         )
 
         return JSONResponse({"message": "Scoring rules updated successfully"})
+    except ValueError as e:
+        raise HTTPException(status_code=400, detail=str(e)) from e
     except HTTPException:
         raise
     except Exception as e:
-        raise HTTPException(status_code=500, detail=str(e))
+        raise HTTPException(status_code=500, detail=str(e)) from e
 
 
 # ===== Private List Limits =====
@@ -248,32 +226,25 @@ async def get_list_limits(user=Depends(require_root_admin)) -> JSONResponse:
             }
         )
     except Exception as e:
-        raise HTTPException(status_code=500, detail=str(e))
+        raise HTTPException(status_code=500, detail=str(e)) from e
 
 
 @router.put("/list-limits")
-async def update_list_limits(body: dict = Body(...), user=Depends(require_root_admin)) -> JSONResponse:
+async def update_list_limits(body: ListLimitsUpdate, user=Depends(require_root_admin)) -> JSONResponse:
     """Update private list limits - root admin only"""
     try:
-        user_limit = body.get("user_limit")
-        admin_limit = body.get("admin_limit")
-
-        if user_limit is not None:
-            if not isinstance(user_limit, int) or user_limit < 1:
-                raise HTTPException(status_code=400, detail="user_limit must be a positive integer")
+        if body.user_limit is not None:
             await db_manager.set_global_setting(
                 "user_private_list_limit",
-                str(user_limit),
+                str(body.user_limit),
                 "Maximum number of private lists a regular user can create",
                 user["id"],
             )
 
-        if admin_limit is not None:
-            if not isinstance(admin_limit, int) or admin_limit < 1:
-                raise HTTPException(status_code=400, detail="admin_limit must be a positive integer")
+        if body.admin_limit is not None:
             await db_manager.set_global_setting(
                 "admin_private_list_limit",
-                str(admin_limit),
+                str(body.admin_limit),
                 "Maximum number of private lists an admin can create",
                 user["id"],
             )
@@ -282,4 +253,4 @@ async def update_list_limits(body: dict = Body(...), user=Depends(require_root_a
     except HTTPException:
         raise
     except Exception as e:
-        raise HTTPException(status_code=500, detail=str(e))
+        raise HTTPException(status_code=500, detail=str(e)) from e

@@ -3,13 +3,13 @@
 import datetime
 import os
 import urllib.parse
-from typing import Optional
+from typing import Any, Optional
 
 from databases import Database
 from dotenv import load_dotenv
 from osmosmjerka.database.models import create_phrase_table, metadata
 from osmosmjerka.logging_config import get_logger
-from sqlalchemy import Table, create_engine
+from sqlalchemy import Table, create_engine, text
 
 # Load environment variables
 load_dotenv()
@@ -20,7 +20,7 @@ logger = get_logger(__name__)
 class BaseDatabaseManager:
     """Base database manager class with connection management and utility methods."""
 
-    def __init__(self, database_url: Optional[str] = None):
+    def __init__(self, database_url: Optional[str] = None) -> None:
         self._database_url = database_url
         self.database = None
         self.engine = None
@@ -28,7 +28,7 @@ class BaseDatabaseManager:
         self._statistics_cache = {}  # Cache for user statistics with TTL
         self._statistics_cache_ttl = 300  # 5 minutes cache TTL
 
-    def _serialize_datetimes(self, dict_obj) -> dict:
+    def _serialize_datetimes(self, dict_obj: dict[str, Any]) -> dict[str, Any]:
         """Serialize datetime objects in a dictionary to ISO format strings."""
         serialized_dict = {}
         for k, v in dict_obj.items():
@@ -38,19 +38,19 @@ class BaseDatabaseManager:
                 serialized_dict[k] = v
         return serialized_dict
 
-    def _ensure_database(self):
+    def _ensure_database(self) -> Database:
         """Ensure database connection is initialized."""
         if self.database is None:
             raise RuntimeError("Database connection is not initialized. Call connect() first.")
         return self.database
 
-    def _ensure_engine(self):
+    def _ensure_engine(self) -> Any:
         """Ensure database engine is initialized."""
         if self.engine is None:
             raise RuntimeError("Database engine is not initialized. Call connect() first.")
         return self.engine
 
-    def _ensure_database_url(self):
+    def _ensure_database_url(self) -> str:
         """Get database URL from environment or instance variable."""
         if self._database_url:
             return self._database_url
@@ -63,7 +63,7 @@ class BaseDatabaseManager:
             raise ValueError("PostgreSQL connection parameters are not set in environment variables.")
         return f"postgresql://{pg_user}:{pg_password}@{pg_host}:{pg_port}/{pg_database}"
 
-    async def connect(self):
+    async def connect(self) -> None:
         """Connect to the database and ensure tables exist."""
         try:
             database_url = self._ensure_database_url()
@@ -112,13 +112,13 @@ class BaseDatabaseManager:
             logger.exception("Failed to connect to database", extra={"error": str(exc)})
             raise
 
-    async def disconnect(self):
+    async def disconnect(self) -> None:
         """Disconnect from the database."""
         if self.database:
             await self.database.disconnect()
             logger.info("Disconnected from database")
 
-    def create_tables(self):
+    def create_tables(self) -> None:
         """Create base tables if they don't exist."""
         if self.engine:
             try:
@@ -152,14 +152,15 @@ class BaseDatabaseManager:
 
         return phrase_table
 
-    async def _ensure_phrase_table_exists(self, language_set_name: str):
+    async def _ensure_phrase_table_exists(self, language_set_name: str) -> None:
         """Ensure phrase table exists for the given language set."""
         table_name = self._get_phrase_table_name(language_set_name)
         database = self._ensure_database()
 
         # Check if table exists
         result = await database.fetch_one(
-            f"SELECT EXISTS (SELECT FROM information_schema.tables WHERE table_name = '{table_name}')"
+            text("SELECT EXISTS (SELECT FROM information_schema.tables WHERE table_name = :table_name)"),
+            {"table_name": table_name},
         )
 
         if not (result and result[0]):

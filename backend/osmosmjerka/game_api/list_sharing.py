@@ -53,9 +53,9 @@ async def share_private_list(
             status_code=status.HTTP_201_CREATED,
         )
 
-    except Exception:
+    except Exception as e:
         logger.exception(f"Failed to share list {list_id}")
-        raise HTTPException(status_code=500, detail="Failed to share list")
+        raise HTTPException(status_code=500, detail="Failed to share list") from e
 
 
 @router.delete("/user/private-lists/{list_id}/share/{shared_with_user_id}")
@@ -76,9 +76,9 @@ async def unshare_private_list(list_id: int, shared_with_user_id: int, user=Depe
 
         return JSONResponse({"message": "Sharing access removed"})
 
-    except Exception:
+    except Exception as e:
         logger.exception(f"Failed to unshare list {list_id}")
-        raise HTTPException(status_code=500, detail="Failed to remove sharing")
+        raise HTTPException(status_code=500, detail="Failed to remove sharing") from e
 
 
 @router.get("/user/private-lists/{list_id}/shares")
@@ -95,9 +95,9 @@ async def get_list_shares(list_id: int, user=Depends(get_current_user)) -> JSONR
 
         return JSONResponse({"shares": shares})
 
-    except Exception:
+    except Exception as e:
         logger.exception(f"Failed to get shares for list {list_id}")
-        raise HTTPException(status_code=500, detail="Failed to get shares")
+        raise HTTPException(status_code=500, detail="Failed to get shares") from e
 
 
 @router.get("/user/shared-lists")
@@ -109,6 +109,6 @@ async def get_shared_with_me_lists(language_set_id: int = Query(None), user=Depe
 
         return JSONResponse({"lists": shared_lists})
 
-    except Exception:
+    except Exception as e:
         logger.exception("Failed to get shared lists")
-        raise HTTPException(status_code=500, detail="Failed to get shared lists")
+        raise HTTPException(status_code=500, detail="Failed to get shared lists") from e

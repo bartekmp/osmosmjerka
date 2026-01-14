@@ -129,8 +129,8 @@ def _try_random_placement_with_scoring(
 
     for attempt in range(max_attempts):
         # Try random position and direction
-        row = random.randint(0, size - 1)
-        col = random.randint(0, size - 1)
+        row = random.randint(0, size - 1)  # noqa: S311
+        col = random.randint(0, size - 1)  # noqa: S311
 
         random.shuffle(directions)  # Try directions in random order
         for dr, dc in directions:

@@ -1,5 +1,6 @@
 import os
 from datetime import datetime, timedelta, timezone
+from typing import Any, Callable, TypedDict
 
 import bcrypt
 from dotenv import load_dotenv
@@ -24,7 +25,23 @@ ACCESS_TOKEN_EXPIRE_MINUTES = 60
 oauth2_scheme = OAuth2PasswordBearer(tokenUrl="/admin/login")
 
 
-def create_access_token(data: dict, expires_delta: timedelta | None = None) -> str:
+class UserInfo(TypedDict):
+    """Type definition for user information returned by auth functions."""
+
+    id: int
+    username: str
+    role: str
+
+
+class TokenData(TypedDict):
+    """Type definition for JWT token payload data."""
+
+    sub: str
+    role: str
+    user_id: int
+
+
+def create_access_token(data: dict[str, Any], expires_delta: timedelta | None = None) -> str:
     """
     Create a JWT access token with the provided data and expiration time.
     Ensures 'role' and 'user_id' are always present in the token payload.
@@ -51,7 +68,7 @@ def create_access_token(data: dict, expires_delta: timedelta | None = None) -> s
     return jwt.encode(to_encode, SECRET_KEY, algorithm=ALGORITHM)
 
 
-async def authenticate_user(username: str, password: str) -> dict | None:
+async def authenticate_user(username: str, password: str) -> UserInfo | None:
     """Authenticate user against database or root admin credentials"""
     # Check if it's the root admin
     if username == ROOT_ADMIN_USERNAME and ROOT_ADMIN_PASSWORD_HASH:
@@ -94,7 +111,7 @@ async def authenticate_user(username: str, password: str) -> dict | None:
     return None
 
 
-def verify_token(token: str):
+def verify_token(token: str) -> UserInfo:
     try:
         payload = jwt.decode(token, SECRET_KEY, algorithms=[ALGORITHM])
         username = payload.get("sub")
@@ -115,7 +132,7 @@ def verify_token(token: str):
         raise HTTPException(status_code=401, detail="Invalid token") from exc
 
 
-async def get_current_user(request: Request) -> dict:
+async def get_current_user(request: Request) -> UserInfo:
     """
     Get the current user from the request headers.
     Args:
@@ -141,11 +158,11 @@ async def get_current_user(request: Request) -> dict:
         if not account or not account.get("is_active", False):
             raise HTTPException(status_code=401, detail="Inactive or invalid user")
         return {"username": account["username"], "role": account["role"], "id": account["id"]}
-    except JWTError:
-        raise HTTPException(status_code=401, detail="Could not validate credentials")
+    except JWTError as e:
+        raise HTTPException(status_code=401, detail="Could not validate credentials") from e
 
 
-async def get_current_user_optional(request: Request) -> dict | None:
+async def get_current_user_optional(request: Request) -> UserInfo | None:
     """
     Get the current user from the request headers, return None if not authenticated.
     Args:
@@ -175,10 +192,10 @@ async def get_current_user_optional(request: Request) -> dict | None:
         return None
 
 
-def require_role(required_role: str):
-    """Dependency to require specific role"""
+def require_role(required_role: str) -> Callable[[UserInfo], UserInfo]:
+    """Dependency factory to require specific role for access."""
 
-    def role_checker(user: dict = Depends(get_current_user)) -> dict:
+    def role_checker(user: UserInfo = Depends(get_current_user)) -> UserInfo:
         if required_role == "root_admin" and user["role"] != "root_admin":
             raise HTTPException(status_code=403, detail="Root admin access required")
         elif required_role == "administrative" and user["role"] not in ["root_admin", "administrative"]:
