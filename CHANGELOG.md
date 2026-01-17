@@ -2,6 +2,19 @@
 
 <!-- version list -->
 
+## v1.39.3 (2026-01-17)
+
+### Documentation
+
+- Update README and screenshots ([#148](https://github.com/bartekmp/osmosmjerka/pull/148),
+  [`efbdc78`](https://github.com/bartekmp/osmosmjerka/commit/efbdc786a1415a348b247295d91ee0da434bad6a))
+
+### Enhancement
+
+- Cookie consent ([#149](https://github.com/bartekmp/osmosmjerka/pull/149),
+  [`42be5b7`](https://github.com/bartekmp/osmosmjerka/commit/42be5b700d58535784f9357e0dabb7b4096b63ae))
+
+
 ## v1.39.2 (2026-01-14)
 
 ### Bug Fixes
