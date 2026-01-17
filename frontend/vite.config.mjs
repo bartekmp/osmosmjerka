@@ -3,6 +3,9 @@ import { defineConfig } from 'vite';
 import { readFileSync } from 'fs';
 import path from 'path';
 
+// Read version from package.json for fallback when env var is not set
+const packageJson = JSON.parse(readFileSync(path.resolve(__dirname, 'package.json'), 'utf-8'));
+
 export default defineConfig({
     root: './',
     plugins: [react()],
@@ -98,6 +101,8 @@ export default defineConfig({
     // Define global constants at build time
     define: {
         __VITE_BASE_PATH__: JSON.stringify(process.env.VITE_BASE_PATH || (process.env.NODE_ENV === 'production' ? '/static/' : '/')),
+        // Inject version at build time - prefer env var (set by Docker build) over package.json
+        'import.meta.env.VITE_APP_VERSION': JSON.stringify(process.env.VITE_APP_VERSION || packageJson.version),
     },
     publicDir: 'public',
     // Base path configuration:

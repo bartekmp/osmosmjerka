@@ -14,8 +14,11 @@ WORKDIR /app/frontend
 COPY frontend/public public/
 RUN npm install
 
+# Accept VERSION build arg and expose it to Vite
+ARG VERSION
 ENV NODE_ENV=production
 ENV VITE_BASE_PATH=/static/
+ENV VITE_APP_VERSION=${VERSION}
 RUN npm run build
 
 FROM python:3.14-slim

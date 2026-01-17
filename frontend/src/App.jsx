@@ -74,7 +74,9 @@ import {
 } from "./helpers/appHelpers";
 import { API_ENDPOINTS, STORAGE_KEYS } from "./shared/constants/constants";
 import { RateLimitWarning } from "./shared/components/ui/RateLimitWarning";
-import packageJson from "../package.json";
+
+// App version is injected at build time via vite.config.mjs
+const appVersion = import.meta.env.VITE_APP_VERSION || '0.0.0';
 
 // Lazy load admin components
 const AdminPanel = lazy(() =>
@@ -1871,7 +1873,7 @@ function AppContent() {
                 variant="body2"
                 color="text.secondary"
                 component="a"
-                href={`https://github.com/bartekmp/osmosmjerka/releases/tag/v${packageJson.version}`}
+                href={`https://github.com/bartekmp/osmosmjerka/releases/tag/v${appVersion}`}
                 target="_blank"
                 rel="noopener noreferrer"
                 sx={{
@@ -1883,7 +1885,7 @@ function AppContent() {
                   },
                 }}
               >
-                Osmosmjerka v{packageJson.version}
+                Osmosmjerka v{appVersion}
               </Typography>
               <Box sx={{ height: 20, width: 1, bgcolor: "divider" }} />
             </>
