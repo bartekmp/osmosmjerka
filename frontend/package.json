@@ -39,6 +39,7 @@
         "@testing-library/user-event": "^14.6.1",
         "@vitejs/plugin-react": "^5.0.3",
         "babel-jest": "^30.1.2",
+        "babel-plugin-transform-import-meta": "^2.3.3",
         "baseline-browser-mapping": "^2.9.10",
         "eslint": "^9.36.0",
         "eslint-plugin-jsx-a11y": "^6.10.2",
@@ -67,8 +68,12 @@
             "^@helpers/(.*)$": "<rootDir>/src/helpers/$1",
             "^@hooks/(.*)$": "<rootDir>/src/hooks/$1",
             "^@locales/(.*)$": "<rootDir>/src/locales/$1",
+            "^.*/version$": "<rootDir>/src/__mocks__/version.js",
             "\\.(css|less|scss|sass)$": "jest-transform-stub",
             "\\.(jpg|jpeg|png|gif|webp|svg)$": "jest-transform-stub"
+        },
+        "transform": {
+            "^.+\\.(js|jsx)$": "babel-jest"
         }
     }
 }

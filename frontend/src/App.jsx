@@ -74,9 +74,7 @@ import {
 } from "./helpers/appHelpers";
 import { API_ENDPOINTS, STORAGE_KEYS } from "./shared/constants/constants";
 import { RateLimitWarning } from "./shared/components/ui/RateLimitWarning";
-
-// App version is injected at build time via vite.config.mjs
-const appVersion = import.meta.env.VITE_APP_VERSION || '0.0.0';
+import appVersion from "./version";
 
 // Lazy load admin components
 const AdminPanel = lazy(() =>

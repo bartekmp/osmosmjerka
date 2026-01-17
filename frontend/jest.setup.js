@@ -2,6 +2,7 @@ import { TextEncoder, TextDecoder } from 'util';
 
 // Set up environment variables for tests
 process.env.VITE_BASE_PATH = '/';
+process.env.VITE_APP_VERSION = '0.0.0-test';
 
 if (typeof global.TextEncoder === 'undefined') {
   global.TextEncoder = TextEncoder;
