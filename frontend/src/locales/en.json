@@ -832,5 +832,9 @@
     "improvements": "Improvements",
     "dismiss": "Got it!",
     "empty": "No updates since your last visit"
+  },
+  "cookies": {
+    "message": "This site uses cookies to enhance your experience.",
+    "accept": "Accept"
   }
 }
