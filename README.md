@@ -60,6 +60,11 @@
 - 🔄 **Data Import/Export** - Support for TXT and CSV file formats, plus copy-paste modal for quick additions
 - 🔍 **Duplicate Management** - Automatic detection and prevention of duplicate phrases
 
+### Education Features
+- 🍎 **Teacher Mode** - Create custom puzzles, manage study groups, and assign work to students
+- 📚 **My Study Dashboard** - Students can track pending and completed assignments
+- 📈 **Progress Monitoring** - Teachers can view student performance and export results as CSV
+
 ## 🎮 How to Play
 
 Find all phrases hidden in the grid! Phrases can appear in eight directions: horizontal, vertical, diagonal, and reversed. Click or swipe to select words, and watch as translations appear when you find them.
@@ -80,7 +85,7 @@ Find all phrases hidden in the grid! Phrases can appear in eight directions: hor
   <tr>
     <td width="50%">
       <img src="docs/assets/osmosmjerka-won-round.png" alt="Victory"><br>
-      <em>Puzzle completed with confetti!</em>
+      <em>Puzzle completed with visual effects!</em>
     </td>
     <td width="50%">
       <img src="docs/assets/osmosmjerka-nightmode.png" alt="Dark Mode"><br>
@@ -278,31 +283,38 @@ Organize phrases into separate collections (e.g., Croatian-English, Spanish-Fren
 
 ![Language Set Management](docs/assets/osmosmjerka-language-set-mgmt.gif)
 
-## � Private Phrase Lists
+## Private Phrase Lists
 
 Organize and manage custom phrase collections for targeted learning with the **Learn This Later** feature.
 
 ### Overview
 
-Create private phrase lists to save words and expressions you want to practice later. Each phrase added via the **Learn This Later** button during gameplay is automatically saved to your personal collection for future study.
+Create private phrase lists to save words and expressions you want to practice later. Each phrase added via the **Learn This Later** button during gameplay is automatically saved to your personal collection for future study. You can also create your own lists and import phrases from external sources. **Learn This Later** is a built-in private list and cannot be removed.
 
 ### Features
 
 #### 💾 Learn This Later Button
 
+![Learn This Later](docs/assets/osmosmjerka-learn-this-later-add.png)
+
 While playing, save interesting phrases directly from the game grid:
-- Click the **Learn This Later** button on any phrase card
-- Phrase is automatically added to your default private list
-- Access saved phrases anytime from the Lists tab
+- Click and highlight any found phrase on the phrase list view
+- Click the "Add X selected to Learn This Later" button
+- Access saved phrases anytime from the "My Lists" tab
+- Generate a puzzle using only the phrases from your private list
 - Continue playing without interruption
 
 #### 📋 List Management
+
+![List Management](docs/assets/osmosmjerka-list-management-phrases.png)
 
 Create and organize multiple themed collections:
 - **Create Lists** - Organize phrases by topic, difficulty, or learning goal
 - **Rename Lists** - Update list names as your learning focus evolves
 - **Delete Lists** - Remove lists you no longer need (phrases are deleted)
 - **Switch Between Lists** - Easily navigate between multiple collections
+- **Share Lists** - Share your lists with other users
+- **Review Lists** - Review your lists and their contents
 
 #### 📤 Batch Import
 
@@ -346,7 +358,8 @@ Collaborate with other learners by sharing phrase lists:
 - Access shared lists just like your own (within permission limits)
 
 **Unshare a List:**
-- Open the **Share** dialog
+- Select a list by selecting it in the "My Lists" tab, go to the second tab
+- Open the **Share List** dialog
 - Click **Remove** next to the user you want to revoke access from
 - User immediately loses access to the list
 
@@ -368,7 +381,7 @@ Track your learning progress with detailed statistics:
 
 Access statistics from the **Statistics** button in List Management.
 
-## �🛠️ Admin Panel
+## 🛠️ Admin Panel
 
 Access the admin panel at `/admin` with your configured admin credentials.
 
@@ -451,6 +464,56 @@ Track and analyze player performance:
 - Category-specific performance
 - Game completion rates across difficulty levels
 
+## 🍎 Education & Teacher Mode
+
+Osmosmjerka includes powerful tools for educators to manage classes, create custom assignments, and track student progress.
+
+### For Teachers
+
+*Accessed via the "Teacher Tools" section in the Dashboard.*
+
+![Teacher Dashboard](docs/assets/osmosmjerka-teacher-mode-puzzle-view.png)
+_Manage your puzzles, assignments, and class groups in one place_
+
+*   **Custom Puzzle Creation**: Design puzzles tailored to your lesson plan.
+    *   **Content Control**: Select specific phrases from your database or entire language categories.
+    *   **Game Rules**: Configure difficulty, toggle hints, enable/disable translations, and set timers.
+    *   **Auto-Expiration**: Set assignments to automatically expire after a set number of days.
+
+*   **Class Management**: Organize your students using **Study Groups**.
+    ![Teacher Group View](docs/assets/osmosmjerka-teacher-mode-create-group.gif)
+    *   **Simple Onboarding**: Create a group and notify students about it. Students are added to your class roster upon acceptance right from their personal dashboard.
+    *   **Bulk Assignments**: Assign a puzzle to an entire group with a single click.
+
+*   **Flexible Assignment Options**:
+    ![Teacher Assignments](docs/assets/osmosmjerka-teacher-mode-create-puzzle.gif)
+    *   **Public Links**: Generate a shareable link that anyone can play without logging in.
+    *   **Private Assignments**: Assign puzzles directly to specific students or groups. These appear securely in their personal dashboard.
+
+*   **Progress Tracking**:
+    ![Teacher Progress View](docs/assets/osmosmjerka-teacher-mode-review-results.gif)
+    *   **Session Monitoring**: View detailed reports on who played your puzzles, their scores, found phrases, and completion times.
+    *   **Review Translations**: Teachers can check student translation inputs if manual entry was required.
+    *   **Data Export**: Download session data as CSV files for grading and analysis.
+
+### For Students
+
+*Accessed via the "Learning" section in the Dashboard.*
+
+![Student Study View](docs/assets/osmosmjerka-my-study-puzzle-view.png)
+_A clear, organized view of all assigned work_
+
+*   **"My Study" Dashboard**: A dedicated space for all teacher-assigned activities.
+    *   **To-Do List**: Assignments are clearly organized into **"New Puzzles"** (Pending) and **"Solved Puzzles"** (Completed).
+    *   **Status Indicators**: "New" and "Solved" chips help students prioritize their work.
+    *   **Assignment Details**: View the creator's name and assignment date for each puzzle.
+
+* **Study Group Management**: Students review and manage their study groups.
+![Student Group View](docs/assets/osmosmjerka-my-study-accept-invite.gif)
+
+*   **Integrated Learning**: Puzzles assigned by teachers behave just like standard games but the teachers can track progress specific to the assignment and review student's translation inputs.
+![Student Play View](docs/assets/osmosmjerka-my-study-play-puzzle.gif)
+
 ## 🔒 HTTPS Support
 
 The API server ([uvicorn](https://www.uvicorn.org/)) supports SSL/TLS for secure connections.
@@ -488,8 +551,11 @@ Contributions are welcome! Please check out:
 ## 🗺️ Roadmap
 
 - [ ] Integration with [Anki](https://apps.ankiweb.net/) for spaced repetition learning
-- [ ] Teacher mode - puzzles generated by the teacher to their students
 - [ ] Learning curve tracking
+- [ ] Crosswords puzzles
+- [x] Teacher mode - puzzles generated by the teacher to their students
+- [x] My Study - play puzzles assigned by teachers, manage your study groups
+- [x] Notifications - get notified of new assignments and other events
 
 
 ## 📄 License
