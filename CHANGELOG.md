@@ -2,6 +2,19 @@
 
 <!-- version list -->
 
+## v1.39.4 (2026-01-17)
+
+### Bug Fixes
+
+- Version injection to the frontend build and tests
+  ([`175bae0`](https://github.com/bartekmp/osmosmjerka/commit/175bae0d5634a23fc4f0f6d6192247acdf7bf9e2))
+
+### Continuous Integration
+
+- Inject proper frontend version to the build
+  ([`64ac729`](https://github.com/bartekmp/osmosmjerka/commit/64ac72916c2c5e58b333300bd1145eb3de413e16))
+
+
 ## v1.39.3 (2026-01-17)
 
 ### Documentation
