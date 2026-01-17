@@ -838,5 +838,9 @@
     "improvements": "Ulepszenia",
     "dismiss": "Rozumiem!",
     "empty": "Brak aktualizacji od ostatniej wizyty"
+  },
+  "cookies": {
+    "message": "Ta strona używa plików cookie, aby poprawić Twoje doświadczenia.",
+    "accept": "Akceptuję"
   }
 }

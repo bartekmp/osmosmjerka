@@ -47,7 +47,7 @@ import {
   MobilePhraseListSheet,
   MobileFloatingActions,
 } from "./features";
-import { NotEnoughPhrasesOverlay, ScreenTooSmallOverlay, SplashScreen, WhatsNewModal } from "./shared";
+import { NotEnoughPhrasesOverlay, ScreenTooSmallOverlay, SplashScreen, WhatsNewModal, CookieConsentBar } from "./shared";
 import {
   getLastSeenVersion,
   setLastSeenVersion,
@@ -1917,6 +1917,9 @@ function AppContent() {
         onClose={handleWhatsNewClose}
         entries={whatsNewEntries}
       />
+
+      {/* Cookie Consent Bar */}
+      <CookieConsentBar />
     </MUIThemeProvider>
   );
 }

@@ -833,5 +833,9 @@
     "improvements": "Poboljšanja",
     "dismiss": "Razumijem!",
     "empty": "Nema ažuriranja od vašeg zadnjeg posjeta"
+  },
+  "cookies": {
+    "message": "Ova stranica koristi kolačiće za poboljšanje vašeg iskustva.",
+    "accept": "Prihvaćam"
   }
 }
