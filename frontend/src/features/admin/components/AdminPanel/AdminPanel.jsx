@@ -176,6 +176,9 @@ export default function AdminPanel({
     const [batchResult, setBatchResult] = useState({ open: false, operation: null, result: null });
     const [batchLoading, setBatchLoading] = useState(false);
 
+    // Notification state for row operations
+    const [notification, setNotification] = useState({ open: false, message: '', severity: 'success' });
+
     // Memoize search term handler to prevent unnecessary re-renders
     const handleSearchChange = useCallback((value) => {
         setSearchTerm(value);
@@ -570,6 +573,57 @@ export default function AdminPanel({
         setNewRow(null);
     }, []);
 
+    // Helper to map error messages to user-friendly translated messages
+    const getErrorMessage = useCallback((error) => {
+        // Extract raw message from error object
+        let rawMessage = '';
+        if (typeof error === 'string') {
+            rawMessage = error;
+        } else if (error?.response?.data?.message) {
+            rawMessage = error.response.data.message;
+        } else if (error?.response?.data?.detail) {
+            rawMessage = error.response.data.detail;
+        } else if (error?.response?.data?.error) {
+            rawMessage = error.response.data.error;
+        } else if (error?.message) {
+            rawMessage = error.message;
+        }
+
+        const lowerMessage = rawMessage.toLowerCase();
+
+        // Map known error patterns to translation keys
+        if (lowerMessage.includes('session expired') || lowerMessage.includes('not authenticated')) {
+            return t('session_expired', 'Session expired, please log in again.');
+        }
+        if (lowerMessage.includes('too many requests') || lowerMessage.includes('rate limit')) {
+            return t('error_too_many_requests', 'Too many requests. Please wait before trying again.');
+        }
+        if (lowerMessage.includes('network') || lowerMessage.includes('fetch')) {
+            return t('error_network', 'Network error. Please check your connection and try again.');
+        }
+        if (lowerMessage.includes('unauthorized') || lowerMessage.includes('forbidden') || lowerMessage.includes('access denied')) {
+            return t('error_unauthorized', 'You do not have permission to perform this action.');
+        }
+        if (lowerMessage.includes('duplicate') || lowerMessage.includes('already exists')) {
+            return t('error_duplicate_phrase', 'This phrase already exists.');
+        }
+        if (lowerMessage.includes('not found')) {
+            return t('error_not_found', 'The requested item was not found.');
+        }
+        if (lowerMessage.includes('failed to add phrase') || lowerMessage.includes('failed to save')) {
+            return t('error_save_failed', 'Failed to save the phrase. Please try again.');
+        }
+        if (lowerMessage.includes('failed to update')) {
+            return t('error_update_failed', 'Failed to update the phrase. Please try again.');
+        }
+        if (lowerMessage.includes('server') || lowerMessage.includes('internal')) {
+            return t('error_server', 'Server error. Please try again later.');
+        }
+
+        // Fallback to generic error message
+        return t('operation_failed', 'Operation failed. Please try again.');
+    }, [t]);
+
     const handleConfirmNewRow = useCallback(async () => {
         if (!newRow || !selectedLanguageSetId) {
             return;
@@ -593,13 +647,26 @@ export default function AdminPanel({
             await handleSave(payload, refreshRows, () => {
                 setNewRow(null);
                 invalidateCategoriesCache();
+                // Show success notification
+                setNotification({
+                    open: true,
+                    message: t('row_added_successfully', 'Row added successfully'),
+                    severity: 'success'
+                });
             }, selectedLanguageSetId);
         } catch (err) {
-            setError(err?.message || t('failed_to_save_row', 'Failed to save row'));
+            const errorMessage = getErrorMessage(err);
+            setError(errorMessage);
+            // Show error notification
+            setNotification({
+                open: true,
+                message: errorMessage,
+                severity: 'error'
+            });
         } finally {
             setIsSavingNewRow(false);
         }
-    }, [newRow, selectedLanguageSetId, fetchRows, offset, limit, filterCategory, searchTerm, handleSave, invalidateCategoriesCache, t]);
+    }, [newRow, selectedLanguageSetId, fetchRows, offset, limit, filterCategory, searchTerm, handleSave, invalidateCategoriesCache, t, getErrorMessage]);
 
     useEffect(() => {
         setNewRow(null);
@@ -1163,6 +1230,8 @@ export default function AdminPanel({
                             onDownloadPhrases={() => handleExportTxt(filterCategory)}
                             onClearDatabase={() => clearDb(() => fetchRows(offset, limit, filterCategory, searchTerm, selectedLanguageSetId))}
                             canManageAdvanced={canManageAdvanced}
+                            notification={notification}
+                            onNotificationClose={() => setNotification(prev => ({ ...prev, open: false }))}
                         />
                     ) : dashboard ? (
                         // Default Dashboard View

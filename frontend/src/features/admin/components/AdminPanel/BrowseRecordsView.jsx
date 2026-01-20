@@ -13,10 +13,14 @@ import {
     Divider,
     Button,
     useMediaQuery,
-    useTheme
+    useTheme,
+    Snackbar,
+    Alert,
+    IconButton
 } from '@mui/material';
 import TranslateIcon from '@mui/icons-material/Translate';
 import CategoryIcon from '@mui/icons-material/Category';
+import CloseIcon from '@mui/icons-material/Close';
 import { useTranslation } from 'react-i18next';
 import AdminTable from './AdminTable';
 import BatchOperationDialog from './BatchOperationDialog';
@@ -97,7 +101,11 @@ const BrowseRecordsView = ({
     onReloadData,
     onDownloadPhrases,
     onClearDatabase,
-    canManageAdvanced
+    canManageAdvanced,
+
+    // Notifications
+    notification,
+    onNotificationClose
 }) => {
     const { t } = useTranslation();
     const theme = useTheme();
@@ -400,6 +408,26 @@ const BrowseRecordsView = ({
                 operation={batchResult.operation}
                 result={batchResult.result}
             />
+
+            {/* Status Notifications */}
+            <Snackbar
+                open={notification?.open}
+                autoHideDuration={notification?.severity === 'success' ? 3000 : null}
+                onClose={onNotificationClose}
+                anchorOrigin={{ vertical: 'top', horizontal: 'center' }}
+            >
+                <Alert
+                    severity={notification?.severity || 'info'}
+                    action={
+                        <IconButton size="small" color="inherit" onClick={onNotificationClose}>
+                            <CloseIcon fontSize="small" />
+                        </IconButton>
+                    }
+                    onClose={onNotificationClose}
+                >
+                    {notification?.message}
+                </Alert>
+            </Snackbar>
         </Paper>
     );
 };
@@ -473,7 +501,15 @@ BrowseRecordsView.propTypes = {
     onReloadData: PropTypes.func,
     onDownloadPhrases: PropTypes.func,
     onClearDatabase: PropTypes.func,
-    canManageAdvanced: PropTypes.bool
+    canManageAdvanced: PropTypes.bool,
+
+    // Notifications
+    notification: PropTypes.shape({
+        open: PropTypes.bool,
+        message: PropTypes.string,
+        severity: PropTypes.oneOf(['success', 'error', 'warning', 'info'])
+    }),
+    onNotificationClose: PropTypes.func
 };
 
 export default BrowseRecordsView;
