@@ -2,6 +2,14 @@
 
 <!-- version list -->
 
+## v1.39.5 (2026-01-20)
+
+### Improvement
+
+- Meaningful add rows status messages ([#150](https://github.com/bartekmp/osmosmjerka/pull/150),
+  [`80a5586`](https://github.com/bartekmp/osmosmjerka/commit/80a5586c3d982ceb9721596a6b193811d02827ff))
+
+
 ## v1.39.4 (2026-01-17)
 
 ### Bug Fixes
