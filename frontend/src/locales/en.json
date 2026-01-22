@@ -845,5 +845,24 @@
   "cookies": {
     "message": "This site uses cookies to enhance your experience.",
     "accept": "Accept"
+  },
+  "gameType": {
+    "label": "Game Type",
+    "word_search": "Word Search",
+    "crossword": "Crossword",
+    "select": "Select game type"
+  },
+  "crossword": {
+    "title": "Crossword Puzzle",
+    "across": "Across",
+    "down": "Down",
+    "wrong_phrase": "This phrase is incorrect",
+    "all_correct": "All phrases correct!",
+    "cell_filled": "Fill in the letters",
+    "check_answers": "Check Answers",
+    "show_wrong_setting": "Highlight wrong phrases",
+    "hint_first_letter": "First letter revealed",
+    "hint_random_letter": "Random letter revealed",
+    "hint_full_phrase": "Full phrase revealed"
   }
 }

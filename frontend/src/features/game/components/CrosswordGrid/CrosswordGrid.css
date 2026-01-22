@@ -1,0 +1,196 @@
+/* ==========================================
+   CROSSWORD GRID STYLES
+   Extends base Grid.css styles for crossword-specific styling
+   ========================================== */
+
+/* Import shared grid styles - adjust path if needed */
+@import '../Grid/Grid.css';
+
+/* ==========================================
+   CROSSWORD CELL STYLES
+   ========================================== */
+
+.crossword-cell {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border: 2px solid var(--cell-border);
+    border-radius: var(--radius-sm);
+    box-shadow: var(--shadow-cell);
+    background: var(--cell-bg);
+    color: var(--text-primary);
+    font-family: 'Clear Sans', 'Trebuchet MS', 'Arial', sans-serif;
+    letter-spacing: 0.03em;
+    transition: background var(--transition-normal), 
+                box-shadow var(--transition-normal), 
+                border-color 0.2s;
+    position: relative;
+}
+
+/* Blank/filler cells - non-interactive */
+.crossword-cell.blank {
+    background: transparent;
+    border: none;
+    box-shadow: none;
+    pointer-events: none;
+}
+
+/* Active/focused cell */
+.crossword-cell.active {
+    border-color: var(--primary);
+    box-shadow: 0 0 0 3px rgba(var(--primary-rgb), 0.3);
+    z-index: 2;
+}
+
+/* Filled cell */
+.crossword-cell.filled {
+    background: var(--cell-bg);
+}
+
+/* Disabled/solved cells */
+.crossword-cell.disabled {
+    cursor: default;
+}
+
+.crossword-cell.correct {
+    background: var(--cell-found);
+    border-color: var(--success);
+}
+
+/* Wrong phrase highlighting */
+.crossword-cell.wrong {
+    background: rgba(244, 67, 54, 0.15);
+    border-color: #f44336;
+    box-shadow: 0 0 8px rgba(244, 67, 54, 0.4);
+}
+
+/* Shake animation for wrong answers */
+@keyframes shake {
+    0%, 100% { transform: translateX(0); }
+    10%, 30%, 50%, 70%, 90% { transform: translateX(-4px); }
+    20%, 40%, 60%, 80% { transform: translateX(4px); }
+}
+
+.crossword-cell.shake {
+    animation: shake 0.5s ease-in-out;
+}
+
+/* Start number styling */
+.start-number {
+    pointer-events: none;
+    user-select: none;
+}
+
+/* Input field within cell */
+.crossword-input {
+    font-family: inherit;
+}
+
+.crossword-input:disabled {
+    color: inherit;
+    opacity: 1;
+    -webkit-text-fill-color: inherit;
+}
+
+/* ==========================================
+   CROSSWORD GRID CONTAINER
+   ========================================== */
+
+.crossword-grid-container {
+    touch-action: manipulation;
+    user-select: none;
+    -webkit-user-select: none;
+    border-radius: 8px;
+    padding: 8px;
+}
+
+.crossword-grid-container.light-mode {
+    background-color: #f5f5f5;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+}
+
+[data-theme="dark"] .crossword-grid-container {
+    background-color: #23272e;
+    box-shadow: 0 4px 16px rgba(0, 0, 0, 0.7);
+}
+
+/* ==========================================
+   PHRASE LIST / CLUES STYLING
+   ========================================== */
+
+.crossword-clues {
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+}
+
+.crossword-clues-section {
+    padding: 12px;
+    border-radius: 8px;
+    background: var(--surface);
+}
+
+.crossword-clues-title {
+    font-weight: 600;
+    margin-bottom: 8px;
+    padding-bottom: 4px;
+    border-bottom: 1px solid var(--divider);
+}
+
+.crossword-clue {
+    display: flex;
+    gap: 8px;
+    padding: 4px 0;
+    cursor: pointer;
+    transition: background 0.2s;
+}
+
+.crossword-clue:hover {
+    background: rgba(var(--primary-rgb), 0.1);
+}
+
+.crossword-clue.completed {
+    text-decoration: line-through;
+    opacity: 0.6;
+}
+
+.crossword-clue-number {
+    font-weight: 600;
+    min-width: 24px;
+}
+
+.crossword-clue-text {
+    flex: 1;
+}
+
+/* ==========================================
+   DARK MODE ADJUSTMENTS
+   ========================================== */
+
+[data-theme="dark"] .crossword-cell {
+    --cell-border: #444;
+}
+
+[data-theme="dark"] .crossword-cell.active {
+    border-color: #90caf9;
+    box-shadow: 0 0 0 3px rgba(144, 202, 249, 0.3);
+}
+
+[data-theme="dark"] .crossword-cell.wrong {
+    background: rgba(244, 67, 54, 0.25);
+    box-shadow: 0 0 8px rgba(244, 67, 54, 0.5);
+}
+
+[data-theme="dark"] .start-number {
+    color: #aaa;
+}
+
+/* ==========================================
+   RESPONSIVE DESIGN
+   ========================================== */
+
+@media (max-width: 900px) {
+    .crossword-grid-container {
+        padding: 4px;
+    }
+}

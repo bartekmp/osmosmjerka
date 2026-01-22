@@ -851,5 +851,24 @@
   "cookies": {
     "message": "Ta strona używa plików cookie, aby poprawić Twoje doświadczenia.",
     "accept": "Akceptuję"
+  },
+  "gameType": {
+    "label": "Typ gry",
+    "word_search": "Wykreślanka",
+    "crossword": "Krzyżówka",
+    "select": "Wybierz typ gry"
+  },
+  "crossword": {
+    "title": "Krzyżówka",
+    "across": "Poziomo",
+    "down": "Pionowo",
+    "wrong_phrase": "Ta fraza jest niepoprawna",
+    "all_correct": "Wszystkie frazy poprawne!",
+    "cell_filled": "Wpisz litery",
+    "check_answers": "Sprawdź odpowiedzi",
+    "show_wrong_setting": "Podświetl niepoprawne frazy",
+    "hint_first_letter": "Pierwsza litera odkryta",
+    "hint_random_letter": "Losowa litera odkryta",
+    "hint_full_phrase": "Cała fraza odkryta"
   }
 }

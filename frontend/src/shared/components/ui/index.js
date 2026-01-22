@@ -1,6 +1,7 @@
 // Barrel export for shared UI components
 export { default as AdminButton } from './AdminButton';
 export { default as GameActionButton } from './GameActionButton';
+export { default as GameTypeSelector } from './GameTypeSelector';
 export { default as LanguageSetSelector } from './LanguageSetSelector';
 export { default as LanguageSwitcher } from './LanguageSwitcher';
 export { default as NightModeButton } from './NightModeButton';
