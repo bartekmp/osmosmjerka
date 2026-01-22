@@ -58,6 +58,7 @@ class SaveGameScoreRequest(BaseModel):
     duration_seconds: int = Field(..., ge=0)
     first_phrase_time: Optional[str] = None
     completion_time: Optional[str] = None
+    game_type: str = Field(default="word_search", pattern="^(word_search|crossword)$")
 
 
 # ===== Game Sessions =====
@@ -71,6 +72,7 @@ class StartGameSessionRequest(BaseModel):
     difficulty: str
     grid_size: int = Field(..., ge=1)
     total_phrases: int = Field(..., ge=1)
+    game_type: str = Field(default="word_search", pattern="^(word_search|crossword)$")
     # For teacher puzzle sessions
     phrase_set_id: Optional[int] = None
     hotlink_token: Optional[str] = None

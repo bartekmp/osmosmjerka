@@ -101,6 +101,7 @@ class ScoringMixin:
         duration_seconds: int,
         first_phrase_time: Optional[datetime.datetime] = None,
         completion_time: Optional[datetime.datetime] = None,
+        game_type: str = "word_search",
     ) -> int:
         """Save game score and return the score ID."""
         database = self._ensure_database()
@@ -124,6 +125,7 @@ class ScoringMixin:
             duration_seconds=duration_seconds,
             first_phrase_time=first_phrase_time,
             completion_time=completion_time,
+            game_type=game_type,
         )
 
         return await database.execute(query)
@@ -135,6 +137,7 @@ class ScoringMixin:
         category: Optional[str] = None,
         difficulty: Optional[str] = None,
         limit: int = 10,
+        game_type: Optional[str] = None,
     ) -> List[Dict[str, Any]]:
         """Get user's best scores with optional filters."""
         database = self._ensure_database()
@@ -147,6 +150,8 @@ class ScoringMixin:
             query = query.where(game_scores_table.c.category == category)
         if difficulty is not None:
             query = query.where(game_scores_table.c.difficulty == difficulty)
+        if game_type is not None:
+            query = query.where(game_scores_table.c.game_type == game_type)
 
         query = query.order_by(desc(game_scores_table.c.final_score)).limit(limit)
 
@@ -159,6 +164,7 @@ class ScoringMixin:
         category: Optional[str] = None,
         difficulty: Optional[str] = None,
         limit: int = 50,
+        game_type: Optional[str] = None,
     ) -> List[Dict[str, Any]]:
         """Get global leaderboard with optional filters."""
         database = self._ensure_database()
@@ -186,6 +192,8 @@ class ScoringMixin:
             query = query.where(game_scores_table.c.category == category)
         if difficulty is not None:
             query = query.where(game_scores_table.c.difficulty == difficulty)
+        if game_type is not None:
+            query = query.where(game_scores_table.c.game_type == game_type)
 
         query = query.order_by(desc(game_scores_table.c.final_score)).limit(limit)
 
