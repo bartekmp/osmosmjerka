@@ -29,7 +29,14 @@ class GameSessionsMixin:
             del self._statistics_cache[key]
 
     async def start_game_session(
-        self, user_id: int, language_set_id: int, category: str, difficulty: str, grid_size: int, total_phrases: int
+        self,
+        user_id: int,
+        language_set_id: int,
+        category: str,
+        difficulty: str,
+        grid_size: int,
+        total_phrases: int,
+        game_type: str = "word_search",
     ) -> int:
         """Start a new game session and return session ID."""
         database = self._ensure_database()
@@ -44,6 +51,7 @@ class GameSessionsMixin:
             total_phrases=total_phrases,
             phrases_found=0,
             is_completed=False,
+            game_type=game_type,
         )
         session_id = await database.execute(query)
 

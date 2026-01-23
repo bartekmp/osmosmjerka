@@ -53,6 +53,7 @@ async def get_phrases(
     category: str | None = None,
     difficulty: str = "medium",
     language_set_id: int = Query(None),
+    game_type: str = Query("word_search", description="Game type: 'word_search' or 'crossword'"),
     refresh: bool = Query(False, description="Force regeneration of puzzle, bypassing cache"),
     *,
     request: Request,
@@ -120,12 +121,19 @@ async def get_phrases(
         )
 
     # Try to generate grid with exactly the required number of phrases
-    grid, placed_phrases = _generate_grid_with_exact_phrase_count(selected, grid_size, num_phrases)
+    grid, placed_phrases = _generate_grid_with_exact_phrase_count(selected, grid_size, num_phrases, game_type)
 
     # Use the original category value for response (preserve "ALL" if it was selected)
     response_category = category if category == "ALL" else (category_filter or "Mixed")
 
-    return JSONResponse({"grid": grid, "phrases": placed_phrases, "category": response_category})
+    return JSONResponse(
+        {
+            "grid": grid,
+            "phrases": placed_phrases,
+            "category": response_category,
+            "game_type": game_type,
+        }
+    )
 
 
 @router.get("/default-ignored-categories")

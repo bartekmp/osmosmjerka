@@ -41,6 +41,7 @@ import {
   LoadingOverlay,
   PhraseList,
   ScrabbleGrid,
+  CrosswordGrid as _CrosswordGrid, // TODO: Wire up CrosswordGrid in UI
   Timer,
   ScoreDisplay,
   HintButton,
@@ -208,6 +209,7 @@ function AppContent() {
   const [phrases, setPhrases] = useState([]);
   const [found, setFound] = useState([]);
   const [difficulty, setDifficulty] = useState("easy");
+  const [gameType, _setGameType] = useState("word_search"); // TODO: Wire up GameTypeSelector in UI
   const [hidePhrases, setHidePhrases] = useState(false);
   const [showTranslations, setShowTranslations] = useState(() => {
     const saved = localStorage.getItem("osmosmjerkaGameState");
@@ -829,7 +831,8 @@ function AppContent() {
       t,
       selectedLanguageSetId,
       refresh,
-      selectedPrivateListId
+      selectedPrivateListId,
+      gameType
     )
       .then((result) => {
         if (result?.status === "error") {
