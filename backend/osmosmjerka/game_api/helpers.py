@@ -143,13 +143,13 @@ def _generate_crossword_grid(all_phrases: list, grid_size: int, target_phrase_co
     if not grid:
         return [], []
 
-    # Convert grid to simple character array (empty string for blank cells)
+    # Convert grid to simple character array (None for blank cells)
     simple_grid = []
     for row in grid:
         simple_row = []
         for cell in row:
             if cell is None:
-                simple_row.append("")  # Blank cell
+                simple_row.append(None)  # Blank cell - frontend expects null
             else:
                 simple_row.append(cell.get("letter", ""))
         simple_grid.append(simple_row)

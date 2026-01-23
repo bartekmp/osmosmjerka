@@ -41,14 +41,14 @@ import {
   LoadingOverlay,
   PhraseList,
   ScrabbleGrid,
-  CrosswordGrid as _CrosswordGrid, // TODO: Wire up CrosswordGrid in UI
+  CrosswordGrid,
   Timer,
   ScoreDisplay,
   HintButton,
   MobilePhraseListSheet,
   MobileFloatingActions,
 } from "./features";
-import { NotEnoughPhrasesOverlay, ScreenTooSmallOverlay, SplashScreen, WhatsNewModal, CookieConsentBar } from "./shared";
+import { NotEnoughPhrasesOverlay, ScreenTooSmallOverlay, SplashScreen, WhatsNewModal, CookieConsentBar, GameTypeSelector } from "./shared";
 import {
   getLastSeenVersion,
   setLastSeenVersion,
@@ -209,7 +209,7 @@ function AppContent() {
   const [phrases, setPhrases] = useState([]);
   const [found, setFound] = useState([]);
   const [difficulty, setDifficulty] = useState("easy");
-  const [gameType, _setGameType] = useState("word_search"); // TODO: Wire up GameTypeSelector in UI
+  const [gameType, setGameType] = useState("word_search");
   const [hidePhrases, setHidePhrases] = useState(false);
   const [showTranslations, setShowTranslations] = useState(() => {
     const saved = localStorage.getItem("osmosmjerkaGameState");
@@ -1555,6 +1555,19 @@ function AppContent() {
                   currentUser={currentUser}
                 />
 
+                {/* Game Type Selector */}
+                <Box sx={{ display: 'flex', justifyContent: 'center', mb: 1 }}>
+                  <GameTypeSelector
+                    currentType={gameType}
+                    onChange={(type) => {
+                      setGameType(type);
+                      // Reload puzzle with new game type
+                      loadPuzzle(selectedCategory, difficulty, true);
+                    }}
+                    disabled={isGridLoading}
+                  />
+                </Box>
+
                 <GameControls
                   panelOpen={panelOpen}
                   setPanelOpen={setPanelOpen}
@@ -1681,20 +1694,38 @@ function AppContent() {
                         pointerEvents: (isScreenTooSmall || isGridTooSmall) ? 'none' : 'auto',
                       }}
                     >
-                      <ScrabbleGrid
-                        ref={gridRef}
-                        grid={grid}
-                        phrases={phrases}
-                        found={found}
-                        onFound={markFound}
-                        disabled={allFound || isScreenTooSmall || isGridTooSmall}
-                        isDarkMode={isDarkMode}
-                        showCelebration={showCelebration}
-                        onHintUsed={() => { }} // Placeholder - hint tracking is handled in handleHintRequest
-                        onGridInteraction={handleGridInteraction}
-                        isTouchDevice={isTouchDevice}
-                        useMobileLayout={useMobileLayout}
-                      />
+                      {gameType === "crossword" ? (
+                        <CrosswordGrid
+                          ref={gridRef}
+                          grid={grid}
+                          phrases={phrases}
+                          onPhraseComplete={(phrase) => {
+                            markFound(phrase);
+                          }}
+                          onPhraseWrong={() => { }}
+                          disabled={allFound || isScreenTooSmall || isGridTooSmall}
+                          isDarkMode={isDarkMode}
+                          showWrongHighlight={true}
+                          onHintUsed={() => { }}
+                          isTouchDevice={isTouchDevice}
+                          useMobileLayout={useMobileLayout}
+                        />
+                      ) : (
+                        <ScrabbleGrid
+                          ref={gridRef}
+                          grid={grid}
+                          phrases={phrases}
+                          found={found}
+                          onFound={markFound}
+                          disabled={allFound || isScreenTooSmall || isGridTooSmall}
+                          isDarkMode={isDarkMode}
+                          showCelebration={showCelebration}
+                          onHintUsed={() => { }} // Placeholder - hint tracking is handled in handleHintRequest
+                          onGridInteraction={handleGridInteraction}
+                          isTouchDevice={isTouchDevice}
+                          useMobileLayout={useMobileLayout}
+                        />
+                      )}
                     </Box>
 
                     <LoadingOverlay
