@@ -48,7 +48,7 @@ import {
   MobilePhraseListSheet,
   MobileFloatingActions,
 } from "./features";
-import { NotEnoughPhrasesOverlay, ScreenTooSmallOverlay, SplashScreen, WhatsNewModal, CookieConsentBar, GameTypeSelector } from "./shared";
+import { NotEnoughPhrasesOverlay, ScreenTooSmallOverlay, SplashScreen, WhatsNewModal, CookieConsentBar } from "./shared";
 import {
   getLastSeenVersion,
   setLastSeenVersion,
@@ -1562,20 +1562,14 @@ function AppContent() {
                   showCelebration={showCelebration}
                   isDarkMode={isDarkMode}
                   currentUser={currentUser}
+                  gameType={gameType}
+                  onGameTypeChange={(type) => {
+                    setGameType(type);
+                    // Reload puzzle with new game type
+                    loadPuzzle(selectedCategory, difficulty, true);
+                  }}
+                  isGridLoading={isGridLoading}
                 />
-
-                {/* Game Type Selector */}
-                <Box sx={{ display: 'flex', justifyContent: 'center', mb: 1 }}>
-                  <GameTypeSelector
-                    currentType={gameType}
-                    onChange={(type) => {
-                      setGameType(type);
-                      // Reload puzzle with new game type
-                      loadPuzzle(selectedCategory, difficulty, true);
-                    }}
-                    disabled={isGridLoading}
-                  />
-                </Box>
 
                 <GameControls
                   panelOpen={panelOpen}

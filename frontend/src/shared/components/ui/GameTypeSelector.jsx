@@ -7,11 +7,9 @@ import {
     MenuItem,
     ListItemIcon,
     ListItemText,
-    Typography,
 } from '@mui/material';
 import GridViewIcon from '@mui/icons-material/GridView';
 import SearchIcon from '@mui/icons-material/Search';
-import KeyboardArrowDownIcon from '@mui/icons-material/KeyboardArrowDown';
 
 /**
  * GameTypeSelector - Dropdown to select between game types
@@ -66,21 +64,18 @@ export default function GameTypeSelector({
                 aria-controls={open ? 'game-type-menu' : undefined}
                 aria-haspopup="true"
                 aria-expanded={open ? 'true' : undefined}
+                aria-label={t('gameType.select', 'Select game type')}
+                title={currentTypeData.label}
                 onClick={handleClick}
                 disabled={disabled}
                 variant="outlined"
-                size="small"
-                startIcon={currentTypeData.icon}
-                endIcon={<KeyboardArrowDownIcon />}
                 sx={{
-                    textTransform: 'none',
-                    minWidth: 120,
+                    minWidth: 'auto',
+                    padding: '8px',
                     borderRadius: 2,
                 }}
             >
-                <Typography variant="body2" noWrap>
-                    {currentTypeData.label}
-                </Typography>
+                {currentTypeData.icon}
             </Button>
             <Menu
                 id="game-type-menu"
