@@ -245,6 +245,10 @@ const CrosswordGrid = forwardRef(({
     // Expose methods to parent
     useImperativeHandle(ref, () => ({
         showHint,
+        clearHints: () => {
+            // No-op for crossword - hints directly modify userInputs which are persistent
+            // This is called by App.jsx when a phrase is found
+        },
         getCompletedCount: () => completedPhrases.size,
         getTotalPhrases: () => phrases.length,
         isAllComplete: () => completedPhrases.size === phrases.length,

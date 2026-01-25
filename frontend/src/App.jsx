@@ -1290,7 +1290,16 @@ function AppContent() {
 
   const markFound = useCallback(
     (phrase) => {
-      if (!found.includes(phrase)) {
+      // Handle both phrase strings (word search) and phrase objects (crossword)
+      // For crossword, phrase is an object with {phrase, translation, coords, ...}
+      const phraseText = typeof phrase === 'string' ? phrase : phrase?.phrase;
+
+      // Check if already found by comparing phrase text
+      const isAlreadyFound = found.some(f =>
+        (typeof f === 'string' ? f : f?.phrase) === phraseText
+      );
+
+      if (!isAlreadyFound) {
         const newFoundList = [...found, phrase];
         const newFoundCount = newFoundList.length;
 
