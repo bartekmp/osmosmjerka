@@ -1848,6 +1848,7 @@ function AppContent() {
                           languageSetId={selectedLanguageSetId}
                           t={t}
                           compact={isCompactSidebar}
+                          gameType={gameType}
                         />
                       </Box>
                     );

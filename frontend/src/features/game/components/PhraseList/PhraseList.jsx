@@ -18,7 +18,8 @@ export default function PhraseList({
     currentUser = null,
     languageSetId = null,
     hideToggleButton = false,
-    compact = false
+    compact = false,
+    gameType = "word_search"
 }) {
     const { t } = useTranslation();
     const [blinkingPhrase, setBlinkingPhrase] = useState(null);
@@ -94,6 +95,19 @@ export default function PhraseList({
     const hasSelection = selectedPhrases.size > 0;
     const allSelectedInFound = foundPhrases.length > 0 &&
         selectedPhrases.size === foundPhrases.length;
+
+    // For crossword mode, group phrases by direction
+    const isCrossword = gameType === "crossword";
+    const acrossPhrases = isCrossword ? phrases.filter(p => p.direction === "across") : [];
+    const downPhrases = isCrossword ? phrases.filter(p => p.direction === "down") : [];
+
+    // Helper to check if phrase is found (supports both string and object found arrays)
+    const isPhraseFound = (phraseObj) => {
+        const phraseText = phraseObj.phrase;
+        return found.some(f =>
+            (typeof f === 'string' ? f : f?.phrase) === phraseText
+        );
+    };
 
     return (
         <div className="phrase-list-container">
@@ -205,65 +219,127 @@ export default function PhraseList({
                 </Box>
             )}
 
-            <ul className={`phrase-list-ul${hidePhrases ? ' blurred' : ''}`}>
-                {phrases.map((phraseObj, index) => {
-                    const { phrase, translation, id } = phraseObj;
-                    const isFound = found.includes(phrase);
-                    const isSelected = selectedPhrases.has(id);
+            {/* Crossword mode: show numbered clues grouped by Across/Down */}
+            {isCrossword ? (
+                <div className={`phrase-list-crossword${hidePhrases ? ' blurred' : ''}`}>
+                    {/* Across clues */}
+                    {acrossPhrases.length > 0 && (
+                        <div className="crossword-clue-section">
+                            <Typography variant="subtitle2" sx={{ fontWeight: 'bold', mb: 1 }}>
+                                {t('crossword.across')}
+                            </Typography>
+                            <ul className="crossword-clue-list">
+                                {acrossPhrases.map((phraseObj, index) => {
+                                    const { phrase, translation, start_number } = phraseObj;
+                                    const isFound = isPhraseFound(phraseObj);
+                                    return (
+                                        <li key={`across-${index}`} className={`crossword-clue-item${isFound ? ' found' : ''}`}>
+                                            <span className="crossword-clue-number">{start_number}.</span>
+                                            <span className="crossword-clue-text">
+                                                {translation || phrase}
+                                            </span>
+                                            {isFound && (
+                                                <span className="crossword-clue-answer">
+                                                    ({phrase})
+                                                </span>
+                                            )}
+                                        </li>
+                                    );
+                                })}
+                            </ul>
+                        </div>
+                    )}
 
-                    return (
-                        <li className="phrase-list-li" key={`${phrase}-${index}`}>
-                            <span
-                                className={`phrase-list-phrase${isFound ? ' found' : ''}${blinkingPhrase === phrase ? ' blinking' : ''}${isSelected ? ' selected' : ''}`}
-                                onClick={() => {
-                                    if (currentUser && isFound && id) {
-                                        togglePhraseSelection(id);
-                                    } else if (!progressiveHintsEnabled) {
-                                        handlePhraseClick(phrase);
-                                    }
-                                }}
-                                onKeyDown={(e) => {
-                                    if (e.key === 'Enter' || e.key === ' ') {
+                    {/* Down clues */}
+                    {downPhrases.length > 0 && (
+                        <div className="crossword-clue-section">
+                            <Typography variant="subtitle2" sx={{ fontWeight: 'bold', mb: 1, mt: 2 }}>
+                                {t('crossword.down')}
+                            </Typography>
+                            <ul className="crossword-clue-list">
+                                {downPhrases.map((phraseObj, index) => {
+                                    const { phrase, translation, start_number } = phraseObj;
+                                    const isFound = isPhraseFound(phraseObj);
+                                    return (
+                                        <li key={`down-${index}`} className={`crossword-clue-item${isFound ? ' found' : ''}`}>
+                                            <span className="crossword-clue-number">{start_number}.</span>
+                                            <span className="crossword-clue-text">
+                                                {translation || phrase}
+                                            </span>
+                                            {isFound && (
+                                                <span className="crossword-clue-answer">
+                                                    ({phrase})
+                                                </span>
+                                            )}
+                                        </li>
+                                    );
+                                })}
+                            </ul>
+                        </div>
+                    )}
+                </div>
+            ) : (
+                /* Word search mode: original phrase list */
+                <ul className={`phrase-list-ul${hidePhrases ? ' blurred' : ''}`}>
+                    {phrases.map((phraseObj, index) => {
+                        const { phrase, translation, id } = phraseObj;
+                        const isFound = found.includes(phrase);
+                        const isSelected = selectedPhrases.has(id);
+
+                        return (
+                            <li className="phrase-list-li" key={`${phrase}-${index}`}>
+                                <span
+                                    className={`phrase-list-phrase${isFound ? ' found' : ''}${blinkingPhrase === phrase ? ' blinking' : ''}${isSelected ? ' selected' : ''}`}
+                                    onClick={() => {
+                                        if (currentUser && isFound && id) {
+                                            togglePhraseSelection(id);
+                                        } else if (!progressiveHintsEnabled) {
+                                            handlePhraseClick(phrase);
+                                        }
+                                    }}
+                                    onKeyDown={(e) => {
+                                        if (e.key === 'Enter' || e.key === ' ') {
+                                            e.preventDefault();
+                                            if (currentUser && isFound && id) {
+                                                togglePhraseSelection(id);
+                                            } else if (!progressiveHintsEnabled) {
+                                                handlePhraseClick(phrase);
+                                            }
+                                        }
+                                    }}
+                                    onTouchEnd={e => {
                                         e.preventDefault();
                                         if (currentUser && isFound && id) {
                                             togglePhraseSelection(id);
                                         } else if (!progressiveHintsEnabled) {
                                             handlePhraseClick(phrase);
                                         }
-                                    }
-                                }}
-                                onTouchEnd={e => {
-                                    e.preventDefault();
-                                    if (currentUser && isFound && id) {
-                                        togglePhraseSelection(id);
-                                    } else if (!progressiveHintsEnabled) {
-                                        handlePhraseClick(phrase);
-                                    }
-                                }}
-                                style={{
-                                    cursor: progressiveHintsEnabled ? 'default' : 'pointer',
-                                    display: 'inline-block'
-                                }}
-                                role="button"
-                                tabIndex={progressiveHintsEnabled ? -1 : 0}
-                                aria-label={isSelected ? `Selected: ${phrase}` : `Highlight phrase: ${phrase}`}
-                            >
-                                {phrase}
-                            </span>
-                            <span
-                                className={`phrase-list-translation${isFound ? ' found' : ''}`}
-                                style={{
-                                    minWidth: translationMinWidth,
-                                    whiteSpace: 'pre-wrap',
-                                    wordBreak: 'break-word'
-                                }}
-                            >
-                                {showTranslations ? (translation || '').replace(/<br\s*\/?>/gi, '\n') : ''}
-                            </span>
-                        </li>
-                    );
-                })}
-            </ul>
+                                    }}
+                                    style={{
+                                        cursor: progressiveHintsEnabled ? 'default' : 'pointer',
+                                        display: 'inline-block'
+                                    }}
+                                    role="button"
+                                    tabIndex={progressiveHintsEnabled ? -1 : 0}
+                                    aria-label={isSelected ? `Selected: ${phrase}` : `Highlight phrase: ${phrase}`}
+                                >
+                                    {phrase}
+                                </span>
+                                <span
+                                    className={`phrase-list-translation${isFound ? ' found' : ''}`}
+                                    style={{
+                                        minWidth: translationMinWidth,
+                                        whiteSpace: 'pre-wrap',
+                                        wordBreak: 'break-word'
+                                    }}
+                                >
+                                    {showTranslations ? (translation || '').replace(/<br\s*\/?>/gi, '\n') : ''}
+                                </span>
+                            </li>
+                        );
+                    })}
+                </ul>
+            )}
         </div>
     );
 }
