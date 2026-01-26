@@ -20,6 +20,7 @@ export default function CrosswordCell({
     isBlank = false,    // Non-playable filler cell
     isCorrect = false,  // Phrase containing this cell is correct
     isWrong = false,    // Phrase containing this cell is wrong (highlight mode)
+    isHighlighted = false, // Cell matches active phrase
     onInput,            // Called when user types a letter
     onFocus,            // Called when cell gains focus
     onKeyDown,          // Called for navigation keys
@@ -83,12 +84,15 @@ export default function CrosswordCell({
         if (isDisabled) classes.push('disabled');
         if (isCorrect) classes.push('correct');
         if (isWrong) classes.push('wrong', 'shake');
+        if (isHighlighted) classes.push('highlighted');
         if (userInput) classes.push('filled');
         return classes.join(' ');
     };
 
     const fontSize = Math.max(cellSize * 0.55, 14);
-    const numberSize = Math.max(cellSize * 0.25, 8);
+    // Adjust number size if more than 2 digits/chars (e.g. 1/4)
+    const isLongStartNumber = startNumber && String(startNumber).length > 2;
+    const numberSize = isLongStartNumber ? Math.max(cellSize * 0.2, 7) : Math.max(cellSize * 0.25, 8);
 
     // Blank cells are just empty boxes
     if (isBlank) {

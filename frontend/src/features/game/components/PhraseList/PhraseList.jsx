@@ -119,7 +119,7 @@ export default function PhraseList({
                         className="scrabble-btn phrase-list-hide-btn"
                         type="button"
                         onClick={() => setHidePhrases(h => !h)}
-                        disabled={allFound || disableShowPhrases}
+                        disabled={allFound || disableShowPhrases || isCrossword}
                         style={{
                             width: buttonWidth,
                             textAlign: 'center',
@@ -222,7 +222,7 @@ export default function PhraseList({
 
             {/* Crossword mode: show numbered clues grouped by Across/Down */}
             {isCrossword ? (
-                <div className={`phrase-list-crossword${hidePhrases ? ' blurred' : ''}`}>
+                <div className={`phrase-list-crossword${hidePhrases && !isCrossword ? ' blurred' : ''}`}>
                     {/* Across clues */}
                     {acrossPhrases.length > 0 && (
                         <div className="crossword-clue-section">

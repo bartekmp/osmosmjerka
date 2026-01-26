@@ -800,7 +800,7 @@ function AppContent() {
     }
   }, [restored, selectedCategory, difficulty, selectedPrivateListId]);
 
-  const loadPuzzle = (category, diff = difficulty, refresh = false) => {
+  const loadPuzzle = (category, diff = difficulty, refresh = false, overrideGameType = null) => {
     setIsGridLoading(true);
     setGridStatus("pending");
     resetCelebration(); // Reset celebration state using hook
@@ -832,7 +832,7 @@ function AppContent() {
       selectedLanguageSetId,
       refresh,
       selectedPrivateListId,
-      gameType
+      overrideGameType || gameType
     )
       .then((result) => {
         if (result?.status === "error") {
@@ -1571,7 +1571,7 @@ function AppContent() {
                   onGameTypeChange={(type) => {
                     setGameType(type);
                     // Reload puzzle with new game type
-                    loadPuzzle(selectedCategory, difficulty, true);
+                    loadPuzzle(selectedCategory, difficulty, true, type);
                   }}
                   isGridLoading={isGridLoading}
                 />
@@ -1888,6 +1888,7 @@ function AppContent() {
                     currentUser={currentUser}
                     languageSetId={selectedLanguageSetId}
                     t={t}
+                    gameType={gameType}
                   />
                 )}
               </Stack>

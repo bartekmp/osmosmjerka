@@ -25,7 +25,8 @@ const MobilePhraseListSheet = ({
   progressiveHintsEnabled,
   currentUser,
   languageSetId,
-  t
+  t,
+  gameType = "word_search"
 }) => {
   const { t: translate } = useTranslation();
   const sheetRef = useRef(null);
@@ -36,7 +37,8 @@ const MobilePhraseListSheet = ({
 
   // Get found phrases with their full data
   const foundPhrases = phrases.filter(p => found.includes(p.phrase));
-  const canToggleTranslations = found.length > 0;
+  const isCrossword = gameType === "crossword";
+  const canToggleTranslations = found.length > 0 && !isCrossword;
 
   // Handle touch start on drag handle
   const handleHandleTouchStart = useCallback((e) => {
@@ -206,6 +208,7 @@ const MobilePhraseListSheet = ({
             languageSetId={languageSetId}
             hideToggleButton={true}
             t={t}
+            gameType={gameType}
           />
         </Box>
 

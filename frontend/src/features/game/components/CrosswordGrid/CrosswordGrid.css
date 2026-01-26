@@ -21,9 +21,9 @@
     color: var(--text-primary);
     font-family: 'Clear Sans', 'Trebuchet MS', 'Arial', sans-serif;
     letter-spacing: 0.03em;
-    transition: background var(--transition-normal), 
-                box-shadow var(--transition-normal), 
-                border-color 0.2s;
+    transition: background var(--transition-normal),
+        box-shadow var(--transition-normal),
+        border-color 0.2s;
     position: relative;
 }
 
@@ -61,14 +61,41 @@
 .crossword-cell.wrong {
     background: rgba(244, 67, 54, 0.15);
     border-color: #f44336;
+    border-color: #f44336;
     box-shadow: 0 0 8px rgba(244, 67, 54, 0.4);
+}
+
+/* Focused phrase highlighting */
+.crossword-cell.highlighted {
+    background: rgba(255, 193, 7, 0.2);
+}
+
+[data-theme="dark"] .crossword-cell.highlighted {
+    background: rgba(255, 193, 7, 0.15);
 }
 
 /* Shake animation for wrong answers */
 @keyframes shake {
-    0%, 100% { transform: translateX(0); }
-    10%, 30%, 50%, 70%, 90% { transform: translateX(-4px); }
-    20%, 40%, 60%, 80% { transform: translateX(4px); }
+
+    0%,
+    100% {
+        transform: translateX(0);
+    }
+
+    10%,
+    30%,
+    50%,
+    70%,
+    90% {
+        transform: translateX(-4px);
+    }
+
+    20%,
+    40%,
+    60%,
+    80% {
+        transform: translateX(4px);
+    }
 }
 
 .crossword-cell.shake {
