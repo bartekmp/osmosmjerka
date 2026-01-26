@@ -30,7 +30,9 @@ export default function PhraseList({
     // Instead of dynamic calculation, use a consistent width
     const translationMinWidth = "12em"; // Fixed width for stability
 
-    const canToggleTranslations = setShowTranslations && found.length > 0 && !hidePhrases;
+    // Don't show translation toggle in crossword mode (translations are always shown as clues)
+    const isCrossword = gameType === "crossword";
+    const canToggleTranslations = setShowTranslations && found.length > 0 && !hidePhrases && !isCrossword;
 
     // For consistent button width
     const buttonWidth = compact ? "5em" : "7.2em";
@@ -96,8 +98,7 @@ export default function PhraseList({
     const allSelectedInFound = foundPhrases.length > 0 &&
         selectedPhrases.size === foundPhrases.length;
 
-    // For crossword mode, group phrases by direction
-    const isCrossword = gameType === "crossword";
+    // For crossword mode, group phrases by direction (isCrossword already defined above)
     const acrossPhrases = isCrossword ? phrases.filter(p => p.direction === "across") : [];
     const downPhrases = isCrossword ? phrases.filter(p => p.direction === "down") : [];
 
@@ -233,7 +234,12 @@ export default function PhraseList({
                                     const { phrase, translation, start_number } = phraseObj;
                                     const isFound = isPhraseFound(phraseObj);
                                     return (
-                                        <li key={`across-${index}`} className={`crossword-clue-item${isFound ? ' found' : ''}`}>
+                                        <li
+                                            key={`across-${index}`}
+                                            className={`crossword-clue-item${isFound ? ' found' : ''}`}
+                                            onClick={() => !isFound && onPhraseClick?.(phrase)}
+                                            style={{ cursor: isFound ? 'default' : 'pointer' }}
+                                        >
                                             <span className="crossword-clue-number">{start_number}.</span>
                                             <span className="crossword-clue-text">
                                                 {translation || phrase}
@@ -261,7 +267,12 @@ export default function PhraseList({
                                     const { phrase, translation, start_number } = phraseObj;
                                     const isFound = isPhraseFound(phraseObj);
                                     return (
-                                        <li key={`down-${index}`} className={`crossword-clue-item${isFound ? ' found' : ''}`}>
+                                        <li
+                                            key={`down-${index}`}
+                                            className={`crossword-clue-item${isFound ? ' found' : ''}`}
+                                            onClick={() => !isFound && onPhraseClick?.(phrase)}
+                                            style={{ cursor: isFound ? 'default' : 'pointer' }}
+                                        >
                                             <span className="crossword-clue-number">{start_number}.</span>
                                             <span className="crossword-clue-text">
                                                 {translation || phrase}

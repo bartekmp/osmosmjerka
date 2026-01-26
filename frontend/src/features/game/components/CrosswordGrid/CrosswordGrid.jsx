@@ -41,6 +41,9 @@ const CrosswordGrid = forwardRef(({
     const [wrongPhrases, setWrongPhrases] = useState(new Set());
     // Celebration cells (for future use)
     const [_celebrationCells, _setCelebrationCells] = useState([]);
+    // Current progressive hint target phrase and level
+    const [currentHintPhrase, setCurrentHintPhrase] = useState(null);
+    const [hintLevel, setHintLevel] = useState(0);
 
     const gridSize = grid.length;
     const cellSize = useGridSize(gridSize, isTouchDevice, useMobileLayout);
@@ -51,6 +54,8 @@ const CrosswordGrid = forwardRef(({
         setActiveCell(null);
         setCompletedPhrases(new Set());
         setWrongPhrases(new Set());
+        setCurrentHintPhrase(null);
+        setHintLevel(0);
     }, [grid]);
 
     // Get phrase at a specific cell position
@@ -103,19 +108,42 @@ const CrosswordGrid = forwardRef(({
         if (disabled) return;
 
         const key = `${row},${col}`;
-        setUserInputs(prev => ({
-            ...prev,
+        const newUserInputs = {
+            ...userInputs,
             [key]: char
-        }));
+        };
+        setUserInputs(newUserInputs);
+
+        // Validate immediately with new inputs to trigger found animation before cursor moves
+        // We need to check synchronously if any phrase is now complete
+        phrases.forEach((phrase, idx) => {
+            if (completedPhrases.has(idx)) return; // Already completed
+
+            // Check if phrase is fully filled with new input
+            const isFilled = phrase.coords.every(([r, c]) => {
+                const k = `${r},${c}`;
+                return newUserInputs[k] && newUserInputs[k].length > 0;
+            });
+
+            if (isFilled) {
+                // Check if correct
+                const normalized = phrase.phrase.replace(/\s/g, '').toUpperCase();
+                const userWord = phrase.coords.map(([r, c]) => newUserInputs[`${r},${c}`] || '').join('');
+                if (userWord === normalized) {
+                    setCompletedPhrases(prev => new Set([...prev, idx]));
+                    onPhraseComplete?.(phrase);
+                } else if (showWrongHighlight) {
+                    setWrongPhrases(prev => new Set([...prev, idx]));
+                    onPhraseWrong?.(phrase);
+                }
+            }
+        });
 
         // If a character was entered, advance to next cell
         if (char) {
             advanceToNextCell(row, col);
         }
-
-        // Trigger validation after state update
-        setTimeout(validatePhrases, 0);
-    }, [disabled, validatePhrases]);
+    }, [disabled, userInputs, phrases, completedPhrases, showWrongHighlight, onPhraseComplete, onPhraseWrong, advanceToNextCell]);
 
     // Advance to next cell in current direction
     const advanceToNextCell = useCallback((row, col) => {
@@ -141,9 +169,18 @@ const CrosswordGrid = forwardRef(({
         // Determine direction based on available phrases
         const phrasesHere = getPhrasesAtCell(row, col);
         if (phrasesHere.length === 1) {
+            // Only one phrase - must use its direction
             setCurrentDirection(phrasesHere[0].direction);
+        } else if (phrasesHere.length > 1) {
+            // Multiple phrases (intersection) - keep current direction if valid
+            const hasCurrentDirection = phrasesHere.some(p => p.direction === currentDirection);
+            if (!hasCurrentDirection) {
+                // Current direction not available here, switch to first available
+                setCurrentDirection(phrasesHere[0].direction);
+            }
+            // Otherwise keep currentDirection unchanged
         }
-    }, [getPhrasesAtCell]);
+    }, [getPhrasesAtCell, currentDirection]);
 
     // Handle keyboard navigation
     const handleKeyDown = useCallback((row, col, key) => {
@@ -242,17 +279,89 @@ const CrosswordGrid = forwardRef(({
         return targetPhrase;
     }, [phrases, completedPhrases, userInputs, onHintUsed, validatePhrases]);
 
+    // Progressive hint methods (matching ScrabbleGrid interface for App.jsx compatibility)
+    const showProgressiveHint = useCallback((isProgressive = true) => {
+        // Find uncompleted phrases
+        const uncompletedPhrases = phrases.filter((p, idx) => !completedPhrases.has(idx));
+        if (uncompletedPhrases.length === 0) return null;
+
+        // Select a target phrase for progressive hints
+        const targetPhrase = uncompletedPhrases[Math.floor(Math.random() * uncompletedPhrases.length)];
+        const normalized = targetPhrase.phrase.replace(/\s/g, '').toUpperCase();
+
+        if (isProgressive) {
+            // Progressive mode: start with level 1 (first letter)
+            setCurrentHintPhrase(targetPhrase);
+            setHintLevel(1);
+            // Reveal first letter
+            const [r, c] = targetPhrase.coords[0];
+            setUserInputs(prev => ({ ...prev, [`${r},${c}`]: normalized[0] }));
+            onHintUsed?.(targetPhrase.phrase);
+            return targetPhrase;
+        } else {
+            // Classic mode: just blink the phrase (no letter reveal for word search style)
+            return showHint(1);
+        }
+    }, [phrases, completedPhrases, showHint, onHintUsed]);
+
+    const advanceProgressiveHint = useCallback(() => {
+        if (!currentHintPhrase) return;
+
+        const normalized = currentHintPhrase.phrase.replace(/\s/g, '').toUpperCase();
+        const newLevel = hintLevel + 1;
+        setHintLevel(newLevel);
+
+        if (newLevel === 2) {
+            // Level 2: reveal random unfilled letter
+            const coords = currentHintPhrase.coords;
+            const emptyCoords = coords.filter(([r, c]) => !userInputs[`${r},${c}`]);
+            if (emptyCoords.length > 0) {
+                const [r, c] = emptyCoords[Math.floor(Math.random() * emptyCoords.length)];
+                const idx = coords.findIndex(([cr, cc]) => cr === r && cc === c);
+                setUserInputs(prev => ({ ...prev, [`${r},${c}`]: normalized[idx] }));
+            }
+        } else if (newLevel >= 3) {
+            // Level 3: reveal entire phrase
+            const newInputs = { ...userInputs };
+            currentHintPhrase.coords.forEach(([r, c], i) => {
+                newInputs[`${r},${c}`] = normalized[i];
+            });
+            setUserInputs(newInputs);
+            setTimeout(validatePhrases, 0);
+            // Reset hint state
+            setCurrentHintPhrase(null);
+            setHintLevel(0);
+        }
+
+        onHintUsed?.(currentHintPhrase.phrase);
+    }, [currentHintPhrase, hintLevel, userInputs, onHintUsed, validatePhrases]);
+
     // Expose methods to parent
     useImperativeHandle(ref, () => ({
         showHint,
+        showProgressiveHint,
+        advanceProgressiveHint,
         clearHints: () => {
-            // No-op for crossword - hints directly modify userInputs which are persistent
-            // This is called by App.jsx when a phrase is found
+            // Reset hint tracking state
+            setCurrentHintPhrase(null);
+            setHintLevel(0);
+        },
+        // Focus on a specific phrase (for clue list click)
+        focusPhrase: (phraseText) => {
+            const phrase = phrases.find(p => p.phrase === phraseText);
+            if (!phrase) return;
+
+            // Find first missing (unfilled) cell in the phrase
+            const firstMissingCoord = phrase.coords.find(([r, c]) => !userInputs[`${r},${c}`]);
+            const targetCoord = firstMissingCoord || phrase.coords[0];
+
+            setCurrentDirection(phrase.direction);
+            setActiveCell(targetCoord);
         },
         getCompletedCount: () => completedPhrases.size,
         getTotalPhrases: () => phrases.length,
         isAllComplete: () => completedPhrases.size === phrases.length,
-    }), [showHint, completedPhrases, phrases]);
+    }), [showHint, showProgressiveHint, advanceProgressiveHint, completedPhrases, phrases, userInputs]);
 
     // Early return for empty grid
     if (gridSize === 0) {

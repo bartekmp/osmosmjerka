@@ -1365,9 +1365,14 @@ function AppContent() {
   );
 
   const handlePhraseClick = (phrase) => {
-    // Only allow phrase clicking when progressive hints are disabled
-    if (!progressiveHintsEnabled && gridRef.current) {
-      gridRef.current.blinkPhrase(phrase);
+    if (!gridRef.current) return;
+
+    if (gameType === "crossword") {
+      // Crossword mode: focus on phrase's first missing cell
+      gridRef.current.focusPhrase?.(phrase);
+    } else if (!progressiveHintsEnabled) {
+      // Word search mode: blink the phrase (only when progressive hints disabled)
+      gridRef.current.blinkPhrase?.(phrase);
     }
   };
 
@@ -1699,6 +1704,7 @@ function AppContent() {
                     >
                       {gameType === "crossword" ? (
                         <CrosswordGrid
+                          key={`crossword-${selectedCategory}-${difficulty}`}
                           ref={gridRef}
                           grid={grid}
                           phrases={phrases}
@@ -1715,6 +1721,7 @@ function AppContent() {
                         />
                       ) : (
                         <ScrabbleGrid
+                          key={`wordsearch-${selectedCategory}-${difficulty}`}
                           ref={gridRef}
                           grid={grid}
                           phrases={phrases}
