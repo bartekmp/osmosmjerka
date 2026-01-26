@@ -178,6 +178,12 @@ const CrosswordGrid = forwardRef(({
 
                 if (userWord === normalizedPhrase) {
                     setCompletedPhrases(prev => new Set([...prev, idx]));
+                    // Remove from wrong phrases if it was there
+                    setWrongPhrases(prev => {
+                        const next = new Set(prev);
+                        next.delete(idx);
+                        return next;
+                    });
                     // AUTO-CORRECT: Replace user input with actual phrase characters (restores diacritics)
                     fillCorrectPhrase(phrase);
                     onPhraseComplete?.(phrase);
@@ -325,24 +331,47 @@ const CrosswordGrid = forwardRef(({
         const uncompletedPhrases = phrases.filter((p, idx) => !completedPhrases.has(idx));
         if (uncompletedPhrases.length === 0) return null;
 
-        // Select a target phrase for progressive hints
-        const targetPhrase = uncompletedPhrases[Math.floor(Math.random() * uncompletedPhrases.length)];
+        // Select target: prioritize active phrase if uncompleted, otherwise random
+        let targetPhrase = null;
+        if (activeCell) {
+            const activePhrase = phrases.find(p =>
+                p.direction === currentDirection &&
+                p.coords.some(([r, c]) => r === activeCell[0] && c === activeCell[1])
+            );
+            if (activePhrase && !completedPhrases.has(phrases.indexOf(activePhrase))) {
+                targetPhrase = activePhrase;
+            }
+        }
+
+        if (!targetPhrase) {
+            targetPhrase = uncompletedPhrases[Math.floor(Math.random() * uncompletedPhrases.length)];
+        }
+
         const normalized = targetPhrase.phrase.replace(/\s/g, '').toUpperCase();
 
         if (isProgressive) {
-            // Progressive mode: start with level 1 (first letter)
+            // Progressive mode: start with level 1
             setCurrentHintPhrase(targetPhrase);
             setHintLevel(1);
-            // Reveal first letter
-            const [r, c] = targetPhrase.coords[0];
-            setUserInputs(prev => ({ ...prev, [`${r},${c}`]: normalized[0] }));
+
+            // Level 1: Reveal NEXT missing letter (not just first)
+            // Find first missing coord
+            let targetIdx = 0;
+            const firstMissingIdx = targetPhrase.coords.findIndex(([r, c]) => !userInputs[`${r},${c}`]);
+            if (firstMissingIdx !== -1) {
+                targetIdx = firstMissingIdx;
+            }
+
+            const [r, c] = targetPhrase.coords[targetIdx];
+            setUserInputs(prev => ({ ...prev, [`${r},${c}`]: normalized[targetIdx] }));
+
             onHintUsed?.(targetPhrase.phrase);
             return targetPhrase;
         } else {
-            // Classic mode: just blink the phrase (no letter reveal for word search style)
+            // Classic mode: just blink the phrase
             return showHint(1);
         }
-    }, [phrases, completedPhrases, showHint, onHintUsed]);
+    }, [phrases, completedPhrases, activeCell, currentDirection, userInputs, showHint, onHintUsed]);
 
     const advanceProgressiveHint = useCallback(() => {
         if (!currentHintPhrase) return;
@@ -352,13 +381,45 @@ const CrosswordGrid = forwardRef(({
         setHintLevel(newLevel);
 
         if (newLevel === 2) {
-            // Level 2: reveal random unfilled letter
-            const coords = currentHintPhrase.coords;
-            const emptyCoords = coords.filter(([r, c]) => !userInputs[`${r},${c}`]);
-            if (emptyCoords.length > 0) {
-                const [r, c] = emptyCoords[Math.floor(Math.random() * emptyCoords.length)];
-                const idx = coords.findIndex(([cr, cc]) => cr === r && cc === c);
-                setUserInputs(prev => ({ ...prev, [`${r},${c}`]: normalized[idx] }));
+            // Level 2: Validate existing letters (Round 3 req)
+            // Check filled cells in phrase
+            const normalizedPhrase = currentHintPhrase.phrase.replace(/\s/g, '').toUpperCase().split('').map(normalizeChar).join('');
+
+            // We can just set wrongPhrases for this phrase if it has errors
+            // Check if current input matches expected
+
+            // We only care about filled letters being wrong
+            // But wait, userWord has empty strings for missing.
+            // If I compare 'A' with 'A' (ok). 'B' with 'C' (wrong). '' with 'D' (ignore).
+
+            // Actually, Level 2 should "validate letters that already are placed"
+            // If we mark the phrase as "wrong", it highlights the whole phrase red.
+            // This might mean "something is wrong".
+            // If everything filled is correct (but incomplete), nothing happens?
+            const idx = phrases.indexOf(currentHintPhrase);
+
+            // Check correctness of filled cells
+            const lettersCorrect = currentHintPhrase.coords.every(([r, c], i) => {
+                const input = userInputs[`${r},${c}`];
+                if (!input) return true; // Ignore empty
+                return normalizeChar(input) === normalizedPhrase[i];
+            });
+
+            if (!lettersCorrect) {
+                // Mark as wrong to show red highlight
+                setWrongPhrases(prev => new Set([...prev, idx]));
+                // Maybe auto-clear wrong phrases after a delay? 
+                // User requirement: "second hint should be validating"
+                // Red highlight is a good validation feedback.
+            } else {
+                // If everything filled is correct, maybe flash green? 
+                // Or just do nothing (no error found).
+                // We'll remove it from wrong phrases if it was there
+                setWrongPhrases(prev => {
+                    const next = new Set(prev);
+                    next.delete(idx);
+                    return next;
+                });
             }
         } else if (newLevel >= 3) {
             // Level 3: reveal entire phrase
@@ -473,7 +534,6 @@ const CrosswordGrid = forwardRef(({
             isActive,
             isDisabled: isInCompletedPhrase,
             isCorrect: isInCompletedPhrase,
-            isWrong: isInWrongPhrase && showWrongHighlight,
             isWrong: isInWrongPhrase && showWrongHighlight,
             isHighlighted: isHighlighted, // Also highlight active cell to keep phrase visual continuity
         };
