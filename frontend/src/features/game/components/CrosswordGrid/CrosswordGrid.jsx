@@ -451,11 +451,13 @@ const CrosswordGrid = forwardRef(({
             wrongPhrases.has(phrases.findIndex(pp => pp === p))
         );
 
+        const isActive = activeCell && activeCell[0] === row && activeCell[1] === col;
+
         return {
             letter: cellData?.letter || '',
             userInput: userInputs[key] || '',
             startNumber,
-            isActive: activeCell && activeCell[0] === row && activeCell[1] === col,
+            isActive,
             isDisabled: isInCompletedPhrase,
             isCorrect: isInCompletedPhrase,
             isWrong: isInWrongPhrase && showWrongHighlight,
