@@ -40,9 +40,9 @@ const HintButton = ({
 
         if (isProgressiveMode) {
             if (gameType === "crossword") {
-                if (currentHintLevel === 0) return t('hint_next_letter');
-                if (currentHintLevel === 1) return t('hint_validate');
-                if (currentHintLevel === 2) return t('hint_reveal');
+                if (currentHintLevel === 0) return t('crossword.hint_next_letter');
+                if (currentHintLevel === 1) return t('crossword.hint_validate');
+                if (currentHintLevel === 2) return t('crossword.hint_reveal');
             }
             if (currentHintLevel === 0) return t('first_letter');
             if (currentHintLevel === 1) return t('direction_hint');
@@ -58,7 +58,7 @@ const HintButton = ({
 
         if (isProgressiveMode) {
             if (gameType === "crossword") {
-                const keys = ['hint_next_letter', 'hint_validate', 'hint_reveal'];
+                const keys = ['crossword.hint_next_letter', 'crossword.hint_validate', 'crossword.hint_reveal'];
                 const key = keys[currentHintLevel] || 'hint';
                 return t(key) + ` (${t('hints_remaining', { count: remainingHints })})`;
             }

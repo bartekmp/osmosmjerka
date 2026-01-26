@@ -138,7 +138,7 @@ const MobileFloatingActions = ({
             if (remainingHints <= 0) return t('no_hints_remaining');
 
             if (isProgressiveMode && gameType === "crossword") {
-              const keys = ['hint_next_letter', 'hint_validate', 'hint_reveal'];
+              const keys = ['crossword.hint_next_letter', 'crossword.hint_validate', 'crossword.hint_reveal'];
               const key = keys[currentHintLevel] || 'hint';
               return t(key) + ` (${t('hints_remaining', { count: remainingHints })})`;
             }
