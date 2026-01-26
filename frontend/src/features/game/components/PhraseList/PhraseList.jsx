@@ -238,6 +238,14 @@ export default function PhraseList({
                                             key={`across-${index}`}
                                             className={`crossword-clue-item${isFound ? ' found' : ''}`}
                                             onClick={() => !isFound && onPhraseClick?.(phrase)}
+                                            onKeyDown={(e) => {
+                                                if ((e.key === 'Enter' || e.key === ' ') && !isFound) {
+                                                    e.preventDefault();
+                                                    onPhraseClick?.(phrase);
+                                                }
+                                            }}
+                                            role="button"
+                                            tabIndex={isFound ? -1 : 0}
                                             style={{ cursor: isFound ? 'default' : 'pointer' }}
                                         >
                                             <span className="crossword-clue-number">{start_number}.</span>
@@ -271,6 +279,14 @@ export default function PhraseList({
                                             key={`down-${index}`}
                                             className={`crossword-clue-item${isFound ? ' found' : ''}`}
                                             onClick={() => !isFound && onPhraseClick?.(phrase)}
+                                            onKeyDown={(e) => {
+                                                if ((e.key === 'Enter' || e.key === ' ') && !isFound) {
+                                                    e.preventDefault();
+                                                    onPhraseClick?.(phrase);
+                                                }
+                                            }}
+                                            role="button"
+                                            tabIndex={isFound ? -1 : 0}
                                             style={{ cursor: isFound ? 'default' : 'pointer' }}
                                         >
                                             <span className="crossword-clue-number">{start_number}.</span>
