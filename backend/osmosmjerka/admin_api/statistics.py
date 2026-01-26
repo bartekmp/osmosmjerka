@@ -122,12 +122,13 @@ async def get_admin_leaderboard(
     language_set_id: int = Query(None),
     category: str = Query(None),
     difficulty: str = Query(None),
+    game_type: str = Query(None),
     limit: int = Query(50, ge=1, le=200),
     user=Depends(require_admin_access),
 ) -> JSONResponse:
     """Get leaderboard for admin statistics dashboard"""
     try:
-        leaderboard = await db_manager.get_leaderboard(language_set_id, category, difficulty, limit)
+        leaderboard = await db_manager.get_leaderboard(language_set_id, category, difficulty, limit, game_type)
         return JSONResponse(leaderboard)
     except Exception as e:
         return JSONResponse({"error": str(e)}, status_code=500)
