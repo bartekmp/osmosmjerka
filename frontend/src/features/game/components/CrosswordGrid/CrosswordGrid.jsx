@@ -100,10 +100,21 @@ const CrosswordGrid = forwardRef(({
         const currentIdx = coords.findIndex(([r, c]) => r === row && c === col);
 
         if (currentIdx >= 0 && currentIdx < coords.length - 1) {
-            const [nextR, nextC] = coords[currentIdx + 1];
-            setActiveCell([nextR, nextC]);
+            // Find next editable cell (skip locked/completed cells)
+            let nextIdx = currentIdx + 1;
+            while (nextIdx < coords.length) {
+                const [r, c] = coords[nextIdx];
+                // Check if this cell is locked (part of any completed phrase)
+                const isLocked = getPhrasesAtCell(r, c).some(p => completedPhrases.has(phrases.indexOf(p)));
+
+                if (!isLocked) {
+                    setActiveCell([r, c]);
+                    return;
+                }
+                nextIdx++;
+            }
         }
-    }, [currentDirection, getPhrasesAtCell]);
+    }, [currentDirection, getPhrasesAtCell, completedPhrases, phrases]);
 
     // Check if a phrase is fully filled
     const isPhraseFullyFilled = useCallback((phrase) => {

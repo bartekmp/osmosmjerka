@@ -865,6 +865,9 @@
     "show_wrong_setting": "Highlight wrong phrases",
     "hint_first_letter": "First letter revealed",
     "hint_random_letter": "Random letter revealed",
-    "hint_full_phrase": "Full phrase revealed"
+    "hint_full_phrase": "Full phrase revealed",
+    "hint_next_letter": "Next letter",
+    "hint_validate": "Check letters",
+    "hint_reveal": "Reveal phrase"
   }
 }

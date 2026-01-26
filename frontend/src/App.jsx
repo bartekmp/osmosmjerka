@@ -1835,6 +1835,7 @@ function AppContent() {
                               maxHints={3}
                               showHintButton={true}
                               compact={isCompactSidebar}
+                              gameType={gameType}
                             />
                           )}
 
@@ -1868,8 +1869,10 @@ function AppContent() {
                     phrasesFound={found.length}
                     remainingHints={remainingHints}
                     showHintButton={progressiveHintsEnabled && phrases.length > 0 && found.length < phrases.length}
-                    disabled={allFound || phrases.length === 0 || isGridTooSmall}
+                    disabled={allFound || isGridTooSmall}
                     isProgressiveMode={progressiveHintsEnabled}
+                    gameType={gameType}
+                    currentHintLevel={currentHintLevel}
                     gridLength={grid.length}
                   />
                 )}

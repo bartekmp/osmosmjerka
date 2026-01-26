@@ -866,6 +866,9 @@
     "show_wrong_setting": "Označi netočne fraze",
     "hint_first_letter": "Prvo slovo otkriveno",
     "hint_random_letter": "Nasumično slovo otkriveno",
-    "hint_full_phrase": "Cijela fraza otkrivena"
+    "hint_full_phrase": "Cijela fraza otkrivena",
+    "hint_next_letter": "Sljedeće slovo",
+    "hint_validate": "Provjeri slova",
+    "hint_reveal": "Otkrij frazu"
   }
 }

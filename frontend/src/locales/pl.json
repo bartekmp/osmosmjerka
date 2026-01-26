@@ -871,6 +871,9 @@
     "show_wrong_setting": "Podświetl niepoprawne frazy",
     "hint_first_letter": "Pierwsza litera odkryta",
     "hint_random_letter": "Losowa litera odkryta",
-    "hint_full_phrase": "Cała fraza odkryta"
+    "hint_full_phrase": "Cała fraza odkryta",
+    "hint_next_letter": "Następna litera",
+    "hint_validate": "Sprawdź litery",
+    "hint_reveal": "Odkryj frazę"
   }
 }
