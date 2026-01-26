@@ -221,3 +221,27 @@
         padding: 4px;
     }
 }
+
+/* Pulsating wrong highlight (Level 2 verification) */
+@keyframes pulse-wrong {
+    0% {
+        background-color: rgba(244, 67, 54, 0.1);
+    }
+
+    50% {
+        background-color: rgba(244, 67, 54, 0.4);
+    }
+
+    100% {
+        background-color: rgba(244, 67, 54, 0.1);
+    }
+}
+
+.crossword-cell.pulsating {
+    animation: pulse-wrong 1s ease-in-out infinite;
+    border-color: #f44336;
+}
+
+[data-theme="dark"] .crossword-cell.pulsating {
+    border-color: #ff5252;
+}

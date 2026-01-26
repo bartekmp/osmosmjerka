@@ -1,5 +1,5 @@
 import Box from '@mui/material/Box';
-import React, { forwardRef, useCallback, useEffect, useImperativeHandle, useState } from 'react';
+import React, { forwardRef, useCallback, useEffect, useImperativeHandle, useState, useRef } from 'react';
 import { useTranslation } from 'react-i18next';
 
 import { useGridSize } from '../Grid/hooks';
@@ -44,6 +44,9 @@ const CrosswordGrid = forwardRef(({
     // Current progressive hint target phrase and level
     const [currentHintPhrase, setCurrentHintPhrase] = useState(null);
     const [hintLevel, setHintLevel] = useState(0);
+    // Transient wrong cells for Level 2 hint (pulsating highlight)
+    const [transientWrongCells, setTransientWrongCells] = useState(new Set());
+    const transientTimeoutRef = useRef(null);
 
     const gridSize = grid.length;
     const cellSize = useGridSize(gridSize, isTouchDevice, useMobileLayout);
@@ -56,7 +59,16 @@ const CrosswordGrid = forwardRef(({
         setWrongPhrases(new Set());
         setCurrentHintPhrase(null);
         setHintLevel(0);
+        setTransientWrongCells(new Set());
+        if (transientTimeoutRef.current) clearTimeout(transientTimeoutRef.current);
     }, [grid]);
+
+    // Cleanup timeout on unmount
+    useEffect(() => {
+        return () => {
+            if (transientTimeoutRef.current) clearTimeout(transientTimeoutRef.current);
+        };
+    }, []);
 
     // Helper to normalize characters for comparison (diacritic tolerance)
     const normalizeChar = (char) => {
@@ -270,8 +282,19 @@ const CrosswordGrid = forwardRef(({
                     const coords = currentPhrase.coords;
                     const currentIdx = coords.findIndex(([r, c]) => r === row && c === col);
                     if (currentIdx > 0) {
-                        const [prevR, prevC] = coords[currentIdx - 1];
-                        setActiveCell([prevR, prevC]);
+                        // Move backwards skipping locked cells
+                        let prevIdx = currentIdx - 1;
+                        while (prevIdx >= 0) {
+                            const [prevR, prevC] = coords[prevIdx];
+                            // Check if locked
+                            const isLocked = getPhrasesAtCell(prevR, prevC).some(p => completedPhrases.has(phrases.indexOf(p)));
+
+                            if (!isLocked) {
+                                setActiveCell([prevR, prevC]);
+                                return;
+                            }
+                            prevIdx--;
+                        }
                     }
                 }
                 return;
@@ -417,11 +440,24 @@ const CrosswordGrid = forwardRef(({
             });
 
             if (!lettersCorrect) {
-                // Mark as wrong to show red highlight
-                setWrongPhrases(prev => new Set([...prev, idx]));
-                // Maybe auto-clear wrong phrases after a delay? 
-                // User requirement: "second hint should be validating"
-                // Red highlight is a good validation feedback.
+                // Find wrong cells to highlight transiently
+                const wrongCells = new Set();
+                currentHintPhrase.coords.forEach(([r, c], i) => {
+                    const input = userInputs[`${r},${c}`];
+                    // Use normalized comparison
+                    const isCorrect = input && normalizeChar(input) === normalizedPhrase[i];
+                    if (!isCorrect) {
+                        wrongCells.add(`${r},${c}`);
+                    }
+                });
+
+                setTransientWrongCells(wrongCells);
+
+                // Clear after 3 seconds
+                if (transientTimeoutRef.current) clearTimeout(transientTimeoutRef.current);
+                transientTimeoutRef.current = setTimeout(() => {
+                    setTransientWrongCells(new Set());
+                }, 3000);
             } else {
                 // If everything filled is correct, maybe flash green? 
                 // Or just do nothing (no error found).
@@ -531,11 +567,11 @@ const CrosswordGrid = forwardRef(({
             }
         }
 
-        // Check if cell is in a wrong phrase
         const isInWrongPhrase = phrasesHere.some(p =>
             wrongPhrases.has(phrases.findIndex(pp => pp === p))
         );
 
+        const isTransientWrong = transientWrongCells.has(key);
         const isActive = activeCell && activeCell[0] === row && activeCell[1] === col;
 
         return {
@@ -545,7 +581,8 @@ const CrosswordGrid = forwardRef(({
             isActive,
             isDisabled: isInCompletedPhrase,
             isCorrect: isInCompletedPhrase,
-            isWrong: isInWrongPhrase && showWrongHighlight,
+            isWrong: (isInWrongPhrase && showWrongHighlight) || isTransientWrong,
+            isPulsating: isTransientWrong,
             isHighlighted: isHighlighted, // Also highlight active cell to keep phrase visual continuity
         };
     };
