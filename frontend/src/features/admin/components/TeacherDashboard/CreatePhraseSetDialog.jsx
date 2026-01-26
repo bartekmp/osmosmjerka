@@ -48,6 +48,7 @@ function CreatePhraseSetDialog({ open, onClose, onCreated, token, languageSets, 
     const [name, setName] = useState('');
     const [description, setDescription] = useState('');
     const [languageSetId, setLanguageSetId] = useState(currentLanguageSetId || '');
+    const [gameType, setGameType] = useState('word_search');
 
     // Form state - Step 2: Phrases (phrases loaded from API)
     const [availablePhrases, setAvailablePhrases] = useState([]);
@@ -88,6 +89,7 @@ function CreatePhraseSetDialog({ open, onClose, onCreated, token, languageSets, 
             setName('');
             setDescription('');
             setLanguageSetId(currentLanguageSetId || '');
+            setGameType('word_search');
             setSelectedPhraseIds([]);
             setPhraseFilter('');
             setCategoryFilter('');
@@ -148,6 +150,17 @@ function CreatePhraseSetDialog({ open, onClose, onCreated, token, languageSets, 
         }
     };
 
+    // Update config defaults when game type changes
+    useEffect(() => {
+        if (gameType === 'crossword') {
+            setConfig(prev => ({
+                ...prev,
+                show_translations: true, // Crosswords typically use translations as clues
+                require_translation_input: false, // Not used in crossword mode
+            }));
+        }
+    }, [gameType]);
+
     const handlePhraseToggle = (phraseId) => {
         setSelectedPhraseIds(prev => {
             if (prev.includes(phraseId)) {
@@ -199,6 +212,7 @@ function CreatePhraseSetDialog({ open, onClose, onCreated, token, languageSets, 
                 name: name.trim(),
                 description: description.trim() || null,
                 language_set_id: parseInt(languageSetId),
+                game_type: gameType,
                 phrase_ids: selectedPhraseIds,
                 config,
                 access_type: accessType,
@@ -286,6 +300,19 @@ function CreatePhraseSetDialog({ open, onClose, onCreated, token, languageSets, 
                             multiline
                             rows={2}
                         />
+
+                        <FormControl fullWidth>
+                            <InputLabel>{t('game_type')}</InputLabel>
+                            <Select
+                                value={gameType}
+                                onChange={e => setGameType(e.target.value)}
+                                label={t('game_type')}
+                            >
+                                <MenuItem value="word_search">{t('gameType.word_search')}</MenuItem>
+                                <MenuItem value="crossword">{t('gameType.crossword')}</MenuItem>
+                            </Select>
+                        </FormControl>
+
                         <FormControl fullWidth required>
                             <InputLabel>{t('teacher.create.language_set_label', 'Language Set')}</InputLabel>
                             <Select
@@ -426,15 +453,18 @@ function CreatePhraseSetDialog({ open, onClose, onCreated, token, languageSets, 
                                 }
                                 label={t('teacher.create.show_translations', 'Show translations')}
                             />
-                            <FormControlLabel
-                                control={
-                                    <Switch
-                                        checked={config.require_translation_input}
-                                        onChange={e => setConfig({ ...config, require_translation_input: e.target.checked })}
-                                    />
-                                }
-                                label={t('teacher.create.require_translation_input', 'Require translation input')}
-                            />
+
+                            {gameType !== 'crossword' && (
+                                <FormControlLabel
+                                    control={
+                                        <Switch
+                                            checked={config.require_translation_input}
+                                            onChange={e => setConfig({ ...config, require_translation_input: e.target.checked })}
+                                        />
+                                    }
+                                    label={t('teacher.create.require_translation_input', 'Require translation input')}
+                                />
+                            )}
                             <FormControlLabel
                                 control={
                                     <Switch

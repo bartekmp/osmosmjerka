@@ -45,7 +45,7 @@ def _generate_grid_with_exact_phrase_count(
     """
     # Use crossword generator for crossword game type
     if game_type == "crossword":
-        return _generate_crossword_grid(all_phrases, grid_size, target_phrase_count)
+        return generate_formatted_crossword_grid(all_phrases, grid_size, target_phrase_count)
 
     max_attempts = 50  # Limit attempts to avoid infinite loops
     attempt = 0
@@ -113,7 +113,7 @@ def _generate_grid_with_exact_phrase_count(
     return best_grid if best_grid is not None else [], best_placed_phrases
 
 
-def _generate_crossword_grid(all_phrases: list, grid_size: int, target_phrase_count: int) -> tuple:
+def generate_formatted_crossword_grid(all_phrases: list, grid_size: int, target_phrase_count: int) -> tuple:
     """
     Generate a crossword-style grid with the target number of phrases.
 
