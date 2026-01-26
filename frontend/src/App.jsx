@@ -370,6 +370,7 @@ function AppContent() {
       setCurrentElapsedTime,
       setGridStatus,
       setIsPaused,
+      setGameType,
     });
   }, []);
 
@@ -771,6 +772,7 @@ function AppContent() {
       selectedLanguageSetId,
       elapsedTimeSeconds: currentElapsedTime, // Save tracked elapsed time
       isPaused,
+      gameType,
     });
   }, [
     grid,
@@ -783,7 +785,9 @@ function AppContent() {
     showTranslations,
     selectedLanguageSetId,
     currentElapsedTime,
+    currentElapsedTime,
     isPaused,
+    gameType,
   ]);
 
   useEffect(() => {

@@ -148,7 +148,6 @@ export default function CrosswordCell({
                 onKeyDown={handleKeyDown}
                 onFocus={handleFocus}
                 disabled={isDisabled}
-                maxLength={1}
                 autoComplete="off"
                 autoCorrect="off"
                 autoCapitalize="characters"

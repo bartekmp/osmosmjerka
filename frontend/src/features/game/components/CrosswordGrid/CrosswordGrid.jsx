@@ -306,7 +306,13 @@ const CrosswordGrid = forwardRef(({
                 newInputs[`${r},${c}`] = normalized[i];
             });
             setUserInputs(newInputs);
-            setTimeout(validatePhrases, 0);
+
+            // Immediately mark as completed (since we know it's correct)
+            const idx = phrases.indexOf(targetPhrase);
+            if (idx !== -1) {
+                setCompletedPhrases(prev => new Set([...prev, idx]));
+                onPhraseComplete?.(targetPhrase);
+            }
         }
 
         onHintUsed?.(targetPhrase.phrase);
@@ -361,7 +367,14 @@ const CrosswordGrid = forwardRef(({
                 newInputs[`${r},${c}`] = normalized[i];
             });
             setUserInputs(newInputs);
-            setTimeout(validatePhrases, 0);
+
+            // Immediately mark as completed
+            const idx = phrases.indexOf(currentHintPhrase);
+            if (idx !== -1) {
+                setCompletedPhrases(prev => new Set([...prev, idx]));
+                onPhraseComplete?.(currentHintPhrase);
+            }
+
             // Reset hint state
             setCurrentHintPhrase(null);
             setHintLevel(0);
@@ -461,7 +474,8 @@ const CrosswordGrid = forwardRef(({
             isDisabled: isInCompletedPhrase,
             isCorrect: isInCompletedPhrase,
             isWrong: isInWrongPhrase && showWrongHighlight,
-            isHighlighted: isHighlighted && !isActive, // Don't double highlight active cell
+            isWrong: isInWrongPhrase && showWrongHighlight,
+            isHighlighted: isHighlighted, // Also highlight active cell to keep phrase visual continuity
         };
     };
 

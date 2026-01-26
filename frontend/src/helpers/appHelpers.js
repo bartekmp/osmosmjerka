@@ -15,7 +15,9 @@ export function restoreGameState(setters) {
         setGameStartTime,
         setCurrentElapsedTime,
         setGridStatus,
-        setIsPaused
+        setGridStatus,
+        setIsPaused,
+        setGameType
     } = setters;
 
     const saved = localStorage.getItem('osmosmjerkaGameState');
@@ -41,6 +43,9 @@ export function restoreGameState(setters) {
                 setShowTranslations(!!state.showTranslations);
                 if (setIsPaused) {
                     setIsPaused(!!state.isPaused);
+                }
+                if (setGameType) {
+                    setGameType(state.gameType || "word_search");
                 }
 
                 // Restore timer state if available
