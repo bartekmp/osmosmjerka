@@ -15,7 +15,6 @@ export function restoreGameState(setters) {
         setGameStartTime,
         setCurrentElapsedTime,
         setGridStatus,
-        setGridStatus,
         setIsPaused,
         setGameType
     } = setters;
