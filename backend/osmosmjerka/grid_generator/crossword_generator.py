@@ -171,6 +171,7 @@ def _is_valid_crossword_placement(grid: List[List], phrase: str, coords: List[Tu
     1. All coords must be within bounds
     2. Each cell must be empty OR contain the same letter
     3. No adjacent parallel words (would create invalid crossword)
+    4. Buffer space before and after the phrase (no adjacent words in same direction)
     """
     for i, (r, c) in enumerate(coords):
         # Bounds check
@@ -182,12 +183,26 @@ def _is_valid_crossword_placement(grid: List[List], phrase: str, coords: List[Tu
         if cell is not None and cell["letter"] != phrase[i]:
             return False
 
-    # Check for adjacent parallel conflicts
+    # Determine phrase direction
     if len(coords) >= 2:
         dr = coords[1][0] - coords[0][0]
         dc = coords[1][1] - coords[0][1]
 
-        # Check perpendicular adjacent cells
+        # Rule 4: Check buffer before first cell and after last cell
+        # This prevents phrases from running into each other along their direction
+        first_r, first_c = coords[0]
+        before_r, before_c = first_r - dr, first_c - dc
+        if 0 <= before_r < size and 0 <= before_c < size:
+            if grid[before_r][before_c] is not None:
+                return False  # Cell before phrase start is occupied
+
+        last_r, last_c = coords[-1]
+        after_r, after_c = last_r + dr, last_c + dc
+        if 0 <= after_r < size and 0 <= after_c < size:
+            if grid[after_r][after_c] is not None:
+                return False  # Cell after phrase end is occupied
+
+        # Rule 3: Check perpendicular adjacent cells
         perp_dr, perp_dc = (-dc, dr) if dc != 0 else (0, 1 if dr == 0 else 0)
         if dr == 1:  # Vertical phrase
             perp_dr, perp_dc = 0, 1

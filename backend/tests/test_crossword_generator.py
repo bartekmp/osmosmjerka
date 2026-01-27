@@ -132,3 +132,41 @@ class TestIsValidCrosswordPlacement:
         coords = [(3, 2), (3, 3), (3, 4), (3, 5)]
         # "TEST"[1] = 'E' matches grid at (3, 3)
         assert _is_valid_crossword_placement(grid, "TEST", coords, 8)
+
+    def test_cell_before_phrase_occupied_invalid(self):
+        """Placement where cell before phrase start is occupied should be invalid."""
+        grid = [[None] * 10 for _ in range(10)]
+        # Place a letter at (3, 1) - this is where a horizontal phrase would start before
+        grid[3][1] = {"letter": "X", "phrase_indices": [0]}
+        # Try to place "TEST" starting at (3, 2) - cell before (3, 1) has a letter
+        coords = [(3, 2), (3, 3), (3, 4), (3, 5)]
+        assert not _is_valid_crossword_placement(grid, "TEST", coords, 10)
+
+    def test_cell_after_phrase_occupied_invalid(self):
+        """Placement where cell after phrase end is occupied should be invalid."""
+        grid = [[None] * 10 for _ in range(10)]
+        # Place a letter at (3, 6) - this is where a horizontal phrase ending at (3, 5) would run into
+        grid[3][6] = {"letter": "Y", "phrase_indices": [0]}
+        # Try to place "TEST" ending at (3, 5) - cell after (3, 6) has a letter
+        coords = [(3, 2), (3, 3), (3, 4), (3, 5)]
+        assert not _is_valid_crossword_placement(grid, "TEST", coords, 10)
+
+    def test_cell_buffer_with_gap_valid(self):
+        """Placement with at least one cell gap before/after should be valid."""
+        grid = [[None] * 10 for _ in range(10)]
+        # Place a letter at (3, 0) - two cells before phrase start at (3, 2)
+        grid[3][0] = {"letter": "A", "phrase_indices": [0]}
+        # Place a letter at (3, 7) - two cells after phrase end at (3, 5)
+        grid[3][7] = {"letter": "B", "phrase_indices": [0]}
+        # Phrase at (3, 2)-(3, 5) should still be valid - buffer cells (3, 1) and (3, 6) are empty
+        coords = [(3, 2), (3, 3), (3, 4), (3, 5)]
+        assert _is_valid_crossword_placement(grid, "TEST", coords, 10)
+
+    def test_vertical_cell_buffer_invalid(self):
+        """Vertical placement should also respect cell buffer rules."""
+        grid = [[None] * 10 for _ in range(10)]
+        # Place a letter at (5, 3) - right after vertical phrase would end
+        grid[5][3] = {"letter": "Z", "phrase_indices": [0]}
+        # Try to place "CAT" vertically from (2, 3) to (4, 3) - cell after (5, 3) is occupied
+        coords = [(2, 3), (3, 3), (4, 3)]
+        assert not _is_valid_crossword_placement(grid, "CAT", coords, 10)
