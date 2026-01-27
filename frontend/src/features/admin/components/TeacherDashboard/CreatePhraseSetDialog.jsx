@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useMemo } from 'react';
+import React, { useState, useEffect, useMemo, useCallback } from 'react';
 import {
     Box,
     Button,
@@ -242,7 +242,11 @@ function CreatePhraseSetDialog({ open, onClose, onCreated, token, languageSets, 
         return Array.from(categories).sort();
     }, [availablePhrases]);
 
-    const filteredPhrases = availablePhrases.filter(p => {
+    // State for lazy loading
+    const [visibleCount, setVisibleCount] = useState(50);
+    const listRef = React.useRef(null);
+
+    const filteredPhrases = useMemo(() => availablePhrases.filter(p => {
         // Text filter
         if (phraseFilter) {
             const search = phraseFilter.toLowerCase();
@@ -261,7 +265,30 @@ function CreatePhraseSetDialog({ open, onClose, onCreated, token, languageSets, 
         }
 
         return true;
-    });
+    }), [availablePhrases, phraseFilter, categoryFilter]);
+
+    // Reset visible count when filters change
+    useEffect(() => {
+        setVisibleCount(50);
+        if (listRef.current) {
+            listRef.current.scrollTop = 0;
+        }
+    }, [filteredPhrases]);
+
+    const handleScroll = useCallback((e) => {
+        const { scrollTop, clientHeight, scrollHeight } = e.target;
+        // Load more when scrolled to bottom (within 100px)
+        if (scrollHeight - scrollTop - clientHeight < 100) {
+            setVisibleCount(prev => {
+                // Don't update if already showing all
+                if (prev >= filteredPhrases.length) return prev;
+                return prev + 50;
+            });
+        }
+    }, [filteredPhrases.length]);
+
+    // Visible subset of phrases
+    const visiblePhrases = filteredPhrases.slice(0, visibleCount);
 
     return (
         <Dialog open={open} onClose={onClose} maxWidth="md" fullWidth>
@@ -401,31 +428,68 @@ function CreatePhraseSetDialog({ open, onClose, onCreated, token, languageSets, 
                                 <CircularProgress />
                             </Box>
                         ) : (
-                            <List sx={{ maxHeight: 400, overflow: 'auto', border: 1, borderColor: 'divider', borderRadius: 1 }}>
-                                {filteredPhrases.map(phrase => (
-                                    <ListItemButton
-                                        key={phrase.id}
-                                        onClick={() => handlePhraseToggle(phrase.id)}
-                                        selected={selectedPhraseIds.includes(phrase.id)}
-                                        dense
-                                    >
-                                        <ListItemIcon>
-                                            <Checkbox
-                                                checked={selectedPhraseIds.includes(phrase.id)}
-                                                edge="start"
-                                                disableRipple
+                            <Box>
+                                <List
+                                    ref={listRef}
+                                    onScroll={handleScroll}
+                                    sx={{
+                                        maxHeight: 400,
+                                        overflow: 'auto',
+                                        border: 1,
+                                        borderColor: 'divider',
+                                        borderRadius: 1
+                                    }}
+                                >
+                                    {visiblePhrases.map(phrase => (
+                                        <ListItemButton
+                                            key={phrase.id}
+                                            onClick={() => handlePhraseToggle(phrase.id)}
+                                            selected={selectedPhraseIds.includes(phrase.id)}
+                                            dense
+                                        >
+                                            <ListItemIcon>
+                                                <Checkbox
+                                                    checked={selectedPhraseIds.includes(phrase.id)}
+                                                    edge="start"
+                                                    disableRipple
+                                                />
+                                            </ListItemIcon>
+                                            <ListItemText
+                                                primary={phrase.phrase}
+                                                secondary={phrase.translation}
                                             />
-                                        </ListItemIcon>
-                                        <ListItemText
-                                            primary={phrase.phrase}
-                                            secondary={phrase.translation}
-                                        />
-                                        {phrase.categories && (
-                                            <Chip size="small" label={phrase.categories.split(' ')[0]} variant="outlined" />
-                                        )}
-                                    </ListItemButton>
-                                ))}
-                            </List>
+                                            {phrase.categories && (
+                                                <Chip size="small" label={phrase.categories.split(' ')[0]} variant="outlined" />
+                                            )}
+                                        </ListItemButton>
+                                    ))}
+
+                                    {visiblePhrases.length < filteredPhrases.length && (
+                                        <Box sx={{ display: 'flex', justifyContent: 'center', p: 2 }}>
+                                            <Typography variant="caption" color="text.secondary">
+                                                {t('loading_more', 'Loading more...')}
+                                            </Typography>
+                                        </Box>
+                                    )}
+
+                                    {filteredPhrases.length === 0 && (
+                                        <ListItemButton>
+                                            <ListItemText
+                                                primary={t('teacher.create.no_phrases_found', 'No phrases found')}
+                                                secondary={t('teacher.create.try_different_filter', 'Try adjusting your filters')}
+                                                sx={{ textAlign: 'center', py: 2 }}
+                                            />
+                                        </ListItemButton>
+                                    )}
+                                </List>
+                                <Typography variant="caption" color="text.secondary" sx={{ display: 'block', mt: 0.5, textAlign: 'right' }}>
+                                    {t('teacher.create.showing_count', {
+                                        shown: visiblePhrases.length,
+                                        total: filteredPhrases.length,
+                                        defaultValue: 'Showing {{shown}} of {{total}}'
+                                    })}
+                                </Typography>
+                            </Box>
                         )}
                     </Box>
                 )}
