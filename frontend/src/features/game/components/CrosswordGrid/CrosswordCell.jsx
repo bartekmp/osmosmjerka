@@ -66,10 +66,10 @@ export default function CrosswordCell({
     }, [row, col, onInput, onKeyDown, isDisabled, isBlank]);
 
     const handleFocus = useCallback(() => {
-        if (!isDisabled && !isBlank) {
-            onFocus?.(row, col);
-        }
-    }, [row, col, onFocus, isDisabled, isBlank]);
+        // Note: onFocus is NOT called here to prevent direction changes during
+        // programmatic cursor advancement. onFocus is called from handleClick
+        // for explicit user interactions only.
+    }, []);
 
     const handleClick = useCallback(() => {
         if (!isDisabled && !isBlank) {
