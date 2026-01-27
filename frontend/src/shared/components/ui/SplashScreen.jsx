@@ -4,6 +4,7 @@ import { Box, CircularProgress, Fade, Stack, Typography } from '@mui/material';
 import { useTheme } from '@mui/material/styles';
 import { useTranslation } from 'react-i18next';
 import { getAssetUrl } from '../../utils/assets';
+import useLogoColor from '../../../hooks/useLogoColor';
 
 const SplashScreen = ({
     open = false,
@@ -16,6 +17,7 @@ const SplashScreen = ({
     const theme = useTheme();
     const { t } = useTranslation();
     const displayMessage = message ?? t(messageKey, { defaultValue: 'Loading Osmosmjerka...' });
+    const { logoFilter, changeLogoColor } = useLogoColor();
 
     return (
         <Fade in={open} timeout={{ enter: enterDuration, exit: exitDuration }} unmountOnExit mountOnEnter>
@@ -42,9 +44,12 @@ const SplashScreen = ({
                         sx={{
                             width: { xs: 96, sm: 120 },
                             height: { xs: 96, sm: 120 },
-                            filter: isDarkMode ? 'drop-shadow(0 12px 24px rgba(0,0,0,0.55))' : 'drop-shadow(0 12px 24px rgba(0,0,0,0.25))',
-                            userSelect: 'none'
+                            filter: isDarkMode ? `drop-shadow(0 12px 24px rgba(0,0,0,0.55)) ${logoFilter}` : `drop-shadow(0 12px 24px rgba(0,0,0,0.25)) ${logoFilter}`,
+                            userSelect: 'none',
+                            cursor: 'pointer',
+                            transition: 'filter 0.3s ease'
                         }}
+                        onClick={changeLogoColor}
                         onError={(e) => {
                             e.currentTarget.onerror = null;
                             e.currentTarget.src = getAssetUrl('favicon-32x32.png');

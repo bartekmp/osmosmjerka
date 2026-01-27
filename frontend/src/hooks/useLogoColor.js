@@ -26,7 +26,7 @@ const useLogoColor = () => {
             'hue-rotate(285deg) saturate(2)', // orchid
             'hue-rotate(345deg) saturate(2)', // rose
         ];
-        
+
         setLogoFilter(currentFilter => {
             let newFilter;
             do {
@@ -38,9 +38,6 @@ const useLogoColor = () => {
 
     const handleLogoClick = () => {
         changeLogoColor();
-        if (window.location.pathname !== '/') {
-            window.location.href = '/';
-        }
     };
 
     return {

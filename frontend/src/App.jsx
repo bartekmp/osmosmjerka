@@ -21,7 +21,7 @@ import React, {
   useState,
 } from "react";
 import { useTranslation } from "react-i18next";
-import { Route, Routes, useLocation, useNavigate } from "react-router-dom";
+import { Route, Routes, useLocation, useNavigate, Navigate } from "react-router-dom";
 // App component styles
 import "./styles/layout/container.css";
 import "./styles/features/loading-overlay.css";
@@ -191,7 +191,7 @@ function AppContent() {
   const { isDarkMode } = useThemeMode();
 
   // Use custom hooks
-  const { logoFilter, setLogoFilter, handleLogoClick } = useLogoColor();
+  const { logoFilter, setLogoFilter, changeLogoColor } = useLogoColor();
   const { availableDifficulties } = useGameDifficulties();
   const isTouchDevice = useTouchDevice();
   const isScreenTooSmall = useScreenTooSmall();
@@ -1515,7 +1515,7 @@ function AppContent() {
       {/* Use GameHeader component instead of duplicated header code */}
       <GameHeader
         logoFilter={logoFilter}
-        handleLogoClick={handleLogoClick}
+        handleLogoClick={changeLogoColor}
         showCelebration={showCelebration}
         isDarkMode={isDarkMode}
         currentUser={currentUser}
@@ -1524,9 +1524,9 @@ function AppContent() {
           setGameType(type);
           // Update URL based on game type
           if (type === 'crossword') {
-            navigate('/krizaljka');
+            navigate('/crosswords');
           } else {
-            navigate('/osmosmjerka');
+            navigate('/wordsearch');
           }
           // Reload puzzle with new game type
           loadPuzzle(selectedCategory, difficulty, true, type);
@@ -1906,16 +1906,22 @@ function AppContent() {
             }
           />
           {/* Game Routes */}
-          <Route path="/" element={gameView} />
-          {/* Word Search Routes */}
-          <Route path="/osmosmjerka" element={gameView} />
+          <Route path="/" element={<Navigate to="/wordsearch" replace />} />
+
+          {/* Canonical Word Search Route */}
           <Route path="/wordsearch" element={gameView} />
-          <Route path="/o" element={gameView} />
-          {/* Crossword Routes */}
+
+          {/* Word Search Aliases (Redirects) */}
+          <Route path="/osmosmjerka" element={<Navigate to="/wordsearch" replace />} />
+          <Route path="/o" element={<Navigate to="/wordsearch" replace />} />
+
+          {/* Canonical Crossword Route */}
           <Route path="/crosswords" element={gameView} />
-          <Route path="/crossword" element={gameView} />
-          <Route path="/krizaljka" element={gameView} />
-          <Route path="/k" element={gameView} />
+
+          {/* Crossword Aliases (Redirects) */}
+          <Route path="/crossword" element={<Navigate to="/crosswords" replace />} />
+          <Route path="/krizaljka" element={<Navigate to="/crosswords" replace />} />
+          <Route path="/k" element={<Navigate to="/crosswords" replace />} />
         </Routes >
 
         {/* Footer */}
