@@ -1571,12 +1571,12 @@ function AppContent() {
                   showCelebration={showCelebration}
                   isDarkMode={isDarkMode}
                   currentUser={currentUser}
-                  gameType={gameType}
-                  onGameTypeChange={(type) => {
+                  gameType={!isAdminRoute ? gameType : undefined}
+                  onGameTypeChange={!isAdminRoute ? (type) => {
                     setGameType(type);
                     // Reload puzzle with new game type
                     loadPuzzle(selectedCategory, difficulty, true, type);
-                  }}
+                  } : undefined}
                   isGridLoading={isGridLoading}
                 />
 
