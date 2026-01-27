@@ -72,10 +72,14 @@ export default function CrosswordCell({
     }, [row, col, onFocus, isDisabled, isBlank]);
 
     const handleClick = useCallback(() => {
-        if (!isDisabled && !isBlank && inputRef.current) {
-            inputRef.current.focus();
+        if (!isDisabled && !isBlank) {
+            // Always call onFocus to enable toggle at intersections (even if already focused)
+            onFocus?.(row, col);
+            if (inputRef.current) {
+                inputRef.current.focus();
+            }
         }
-    }, [isDisabled, isBlank]);
+    }, [isDisabled, isBlank, onFocus, row, col]);
 
     // Generate CSS classes
     const getCellClasses = () => {

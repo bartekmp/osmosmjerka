@@ -227,10 +227,23 @@ const CrosswordGrid = forwardRef(({
 
     // Handle cell focus
     const handleCellFocus = useCallback((row, col) => {
+        const phrasesHere = getPhrasesAtCell(row, col);
+        const isSameCell = activeCell && activeCell[0] === row && activeCell[1] === col;
+        const isIntersection = phrasesHere.length > 1;
+
+        // If clicking the same cell at an intersection, toggle direction
+        if (isSameCell && isIntersection) {
+            const newDirection = currentDirection === 'across' ? 'down' : 'across';
+            // Only toggle if the new direction is available at this cell
+            if (phrasesHere.some(p => p.direction === newDirection)) {
+                setCurrentDirection(newDirection);
+            }
+            return; // Don't change activeCell, just toggle direction
+        }
+
         setActiveCell([row, col]);
 
         // Determine direction based on available phrases
-        const phrasesHere = getPhrasesAtCell(row, col);
         if (phrasesHere.length === 1) {
             // Only one phrase - must use its direction
             setCurrentDirection(phrasesHere[0].direction);
@@ -243,7 +256,7 @@ const CrosswordGrid = forwardRef(({
             }
             // Otherwise keep currentDirection unchanged
         }
-    }, [getPhrasesAtCell, currentDirection]);
+    }, [getPhrasesAtCell, currentDirection, activeCell]);
 
     // Handle keyboard navigation
     const handleKeyDown = useCallback((row, col, key) => {
