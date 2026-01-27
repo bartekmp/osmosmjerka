@@ -245,3 +245,48 @@
 [data-theme="dark"] .crossword-cell.pulsating {
     border-color: #ff5252;
 }
+
+/* ==========================================
+   BLINKING CURSOR (Terminal-style)
+   ========================================== */
+
+@keyframes blink-cursor {
+
+    0%,
+    100% {
+        opacity: 1;
+    }
+
+    50% {
+        opacity: 0;
+    }
+}
+
+.crossword-cell .cursor {
+    position: absolute;
+    background: var(--primary, #1976d2);
+    left: 50%;
+    top: 50%;
+    animation: blink-cursor 1s step-end infinite;
+    pointer-events: none;
+    z-index: 2;
+}
+
+/* Horizontal cursor (for 'across' phrases) - like an underscore */
+.crossword-cell .cursor.horizontal {
+    width: 60%;
+    height: 2px;
+    transform: translate(-50%, 100%);
+    top: 70%;
+}
+
+/* Vertical cursor (for 'down' phrases) - like a pipe */
+.crossword-cell .cursor.vertical {
+    width: 2px;
+    height: 60%;
+    transform: translate(-50%, -50%);
+}
+
+[data-theme="dark"] .crossword-cell .cursor {
+    background: #90caf9;
+}

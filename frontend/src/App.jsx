@@ -1470,7 +1470,7 @@ function AppContent() {
         completeGameSession(currentFoundLength, false);
       }
     };
-  }, [selectedCategory, difficulty, completeGameSession]); // Only reset when starting new game
+  }, [selectedCategory, difficulty]); // Only reset when starting new game - intentionally omit completeGameSession to prevent cleanup on every callback recreation
 
   // Automatically reveal phrases when all are found
   useEffect(() => {

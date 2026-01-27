@@ -21,6 +21,7 @@ export default function CrosswordCell({
     isCorrect = false,  // Phrase containing this cell is correct
     isWrong = false,    // Phrase containing this cell is wrong (highlight mode)
     isHighlighted = false, // Cell matches active phrase
+    cursorDirection = null, // 'across' or 'down' for cursor orientation
     onInput,            // Called when user types a letter
     onFocus,            // Called when cell gains focus
     onKeyDown,          // Called for navigation keys
@@ -137,6 +138,11 @@ export default function CrosswordCell({
                 >
                     {startNumber}
                 </Box>
+            )}
+
+            {/* Blinking cursor for active empty cell */}
+            {isActive && !userInput && !isDisabled && (
+                <Box className={`cursor ${cursorDirection === 'down' ? 'vertical' : 'horizontal'}`} />
             )}
 
             {/* Input field */}

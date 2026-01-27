@@ -584,6 +584,7 @@ const CrosswordGrid = forwardRef(({
             isWrong: (isInWrongPhrase && showWrongHighlight) || isTransientWrong,
             isPulsating: isTransientWrong,
             isHighlighted: isHighlighted, // Also highlight active cell to keep phrase visual continuity
+            cursorDirection: isActive ? currentDirection : null, // Pass direction for cursor orientation
         };
     };
 
