@@ -508,15 +508,17 @@ function CreatePhraseSetDialog({ open, onClose, onCreated, token, languageSets, 
                                 }
                                 label={t('teacher.create.allow_hints', 'Allow hints')}
                             />
-                            <FormControlLabel
-                                control={
-                                    <Switch
-                                        checked={config.show_translations}
-                                        onChange={e => setConfig({ ...config, show_translations: e.target.checked })}
-                                    />
-                                }
-                                label={t('teacher.create.show_translations', 'Show translations')}
-                            />
+                            {gameType !== 'crossword' && (
+                                <FormControlLabel
+                                    control={
+                                        <Switch
+                                            checked={config.show_translations}
+                                            onChange={e => setConfig({ ...config, show_translations: e.target.checked })}
+                                        />
+                                    }
+                                    label={t('teacher.create.show_translations', 'Show translations')}
+                                />
+                            )}
 
                             {gameType !== 'crossword' && (
                                 <FormControlLabel
