@@ -214,6 +214,16 @@ const CrosswordGrid = forwardRef(({
                     setWrongPhrases(prev => new Set([...prev, idx]));
                     onPhraseWrong?.(phrase);
                 }
+            } else {
+                // Phrase is no longer fully filled - clear wrong highlight if present
+                setWrongPhrases(prev => {
+                    if (prev.has(idx)) {
+                        const next = new Set(prev);
+                        next.delete(idx);
+                        return next;
+                    }
+                    return prev;
+                });
             }
         });
 
