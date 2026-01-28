@@ -1559,6 +1559,7 @@ function AppContent() {
         onPrivateListChange={(listId) => {
           setSelectedPrivateListId(listId);
         }}
+        gameType={gameType}
       />
 
       {/* All Found Message - Desktop Only */}

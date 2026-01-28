@@ -25,7 +25,8 @@ const GameControls = ({
     onLanguageSetStatusChange,
     currentUser,
     selectedPrivateListId,
-    onPrivateListChange
+    onPrivateListChange,
+    gameType = 'word_search'
 }) => {
     const { t } = useTranslation();
 
@@ -123,15 +124,17 @@ const GameControls = ({
                         <ResponsiveText desktop={'🔄 ' + t('refresh')} mobile="🔄" />
                     </Button>
 
-                    {/* Export button */}
-                    <ExportButton
-                        category={selectedCategoryState}
-                        grid={grid}
-                        phrases={phrases}
-                        disabled={isLoading || grid.length === 0 || notEnoughPhrases}
-                        t={t}
-                        className="refresh-button control-action-button"
-                    />
+                    {/* Export button - only for word search */}
+                    {gameType === 'word_search' && (
+                        <ExportButton
+                            category={selectedCategoryState}
+                            grid={grid}
+                            phrases={phrases}
+                            disabled={isLoading || grid.length === 0 || notEnoughPhrases}
+                            t={t}
+                            className="refresh-button control-action-button"
+                        />
+                    )}
                 </Box>
             </Box>
         </>
