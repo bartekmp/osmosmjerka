@@ -127,18 +127,6 @@ async def lifespan(_: FastAPI):
         db_manager.create_tables()
         logger.info("Database tables verified/created")
 
-        # Run database migrations
-        try:
-            from osmosmjerka.migrations.add_game_type import run_migration
-
-            run_migration(db_manager.engine)
-            logger.info("Database migrations completed")
-        except ImportError:
-            # Migration script already removed (self-deleted after success)
-            pass
-        except Exception as e:
-            logger.warning(f"Migration check skipped: {e}")
-
         await ensure_root_admin_account()()
         logger.info("Root admin account verified")
 
