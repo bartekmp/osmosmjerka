@@ -329,6 +329,8 @@
   "perfect": "Savršeno",
   "no_high_scores": "Nema dostupnih najboljih rezultata",
   "all_difficulties": "Sve težine",
+  "game_type": "Vrsta igre",
+  "all_game_types": "Sve vrste igara",
   "limit": "Ograničenje",
   "all_language_sets": "Svi jezični skupovi",
   "total_users": "Ukupno korisnika",
@@ -846,5 +848,27 @@
   "cookies": {
     "message": "Ova stranica koristi kolačiće za poboljšanje vašeg iskustva.",
     "accept": "Prihvaćam"
+  },
+  "gameType": {
+    "label": "Vrsta igre",
+    "word_search": "Osmosmjerka",
+    "crossword": "Križaljka",
+    "select": "Odaberite vrstu igre"
+  },
+  "crossword": {
+    "title": "Križaljka",
+    "across": "Vodoravno",
+    "down": "Okomito",
+    "wrong_phrase": "Ova fraza je netočna",
+    "all_correct": "Sve fraze su točne!",
+    "cell_filled": "Unesite slova",
+    "check_answers": "Provjeri odgovore",
+    "show_wrong_setting": "Označi netočne fraze",
+    "hint_first_letter": "Prvo slovo otkriveno",
+    "hint_random_letter": "Nasumično slovo otkriveno",
+    "hint_full_phrase": "Cijela fraza otkrivena",
+    "hint_next_letter": "Sljedeće slovo",
+    "hint_validate": "Provjeri slova",
+    "hint_reveal": "Otkrij frazu"
   }
 }

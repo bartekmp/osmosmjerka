@@ -80,6 +80,7 @@ const StatisticsDashboard = ({ token, setError: onError, currentUser }) => {
   const [highScoresLanguageSet, setHighScoresLanguageSet] = useState('');
   const [highScoresCategory, setHighScoresCategory] = useState('');
   const [highScoresDifficulty, setHighScoresDifficulty] = useState('');
+  const [highScoresGameType, setHighScoresGameType] = useState('');
   const [highScoresLimit, setHighScoresLimit] = useState(50);
 
   // Root admin settings states
@@ -127,12 +128,13 @@ const StatisticsDashboard = ({ token, setError: onError, currentUser }) => {
     }
   };
 
-  const loadHighScores = async (langSetId = null, category = null, difficulty = null, limit = 50) => {
+  const loadHighScores = async (langSetId = null, category = null, difficulty = null, limit = 50, gameType = null) => {
     try {
       const params = new URLSearchParams();
       if (langSetId) params.append('language_set_id', langSetId);
       if (category) params.append('category', category);
       if (difficulty) params.append('difficulty', difficulty);
+      if (gameType) params.append('game_type', gameType);
       if (limit) params.append('limit', limit);
 
       const queryString = params.toString();
@@ -167,7 +169,8 @@ const StatisticsDashboard = ({ token, setError: onError, currentUser }) => {
         highScoresLanguageSet || null,
         highScoresCategory || null,
         highScoresDifficulty || null,
-        highScoresLimit
+        highScoresLimit,
+        highScoresGameType || null
       );
     }
   };
@@ -177,7 +180,8 @@ const StatisticsDashboard = ({ token, setError: onError, currentUser }) => {
       highScoresLanguageSet || null,
       highScoresCategory || null,
       highScoresDifficulty || null,
-      highScoresLimit
+      highScoresLimit,
+      highScoresGameType || null
     );
   };
 
@@ -632,6 +636,24 @@ const StatisticsDashboard = ({ token, setError: onError, currentUser }) => {
                   <MenuItem value="medium">{t('medium')}</MenuItem>
                   <MenuItem value="hard">{t('hard')}</MenuItem>
                   <MenuItem value="very_hard">{t('very_hard')}</MenuItem>
+                </Select>
+              </FormControl>
+            </Grid>
+
+            <Grid size={{ xs: 12, sm: 6, md: 3 }}>
+              <FormControl fullWidth>
+                <InputLabel>{t('game_type')}</InputLabel>
+                <Select
+                  value={highScoresGameType}
+                  onChange={(e) => {
+                    setHighScoresGameType(e.target.value);
+                    setTimeout(handleHighScoresFilterChange, 100);
+                  }}
+                  label={t('game_type')}
+                >
+                  <MenuItem value="">{t('all_game_types')}</MenuItem>
+                  <MenuItem value="word_search">{t('gameType.word_search')}</MenuItem>
+                  <MenuItem value="crossword">{t('gameType.crossword')}</MenuItem>
                 </Select>
               </FormControl>
             </Grid>

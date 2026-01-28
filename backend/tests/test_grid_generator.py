@@ -1,4 +1,5 @@
-from osmosmjerka.grid_generator import generate_grid, normalize_phrase
+from osmosmjerka.grid_generator import normalize_phrase
+from osmosmjerka.grid_generator.word_search import generate_grid
 
 
 def test_empty_phrases():

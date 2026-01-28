@@ -18,7 +18,9 @@ const MobileFloatingActions = ({
   remainingHints = 0,
   showHintButton = true,
   disabled = false,
-  isProgressiveMode = false
+  isProgressiveMode = false,
+  gameType = "word_search",
+  currentHintLevel = 0
 }) => {
   const { t } = useTranslation();
   const theme = useTheme();
@@ -132,7 +134,17 @@ const MobileFloatingActions = ({
       {/* Hint Button - only show when hints are enabled */}
       {showHintButton && (
         <Tooltip
-          title={remainingHints > 0 ? t('hint') : t('no_hints_remaining')}
+          title={(() => {
+            if (remainingHints <= 0) return t('no_hints_remaining');
+
+            if (isProgressiveMode && gameType === "crossword") {
+              const keys = ['crossword.hint_next_letter', 'crossword.hint_validate', 'crossword.hint_reveal'];
+              const key = keys[currentHintLevel] || 'hint';
+              return t(key) + ` (${t('hints_remaining', { count: remainingHints })})`;
+            }
+
+            return t('hint');
+          })()}
           placement="top"
           arrow
         >

@@ -14,6 +14,12 @@ jest.mock('../../../../../shared', () => {
     };
 });
 
+jest.mock('../../../../export/components/ExportButton', () => {
+    return function MockExportButton() {
+        return <button data-testid="export-button">Export</button>;
+    };
+});
+
 describe('GameControls disabled states', () => {
     const baseProps = {
         panelOpen: true,
@@ -84,4 +90,17 @@ describe('GameControls disabled states', () => {
         expect(difficultySelect).not.toHaveAttribute('aria-disabled', 'true');
         expect(refreshButton).not.toBeDisabled();
     });
+
+    test('hides export button when gameType is crossword', () => {
+        renderControls({ gameType: 'crossword' });
+        const exportButton = screen.queryByTestId('export-button');
+        expect(exportButton).not.toBeInTheDocument();
+    });
+
+    test('shows export button when gameType is word_search', () => {
+        renderControls({ gameType: 'word_search' });
+        const exportButton = screen.getByTestId('export-button');
+        expect(exportButton).toBeInTheDocument();
+    });
 });
+

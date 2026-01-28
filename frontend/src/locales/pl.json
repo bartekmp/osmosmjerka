@@ -329,6 +329,8 @@
   "perfect": "Perfekcyjne",
   "no_high_scores": "Brak dostępnych najlepszych wyników",
   "all_difficulties": "Wszystkie Poziomy",
+  "game_type": "Typ gry",
+  "all_game_types": "Wszystkie typy gier",
   "limit": "Limit",
   "all_language_sets": "Wszystkie Zestawy Języków",
   "total_users": "Łączna Liczba Użytkowników",
@@ -851,5 +853,27 @@
   "cookies": {
     "message": "Ta strona używa plików cookie, aby poprawić Twoje doświadczenia.",
     "accept": "Akceptuję"
+  },
+  "gameType": {
+    "label": "Typ gry",
+    "word_search": "Wykreślanka",
+    "crossword": "Krzyżówka",
+    "select": "Wybierz typ gry"
+  },
+  "crossword": {
+    "title": "Krzyżówka",
+    "across": "Poziomo",
+    "down": "Pionowo",
+    "wrong_phrase": "Ta fraza jest niepoprawna",
+    "all_correct": "Wszystkie frazy poprawne!",
+    "cell_filled": "Wpisz litery",
+    "check_answers": "Sprawdź odpowiedzi",
+    "show_wrong_setting": "Podświetl niepoprawne frazy",
+    "hint_first_letter": "Pierwsza litera odkryta",
+    "hint_random_letter": "Losowa litera odkryta",
+    "hint_full_phrase": "Cała fraza odkryta",
+    "hint_next_letter": "Następna litera",
+    "hint_validate": "Sprawdź litery",
+    "hint_reveal": "Odkryj frazę"
   }
 }

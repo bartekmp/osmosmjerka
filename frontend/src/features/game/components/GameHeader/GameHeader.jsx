@@ -1,7 +1,7 @@
 import React from 'react';
 import { Box, Typography } from '@mui/material';
 import { useTranslation } from 'react-i18next';
-import { LanguageSwitcher, NightModeButton } from '../../../../shared';
+import { LanguageSwitcher, NightModeButton, GameTypeSelector } from '../../../../shared';
 import { Link } from 'react-router-dom';
 import { Button } from '@mui/material';
 import { getAssetUrl } from '../../../../shared/utils/assets';
@@ -11,7 +11,10 @@ const GameHeader = ({
     logoFilter,
     handleLogoClick,
     showCelebration,
-    currentUser
+    currentUser,
+    gameType,
+    onGameTypeChange,
+    isGridLoading
 }) => {
     const { t } = useTranslation();
     const username = currentUser?.username?.trim();
@@ -127,6 +130,18 @@ const GameHeader = ({
                         minHeight: { xs: 36, sm: 44, md: 48 },
                     }}
                 />
+                {/* Game Type Selector */}
+                {gameType && onGameTypeChange && (
+                    <GameTypeSelector
+                        currentType={gameType}
+                        onChange={onGameTypeChange}
+                        disabled={isGridLoading}
+                        sx={{
+                            minWidth: { xs: 36, sm: 44, md: 48 },
+                            height: { xs: 36, sm: 44, md: 48 },
+                        }}
+                    />
+                )}
                 <Button
                     component={Link}
                     to="/admin"

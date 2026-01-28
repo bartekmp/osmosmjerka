@@ -22,13 +22,16 @@ import ListIcon from '@mui/icons-material/List';
 import { useTranslation } from 'react-i18next';
 import confetti from 'canvas-confetti';
 import ScrabbleGrid from '../../game/components/Grid/Grid';
+import CrosswordGrid from '../../game/components/CrosswordGrid/CrosswordGrid';
 import PhraseList from '../../game/components/PhraseList/PhraseList';
 import { Timer } from '../../game/components/Timer';
 import MobilePhraseListSheet from '../../game/components/MobilePhraseListSheet';
+import HintButton from '../../game/components/HintButton/HintButton';
 import { LanguageSwitcher, NightModeButton } from '../../../shared';
 import { getAssetUrl } from '../../../shared/utils/assets';
 import { useThemeMode } from '../../../contexts/ThemeContext';
 import { useTouchDevice } from '../../../hooks/useTouchDevice';
+import useLogoColor from '../../../hooks/useLogoColor';
 import '../../game/components/MobilePhraseListSheet/MobilePhraseListSheet.css';
 
 /**
@@ -59,6 +62,8 @@ function TeacherPuzzlePage() {
     const [showTranslations, setShowTranslations] = useState(false);
     const [currentElapsedTime, setCurrentElapsedTime] = useState(0);
     const [gameStartTime, setGameStartTime] = useState(null);
+    const [remainingHints, setRemainingHints] = useState(3);
+    const [currentHintLevel, setCurrentHintLevel] = useState(0);
 
     // Translation input state
     const [translationDialog, setTranslationDialog] = useState({ open: false, phrase: null });
@@ -118,6 +123,9 @@ function TeacherPuzzlePage() {
 
         checkAuth();
     }, []);
+
+    // Hooks
+    const { logoFilter, changeLogoColor } = useLogoColor();
 
 
 
@@ -343,6 +351,49 @@ function TeacherPuzzlePage() {
         setCurrentElapsedTime(elapsed);
     }, []);
 
+    // Handle hint request
+    const handleHintRequest = useCallback(() => {
+        if (!gridRef.current) return;
+        if (remainingHints <= 0) return;
+
+        const config = sessionData?.config || {};
+        if (config.allow_hints === false) return;
+
+        // Progressive hint logic (matching main game)
+        // Level 0: Start sequence (First Letter / Highlight)
+        // Level 1: Direction / Pulsate
+        // Level 2: Reveal Full Word / Outline
+
+        if (currentHintLevel === 0) {
+            // Start new progressive hint sequence
+            // Note: showProgressiveHint(true) enables progressive mode in the grid
+            const targetPhrase = gridRef.current.showProgressiveHint(true);
+
+            if (targetPhrase) {
+                setCurrentHintLevel(1);
+                setRemainingHints(prev => Math.max(0, prev - 1));
+            }
+        } else {
+            // Advance to next hint level
+            if (gridRef.current.advanceProgressiveHint) {
+                gridRef.current.advanceProgressiveHint();
+            }
+
+            setCurrentHintLevel(prev => prev + 1);
+            setRemainingHints(prev => Math.max(0, prev - 1));
+
+            // Reset hint level after final hint (Level 2 -> 3)
+            if (currentHintLevel >= 2) {
+                setTimeout(() => {
+                    setCurrentHintLevel(0);
+                    if (gridRef.current) {
+                        gridRef.current.clearHints();
+                    }
+                }, 3000);
+            }
+        }
+    }, [sessionData, remainingHints, currentHintLevel]);
+
     // Restart
     const handleRestart = () => {
         localStorage.removeItem(`teacher_session_${token}`);
@@ -354,6 +405,8 @@ function TeacherPuzzlePage() {
         setCurrentElapsedTime(0);
         setGameStartTime(null);
         setTranslationSubmissions([]);  // Reset translation submissions for new session
+        setRemainingHints(3);
+        setCurrentHintLevel(0);
         loadPuzzle();
     };
 
@@ -397,8 +450,19 @@ function TeacherPuzzlePage() {
     if (sessionStarted && grid.length > 0) {
         const showTimer = sessionData?.config?.show_timer !== false;
         const requireTranslationInput = sessionData?.config?.require_translation_input === true;
+
+        // Correctly extract gameType from config (it's nested in config JSON in the DB)
+        const gameType = sessionData?.config?.game_type || puzzleData?.config?.game_type || "word_search";
+        const isCrossword = gameType === "crossword";
+
         // Hide translations if require_translation_input is enabled (to prevent cheating)
-        const showTranslationsSetting = !requireTranslationInput && sessionData?.config?.show_translations !== false;
+        // For crosswords, we ALWAYS show translations (clues)
+        const showTranslationsSetting = isCrossword ? true : (!requireTranslationInput && sessionData?.config?.show_translations !== false);
+
+        // Force phrases to be visible in Crossword mode
+        if (isCrossword && hidePhrases) {
+            setHidePhrases(false);
+        }
 
         return (
             <Container maxWidth="lg" sx={{ py: useMobileLayout ? 1 : 2, px: useMobileLayout ? 0.5 : 2 }}>
@@ -425,7 +489,7 @@ function TeacherPuzzlePage() {
                             overflow: 'hidden',
                             px: { xs: 1, sm: 2 }
                         }}
-                            onClick={() => navigate('/')}
+                            onClick={changeLogoColor}
                         >
                             <Box
                                 sx={{
@@ -442,6 +506,8 @@ function TeacherPuzzlePage() {
                                         height: '100%',
                                         width: '100%',
                                         userSelect: 'none',
+                                        filter: logoFilter,
+                                        transition: 'filter 0.3s ease',
                                     }}
                                     onError={e => {
                                         e.target.onerror = null;
@@ -583,35 +649,70 @@ function TeacherPuzzlePage() {
                                 maxWidth: '100%',
                             }}
                         >
-                            <ScrabbleGrid
-                                ref={gridRef}
-                                grid={grid}
-                                phrases={phrases}
-                                found={found}
-                                onFound={handlePhraseFound}
-                                disabled={allFound || translationDialog.open}
-                                isDarkMode={isDarkMode}
-                                showCelebration={allFound}
-                                isTouchDevice={isTouchDevice}
-                                useMobileLayout={useMobileLayout}
-                            />
+                            {isCrossword ? (
+                                <CrosswordGrid
+                                    ref={gridRef}
+                                    grid={grid}
+                                    phrases={phrases}
+                                    onPhraseComplete={(phrase) => {
+                                        if (requireTranslationInput) {
+                                            handlePhraseFound(phrase);
+                                        } else {
+                                            markFound(phrase);
+                                        }
+                                    }}
+                                    onPhraseWrong={() => { }}
+                                    disabled={allFound || translationDialog.open}
+                                    isDarkMode={isDarkMode}
+                                    showWrongHighlight={true}
+                                    onHintUsed={() => { }}
+                                    isTouchDevice={isTouchDevice}
+                                    useMobileLayout={useMobileLayout}
+                                />
+                            ) : (
+                                <ScrabbleGrid
+                                    ref={gridRef}
+                                    grid={grid}
+                                    phrases={phrases}
+                                    found={found}
+                                    onFound={handlePhraseFound}
+                                    disabled={allFound || translationDialog.open}
+                                    isDarkMode={isDarkMode}
+                                    showCelebration={allFound}
+                                    isTouchDevice={isTouchDevice}
+                                    useMobileLayout={useMobileLayout}
+                                />
+                            )}
                         </Box>
 
                         {/* Phrase list - Desktop only */}
                         {!useMobileLayout && (
-                            <Box sx={{ width: 280, minWidth: 240 }}>
+                            <Box sx={{ width: 280, minWidth: 240, display: 'flex', flexDirection: 'column', gap: 2 }}>
+                                <Box sx={{ display: 'flex', justifyContent: 'flex-start' }}>
+                                    <HintButton
+                                        onHintRequest={handleHintRequest}
+                                        remainingHints={allFound ? 0 : remainingHints}
+                                        isProgressiveMode={true}
+                                        showHintButton={sessionData?.config?.allow_hints !== false}
+                                        gameType={gameType}
+                                        currentHintLevel={currentHintLevel}
+                                        disabled={allFound}
+                                    />
+                                </Box>
                                 <PhraseList
                                     phrases={phrases}
                                     found={found}
-                                    hidePhrases={hidePhrases}
-                                    setHidePhrases={setHidePhrases}
+                                    hidePhrases={isCrossword ? false : hidePhrases}
+                                    setHidePhrases={isCrossword ? null : setHidePhrases}
                                     allFound={allFound}
-                                    showTranslations={showTranslationsSetting && showTranslations}
-                                    setShowTranslations={showTranslationsSetting ? setShowTranslations : null}
-                                    disableShowPhrases={false}
+                                    showTranslations={showTranslationsSetting && (isCrossword || showTranslations)}
+                                    setShowTranslations={isCrossword ? null : (showTranslationsSetting ? setShowTranslations : null)}
+                                    disableShowPhrases={isCrossword}
+                                    hideToggleButton={isCrossword}
                                     onPhraseClick={handlePhraseClick}
                                     progressiveHintsEnabled={false}
                                     t={t}
+                                    gameType={gameType}
                                 />
                             </Box>
                         )}
@@ -630,6 +731,17 @@ function TeacherPuzzlePage() {
                                 mt: 1.5,
                             }}
                         >
+                            <HintButton
+                                onHintRequest={handleHintRequest}
+                                remainingHints={allFound ? 0 : remainingHints}
+                                isProgressiveMode={true}
+                                showHintButton={sessionData?.config?.allow_hints !== false}
+                                gameType={gameType}
+                                currentHintLevel={currentHintLevel}
+                                disabled={allFound}
+                                compact
+                            />
+
                             {/* Back Button */}
                             <Tooltip title={t('back_to_game', 'Back to Game')} placement="top" arrow>
                                 <Button
@@ -689,15 +801,17 @@ function TeacherPuzzlePage() {
                             onClose={() => setMobileSheetOpen(false)}
                             phrases={phrases}
                             found={found}
-                            hidePhrases={hidePhrases}
-                            setHidePhrases={setHidePhrases}
+                            hidePhrases={isCrossword ? false : hidePhrases}
+                            setHidePhrases={isCrossword ? null : setHidePhrases}
                             allFound={allFound}
-                            showTranslations={showTranslationsSetting && showTranslations}
-                            setShowTranslations={showTranslationsSetting ? setShowTranslations : null}
-                            disableShowPhrases={false}
+                            showTranslations={showTranslationsSetting && (isCrossword || showTranslations)}
+                            setShowTranslations={isCrossword ? null : (showTranslationsSetting ? setShowTranslations : null)}
+                            disableShowPhrases={isCrossword || false}
+                            hideToggleButton={isCrossword}
                             onPhraseClick={handlePhraseClick}
                             progressiveHintsEnabled={false}
                             t={t}
+                            gameType={gameType}
                         />
                     )}
 

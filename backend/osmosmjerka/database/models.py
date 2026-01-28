@@ -125,6 +125,7 @@ game_sessions_table = Table(
     Column("start_time", DateTime, nullable=False, server_default=func.now()),
     Column("end_time", DateTime, nullable=True),
     Column("duration_seconds", Integer, nullable=True),
+    Column("game_type", String(20), nullable=False, default="word_search"),  # word_search, crossword
 )
 
 # Define the global_settings table for application-wide settings
@@ -152,6 +153,7 @@ scoring_rules_table = Table(
     Column("hint_penalty_per_hint", Integer, nullable=False, default=75),
     Column("updated_at", DateTime, nullable=False, server_default=func.now()),
     Column("updated_by", Integer, nullable=False, default=0),  # User ID of who made the change
+    Column("game_type", String(20), nullable=False, default="word_search"),  # word_search, crossword
 )
 
 # Define the user_preferences table for user-specific settings
@@ -189,6 +191,7 @@ game_scores_table = Table(
     Column("first_phrase_time", DateTime, nullable=True),
     Column("completion_time", DateTime, nullable=True),
     Column("created_at", DateTime, nullable=False, server_default=func.now()),
+    Column("game_type", String(20), nullable=False, default="word_search"),  # word_search, crossword
 )
 
 # Define the user_private_lists table for user-created phrase lists

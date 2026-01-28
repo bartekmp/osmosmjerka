@@ -16,7 +16,7 @@ from osmosmjerka.game_api.scoring import router as scoring_router
 from osmosmjerka.game_api.student_groups import router as student_groups_router
 from osmosmjerka.game_api.student_study import router as student_study_router
 from osmosmjerka.game_api.user_preferences import router as user_preferences_router
-from osmosmjerka.grid_generator import generate_grid
+from osmosmjerka.grid_generator.word_search import generate_grid
 from osmosmjerka.utils import export_to_docx, export_to_png
 
 # Create main router with /api prefix

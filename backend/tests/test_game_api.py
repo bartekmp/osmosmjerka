@@ -79,6 +79,21 @@ def test_get_scoring_rules(client):
     assert "time_bonus" in rules and "target_times_seconds" in rules["time_bonus"]
 
 
+def test_get_scoring_rules_with_game_type(client):
+    """Scoring rules should accept game_type parameter."""
+    # Test with word_search game type
+    response = client.get("/api/system/scoring-rules?game_type=word_search")
+    assert response.status_code == 200
+    rules = response.json()
+    assert rules["base_points_per_phrase"] == 100
+
+    # Test with crossword game type - should also return valid rules
+    response = client.get("/api/system/scoring-rules?game_type=crossword")
+    assert response.status_code == 200
+    rules = response.json()
+    assert "base_points_per_phrase" in rules
+
+
 def test_calculate_score_endpoint(client):
     payload = {
         "difficulty": "easy",
@@ -371,7 +386,7 @@ def test_imports_work():
     """Test that all necessary imports work correctly"""
     from osmosmjerka.database import db_manager
     from osmosmjerka.game_api import router
-    from osmosmjerka.grid_generator import generate_grid
+    from osmosmjerka.grid_generator.word_search import generate_grid
     from osmosmjerka.utils import export_to_docx, export_to_png
 
     # Basic sanity checks

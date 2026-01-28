@@ -15,7 +15,8 @@ export function restoreGameState(setters) {
         setGameStartTime,
         setCurrentElapsedTime,
         setGridStatus,
-        setIsPaused
+        setIsPaused,
+        setGameType
     } = setters;
 
     const saved = localStorage.getItem('osmosmjerkaGameState');
@@ -41,6 +42,9 @@ export function restoreGameState(setters) {
                 setShowTranslations(!!state.showTranslations);
                 if (setIsPaused) {
                     setIsPaused(!!state.isPaused);
+                }
+                if (setGameType) {
+                    setGameType(state.gameType || "word_search");
                 }
 
                 // Restore timer state if available
@@ -82,7 +86,7 @@ export function saveGameState(state) {
 }
 
 // Load puzzle from API
-export function loadPuzzle(category, diff, setters, t, languageSetId = null, refresh = false, privateListId = null) {
+export function loadPuzzle(category, diff, setters, t, languageSetId = null, refresh = false, privateListId = null, gameType = "word_search") {
     const {
         setSelectedCategory,
         setGrid,
@@ -103,7 +107,7 @@ export function loadPuzzle(category, diff, setters, t, languageSetId = null, ref
 
     if (privateListId) {
         // Use private list endpoint (requires authentication)
-        apiUrl = `/api/user/private-lists/${privateListId}/phrases?language_set_id=${languageSetId}&difficulty=${diff}`;
+        apiUrl = `/api/user/private-lists/${privateListId}/phrases?language_set_id=${languageSetId}&difficulty=${diff}&game_type=${gameType}`;
         // "ALL" means no category filter - don't include category parameter
         if (category && category !== "ALL") {
             apiUrl += `&category=${category}`;
@@ -113,7 +117,7 @@ export function loadPuzzle(category, diff, setters, t, languageSetId = null, ref
         }
     } else {
         // Use public phrases endpoint
-        apiUrl = `/api/phrases?difficulty=${diff}`;
+        apiUrl = `/api/phrases?difficulty=${diff}&game_type=${gameType}`;
         // "ALL" means no category filter - don't include category parameter
         if (category && category !== "ALL") {
             apiUrl += `&category=${category}`;

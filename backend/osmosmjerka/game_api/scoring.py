@@ -139,6 +139,7 @@ async def save_game_score(body: SaveGameScoreRequest, user=Depends(get_current_u
             duration_seconds=body.duration_seconds,
             first_phrase_time=first_phrase_dt,
             completion_time=completion_dt,
+            game_type=body.game_type,
         )
 
         return JSONResponse(
@@ -153,12 +154,15 @@ async def get_user_best_scores(
     language_set_id: int = Query(None),
     category: str = Query(None),
     difficulty: str = Query(None),
+    game_type: str = Query(None),
     limit: int = Query(10),
     user=Depends(get_current_user),
 ) -> JSONResponse:
     """Get user's best scores"""
     try:
-        scores = await db_manager.get_user_best_scores(user["id"], language_set_id, category, difficulty, limit)
+        scores = await db_manager.get_user_best_scores(
+            user["id"], language_set_id, category, difficulty, limit, game_type
+        )
         return JSONResponse(scores)
     except Exception as e:
         return JSONResponse({"error": str(e)}, status_code=500)
@@ -169,11 +173,12 @@ async def get_leaderboard(
     language_set_id: int = Query(None),
     category: str = Query(None),
     difficulty: str = Query(None),
+    game_type: str = Query(None),
     limit: int = Query(50),
 ) -> JSONResponse:
     """Get global leaderboard"""
     try:
-        leaderboard = await db_manager.get_leaderboard(language_set_id, category, difficulty, limit)
+        leaderboard = await db_manager.get_leaderboard(language_set_id, category, difficulty, limit, game_type)
         return JSONResponse(leaderboard)
     except Exception as e:
         return JSONResponse({"error": str(e)}, status_code=500)

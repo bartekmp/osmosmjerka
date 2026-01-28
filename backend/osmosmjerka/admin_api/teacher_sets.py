@@ -7,7 +7,8 @@ from fastapi import APIRouter, Depends, Query, status
 from fastapi.responses import JSONResponse
 from osmosmjerka.auth import get_current_user_optional, require_teacher_access
 from osmosmjerka.database import db_manager
-from osmosmjerka.grid_generator import generate_grid
+from osmosmjerka.game_api.helpers import generate_formatted_crossword_grid
+from osmosmjerka.grid_generator.word_search import generate_grid
 from osmosmjerka.logging_config import get_logger
 from pydantic import BaseModel, Field
 
@@ -30,6 +31,7 @@ class PhraseSetConfig(BaseModel):
     grid_size: int = Field(default=10, ge=8, le=20)
     time_limit_minutes: Optional[int] = Field(default=None, ge=1, le=60)
     difficulty: str = "medium"
+    game_type: str = Field(default="word_search", pattern="^(word_search|crossword)$")
 
 
 class CreatePhraseSetRequest(BaseModel):
@@ -45,6 +47,7 @@ class CreatePhraseSetRequest(BaseModel):
     access_user_ids: Optional[List[int]] = None
     access_group_ids: Optional[List[int]] = None
     access_usernames: Optional[List[str]] = None
+    game_type: Optional[str] = Field(default=None, pattern="^(word_search|crossword)$")
 
 
 class UpdatePhraseSetRequest(BaseModel):
@@ -146,13 +149,18 @@ async def create_phrase_set(
                     access_user_ids.append(uid)
             # Users not found in groups are silently ignored
 
+        # Prepare config
+        config_dict = body.config.model_dump() if body.config else {}
+        if body.game_type:
+            config_dict["game_type"] = body.game_type
+
         result = await db_manager.create_teacher_phrase_set(
             name=body.name,
             description=body.description,
             language_set_id=body.language_set_id,
             created_by=user["id"],
             phrase_ids=body.phrase_ids,
-            config=body.config.model_dump() if body.config else None,
+            config=config_dict,
             access_type=body.access_type,
             max_plays=body.max_plays,
             expires_at=body.expires_at,
@@ -408,7 +416,11 @@ async def preview_phrase_set(
     grid_size = config.get("grid_size", 10)
 
     # Generate grid
-    grid, placed_phrases = generate_grid(phrases_for_grid, size=grid_size)
+    if config.get("game_type") == "crossword":
+        # Pass number of phrases as target for crossword
+        grid, placed_phrases = generate_formatted_crossword_grid(phrases_for_grid, grid_size, len(phrases_for_grid))
+    else:
+        grid, placed_phrases = generate_grid(phrases_for_grid, size=grid_size)
 
     return JSONResponse(
         {
@@ -602,7 +614,12 @@ async def start_session(
             phrase_data["translation"] = ""  # Default empty translation
         phrases_for_grid.append(phrase_data)
 
-    grid, placed_phrases = generate_grid(phrases_for_grid, size=grid_size)
+    # Use correct generator based on game type
+    game_type = config.get("game_type", "word_search")
+    if game_type == "crossword":
+        grid, placed_phrases = generate_formatted_crossword_grid(phrases_for_grid, grid_size, len(phrases_for_grid))
+    else:
+        grid, placed_phrases = generate_grid(phrases_for_grid, size=grid_size)
 
     # Create session with actual placed phrase count (not original list length)
     session = await db_manager.create_session(

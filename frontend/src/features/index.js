@@ -3,6 +3,7 @@ export { default as GameHeader } from './game/components/GameHeader/GameHeader';
 export { default as GameControls } from './game/components/Controls/GameControls';
 export { default as CategorySelector } from './game/components/Controls/CategorySelector';
 export { default as ScrabbleGrid } from './game/components/Grid/Grid';
+export { default as CrosswordGrid } from './game/components/CrosswordGrid/CrosswordGrid';
 export { default as PhraseList } from './game/components/PhraseList/PhraseList';
 export { default as AllFoundMessage } from './game/components/AllFoundMessage';
 export { default as LoadingOverlay } from './game/components/LoadingOverlay';

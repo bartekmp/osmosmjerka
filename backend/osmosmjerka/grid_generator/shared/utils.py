@@ -45,7 +45,7 @@ def calculate_optimal_grid_size(phrase_pairs: List[Tuple[str, str]]) -> int:
     Returns:
         int: Optimal grid size (creates square grid)
     """
-    from osmosmjerka.grid_generator.normalization import normalize_phrase
+    from osmosmjerka.grid_generator.shared.normalization import normalize_phrase
 
     normalized_phrases = [normalize_phrase(phrase.replace(" ", "").upper()) for phrase, _ in phrase_pairs]
     max_phrase_len = max(len(w) for w in normalized_phrases)

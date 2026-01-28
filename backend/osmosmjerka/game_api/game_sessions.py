@@ -27,6 +27,7 @@ async def start_game_session(body: StartGameSessionRequest, user=Depends(get_cur
             body.difficulty,
             body.grid_size,
             body.total_phrases,
+            body.game_type,
         )
 
         logger.info(
@@ -40,6 +41,7 @@ async def start_game_session(body: StartGameSessionRequest, user=Depends(get_cur
                 "difficulty": body.difficulty,
                 "grid_size": body.grid_size,
                 "total_phrases": body.total_phrases,
+                "game_type": body.game_type,
             },
         )
 
