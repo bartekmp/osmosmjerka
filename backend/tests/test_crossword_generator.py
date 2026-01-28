@@ -1,6 +1,6 @@
 """Tests for crossword grid generator."""
 
-from osmosmjerka.grid_generator.crossword_generator import (
+from osmosmjerka.grid_generator.crossword.generator import (
     _is_valid_crossword_placement,
     _place_first_phrase,
     generate_crossword_grid,
@@ -26,7 +26,7 @@ class TestGenerateCrosswordGrid:
     def test_single_phrase_placement(self):
         """Single phrase should be placed horizontally in center."""
         phrases = [{"phrase": "HELLO", "translation": "greeting"}]
-        grid, placed = generate_crossword_grid(phrases, size=10)
+        grid, placed = generate_crossword_grid(phrases, size=10, validate_min_phrases=False)
 
         assert len(placed) == 1
         assert placed[0]["phrase"] == "HELLO"
@@ -42,7 +42,7 @@ class TestGenerateCrosswordGrid:
             {"phrase": "HELLO", "translation": "greeting"},
             {"phrase": "HELP", "translation": "assistance"},  # shares H, E, L
         ]
-        grid, placed = generate_crossword_grid(phrases, size=10)
+        grid, placed = generate_crossword_grid(phrases, size=10, validate_min_phrases=False)
 
         # At least one phrase should be placed
         assert len(placed) >= 1
@@ -58,7 +58,7 @@ class TestGenerateCrosswordGrid:
     def test_grid_size_calculation(self):
         """Grid size should accommodate longest phrase."""
         phrases = [{"phrase": "PROGRAMMING", "translation": "coding"}]  # 11 chars
-        grid, placed = generate_crossword_grid(phrases)
+        grid, placed = generate_crossword_grid(phrases, validate_min_phrases=False)
 
         # Grid should be at least 11 + padding
         assert len(grid) >= 11
@@ -70,7 +70,7 @@ class TestGenerateCrosswordGrid:
             {"phrase": "ACROSS", "translation": "horizontal"},
             {"phrase": "DOWN", "translation": "vertical"},
         ]
-        grid, placed = generate_crossword_grid(phrases, size=12)
+        grid, placed = generate_crossword_grid(phrases, size=12, validate_min_phrases=False)
 
         if len(placed) >= 1:
             assert "start_number" in placed[0]
@@ -79,7 +79,7 @@ class TestGenerateCrosswordGrid:
     def test_direction_values(self):
         """Direction should be 'across' or 'down'."""
         phrases = [{"phrase": "TEST", "translation": "exam"}]
-        grid, placed = generate_crossword_grid(phrases, size=8)
+        grid, placed = generate_crossword_grid(phrases, size=8, validate_min_phrases=False)
 
         assert len(placed) == 1
         assert placed[0]["direction"] in ["across", "down"]

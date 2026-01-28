@@ -3,9 +3,9 @@
 import random
 from typing import Dict, List, Optional, Tuple
 
-from osmosmjerka.grid_generator.normalization import find_intersections, normalize_phrase
-from osmosmjerka.grid_generator.scoring import score_phrase_placement
-from osmosmjerka.grid_generator.utils import _place_phrase_on_grid
+from osmosmjerka.grid_generator.shared.normalization import find_intersections, normalize_phrase
+from osmosmjerka.grid_generator.word_search.scoring import score_phrase_placement
+from osmosmjerka.grid_generator.shared.utils import _place_phrase_on_grid
 
 
 def _is_valid_placement(grid: List[List[str]], phrase: str, coords: List[Tuple[int, int]], size: int) -> bool:

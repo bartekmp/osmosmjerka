@@ -2,7 +2,7 @@
 
 from typing import Dict, List, Tuple
 
-from osmosmjerka.grid_generator.utils import calculate_density_around_position
+from osmosmjerka.grid_generator.shared.utils import calculate_density_around_position
 
 
 def _count_direction_usage(placed_phrases: List[Dict]) -> Dict[Tuple[int, int], int]:

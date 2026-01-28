@@ -7,13 +7,15 @@ orientations, and phrases must intersect at common letters.
 
 from typing import Dict, List, Optional, Tuple
 
-from osmosmjerka.grid_generator.normalization import find_intersections, normalize_phrase
+from osmosmjerka.grid_generator.shared.normalization import find_intersections, normalize_phrase
 
 # Crossword directions: horizontal (across) and vertical (down) only
 CROSSWORD_DIRECTIONS = [(0, 1), (1, 0)]  # right, down
 
 
-def generate_crossword_grid(phrases: list, size: int | None = None) -> tuple[list, list]:
+def generate_crossword_grid(
+    phrases: list, size: int | None = None, validate_min_phrases: bool = True
+) -> tuple[list, list]:
     """
     Generate a crossword puzzle grid with the given phrases.
 
@@ -87,7 +89,7 @@ def generate_crossword_grid(phrases: list, size: int | None = None) -> tuple[lis
     # Step 6: Validate minimum phrase count
     # Rule: At least size // 2 + 1 phrases must be placed
     min_phrases = (size // 2) + 1
-    if len(placed_phrases) < min_phrases:
+    if validate_min_phrases and len(placed_phrases) < min_phrases:
         # If we failed to place enough phrases, consider this an invalid puzzle
         # This prompts the retry logic (or error return) in the caller
         raise ValueError(
