@@ -8,7 +8,7 @@ from fastapi.responses import JSONResponse
 from osmosmjerka.auth import get_current_user_optional, require_teacher_access
 from osmosmjerka.database import db_manager
 from osmosmjerka.game_api.helpers import generate_formatted_crossword_grid
-from osmosmjerka.grid_generator import generate_grid
+from osmosmjerka.grid_generator.word_search import generate_grid
 from osmosmjerka.logging_config import get_logger
 from pydantic import BaseModel, Field
 

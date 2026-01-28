@@ -2,7 +2,8 @@
 
 import random
 
-from osmosmjerka.grid_generator import generate_crossword_grid, generate_grid
+from osmosmjerka.grid_generator.crossword import generate_crossword_grid
+from osmosmjerka.grid_generator.word_search import generate_grid
 
 
 def get_grid_size_and_num_phrases(selected: list, difficulty: str) -> tuple:

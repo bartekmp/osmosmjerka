@@ -1,5 +1,5 @@
 import pytest
-from osmosmjerka.grid_generator import generate_crossword_grid
+from osmosmjerka.grid_generator.crossword import generate_crossword_grid
 
 
 def test_crossword_min_phrases_validation():

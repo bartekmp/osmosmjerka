@@ -386,7 +386,7 @@ def test_imports_work():
     """Test that all necessary imports work correctly"""
     from osmosmjerka.database import db_manager
     from osmosmjerka.game_api import router
-    from osmosmjerka.grid_generator import generate_grid
+    from osmosmjerka.grid_generator.word_search import generate_grid
     from osmosmjerka.utils import export_to_docx, export_to_png
 
     # Basic sanity checks
