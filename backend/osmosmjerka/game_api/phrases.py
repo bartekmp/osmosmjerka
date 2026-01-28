@@ -121,7 +121,18 @@ async def get_phrases(
         )
 
     # Try to generate grid with exactly the required number of phrases
-    grid, placed_phrases = _generate_grid_with_exact_phrase_count(selected, grid_size, num_phrases, game_type)
+    try:
+        grid, placed_phrases = _generate_grid_with_exact_phrase_count(selected, grid_size, num_phrases, game_type)
+    except ValueError as e:
+        logger.warning(f"Crossword generation failed: {e}")
+        return JSONResponse(
+            {
+                "error_code": "CROSSWORD_GENERATION_FAILED",
+                "details": str(e),
+                "category": category_filter or "ALL",
+            },
+            status_code=status.HTTP_400_BAD_REQUEST,
+        )
 
     # Use the original category value for response (preserve "ALL" if it was selected)
     response_category = category if category == "ALL" else (category_filter or "Mixed")

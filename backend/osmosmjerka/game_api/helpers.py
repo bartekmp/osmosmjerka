@@ -45,6 +45,12 @@ def _generate_grid_with_exact_phrase_count(
     """
     # Use crossword generator for crossword game type
     if game_type == "crossword":
+        min_needed = (grid_size // 2) + 1
+        if len(all_phrases) < min_needed:
+            raise ValueError(
+                f"Not enough phrases for crossword. Needed {min_needed}, "
+                f"available {len(all_phrases)} for grid size {grid_size}"
+            )
         return generate_formatted_crossword_grid(all_phrases, grid_size, target_phrase_count)
 
     max_attempts = 50  # Limit attempts to avoid infinite loops
