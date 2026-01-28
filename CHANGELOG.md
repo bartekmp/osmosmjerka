@@ -2,6 +2,177 @@
 
 <!-- version list -->
 
+## v1.40.0 (2026-01-28)
+
+### Bug Fixes
+
+- Add keyboard accessibility to crossword clue items
+  ([#151](https://github.com/bartekmp/osmosmjerka/pull/151),
+  [`b5d015c`](https://github.com/bartekmp/osmosmjerka/commit/b5d015cfc4149a2412447d994fe4d930108c3a45))
+
+- Integration fixes for crossword mode ([#151](https://github.com/bartekmp/osmosmjerka/pull/151),
+  [`b5d015c`](https://github.com/bartekmp/osmosmjerka/commit/b5d015cfc4149a2412447d994fe4d930108c3a45))
+
+- Lint backend code ([#151](https://github.com/bartekmp/osmosmjerka/pull/151),
+  [`b5d015c`](https://github.com/bartekmp/osmosmjerka/commit/b5d015cfc4149a2412447d994fe4d930108c3a45))
+
+- Phase 4.5 crossword bug fixes ([#151](https://github.com/bartekmp/osmosmjerka/pull/151),
+  [`b5d015c`](https://github.com/bartekmp/osmosmjerka/commit/b5d015cfc4149a2412447d994fe4d930108c3a45))
+
+- Resolve hint translation lookup issue by using 'crossword.' prefix
+  ([#151](https://github.com/bartekmp/osmosmjerka/pull/151),
+  [`b5d015c`](https://github.com/bartekmp/osmosmjerka/commit/b5d015cfc4149a2412447d994fe4d930108c3a45))
+
+- Resolve ReferenceError in CrosswordGrid (isActive usage)
+  ([#151](https://github.com/bartekmp/osmosmjerka/pull/151),
+  [`b5d015c`](https://github.com/bartekmp/osmosmjerka/commit/b5d015cfc4149a2412447d994fe4d930108c3a45))
+
+- Resolve syntax errors and duplicate props in MobilePhraseListSheet and add Crossword refinements
+  ([#151](https://github.com/bartekmp/osmosmjerka/pull/151),
+  [`b5d015c`](https://github.com/bartekmp/osmosmjerka/commit/b5d015cfc4149a2412447d994fe4d930108c3a45))
+
+- Resolve SyntaxError in appHelpers.js (duplicate property)
+  ([#151](https://github.com/bartekmp/osmosmjerka/pull/151),
+  [`b5d015c`](https://github.com/bartekmp/osmosmjerka/commit/b5d015cfc4149a2412447d994fe4d930108c3a45))
+
+- **backend**: Improve crossword generation reliability with retry logic
+  ([#151](https://github.com/bartekmp/osmosmjerka/pull/151),
+  [`b5d015c`](https://github.com/bartekmp/osmosmjerka/commit/b5d015cfc4149a2412447d994fe4d930108c3a45))
+
+- **crossword**: Clear red highlight when cells are emptied
+  ([#151](https://github.com/bartekmp/osmosmjerka/pull/151),
+  [`b5d015c`](https://github.com/bartekmp/osmosmjerka/commit/b5d015cfc4149a2412447d994fe4d930108c3a45))
+
+- **crossword**: Fix session completion bug and add blinking cursor
+  ([#151](https://github.com/bartekmp/osmosmjerka/pull/151),
+  [`b5d015c`](https://github.com/bartekmp/osmosmjerka/commit/b5d015cfc4149a2412447d994fe4d930108c3a45))
+
+- **crossword**: Preserve direction when typing through intersections
+  ([#151](https://github.com/bartekmp/osmosmjerka/pull/151),
+  [`b5d015c`](https://github.com/bartekmp/osmosmjerka/commit/b5d015cfc4149a2412447d994fe4d930108c3a45))
+
+- **frontend**: Disable export button for crossword game type
+  ([#151](https://github.com/bartekmp/osmosmjerka/pull/151),
+  [`b5d015c`](https://github.com/bartekmp/osmosmjerka/commit/b5d015cfc4149a2412447d994fe4d930108c3a45))
+
+- **teacher**: Hide show_translations toggle for crossword mode
+  ([#151](https://github.com/bartekmp/osmosmjerka/pull/151),
+  [`b5d015c`](https://github.com/bartekmp/osmosmjerka/commit/b5d015cfc4149a2412447d994fe4d930108c3a45))
+
+- **ui**: Hide GameTypeSelector on admin pages
+  ([#151](https://github.com/bartekmp/osmosmjerka/pull/151),
+  [`b5d015c`](https://github.com/bartekmp/osmosmjerka/commit/b5d015cfc4149a2412447d994fe4d930108c3a45))
+
+### Chores
+
+- **backend**: Remove dead migrations module
+  ([#151](https://github.com/bartekmp/osmosmjerka/pull/151),
+  [`b5d015c`](https://github.com/bartekmp/osmosmjerka/commit/b5d015cfc4149a2412447d994fe4d930108c3a45))
+
+### Feature
+
+- Crosswords puzzle ([#151](https://github.com/bartekmp/osmosmjerka/pull/151),
+  [`b5d015c`](https://github.com/bartekmp/osmosmjerka/commit/b5d015cfc4149a2412447d994fe4d930108c3a45))
+
+### Features
+
+- Add crossword clue display to PhraseList
+  ([#151](https://github.com/bartekmp/osmosmjerka/pull/151),
+  [`b5d015c`](https://github.com/bartekmp/osmosmjerka/commit/b5d015cfc4149a2412447d994fe4d930108c3a45))
+
+- Add crossword puzzle mode backend foundation
+  ([#151](https://github.com/bartekmp/osmosmjerka/pull/151),
+  [`b5d015c`](https://github.com/bartekmp/osmosmjerka/commit/b5d015cfc4149a2412447d994fe4d930108c3a45))
+
+- Add crossword puzzle mode frontend components
+  ([#151](https://github.com/bartekmp/osmosmjerka/pull/151),
+  [`b5d015c`](https://github.com/bartekmp/osmosmjerka/commit/b5d015cfc4149a2412447d994fe4d930108c3a45))
+
+- Add game type filter to Statistics Dashboard high scores
+  ([#151](https://github.com/bartekmp/osmosmjerka/pull/151),
+  [`b5d015c`](https://github.com/bartekmp/osmosmjerka/commit/b5d015cfc4149a2412447d994fe4d930108c3a45))
+
+- Add game type selection to Teacher Mode puzzle creation
+  ([#151](https://github.com/bartekmp/osmosmjerka/pull/151),
+  [`b5d015c`](https://github.com/bartekmp/osmosmjerka/commit/b5d015cfc4149a2412447d994fe4d930108c3a45))
+
+- Implement game type routing and restore layout
+  ([#151](https://github.com/bartekmp/osmosmjerka/pull/151),
+  [`b5d015c`](https://github.com/bartekmp/osmosmjerka/commit/b5d015cfc4149a2412447d994fe4d930108c3a45))
+
+- Implement Round 2 Crossword refinements ([#151](https://github.com/bartekmp/osmosmjerka/pull/151),
+  [`b5d015c`](https://github.com/bartekmp/osmosmjerka/commit/b5d015cfc4149a2412447d994fe4d930108c3a45))
+
+- Implement Round 3 Crossword hint refinements
+  ([#151](https://github.com/bartekmp/osmosmjerka/pull/151),
+  [`b5d015c`](https://github.com/bartekmp/osmosmjerka/commit/b5d015cfc4149a2412447d994fe4d930108c3a45))
+
+- Implement Round 4 Crossword refinements ([#151](https://github.com/bartekmp/osmosmjerka/pull/151),
+  [`b5d015c`](https://github.com/bartekmp/osmosmjerka/commit/b5d015cfc4149a2412447d994fe4d930108c3a45))
+
+- Implement Round 4.5 Crossword refinements
+  ([#151](https://github.com/bartekmp/osmosmjerka/pull/151),
+  [`b5d015c`](https://github.com/bartekmp/osmosmjerka/commit/b5d015cfc4149a2412447d994fe4d930108c3a45))
+
+- Integrate crossword mode into puzzle generation pipeline
+  ([#151](https://github.com/bartekmp/osmosmjerka/pull/151),
+  [`b5d015c`](https://github.com/bartekmp/osmosmjerka/commit/b5d015cfc4149a2412447d994fe4d930108c3a45))
+
+- Move GameTypeSelector to header bar with icon-only display
+  ([#151](https://github.com/bartekmp/osmosmjerka/pull/151),
+  [`b5d015c`](https://github.com/bartekmp/osmosmjerka/commit/b5d015cfc4149a2412447d994fe4d930108c3a45))
+
+- Wire up GameTypeSelector and CrosswordGrid in UI
+  ([#151](https://github.com/bartekmp/osmosmjerka/pull/151),
+  [`b5d015c`](https://github.com/bartekmp/osmosmjerka/commit/b5d015cfc4149a2412447d994fe4d930108c3a45))
+
+- **crossword**: Add cell buffer validation for phrase spacing
+  ([#151](https://github.com/bartekmp/osmosmjerka/pull/151),
+  [`b5d015c`](https://github.com/bartekmp/osmosmjerka/commit/b5d015cfc4149a2412447d994fe4d930108c3a45))
+
+- **crossword**: Add intersection click toggle for direction switching
+  ([#151](https://github.com/bartekmp/osmosmjerka/pull/151),
+  [`b5d015c`](https://github.com/bartekmp/osmosmjerka/commit/b5d015cfc4149a2412447d994fe4d930108c3a45))
+
+- **crossword**: Implement minimum phrase count validation
+  ([#151](https://github.com/bartekmp/osmosmjerka/pull/151),
+  [`b5d015c`](https://github.com/bartekmp/osmosmjerka/commit/b5d015cfc4149a2412447d994fe4d930108c3a45))
+
+- **teacher**: Refine hint buttons to match game parity and fix global logo click behavior
+  ([#151](https://github.com/bartekmp/osmosmjerka/pull/151),
+  [`b5d015c`](https://github.com/bartekmp/osmosmjerka/commit/b5d015cfc4149a2412447d994fe4d930108c3a45))
+
+### Performance Improvements
+
+- **teacher**: Implement lazy loading for phrase selection list
+  ([#151](https://github.com/bartekmp/osmosmjerka/pull/151),
+  [`b5d015c`](https://github.com/bartekmp/osmosmjerka/commit/b5d015cfc4149a2412447d994fe4d930108c3a45))
+
+### Refactoring
+
+- **backend**: Reorganize grid_generator into modular structure
+  ([#151](https://github.com/bartekmp/osmosmjerka/pull/151),
+  [`b5d015c`](https://github.com/bartekmp/osmosmjerka/commit/b5d015cfc4149a2412447d994fe4d930108c3a45))
+
+- **backend**: Use independent submodule imports for grid_generator
+  ([#151](https://github.com/bartekmp/osmosmjerka/pull/151),
+  [`b5d015c`](https://github.com/bartekmp/osmosmjerka/commit/b5d015cfc4149a2412447d994fe4d930108c3a45))
+
+### Testing
+
+- Add unit tests for GameTypeSelector, CrosswordGrid, and game_type API
+  ([#151](https://github.com/bartekmp/osmosmjerka/pull/151),
+  [`b5d015c`](https://github.com/bartekmp/osmosmjerka/commit/b5d015cfc4149a2412447d994fe4d930108c3a45))
+
+- **backend**: Add unit tests for crossword generation retry logic
+  ([#151](https://github.com/bartekmp/osmosmjerka/pull/151),
+  [`b5d015c`](https://github.com/bartekmp/osmosmjerka/commit/b5d015cfc4149a2412447d994fe4d930108c3a45))
+
+- **crossword**: Add unit tests for CrosswordCell component
+  ([#151](https://github.com/bartekmp/osmosmjerka/pull/151),
+  [`b5d015c`](https://github.com/bartekmp/osmosmjerka/commit/b5d015cfc4149a2412447d994fe4d930108c3a45))
+
+
 ## v1.39.5 (2026-01-20)
 
 ### Improvement
