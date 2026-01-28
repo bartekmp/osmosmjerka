@@ -119,37 +119,92 @@ def _generate_grid_with_exact_phrase_count(
     return best_grid if best_grid is not None else [], best_placed_phrases
 
 
-def generate_formatted_crossword_grid(all_phrases: list, grid_size: int, target_phrase_count: int) -> tuple:
+def generate_formatted_crossword_grid(
+    all_phrases: list, grid_size: int, target_phrase_count: int, max_retries: int = 5
+) -> tuple:
     """
     Generate a crossword-style grid with the target number of phrases.
+
+    Uses an expanded phrase pool (3x target) and retry logic to improve
+    success rate when some phrases can't be placed due to lack of intersections.
 
     Args:
         all_phrases: List of phrase dictionaries with 'phrase' and 'translation' keys
         grid_size: Size of the grid
         target_phrase_count: Target number of phrases to place
+        max_retries: Number of generation attempts before giving up
 
     Returns:
         tuple: (grid, placed_phrases) where grid is a 2D array and placed_phrases
                contains phrase metadata including coords and direction
     """
-    # Select phrases for the crossword
-    if len(all_phrases) > target_phrase_count:
-        selected_phrases = random.sample(all_phrases, target_phrase_count)
-    else:
-        selected_phrases = all_phrases.copy()
+    min_phrases = (grid_size // 2) + 1
+    best_grid = None
+    best_placed_phrases = []
 
-    # Generate crossword grid
-    grid, placed_phrases = generate_crossword_grid(selected_phrases, grid_size)
+    for attempt in range(max_retries):
+        # Select an expanded pool of phrases (3x target, but at least all available)
+        pool_size = min(len(all_phrases), target_phrase_count * 3)
+        if pool_size <= target_phrase_count:
+            # Not enough phrases - use all of them
+            selected_phrases = all_phrases.copy()
+        else:
+            # Random sample from pool for variety on each retry
+            selected_phrases = random.sample(all_phrases, pool_size)
 
-    # Convert crossword grid format to match word search format for frontend compatibility
-    # Crossword grid has cells with {letter, phrase_indices} or None for blank cells
-    # We need to convert to a simple 2D array of characters for the grid
-    # and keep the placed_phrases with their coords
+        # Shuffle for different ordering on each attempt
+        random.shuffle(selected_phrases)
 
-    if not grid:
-        return [], []
+        try:
+            # Generate crossword grid - pass the expanded pool
+            grid, placed_phrases = generate_crossword_grid(selected_phrases, grid_size)
 
-    # Convert grid to simple character array (None for blank cells)
+            # Track best result so far
+            if len(placed_phrases) > len(best_placed_phrases):
+                best_grid = grid
+                best_placed_phrases = placed_phrases
+
+            # Success! We placed enough phrases
+            if len(placed_phrases) >= min_phrases:
+                # Trim to target count if we placed more
+                if len(placed_phrases) > target_phrase_count:
+                    placed_phrases = placed_phrases[:target_phrase_count]
+
+                # Convert grid to simple character array
+                simple_grid = _convert_crossword_grid_to_simple(grid)
+
+                # Convert coords to frontend format
+                for phrase in placed_phrases:
+                    if phrase.get("coords"):
+                        phrase["coords"] = [[r, c] for r, c in phrase["coords"]]
+
+                return simple_grid, placed_phrases
+
+        except ValueError:
+            # Continue to next attempt
+            pass
+    # All retries exhausted - return best result if it meets minimum, else error
+    if len(best_placed_phrases) >= min_phrases:
+        if len(best_placed_phrases) > target_phrase_count:
+            best_placed_phrases = best_placed_phrases[:target_phrase_count]
+
+        simple_grid = _convert_crossword_grid_to_simple(best_grid) if best_grid else []
+
+        for phrase in best_placed_phrases:
+            if phrase.get("coords"):
+                phrase["coords"] = [[r, c] for r, c in phrase["coords"]]
+
+        return simple_grid, best_placed_phrases
+
+    # Truly failed - raise the last error or a summary
+    raise ValueError(
+        f"Could not generate crossword after {max_retries} attempts. "
+        f"Best result: {len(best_placed_phrases)} phrases, needed {min_phrases} for grid size {grid_size}"
+    )
+
+
+def _convert_crossword_grid_to_simple(grid: list) -> list:
+    """Convert crossword grid format to simple character array for frontend."""
     simple_grid = []
     for row in grid:
         simple_row = []
@@ -159,11 +214,4 @@ def generate_formatted_crossword_grid(all_phrases: list, grid_size: int, target_
             else:
                 simple_row.append(cell.get("letter", ""))
         simple_grid.append(simple_row)
-
-    # Add crossword-specific fields to placed phrases for frontend
-    for phrase in placed_phrases:
-        # Ensure coords are in the right format [[r, c], [r, c], ...]
-        if phrase.get("coords"):
-            phrase["coords"] = [[r, c] for r, c in phrase["coords"]]
-
-    return simple_grid, placed_phrases
+    return simple_grid
