@@ -2,6 +2,19 @@
 
 <!-- version list -->
 
+## v1.40.1 (2026-01-29)
+
+### Bug Fixes
+
+- Resolve App.test.jsx failures by updating mock data and expectations
+  ([#152](https://github.com/bartekmp/osmosmjerka/pull/152),
+  [`5221ef1`](https://github.com/bartekmp/osmosmjerka/commit/5221ef15233450498775a98dff5ffe56e2773a05))
+
+- Resolve grid layout shifts, ghost phrases, and improve loading UI
+  ([#152](https://github.com/bartekmp/osmosmjerka/pull/152),
+  [`5221ef1`](https://github.com/bartekmp/osmosmjerka/commit/5221ef15233450498775a98dff5ffe56e2773a05))
+
+
 ## v1.40.0 (2026-01-28)
 
 ### Bug Fixes
