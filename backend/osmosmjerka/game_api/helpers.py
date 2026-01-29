@@ -170,8 +170,8 @@ def generate_formatted_crossword_grid(
                 if len(placed_phrases) > target_phrase_count:
                     placed_phrases = placed_phrases[:target_phrase_count]
 
-                # Convert grid to simple character array
-                simple_grid = _convert_crossword_grid_to_simple(grid)
+                # Convert grid to simple character array, filtering out ghost words
+                simple_grid = _convert_crossword_grid_to_simple(grid, limit_phrases=len(placed_phrases))
 
                 # Convert coords to frontend format
                 for phrase in placed_phrases:
@@ -188,7 +188,9 @@ def generate_formatted_crossword_grid(
         if len(best_placed_phrases) > target_phrase_count:
             best_placed_phrases = best_placed_phrases[:target_phrase_count]
 
-        simple_grid = _convert_crossword_grid_to_simple(best_grid) if best_grid else []
+        simple_grid = []
+        if best_grid:
+            simple_grid = _convert_crossword_grid_to_simple(best_grid, limit_phrases=len(best_placed_phrases))
 
         for phrase in best_placed_phrases:
             if phrase.get("coords"):
@@ -203,15 +205,29 @@ def generate_formatted_crossword_grid(
     )
 
 
-def _convert_crossword_grid_to_simple(grid: list) -> list:
-    """Convert crossword grid format to simple character array for frontend."""
+def _convert_crossword_grid_to_simple(grid: list, limit_phrases: int = None) -> list:
+    """
+    Convert crossword grid format to simple character array for frontend.
+
+    Args:
+        grid: The raw grid from generator
+        limit_phrases: If set, only include cells belonging to phrases with index < limit_phrases.
+                      Used to filter out ghost phrases when the list was trimmed.
+    """
     simple_grid = []
     for row in grid:
         simple_row = []
         for cell in row:
             if cell is None:
-                simple_row.append(None)  # Blank cell - frontend expects null
+                simple_row.append(None)
             else:
+                # If we have a limit, check if this cell belongs to any valid phrase
+                if limit_phrases is not None:
+                    indices = cell.get("phrase_indices", [])
+                    if not any(idx < limit_phrases for idx in indices):
+                        simple_row.append(None)  # Belongs only to removed phrases
+                        continue
+
                 simple_row.append(cell.get("letter", ""))
         simple_grid.append(simple_row)
     return simple_grid

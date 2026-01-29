@@ -290,3 +290,21 @@
 [data-theme="dark"] .crossword-cell .cursor {
     background: #90caf9;
 }
+
+/* ==========================================
+   WHOLE PHRASE BLINK (Navigation Aid)
+   ========================================== */
+@keyframes phrase-blink {
+    0%, 100% { background-color: var(--cell-bg); }
+    50% { background-color: rgba(25, 118, 210, 0.3); } /* Primary color low opacity */
+}
+
+[data-theme="dark"] @keyframes phrase-blink {
+    0%, 100% { background-color: var(--cell-bg); }
+    50% { background-color: rgba(144, 202, 249, 0.3); } /* Dark mode primary */
+}
+
+.crossword-cell.blinking {
+    animation: phrase-blink 0.4s ease-in-out 3;
+    z-index: 1;
+}

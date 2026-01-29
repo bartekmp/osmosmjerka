@@ -2,6 +2,7 @@ import React, { useState, useRef } from 'react';
 import { useTranslation } from 'react-i18next';
 import { Checkbox, Tooltip, Box, Typography } from '@mui/material';
 import AddToLearnLaterButton from '../AddToLearnLaterButton';
+import LoadingOverlay from '../LoadingOverlay';
 import './PhraseList.css';
 
 export default function PhraseList({
@@ -19,7 +20,8 @@ export default function PhraseList({
     languageSetId = null,
     hideToggleButton = false,
     compact = false,
-    gameType = "word_search"
+    gameType = "word_search",
+    isLoading = false
 }) {
     const { t } = useTranslation();
     const [blinkingPhrase, setBlinkingPhrase] = useState(null);
@@ -111,7 +113,8 @@ export default function PhraseList({
     };
 
     return (
-        <div className="phrase-list-container">
+        <div className="phrase-list-container" style={{ position: 'relative' }}>
+            <LoadingOverlay isLoading={isLoading} isDarkMode={false} showMessage={false} transparent={true} />
             {/* Top row: Hide/Show and Translation toggle buttons */}
             {!hideToggleButton && (
                 <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 8 }}>
@@ -236,8 +239,18 @@ export default function PhraseList({
                                     return (
                                         <li
                                             key={`across-${index}`}
-                                            className={`crossword-clue-item${isFound ? ' found' : ''}`}
-                                            onClick={() => !isFound && onPhraseClick?.(phrase)}
+                                            className={`crossword-clue-item${isFound ? ' found' : ''}${blinkingPhrase === phrase ? ' blinking' : ''}`}
+                                            onClick={() => {
+                                                if (!isFound) {
+                                                    // Trigger local blink
+                                                    setBlinkingPhrase(phrase);
+                                                    if (blinkTimeoutRef.current) clearTimeout(blinkTimeoutRef.current);
+                                                    blinkTimeoutRef.current = setTimeout(() => setBlinkingPhrase(null), 1500);
+
+                                                    // Trigger parent action
+                                                    onPhraseClick?.(phrase);
+                                                }
+                                            }}
                                             onKeyDown={(e) => {
                                                 if ((e.key === 'Enter' || e.key === ' ') && !isFound) {
                                                     e.preventDefault();
@@ -277,8 +290,15 @@ export default function PhraseList({
                                     return (
                                         <li
                                             key={`down-${index}`}
-                                            className={`crossword-clue-item${isFound ? ' found' : ''}`}
-                                            onClick={() => !isFound && onPhraseClick?.(phrase)}
+                                            className={`crossword-clue-item${isFound ? ' found' : ''}${blinkingPhrase === phrase ? ' blinking' : ''}`}
+                                            onClick={() => {
+                                                if (!isFound) {
+                                                    setBlinkingPhrase(phrase);
+                                                    if (blinkTimeoutRef.current) clearTimeout(blinkTimeoutRef.current);
+                                                    blinkTimeoutRef.current = setTimeout(() => setBlinkingPhrase(null), 1500);
+                                                    onPhraseClick?.(phrase);
+                                                }
+                                            }}
                                             onKeyDown={(e) => {
                                                 if ((e.key === 'Enter' || e.key === ' ') && !isFound) {
                                                     e.preventDefault();
