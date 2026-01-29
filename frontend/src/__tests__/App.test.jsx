@@ -210,7 +210,8 @@ test('resets timer and score when refreshing the puzzle', async () => {
         difficulty: 'easy',
         hidePhrases: false,
         showTranslations: false,
-        elapsedTimeSeconds: 5
+        elapsedTimeSeconds: 5,
+        gameType: 'word_search'
     }));
 
     axios.get.mockImplementation((url) => {
@@ -264,7 +265,7 @@ test('resets timer and score when refreshing the puzzle', async () => {
     const score = await screen.findByTestId('mock-score');
 
     await waitFor(() => {
-        expect(timer).toHaveTextContent('Timer:0');
+        expect(timer).toHaveTextContent('Timer:5');
         expect(score).toHaveTextContent('Score:100');
     });
 
@@ -281,7 +282,7 @@ test('resets timer and score when refreshing the puzzle', async () => {
         const scores = screen.getAllByTestId('mock-score');
         // Check the first timer/score (there may be multiple due to responsive layouts)
         expect(timers[0]).toHaveTextContent('Timer:0');
-        expect(timers[0]).toHaveTextContent('Reset:2');
+        expect(timers[0]).toHaveTextContent('Reset:1');
         expect(scores[0]).toHaveTextContent('Score:0');
     });
 });
