@@ -21,7 +21,8 @@ const ScrabbleGrid = forwardRef(({
     onHintUsed = null,
     onGridInteraction = null,
     isTouchDevice = false,
-    useMobileLayout = false
+    useMobileLayout = false,
+    isLoading = false
 }, ref) => {
     const { t } = useTranslation();
 
@@ -360,6 +361,28 @@ const ScrabbleGrid = forwardRef(({
                     const r = Math.floor(index / gridSize);
                     const c = index % gridSize;
 
+                    // If loading, render simpler empty cell
+                    if (isLoading) {
+                        return (
+                            <ScrabbleGridCell
+                                key={`${r}-${c}`}
+                                r={r}
+                                c={c}
+                                cell={''} // Empty string for blank cell
+                                isFound={false}
+                                isBlinking={false}
+                                isSelected={false}
+                                isCelebrating={false}
+                                isHintCell={false}
+                                directionArrow={null}
+                                hintLevel={0}
+                                handleMouseDown={() => { }}
+                                handleMouseEnter={() => { }}
+                                cellSize={cellSize}
+                            />
+                        );
+                    }
+
                     // Check if this cell is part of a hint
                     const isHintCell = hintState.hintCells.some(([hr, hc]) => hr === r && hc === c);
                     const hasDirectionArrow = hintState.directionArrow &&
@@ -371,7 +394,7 @@ const ScrabbleGrid = forwardRef(({
                             key={`${r}-${c}`}
                             r={r}
                             c={c}
-                            cell={cell}
+                            cell={typeof cell === 'object' ? (cell.letter || '') : cell}
                             isFound={isFound(r, c)}
                             isBlinking={blinkingCells.some(([br, bc]) => br === r && bc === c)}
                             isSelected={selected.some(([sr, sc]) => sr === r && sc === c)}

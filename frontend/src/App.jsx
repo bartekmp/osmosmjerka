@@ -318,6 +318,7 @@ function AppContent() {
   const lastFetchedLanguageSetIdRef = useRef(null);
   const completionInProgressRef = useRef(false);
   const splashShownAtRef = useRef(Date.now());
+  const justRestoredRef = useRef(false);
 
   // Winning condition: all phrases found
   const allFound = phrases.length > 0 && found.length === phrases.length;
@@ -366,7 +367,12 @@ function AppContent() {
 
   // Restore state from localStorage on mount, but only if not already won
   useEffect(() => {
-    restoreGameState({
+    const path = window.location.pathname;
+    const isRoot = path === '/' || path === '/index.html';
+    // If on a specific game route, enforce that type. If on root, allow any type.
+    const requiredType = isRoot ? null : gameType;
+
+    const didRestore = restoreGameState({
       setGrid,
       setPhrases,
       setFound,
@@ -379,8 +385,18 @@ function AppContent() {
       setCurrentElapsedTime,
       setGridStatus,
       setIsPaused,
-      setGameType,
-    });
+      setGameType: (type) => {
+        // Only update game type state if we're on root
+        // If on specific route, we already enforced uniformity via requiredType
+        if (isRoot) {
+          setGameType(type);
+        }
+      },
+    }, requiredType);
+
+    if (didRestore) {
+      justRestoredRef.current = true;
+    }
   }, []);
 
   // Load default and user-specific ignored categories when language set changes
@@ -805,6 +821,16 @@ function AppContent() {
 
   useEffect(() => {
     if (!restored) return;
+
+    // If we just restored a valid game state, don't reload the puzzle
+    if (justRestoredRef.current) {
+      justRestoredRef.current = false;
+      // Verify we actually have content before skipping load
+      if (grid.length > 0) {
+        return;
+      }
+    }
+
     // Load puzzle if:
     // 1. A category is selected (for public puzzles), OR
     // 2. A private list is selected (category is optional for private lists)
@@ -1522,12 +1548,17 @@ function AppContent() {
         gameType={!isAdminRoute ? gameType : undefined}
         onGameTypeChange={!isAdminRoute ? (type) => {
           setGameType(type);
-          // Update URL based on game type
-          if (type === 'crossword') {
-            navigate('/crosswords');
-          } else {
-            navigate('/wordsearch');
+
+          // Update URL based on game type, but behave like SPA on root
+          const path = window.location.pathname;
+          if (path !== '/' && path !== '/index.html') {
+            if (type === 'crossword') {
+              navigate('/crosswords');
+            } else {
+              navigate('/wordsearch');
+            }
           }
+
           // Reload puzzle with new game type
           loadPuzzle(selectedCategory, difficulty, true, type);
         } : undefined}
@@ -1677,6 +1708,7 @@ function AppContent() {
                 onHintUsed={() => { }}
                 isTouchDevice={isTouchDevice}
                 useMobileLayout={useMobileLayout}
+                isLoading={isGridLoading}
               />
             ) : (
               <ScrabbleGrid
@@ -1693,6 +1725,7 @@ function AppContent() {
                 onGridInteraction={handleGridInteraction}
                 isTouchDevice={isTouchDevice}
                 useMobileLayout={useMobileLayout}
+                isLoading={isGridLoading}
               />
             )}
           </Box>
@@ -1776,7 +1809,7 @@ function AppContent() {
                   onHintRequest={handleHintRequest}
                   remainingHints={remainingHints}
                   isProgressiveMode={progressiveHintsEnabled}
-                  disabled={allFound || phrases.length === 0 || isGridTooSmall}
+                  disabled={allFound || phrases.length === 0 || isGridTooSmall || isGridLoading}
                   currentHintLevel={currentHintLevel}
                   maxHints={3}
                   showHintButton={true}
@@ -1790,12 +1823,7 @@ function AppContent() {
               found={found}
               hidePhrases={hidePhrases}
               setHidePhrases={setHidePhrases}
-              onClickPhrase={(phrase) => {
-                // Focus logic handled in Grid
-                if (gridRef.current?.focusPhrase) {
-                  gridRef.current.focusPhrase(phrase);
-                }
-              }}
+              onPhraseClick={handlePhraseClick}
               gameType={gameType}
               showTranslations={showTranslations}
               setShowTranslations={setShowTranslations}
@@ -1803,6 +1831,7 @@ function AppContent() {
               currentUser={currentUser}
               languageSetId={selectedLanguageSetId}
               compact={window.innerWidth < 1200}
+              isLoading={isGridLoading}
             />
           </Box>
         )}
@@ -1841,6 +1870,7 @@ function AppContent() {
           languageSetId={selectedLanguageSetId}
           t={t}
           gameType={gameType}
+          isLoading={isGridLoading}
         />
       )}
     </Stack>
@@ -1907,7 +1937,8 @@ function AppContent() {
             }
           />
           {/* Game Routes */}
-          <Route path="/" element={<Navigate to="/wordsearch" replace />} />
+          {/* Root now keeps SPA behavior with state-based game type */}
+          <Route path="/" element={gameView} />
 
           {/* Canonical Word Search Route */}
           <Route path="/wordsearch" element={gameView} />

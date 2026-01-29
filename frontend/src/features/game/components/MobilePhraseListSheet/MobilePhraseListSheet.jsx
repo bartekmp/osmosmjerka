@@ -26,7 +26,8 @@ const MobilePhraseListSheet = ({
   currentUser,
   languageSetId,
   t,
-  gameType = "word_search"
+  gameType = "word_search",
+  isLoading = false
 }) => {
   const { t: translate } = useTranslation();
   const sheetRef = useRef(null);
@@ -209,6 +210,7 @@ const MobilePhraseListSheet = ({
             hideToggleButton={true}
             t={t}
             gameType={gameType}
+            isLoading={isLoading}
           />
         </Box>
 

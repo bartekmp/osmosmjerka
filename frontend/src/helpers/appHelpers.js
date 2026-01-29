@@ -2,7 +2,7 @@ import axios from 'axios';
 import { STORAGE_KEYS } from '../shared/constants/constants';
 
 // Restore state from localStorage
-export function restoreGameState(setters) {
+export function restoreGameState(setters, requiredGameType = null) {
     const {
         setGrid,
         setPhrases,
@@ -23,6 +23,17 @@ export function restoreGameState(setters) {
     if (saved) {
         try {
             const state = JSON.parse(saved);
+
+            // Check if game type matches requirements
+            if (requiredGameType) {
+                const savedType = state.gameType || 'word_search';
+                if (savedType !== requiredGameType) {
+                    // Mismatch - do not restore
+                    setRestored(true);
+                    return false;
+                }
+            }
+
             const savedAllFound = typeof state.allFound === "boolean"
                 ? state.allFound
                 : (Array.isArray(state.phrases) && Array.isArray(state.found) && state.phrases.length > 0 && state.found.length === state.phrases.length);
@@ -64,7 +75,7 @@ export function restoreGameState(setters) {
                     setGridStatus('success');
                 }
                 setRestored(true);
-                return;
+                return true;
             }
         } catch (error) {
             // Ignore JSON parsing errors
@@ -73,6 +84,7 @@ export function restoreGameState(setters) {
         localStorage.removeItem('osmosmjerkaGameState');
     }
     setRestored(true);
+    return false;
 }
 
 // Save state to localStorage

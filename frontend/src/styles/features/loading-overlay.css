@@ -45,6 +45,16 @@
   box-shadow: var(--shadow-dark-md);
 }
 
+.loading-overlay.transparent {
+  background-color: transparent !important;
+}
+
+.loading-content.transparent {
+  background-color: transparent !important;
+  box-shadow: none !important;
+  padding: 0 !important;
+}
+
 .not-enough-phrases-overlay {
   position: absolute;
   top: 0;

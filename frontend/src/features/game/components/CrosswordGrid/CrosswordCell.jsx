@@ -21,6 +21,8 @@ export default function CrosswordCell({
     isCorrect = false,  // Phrase containing this cell is correct
     isWrong = false,    // Phrase containing this cell is wrong (highlight mode)
     isHighlighted = false, // Cell matches active phrase
+    isPulsating = false, // For level 2 hint error feedback
+    isBlinking = false, // For phrase navigation feedback
     cursorDirection = null, // 'across' or 'down' for cursor orientation
     onInput,            // Called when user types a letter
     onFocus,            // Called when cell gains focus
@@ -90,6 +92,8 @@ export default function CrosswordCell({
         if (isCorrect) classes.push('correct');
         if (isWrong) classes.push('wrong', 'shake');
         if (isHighlighted) classes.push('highlighted');
+        if (isPulsating) classes.push('pulsating');
+        if (isBlinking) classes.push('blinking');
         if (userInput) classes.push('filled');
         return classes.join(' ');
     };
