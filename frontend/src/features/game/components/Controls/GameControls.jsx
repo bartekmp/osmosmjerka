@@ -105,7 +105,10 @@ const GameControls = ({
                         >
                             {availableDifficulties.map(diff => (
                                 <MenuItem key={diff.value} value={diff.value}>
-                                    {t(diff.value)}
+                                    {gameType === 'crossword'
+                                        ? t(`difficultyLevel.${diff.value}`)
+                                        : t(diff.value)
+                                    }
                                 </MenuItem>
                             ))}
                         </Select>

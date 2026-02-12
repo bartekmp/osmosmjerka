@@ -1271,48 +1271,28 @@ function AppContent() {
   const handleHintRequest = useCallback(async () => {
     if (remainingHints <= 0 || !gridRef.current) return;
 
-    if (progressiveHintsEnabled) {
-      // Progressive hint mode
-      if (currentHintLevel === 0) {
-        // Start new progressive hint sequence
-        const targetPhrase = gridRef.current.showProgressiveHint(true);
-        if (targetPhrase) {
-          setCurrentHintLevel(1);
-          setRemainingHints((prev) => prev - 1);
-          setHintsUsed((prev) => prev + 1);
-        }
-      } else {
-        // Advance to next hint level
-        gridRef.current.advanceProgressiveHint();
-        setCurrentHintLevel((prev) => prev + 1);
-        setRemainingHints((prev) => prev - 1);
-        setHintsUsed((prev) => prev + 1);
-
-        // Reset hint level after final hint
-        if (currentHintLevel >= 2) {
-          setTimeout(() => {
-            setCurrentHintLevel(0);
-            if (gridRef.current) {
-              gridRef.current.clearHints();
-            }
-          }, 3000);
-        }
-      }
-    } else {
-      // Classic hint mode
-      const targetPhrase = gridRef.current.showProgressiveHint(false);
-      if (targetPhrase) {
-        setHintsUsed((prev) => prev + 1);
-        // No limit on classic hints, but still track usage for scoring
-      }
+    // For crossword mode, just reveal next character
+    // For word search, use progressive hint system if enabled
+    const targetPhrase = gridRef.current.showProgressiveHint(progressiveHintsEnabled);
+    if (targetPhrase) {
+      setRemainingHints((prev) => prev - 1);
+      setHintsUsed((prev) => prev + 1);
     }
-  }, [remainingHints, progressiveHintsEnabled, currentHintLevel]);
+  }, [remainingHints, progressiveHintsEnabled]);
 
   const resetGameState = useCallback(() => {
     setCurrentScore(0);
     setScoreBreakdown(null);
     setHintsUsed(0);
-    setRemainingHints(3);
+
+    // Set hint count based on game type
+    // In crossword mode: hints = number of phrases
+    // In word search mode: 3 hints (classic)
+    const initialHints = gameType === "crossword"
+      ? phrases.length
+      : 3;
+    setRemainingHints(initialHints);
+
     setCurrentHintLevel(0);
     setFirstPhraseTime(null);
     setCurrentElapsedTime(0);
@@ -1325,7 +1305,21 @@ function AppContent() {
     if (gridRef.current) {
       gridRef.current.clearHints();
     }
-  }, []);
+  }, [gameType, phrases.length]);
+
+  // Update hint count when game type changes (without refresh)
+  useEffect(() => {
+    if (phrases.length > 0 && !isGridLoading) {
+      const newHintCount = gameType === "crossword"
+        ? phrases.length
+        : 3;
+
+      // Only update if hint count should change and we haven't used any hints yet
+      if (hintsUsed === 0 && remainingHints !== newHintCount) {
+        setRemainingHints(newHintCount);
+      }
+    }
+  }, [gameType, phrases.length, isGridLoading, hintsUsed, remainingHints]);
 
   const markFound = useCallback(
     (phrase) => {
@@ -1810,8 +1804,7 @@ function AppContent() {
                   remainingHints={remainingHints}
                   isProgressiveMode={progressiveHintsEnabled}
                   disabled={allFound || phrases.length === 0 || isGridTooSmall || isGridLoading}
-                  currentHintLevel={currentHintLevel}
-                  maxHints={3}
+                  maxHints={gameType === "crossword" ? phrases.length : 3}
                   showHintButton={true}
                   compact={window.innerWidth < 1200}
                   gameType={gameType}

@@ -345,14 +345,21 @@ const ScoreDisplay = ({
                                             {t('score_details.per_phrase_title')}
                                         </Typography>
                                         <Box component="ul" className="per-phrase-list">
-                                            {perPhraseBreakdown.map((item) => (
-                                                <Typography key={item.id} component="li" variant="body2">
-                                                    {t('score_details.phrase_points', {
-                                                        phrase: item.phrase,
-                                                        points: item.points
-                                                    })}
-                                                </Typography>
-                                            ))}
+                                            {perPhraseBreakdown.map((item) => {
+                                                // Extract phrase text - handle both string and object formats
+                                                const phraseText = typeof item.phrase === 'string'
+                                                    ? item.phrase
+                                                    : (item.phrase?.phrase || String(item.phrase));
+
+                                                return (
+                                                    <Typography key={item.id} component="li" variant="body2">
+                                                        {t('score_details.phrase_points', {
+                                                            phrase: phraseText,
+                                                            points: item.points
+                                                        })}
+                                                    </Typography>
+                                                );
+                                            })}
                                         </Box>
                                     </Box>
                                 )}
@@ -506,11 +513,18 @@ const ScoreDisplay = ({
                                         {t('score_details.per_phrase_title')}
                                     </Typography>
                                     <Box component="ul" className="per-phrase-list">
-                                        {perPhraseBreakdown.map((item) => (
-                                            <Typography key={item.id} component="li" variant="caption">
-                                                {t('score_details.phrase_points', { phrase: item.phrase, points: item.points })}
-                                            </Typography>
-                                        ))}
+                                        {perPhraseBreakdown.map((item) => {
+                                            // Extract phrase text - handle both string and object formats
+                                            const phraseText = typeof item.phrase === 'string'
+                                                ? item.phrase
+                                                : (item.phrase?.phrase || String(item.phrase));
+
+                                            return (
+                                                <Typography key={item.id} component="li" variant="caption">
+                                                    {t('score_details.phrase_points', { phrase: phraseText, points: item.points })}
+                                                </Typography>
+                                            );
+                                        })}
                                     </Box>
                                 </Box>
                             )}

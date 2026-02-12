@@ -119,6 +119,7 @@ async def get_private_list_phrases_endpoint(
     language_set_id: int = Query(...),
     category: str = Query(None),
     difficulty: str = Query("medium"),
+    game_type: str = Query("word_search", description="Game type: 'word_search' or 'crossword'"),
     refresh: bool = Query(False),
     user=Depends(get_current_user),
 ) -> JSONResponse:
@@ -149,7 +150,7 @@ async def get_private_list_phrases_endpoint(
             )
 
         # Generate grid with exact phrase count
-        grid, selected_phrases = _generate_grid_with_exact_phrase_count(all_phrases, grid_size, num_phrases)
+        grid, selected_phrases = _generate_grid_with_exact_phrase_count(all_phrases, grid_size, num_phrases, game_type)
 
         response_data = {
             "grid": grid,
@@ -157,6 +158,7 @@ async def get_private_list_phrases_endpoint(
             "grid_size": grid_size,
             "difficulty": difficulty,
             "category": category or "Mixed",
+            "game_type": game_type,
             "source": "private_list",
             "list_id": list_id,
         }
