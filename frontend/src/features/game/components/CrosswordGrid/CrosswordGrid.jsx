@@ -419,117 +419,53 @@ const CrosswordGrid = forwardRef(({
         const normalized = targetPhrase.phrase.replace(/\s/g, '').toUpperCase();
 
         if (isProgressive) {
-            // Get current level for this phrase
-            const currentLevel = phraseHintLevels[phraseIdx] || 0;
-            const newLevel = currentLevel + 1;
+            // Always reveal next missing character
+            // Find first missing cell
+            const firstMissing = targetPhrase.coords.find(([r, c]) => !userInputs[`${r},${c}`]);
 
-            // Update level locally
-            setPhraseHintLevels(prev => ({
-                ...prev,
-                [phraseIdx]: newLevel
-            }));
+            if (firstMissing) {
+                const [r, c] = firstMissing;
+                const charIdx = targetPhrase.coords.findIndex(([pr, pc]) => pr === r && pc === c);
+                setUserInputs(prev => ({ ...prev, [`${r},${c}`]: normalized[charIdx] }));
 
-            if (newLevel === 1) {
-                // Level 1: Reveal SELECTED cell if part of phrase, otherwise next missing
-                let targetCoord = null;
-                // Check if active cell is valid and part of phrase
-                if (activeCell && targetPhrase.coords.some(([r, c]) => r === activeCell[0] && c === activeCell[1])) {
-                    targetCoord = activeCell;
-                } else {
-                    // Find first missing
-                    const firstMissing = targetPhrase.coords.find(([r, c]) => !userInputs[`${r},${c}`]);
-                    targetCoord = firstMissing || targetPhrase.coords[0];
+                // Update hint level for this phrase
+                const currentLevel = phraseHintLevels[phraseIdx] || 0;
+                setPhraseHintLevels(prev => ({
+                    ...prev,
+                    [phraseIdx]: currentLevel + 1
+                }));
+
+                // Auto-focus next empty cell after revealing this one
+                const nextMissing = targetPhrase.coords.find(([nr, nc]) =>
+                    !userInputs[`${nr},${nc}`] && (nr !== r || nc !== c)
+                );
+
+                if (nextMissing) {
+                    const [nextR, nextC] = nextMissing;
+                    // Set active cell - CrosswordCell will auto-focus via useEffect
+                    setTimeout(() => {
+                        setActiveCell([nextR, nextC]);
+                    }, 100);
                 }
-
-                if (targetCoord) {
-                    const [r, c] = targetCoord;
-                    const charIdx = targetPhrase.coords.findIndex(([pr, pc]) => pr === r && pc === c);
-                    setUserInputs(prev => ({ ...prev, [`${r},${c}`]: normalized[charIdx] }));
-                }
-
-                onHintUsed?.(targetPhrase.phrase);
-                return targetPhrase;
             }
-            else if (newLevel === 2) {
-                // Level 2: Validate existing letters
-                // Check correctness of filled cells
-                const normalizedPhrase = targetPhrase.phrase.replace(/\s/g, '').toUpperCase().split('').map(normalizeChar).join('');
 
-                const lettersCorrect = targetPhrase.coords.every(([r, c], i) => {
-                    const input = userInputs[`${r},${c}`];
-                    if (!input) return true; // Ignore empty
-                    return normalizeChar(input) === normalizedPhrase[i];
-                });
-
-                if (!lettersCorrect) {
-                    // Find wrong cells to highlight transiently
-                    const wrongCells = new Set();
-                    targetPhrase.coords.forEach(([r, c], i) => {
-                        const input = userInputs[`${r},${c}`];
-                        const isCorrect = input && normalizeChar(input) === normalizedPhrase[i];
-                        if (!isCorrect) {
-                            wrongCells.add(`${r},${c}`);
-                        }
-                    });
-
-                    setTransientWrongCells(wrongCells);
-
-                    // Clear after 3 seconds
-                    if (transientTimeoutRef.current) clearTimeout(transientTimeoutRef.current);
-                    transientTimeoutRef.current = setTimeout(() => {
-                        setTransientWrongCells(new Set());
-                    }, 3000);
-                } else {
-                    // All present letters are correct - maybe remove from wrong phrases?
-                    setWrongPhrases(prev => {
-                        const next = new Set(prev);
-                        next.delete(phraseIdx);
-                        return next;
-                    });
-                }
-
-                onHintUsed?.(targetPhrase.phrase);
-                return targetPhrase;
-            }
-            else {
-                // Level 3+: Reveal Entire Phrase (and complete it)
-                const newInputs = { ...userInputs };
-                targetPhrase.coords.forEach(([r, c], i) => {
-                    newInputs[`${r},${c}`] = normalized[i];
-                });
-                setUserInputs(newInputs);
-
-                if (phraseIdx !== -1) {
-                    setCompletedPhrases(prev => new Set([...prev, phraseIdx]));
-                    onPhraseComplete?.(targetPhrase);
-                }
-
-                onHintUsed?.(targetPhrase.phrase);
-                return targetPhrase;
-            }
+            onHintUsed?.(targetPhrase.phrase);
+            return targetPhrase;
         } else {
             // Classic mode
             return showHint(1);
         }
-    }, [phrases, completedPhrases, activeCell, currentDirection, userInputs, phraseHintLevels, showHint, onHintUsed, normalizeChar, onPhraseComplete]);
-
-    // Keep advanceProgressiveHint for compatibility, but map it to same logic if appropriate
-    // Ideally App.jsx should just call showProgressiveHint() repeatedly
-    const advanceProgressiveHint = useCallback(() => {
-        // This is technically redundant if showProgressiveHint handles state incrementation
-        // But we include it for API compatibility
-        return showProgressiveHint(true);
-    }, [showProgressiveHint]);
+    }, [phrases, completedPhrases, activeCell, currentDirection, userInputs, phraseHintLevels, showHint, onHintUsed]);
 
     // Expose methods to parent
     useImperativeHandle(ref, () => ({
         showHint,
         showProgressiveHint,
-        advanceProgressiveHint,
         clearHints: () => {
             // Reset hint tracking state
             setCurrentHintPhrase(null);
             setHintLevel(0);
+            setPhraseHintLevels({});
             // Optionally clear Blink?
             setBlinkingPhrase(null);
         },
@@ -555,7 +491,7 @@ const CrosswordGrid = forwardRef(({
         getCompletedCount: () => completedPhrases.size,
         getTotalPhrases: () => phrases.length,
         isAllComplete: () => completedPhrases.size === phrases.length,
-    }), [showHint, showProgressiveHint, advanceProgressiveHint, completedPhrases, phrases, userInputs]);
+    }), [showHint, showProgressiveHint, completedPhrases, phrases, userInputs]);
 
     // Early return for empty grid
     if (gridSize === 0) {
