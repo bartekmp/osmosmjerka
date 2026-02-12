@@ -2,6 +2,15 @@
 
 <!-- version list -->
 
+## v1.41.0 (2026-02-12)
+
+### Features
+
+- Improve crossword UX with auto-focus and simplified difficulty labels
+  ([#153](https://github.com/bartekmp/osmosmjerka/pull/153),
+  [`c83ef95`](https://github.com/bartekmp/osmosmjerka/commit/c83ef95b5a29df124018ee6fce29156a822f7b92))
+
+
 ## v1.40.1 (2026-01-29)
 
 ### Bug Fixes
