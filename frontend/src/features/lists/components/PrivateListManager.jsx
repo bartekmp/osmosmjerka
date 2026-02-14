@@ -43,6 +43,7 @@ import DeleteConfirmationDialog from './Dialogs/DeleteConfirmationDialog';
 import AddCustomPhraseDialog from './Dialogs/AddCustomPhraseDialog';
 import BatchImportDialog from './Dialogs/BatchImportDialog';
 import ShareListDialog from './Dialogs/ShareListDialog';
+import StatisticsDialog from './Dialogs/StatisticsDialog';
 
 export default function PrivateListManager({ open, onClose, languageSetId, isFullPage = false }) {
   const { t } = useTranslation();
@@ -1247,90 +1248,14 @@ export default function PrivateListManager({ open, onClose, languageSetId, isFul
       />
 
       {/* Statistics Dialog */}
-      <Dialog open={showStatsDialog} onClose={() => setShowStatsDialog(false)} maxWidth="sm" fullWidth>
-        <DialogTitle>{t('privateListManager.phrases.statisticsTitle', 'List Statistics')}</DialogTitle>
-        <DialogContent>
-          {listStats ? (
-            <Box>
-              <Typography variant="h6" gutterBottom>
-                {listStats.list_name}
-              </Typography>
-              <Table size="small">
-                <TableBody>
-                  <TableRow>
-                    <TableCell>Total Phrases</TableCell>
-                    <TableCell align="right"><strong>{listStats.total_phrases}</strong></TableCell>
-                  </TableRow>
-                  <TableRow>
-                    <TableCell>Custom Phrases</TableCell>
-                    <TableCell align="right">{listStats.custom_phrases}</TableCell>
-                  </TableRow>
-                  <TableRow>
-                    <TableCell>Public Phrases</TableCell>
-                    <TableCell align="right">{listStats.public_phrases}</TableCell>
-                  </TableRow>
-                  <TableRow>
-                    <TableCell>Created</TableCell>
-                    <TableCell align="right">
-                      {listStats.created_at ? new Date(listStats.created_at).toLocaleDateString() : '-'}
-                    </TableCell>
-                  </TableRow>
-                  <TableRow>
-                    <TableCell>Last Updated</TableCell>
-                    <TableCell align="right">
-                      {listStats.updated_at ? new Date(listStats.updated_at).toLocaleDateString() : '-'}
-                    </TableCell>
-                  </TableRow>
-                </TableBody>
-              </Table>
-            </Box>
-          ) : (
-            <CircularProgress />
-          )}
-
-          {userStats && (
-            <Box sx={{ mt: 3 }}>
-              <Typography variant="h6" gutterBottom>
-                {t('privateListManager.phrases.overallStatistics', 'Your Overall Statistics')}
-              </Typography>
-              <Table size="small">
-                <TableBody>
-                  <TableRow>
-                    <TableCell>Total Lists</TableCell>
-                    <TableCell align="right"><strong>{userStats.total_lists}</strong></TableCell>
-                  </TableRow>
-                  <TableRow>
-                    <TableCell>Total Phrases</TableCell>
-                    <TableCell align="right"><strong>{userStats.total_phrases}</strong></TableCell>
-                  </TableRow>
-                </TableBody>
-              </Table>
-
-              {userStats.most_used_lists && userStats.most_used_lists.length > 0 && (
-                <Box sx={{ mt: 2 }}>
-                  <Typography variant="subtitle2" gutterBottom>
-                    Most Used Lists:
-                  </Typography>
-                  {userStats.most_used_lists.map((list) => (
-                    <Box key={list.id} sx={{ display: 'flex', justifyContent: 'space-between', py: 0.5 }}>
-                      <Typography variant="body2">{list.list_name}</Typography>
-                      <Chip label={`${list.phrase_count} phrases`} size="small" />
-                    </Box>
-                  ))}
-                </Box>
-              )}
-            </Box>
-          )}
-        </DialogContent>
-        <DialogActions>
-          <Button onClick={() => {
-            fetchUserStatistics();
-          }} disabled={loading}>
-            Refresh Stats
-          </Button>
-          <Button onClick={() => setShowStatsDialog(false)}>Close</Button>
-        </DialogActions>
-      </Dialog>
+      <StatisticsDialog
+        open={showStatsDialog}
+        onClose={() => setShowStatsDialog(false)}
+        onRefresh={fetchUserStatistics}
+        loading={loading}
+        listStats={listStats}
+        userStats={userStats}
+      />
     </>
   );
 }
