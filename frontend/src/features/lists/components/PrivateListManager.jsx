@@ -41,6 +41,7 @@ import { STORAGE_KEYS } from '../../../shared/constants/constants';
 import CreateListDialog from './Dialogs/CreateListDialog';
 import DeleteConfirmationDialog from './Dialogs/DeleteConfirmationDialog';
 import AddCustomPhraseDialog from './Dialogs/AddCustomPhraseDialog';
+import BatchImportDialog from './Dialogs/BatchImportDialog';
 
 export default function PrivateListManager({ open, onClose, languageSetId, isFullPage = false }) {
   const { t } = useTranslation();
@@ -1224,91 +1225,18 @@ export default function PrivateListManager({ open, onClose, languageSetId, isFul
       </Snackbar>
 
       {/* Batch Import Dialog */}
-      <Dialog open={showImportDialog} onClose={handleCloseImportDialog} maxWidth="md" fullWidth>
-        <DialogTitle>{t('privateListManager.phrases.importTitle', 'Import Phrases from CSV')}</DialogTitle>
-        <DialogContent>
-          <Box sx={{ mb: 2 }}>
-            <Typography variant="body2" color="text.secondary" gutterBottom>
-              {t('privateListManager.phrases.importDescription', 'Upload a CSV file with phrases. Format: phrase; translation; categories (optional)')}
-            </Typography>
-            <Button
-              variant="contained"
-              component="label"
-              startIcon={<UploadFileIcon />}
-              sx={{ mt: 1 }}
-            >
-              Select File
-              <input
-                type="file"
-                hidden
-                accept=".csv"
-                onChange={handleFileSelect}
-              />
-            </Button>
-            {importFile && (
-              <Typography variant="body2" sx={{ mt: 1 }}>
-                Selected: {importFile.name} ({importData.length} phrases)
-              </Typography>
-            )}
-          </Box>
-
-          {importPreview.length > 0 && (
-            <Box>
-              <Typography variant="subtitle2" gutterBottom>
-                Preview (first 10 rows):
-              </Typography>
-              <Table size="small">
-                <TableHead>
-                  <TableRow>
-                    <TableCell>Phrase</TableCell>
-                    <TableCell>Translation</TableCell>
-                    <TableCell>Categories</TableCell>
-                  </TableRow>
-                </TableHead>
-                <TableBody>
-                  {importPreview.map((item, idx) => (
-                    <TableRow key={idx}>
-                      <TableCell>{item.phrase}</TableCell>
-                      <TableCell>{item.translation}</TableCell>
-                      <TableCell>{item.categories || '-'}</TableCell>
-                    </TableRow>
-                  ))}
-                </TableBody>
-              </Table>
-            </Box>
-          )}
-
-          {importResult && (
-            <Box sx={{ mt: 2 }}>
-              <Alert severity={importResult.error_count > 0 ? 'warning' : 'success'}>
-                Imported: {importResult.added_count} | Errors: {importResult.error_count}
-              </Alert>
-              {importResult.errors && importResult.errors.length > 0 && (
-                <Box sx={{ mt: 1 }}>
-                  <Typography variant="caption" color="error">
-                    First {importResult.errors.length} errors:
-                  </Typography>
-                  {importResult.errors.map((err, idx) => (
-                    <Typography key={idx} variant="caption" display="block">
-                      Row {err.index + 1}: {err.error}
-                    </Typography>
-                  ))}
-                </Box>
-              )}
-            </Box>
-          )}
-        </DialogContent>
-        <DialogActions>
-          <Button onClick={handleCloseImportDialog}>Close</Button>
-          <Button
-            onClick={handleBatchImport}
-            variant="contained"
-            disabled={loading || importData.length === 0}
-          >
-            Import {importData.length} Phrases
-          </Button>
-        </DialogActions>
-      </Dialog>
+      {/* Batch Import Dialog */}
+      <BatchImportDialog
+        open={showImportDialog}
+        onClose={handleCloseImportDialog}
+        onImport={handleBatchImport}
+        onFileSelect={handleFileSelect}
+        loading={loading}
+        importFile={importFile}
+        importData={importData}
+        importPreview={importPreview}
+        importResult={importResult}
+      />
 
       {/* Share List Dialog */}
       <Dialog open={showShareDialog} onClose={() => setShowShareDialog(false)} maxWidth="sm" fullWidth>
