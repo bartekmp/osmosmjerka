@@ -38,6 +38,7 @@ import DownloadIcon from '@mui/icons-material/Download';
 import { useTranslation } from 'react-i18next';
 import axios from 'axios';
 import { STORAGE_KEYS } from '../../../shared/constants/constants';
+import CreateListDialog from './Dialogs/CreateListDialog';
 
 export default function PrivateListManager({ open, onClose, languageSetId, isFullPage = false }) {
   const { t } = useTranslation();
@@ -50,7 +51,6 @@ export default function PrivateListManager({ open, onClose, languageSetId, isFul
   // Lists Tab State
   const [editingListId, setEditingListId] = useState(null);
   const [editingListName, setEditingListName] = useState('');
-  const [newListName, setNewListName] = useState('');
   const [showCreateDialog, setShowCreateDialog] = useState(false);
   const [deleteConfirmation, setDeleteConfirmation] = useState(null);
 
@@ -293,13 +293,13 @@ export default function PrivateListManager({ open, onClose, languageSetId, isFul
 
   // ===== Lists Tab Functions =====
 
-  const handleCreateList = async () => {
-    if (!newListName.trim()) {
+  const handleCreateList = async (listName) => {
+    if (!listName.trim()) {
       showNotification(t('privateListManager.validation.listNameRequired'), 'error');
       return;
     }
 
-    if (newListName.length > 100) {
+    if (listName.length > 100) {
       showNotification(t('privateListManager.validation.listNameTooLong'), 'error');
       return;
     }
@@ -307,14 +307,13 @@ export default function PrivateListManager({ open, onClose, languageSetId, isFul
     setLoading(true);
     try {
       await axios.post('/api/user/private-lists', {
-        list_name: newListName.trim(),
+        list_name: listName.trim(),
         language_set_id: languageSetId
       }, {
         headers: getAuthHeader()
       });
 
       showNotification(t('privateListManager.success.listCreated'), 'success');
-      setNewListName('');
       setShowCreateDialog(false);
       await fetchLists(true);
     } catch (error) {
@@ -925,31 +924,12 @@ export default function PrivateListManager({ open, onClose, languageSetId, isFul
         )}
 
         {/* Create List Dialog */}
-        <Dialog open={showCreateDialog} onClose={() => setShowCreateDialog(false)}>
-          <DialogTitle>{t('privateListManager.lists.createNew')}</DialogTitle>
-          <DialogContent>
-            <TextField
-              autoFocus
-              margin="dense"
-              label={t('privateListManager.lists.listName')}
-              fullWidth
-              value={newListName}
-              onChange={(e) => setNewListName(e.target.value)}
-              onKeyPress={(e) => {
-                if (e.key === 'Enter') handleCreateList();
-              }}
-              helperText={t('privateListManager.validation.maxLength', { max: 100 })}
-            />
-          </DialogContent>
-          <DialogActions>
-            <Button onClick={() => setShowCreateDialog(false)} disabled={loading}>
-              {t('privateListManager.buttons.cancel')}
-            </Button>
-            <Button onClick={handleCreateList} variant="contained" disabled={loading}>
-              {t('privateListManager.buttons.create')}
-            </Button>
-          </DialogActions>
-        </Dialog>
+        <CreateListDialog
+          open={showCreateDialog}
+          onClose={() => setShowCreateDialog(false)}
+          onSubmit={handleCreateList}
+          loading={loading}
+        />
 
         {/* Delete Confirmation Dialog */}
         <Dialog open={!!deleteConfirmation} onClose={() => setDeleteConfirmation(null)}>
