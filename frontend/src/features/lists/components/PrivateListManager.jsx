@@ -42,6 +42,7 @@ import CreateListDialog from './Dialogs/CreateListDialog';
 import DeleteConfirmationDialog from './Dialogs/DeleteConfirmationDialog';
 import AddCustomPhraseDialog from './Dialogs/AddCustomPhraseDialog';
 import BatchImportDialog from './Dialogs/BatchImportDialog';
+import ShareListDialog from './Dialogs/ShareListDialog';
 
 export default function PrivateListManager({ open, onClose, languageSetId, isFullPage = false }) {
   const { t } = useTranslation();
@@ -71,8 +72,6 @@ export default function PrivateListManager({ open, onClose, languageSetId, isFul
 
   // List Sharing State
   const [showShareDialog, setShowShareDialog] = useState(false);
-  const [shareUsername, setShareUsername] = useState('');
-  const [sharePermission, setSharePermission] = useState('read');
   const [listShares, setListShares] = useState([]);
 
   // Statistics State
@@ -575,8 +574,8 @@ export default function PrivateListManager({ open, onClose, languageSetId, isFul
     }
   };
 
-  const handleShareList = async () => {
-    if (!shareUsername.trim()) {
+  const handleShareList = async (username, permission) => {
+    if (!username.trim()) {
       showNotification('Please enter a username', 'error');
       return;
     }
@@ -586,14 +585,13 @@ export default function PrivateListManager({ open, onClose, languageSetId, isFul
       await axios.post(
         `/api/user/private-lists/${selectedListId}/share`,
         {
-          shared_with_username: shareUsername.trim(),
-          permission: sharePermission
+          shared_with_username: username.trim(),
+          permission: permission
         },
         { headers: getAuthHeader() }
       );
 
-      showNotification(t('privateListManager.phrases.shareSuccess', 'List shared with {{username}}', { username: shareUsername }), 'success');
-      setShareUsername('');
+      showNotification(t('privateListManager.phrases.shareSuccess', 'List shared with {{username}}', { username }), 'success');
       await fetchListShares();
     } catch (error) {
       const message = error.response?.data?.error || 'Failed to share list';
@@ -1239,89 +1237,14 @@ export default function PrivateListManager({ open, onClose, languageSetId, isFul
       />
 
       {/* Share List Dialog */}
-      <Dialog open={showShareDialog} onClose={() => setShowShareDialog(false)} maxWidth="sm" fullWidth>
-        <DialogTitle>{t('privateListManager.phrases.shareList', 'Share List')}</DialogTitle>
-        <DialogContent>
-          <Box sx={{ mb: 2 }}>
-            <TextField
-              fullWidth
-              label={t('privateListManager.phrases.shareUsername', 'Username')}
-              value={shareUsername}
-              onChange={(e) => setShareUsername(e.target.value)}
-              margin="dense"
-            />
-            <Box sx={{ mt: 1, display: 'flex', gap: 1 }}>
-              <Chip
-                label={t('privateListManager.phrases.shareReadOnly', 'Read Only')}
-                color={sharePermission === 'read' ? 'primary' : 'default'}
-                onClick={() => setSharePermission('read')}
-                clickable
-              />
-              <Chip
-                label={t('privateListManager.phrases.shareReadWrite', 'Read & Write')}
-                color={sharePermission === 'write' ? 'primary' : 'default'}
-                onClick={() => setSharePermission('write')}
-                clickable
-              />
-            </Box>
-            <Button
-              variant="contained"
-              onClick={handleShareList}
-              disabled={loading || !shareUsername.trim()}
-              sx={{ mt: 2 }}
-              fullWidth
-            >
-              {t('privateListManager.buttons.share', 'Share')}
-            </Button>
-          </Box>
-
-          <Typography variant="subtitle2" gutterBottom>
-            {t('privateListManager.phrases.currentlyShared', 'Currently shared with:')}
-          </Typography>
-          {listShares.length === 0 ? (
-            <Typography variant="body2" color="text.secondary">
-              {t('privateListManager.phrases.notShared', 'Not shared with anyone')}
-            </Typography>
-          ) : (
-            <Table size="small">
-              <TableHead>
-                <TableRow>
-                  <TableCell>{t('privateListManager.phrases.user', 'User')}</TableCell>
-                  <TableCell>{t('privateListManager.phrases.permission', 'Permission')}</TableCell>
-                  <TableCell align="right">{t('privateListManager.phrases.actions', 'Actions')}</TableCell>
-                </TableRow>
-              </TableHead>
-              <TableBody>
-                {listShares.map((share) => (
-                  <TableRow key={share.id}>
-                    <TableCell>{share.username}</TableCell>
-                    <TableCell>
-                      <Chip
-                        label={share.permission}
-                        size="small"
-                        color={share.permission === 'write' ? 'primary' : 'default'}
-                      />
-                    </TableCell>
-                    <TableCell align="right">
-                      <IconButton
-                        size="small"
-                        onClick={() => handleUnshare(share.shared_with_user_id)}
-                        disabled={loading}
-                        color="error"
-                      >
-                        <DeleteIcon />
-                      </IconButton>
-                    </TableCell>
-                  </TableRow>
-                ))}
-              </TableBody>
-            </Table>
-          )}
-        </DialogContent>
-        <DialogActions>
-          <Button onClick={() => setShowShareDialog(false)}>{t('privateListManager.buttons.close')}</Button>
-        </DialogActions>
-      </Dialog>
+      <ShareListDialog
+        open={showShareDialog}
+        onClose={() => setShowShareDialog(false)}
+        onShare={handleShareList}
+        onUnshare={handleUnshare}
+        loading={loading}
+        listShares={listShares}
+      />
 
       {/* Statistics Dialog */}
       <Dialog open={showStatsDialog} onClose={() => setShowStatsDialog(false)} maxWidth="sm" fullWidth>
