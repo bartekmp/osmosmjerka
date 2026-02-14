@@ -39,6 +39,7 @@ import { useTranslation } from 'react-i18next';
 import axios from 'axios';
 import { STORAGE_KEYS } from '../../../shared/constants/constants';
 import CreateListDialog from './Dialogs/CreateListDialog';
+import DeleteConfirmationDialog from './Dialogs/DeleteConfirmationDialog';
 
 export default function PrivateListManager({ open, onClose, languageSetId, isFullPage = false }) {
   const { t } = useTranslation();
@@ -932,32 +933,13 @@ export default function PrivateListManager({ open, onClose, languageSetId, isFul
         />
 
         {/* Delete Confirmation Dialog */}
-        <Dialog open={!!deleteConfirmation} onClose={() => setDeleteConfirmation(null)}>
-          <DialogTitle>{t('privateListManager.lists.confirmDelete')}</DialogTitle>
-          <DialogContent>
-            <Typography>
-              {t('privateListManager.lists.deleteWarning', { name: deleteConfirmation?.list_name })}
-            </Typography>
-            {deleteConfirmation?.is_system_list && (
-              <Typography color="error" sx={{ mt: 2 }}>
-                {t('privateListManager.lists.cannotDeleteSystem')}
-              </Typography>
-            )}
-          </DialogContent>
-          <DialogActions>
-            <Button onClick={() => setDeleteConfirmation(null)} disabled={loading}>
-              {t('privateListManager.buttons.cancel')}
-            </Button>
-            <Button
-              onClick={handleConfirmDelete}
-              color="error"
-              variant="contained"
-              disabled={loading || deleteConfirmation?.is_system_list}
-            >
-              {t('privateListManager.buttons.delete')}
-            </Button>
-          </DialogActions>
-        </Dialog>
+        <DeleteConfirmationDialog
+          open={!!deleteConfirmation}
+          list={deleteConfirmation}
+          onClose={() => setDeleteConfirmation(null)}
+          onConfirm={handleConfirmDelete}
+          loading={loading}
+        />
       </Box>
     );
   };
