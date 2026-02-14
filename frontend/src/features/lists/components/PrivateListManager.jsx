@@ -40,6 +40,7 @@ import axios from 'axios';
 import { STORAGE_KEYS } from '../../../shared/constants/constants';
 import CreateListDialog from './Dialogs/CreateListDialog';
 import DeleteConfirmationDialog from './Dialogs/DeleteConfirmationDialog';
+import AddCustomPhraseDialog from './Dialogs/AddCustomPhraseDialog';
 
 export default function PrivateListManager({ open, onClose, languageSetId, isFullPage = false }) {
   const { t } = useTranslation();
@@ -59,9 +60,6 @@ export default function PrivateListManager({ open, onClose, languageSetId, isFul
   const [phrases, setPhrases] = useState([]);
   const [selectedPhrases, setSelectedPhrases] = useState(new Set());
   const [showAddCustomDialog, setShowAddCustomDialog] = useState(false);
-  const [customPhrase, setCustomPhrase] = useState('');
-  const [customTranslation, setCustomTranslation] = useState('');
-  const [customCategories, setCustomCategories] = useState('');
 
   // Batch Import State
   const [showImportDialog, setShowImportDialog] = useState(false);
@@ -401,13 +399,13 @@ export default function PrivateListManager({ open, onClose, languageSetId, isFul
 
   // ===== Phrases Tab Functions =====
 
-  const handleAddCustomPhrase = async () => {
-    if (!customPhrase.trim()) {
+  const handleAddCustomPhrase = async (phrase, translation, categories) => {
+    if (!phrase.trim()) {
       showNotification(t('privateListManager.validation.phraseRequired'), 'error');
       return;
     }
 
-    if (!customTranslation.trim()) {
+    if (!translation.trim()) {
       showNotification(t('privateListManager.validation.translationRequired'), 'error');
       return;
     }
@@ -415,17 +413,14 @@ export default function PrivateListManager({ open, onClose, languageSetId, isFul
     setLoading(true);
     try {
       await axios.post(`/api/user/private-lists/${selectedListId}/phrases`, {
-        custom_phrase: customPhrase.trim(),
-        custom_translation: customTranslation.trim(),
-        custom_categories: customCategories.trim() || null
+        custom_phrase: phrase.trim(),
+        custom_translation: translation.trim(),
+        custom_categories: categories.trim() || null
       }, {
         headers: getAuthHeader()
       });
 
       showNotification(t('privateListManager.success.phraseAdded'), 'success');
-      setCustomPhrase('');
-      setCustomTranslation('');
-      setCustomCategories('');
       setShowAddCustomDialog(false);
       await fetchPhrases(true);
       await fetchLists(true); // Update phrase count
@@ -1164,44 +1159,13 @@ export default function PrivateListManager({ open, onClose, languageSetId, isFul
         )}
 
         {/* Add Custom Phrase Dialog */}
-        <Dialog open={showAddCustomDialog} onClose={() => setShowAddCustomDialog(false)} maxWidth="sm" fullWidth>
-          <DialogTitle>{t('privateListManager.phrases.addCustom')}</DialogTitle>
-          <DialogContent>
-            <TextField
-              autoFocus
-              margin="dense"
-              label={t('privateListManager.phrases.phrase')}
-              fullWidth
-              value={customPhrase}
-              onChange={(e) => setCustomPhrase(e.target.value)}
-              required
-            />
-            <TextField
-              margin="dense"
-              label={t('privateListManager.phrases.translation')}
-              fullWidth
-              value={customTranslation}
-              onChange={(e) => setCustomTranslation(e.target.value)}
-              required
-            />
-            <TextField
-              margin="dense"
-              label={t('privateListManager.phrases.categories')}
-              fullWidth
-              value={customCategories}
-              onChange={(e) => setCustomCategories(e.target.value)}
-              helperText={t('privateListManager.phrases.categoriesOptional')}
-            />
-          </DialogContent>
-          <DialogActions>
-            <Button onClick={() => setShowAddCustomDialog(false)} disabled={loading}>
-              {t('privateListManager.buttons.cancel')}
-            </Button>
-            <Button onClick={handleAddCustomPhrase} variant="contained" disabled={loading}>
-              {t('privateListManager.buttons.add')}
-            </Button>
-          </DialogActions>
-        </Dialog>
+        {/* Add Custom Phrase Dialog */}
+        <AddCustomPhraseDialog
+          open={showAddCustomDialog}
+          onClose={() => setShowAddCustomDialog(false)}
+          onSubmit={handleAddCustomPhrase}
+          loading={loading}
+        />
       </Box>
     );
   };
