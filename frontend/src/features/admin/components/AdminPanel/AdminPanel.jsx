@@ -18,7 +18,7 @@ import {
     Paper,
     Box,
 } from '@shared/components/ui/StyledComponents';
-import { useCallback, useEffect, useLayoutEffect, useRef, useState } from 'react';
+import { useCallback, useEffect, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { isTokenExpired } from './helpers';
 import LanguageSetManagement from './LanguageSetManagement';
@@ -30,7 +30,7 @@ import MyStudy from './MyStudy';
 import StatisticsDashboard from '../StatisticsDashboard/StatisticsDashboard';
 import SystemSettings from '../SystemSettings/SystemSettings';
 import TeacherDashboard from '../TeacherDashboard/TeacherDashboard';
-import BrowseRecordsView from './BrowseRecordsView';
+import BrowseRecordsContainer from '../BrowseRecords/BrowseRecordsContainer';
 import { PrivateListManager } from '../../../lists';
 import PlaylistAddCheckIcon from '@mui/icons-material/PlaylistAddCheck';
 import NotificationsIcon from '@mui/icons-material/Notifications';
@@ -39,22 +39,7 @@ import { useNotifications } from './useNotifications';
 import NotificationList from '../Notifications/NotificationList';
 import PropTypes from 'prop-types';
 
-const CONTROL_BAR_BREAKPOINTS = {
-    compact: 1000,
-    full: 1280
-};
-
-const computeControlBarMode = (width) => {
-    if (width <= CONTROL_BAR_BREAKPOINTS.compact) {
-        return 'compact';
-    }
-    if (width <= CONTROL_BAR_BREAKPOINTS.full) {
-        return 'short';
-    }
-    return 'full';
-};
-
-export { computeControlBarMode };
+import { useAdminLayout } from '../../hooks/useAdminLayout';
 
 export default function AdminPanel({
     ignoredCategories = [],
@@ -63,15 +48,6 @@ export default function AdminPanel({
 }) {
     const { t } = useTranslation();
     const [auth, setAuth] = useState({ user: '', pass: '' });
-    const [rows, setRows] = useState([]);
-    const [offset, setOffset] = useState(0);
-    const [limit, setLimit] = useState(() => {
-        // Load page size from localStorage or default to 20
-        const saved = localStorage.getItem(STORAGE_KEYS.ADMIN_PAGE_SIZE);
-        return saved ? parseInt(saved) : 20;
-    });
-    const [newRow, setNewRow] = useState(null);
-    const [isSavingNewRow, setIsSavingNewRow] = useState(false);
     const [error, setError] = useState("");
     const [isLogged, setIsLogged] = useState(false);
     const [dashboard, setDashboard] = useState(true);
@@ -91,102 +67,18 @@ export default function AdminPanel({
     const [categories, setCategories] = useState([]);
     const [languageSets, setLanguageSets] = useState([]);
     const [languageSetsLoading, setLanguageSetsLoading] = useState(true);
-    const [showIgnoredCategories, _setShowIgnoredCategories] = useState(false);
-    const [filterCategory, setFilterCategory] = useState('');
     const [selectedLanguageSetId, setSelectedLanguageSetId] = useState(() => {
         // Load from localStorage or default to null (will be set when language sets load)
         const saved = localStorage.getItem(STORAGE_KEYS.SELECTED_LANGUAGE_SET);
         return saved ? parseInt(saved) : null;
     });
-    const [totalRows, setTotalRows] = useState(0);
-    const [offsetInput, setOffsetInput] = useState(0);
-    const [searchTerm, setSearchTerm] = useState('');
 
     const [languageSetsLoaded, setLanguageSetsLoaded] = useState(false);
     const [categoriesLoaded, setCategoriesLoaded] = useState(false);
-    const controlBarContainerRef = useRef(null);
-    const manualCollapseRef = useRef(false);
-    const [autoControlMode, setAutoControlMode] = useState(() => {
-        if (typeof window === 'undefined') {
-            return 'full';
-        }
-        return computeControlBarMode(window.innerWidth);
-    });
-    const [isControlBarCollapsed, setIsControlBarCollapsed] = useState(autoControlMode === 'compact');
+    const { isControlBarCollapsed, isLayoutCompact, containerRef } = useAdminLayout();
 
-    const updateAutoControlMode = useCallback(() => {
-        let width = controlBarContainerRef.current?.getBoundingClientRect?.().width;
-        if (typeof width !== 'number') {
-            width = typeof window !== 'undefined' ? window.innerWidth : CONTROL_BAR_BREAKPOINTS.full;
-        }
-
-        setAutoControlMode((prev) => {
-            const next = computeControlBarMode(width);
-            return next === prev ? prev : next;
-        });
-    }, []);
-
-    useLayoutEffect(() => {
-        updateAutoControlMode();
-
-        if (typeof window !== 'undefined') {
-            window.addEventListener('resize', updateAutoControlMode);
-        }
-
-        let observer;
-        if (typeof window !== 'undefined' && window.ResizeObserver) {
-            observer = new window.ResizeObserver(() => {
-                updateAutoControlMode();
-            });
-            if (controlBarContainerRef.current) {
-                observer.observe(controlBarContainerRef.current);
-            }
-        }
-
-        return () => {
-            if (typeof window !== 'undefined') {
-                window.removeEventListener('resize', updateAutoControlMode);
-            }
-            if (observer) {
-                observer.disconnect();
-            }
-        };
-    }, [updateAutoControlMode]);
-
-    useEffect(() => {
-        if (autoControlMode === 'compact') {
-            manualCollapseRef.current = false;
-            if (!isControlBarCollapsed) {
-                setIsControlBarCollapsed(true);
-            }
-            return;
-        }
-
-        if (!manualCollapseRef.current && isControlBarCollapsed) {
-            setIsControlBarCollapsed(false);
-        }
-    }, [autoControlMode, isControlBarCollapsed]);
-
-    const isLayoutCompact = autoControlMode === 'compact';
-    const ignoredCategoriesCount = ignoredCategories.length + userIgnoredCategories.length;
-    // Batch operations state
-    const [batchMode, setBatchMode] = useState(false);
-    const [selectedRows, setSelectedRows] = useState([]);
-    const [batchDialog, setBatchDialog] = useState({ open: false, operation: null });
-    const [batchResult, setBatchResult] = useState({ open: false, operation: null, result: null });
-    const [batchLoading, setBatchLoading] = useState(false);
-
-    // Notification state for row operations
-    const [notification, setNotification] = useState({ open: false, message: '', severity: 'success' });
-
-    // Memoize search term handler to prevent unnecessary re-renders
-    const handleSearchChange = useCallback((value) => {
-        setSearchTerm(value);
-        setOffset(0); // Reset to first page when searching
-    }, []);
     const [token, setToken] = useState(localStorage.getItem(STORAGE_KEYS.ADMIN_TOKEN) || '');
     const [tokenExpired, setTokenExpired] = useState(false); // Track if token expired (vs. user logged out)
-    const [dataLoading, setDataLoading] = useState(false);
 
     const role = currentUser?.role;
     const canAccessTeacher = ['teacher', 'admin', 'root_admin', 'administrative'].includes(role);
@@ -194,24 +86,14 @@ export default function AdminPanel({
     const canManageAdvanced = ['root_admin', 'administrative'].includes(role);
 
     const {
-        fetchRows: originalFetchRows,
         handleLogin,
-        handleSave,
-        handleExportTxt,
-        clearDb,
-        handleBatchDelete,
-        handleBatchAddCategory,
-        handleBatchRemoveCategory,
-        invalidateCategoriesCache,
         showFetchRateLimit
     } = useAdminApi({
         token,
-        setRows,
-        setTotalRows,
-        setDashboard,
         setError,
         setToken,
-        setIsLogged
+        setIsLogged,
+        setDashboard
     });
 
     // Notifications
@@ -248,16 +130,7 @@ export default function AdminPanel({
         }
     };
 
-    // Wrap fetchRows to handle loading state
-    const fetchRows = useCallback((...args) => {
-        // Only fetch if we're actually browsing records
-        if (!browseRecords) {
-            return;
-        }
-        setDataLoading(true);
-        // Call original fetchRows and set up a listener for when data changes
-        originalFetchRows(...args);
-    }, [originalFetchRows, browseRecords]);
+
 
     // Helper function to handle authentication errors
     const handleAuthError = useCallback((response) => {
@@ -273,13 +146,7 @@ export default function AdminPanel({
         return false;
     }, [setDashboard]);
 
-    // Clear loading state when rows change (indicating fetch completed)
-    useEffect(() => {
-        if (dataLoading) {
-            const timer = setTimeout(() => setDataLoading(false), 100);
-            return () => clearTimeout(timer);
-        }
-    }, [rows, dataLoading]);
+
 
     useEffect(() => {
         // Only make admin API calls if user is properly logged in
@@ -287,8 +154,7 @@ export default function AdminPanel({
             // Clear admin data when not logged in
             setCategories([]);
             setLanguageSets([]);
-            setRows([]);
-            setTotalRows(0);
+
             setLanguageSetsLoading(true);
             setLanguageSetsLoaded(false);
             setCategoriesLoaded(false);
@@ -375,130 +241,7 @@ export default function AdminPanel({
         }
     }, [isLogged, token, selectedLanguageSetId, dashboard, userManagement, userProfile, statisticsDashboard, systemSettings, languageSetManagement, duplicateManagement, categoriesLoaded, handleAuthError]);
 
-    // Handlers for pagination and offset input, to avoid negative or excessive values
-    const handleOffsetInput = (e) => {
-        let val = parseInt(e.target.value, 10);
-        if (isNaN(val) || val < 0) val = 0;
-        if (val > Math.max(totalRows - limit, 0)) val = Math.max(totalRows - limit, 0);
-        setOffsetInput(val);
-    };
-    const goToOffset = () => {
-        const val = parseInt(offsetInput, 10);
-        if (!isNaN(val) && val >= 0 && val <= Math.max(totalRows - limit, 0)) {
-            setOffset(val);
-        }
-    };
 
-    // Batch mode handlers
-    const handleEnterBatchMode = () => {
-        setBatchMode(true);
-        setSelectedRows([]);
-    };
-
-    const handleExitBatchMode = () => {
-        setBatchMode(false);
-        setSelectedRows([]);
-    };
-
-    const handleBatchModeToggle = () => {
-        if (batchMode) {
-            handleExitBatchMode();
-        } else {
-            handleEnterBatchMode();
-        }
-    };
-
-    const handleRowSelectionChange = (newSelectedRows) => {
-        setSelectedRows(newSelectedRows);
-    };
-
-    // Batch operation handlers
-    const handleBatchDeleteClick = () => {
-        setBatchDialog({ open: true, operation: 'delete' });
-    };
-
-    const handleBatchAddCategoryClick = () => {
-        setBatchDialog({ open: true, operation: 'add_category' });
-    };
-
-    const handleBatchRemoveCategoryClick = () => {
-        setBatchDialog({ open: true, operation: 'remove_category' });
-    };
-
-    const handleBatchConfirm = async (categoryName = '') => {
-        setBatchLoading(true);
-        setBatchDialog({ open: false, operation: null });
-
-        let result;
-        const operation = batchDialog.operation;
-
-        try {
-            switch (operation) {
-                case 'delete':
-                    result = await handleBatchDelete(selectedRows, selectedLanguageSetId);
-                    break;
-                case 'add_category':
-                    result = await handleBatchAddCategory(selectedRows, categoryName, selectedLanguageSetId);
-                    break;
-                case 'remove_category':
-                    result = await handleBatchRemoveCategory(selectedRows, categoryName, selectedLanguageSetId);
-                    break;
-                default:
-                    throw new Error('Unknown batch operation');
-            }
-
-            // Show result dialog
-            setBatchResult({ open: true, operation, result });
-
-            // If successful, refresh data and clear selections
-            if (result.success) {
-                setSelectedRows([]);
-                if (selectedLanguageSetId) {
-                    fetchRows(offset, limit, filterCategory, searchTerm, selectedLanguageSetId);
-                }
-            }
-        } catch (error) {
-            setBatchResult({
-                open: true,
-                operation,
-                result: { success: false, error: error.message }
-            });
-        } finally {
-            setBatchLoading(false);
-        }
-    };
-
-    const handleBatchDialogClose = () => {
-        setBatchDialog({ open: false, operation: null });
-    };
-
-    const handleBatchResultClose = () => {
-        setBatchResult({ open: false, operation: null, result: null });
-    };
-
-    // Automatically fetch rows when logged in and browse records is active
-    useEffect(() => {
-        if (isLogged && browseRecords && selectedLanguageSetId) {
-            fetchRows(offset, limit, filterCategory, searchTerm, selectedLanguageSetId);
-        }
-
-    }, [browseRecords, offset, filterCategory, selectedLanguageSetId, limit]);
-
-    // Clear selections when exiting batch mode
-    useEffect(() => {
-        if (!batchMode) {
-            setSelectedRows([]);
-        }
-    }, [batchMode]);
-
-    // Fetch rows when search term changes
-    useEffect(() => {
-        if (isLogged && browseRecords && searchTerm !== undefined && selectedLanguageSetId) {
-            fetchRows(0, limit, filterCategory, searchTerm, selectedLanguageSetId);
-            setOffset(0); // Reset to first page when searching
-        }
-
-    }, [browseRecords, searchTerm, filterCategory, selectedLanguageSetId, limit]);
 
     // Check token on mount and after login
     useEffect(() => {
@@ -546,252 +289,7 @@ export default function AdminPanel({
 
     }, [token, handleAuthError]);
 
-    // When switching to Browse Phrases, auto-load first page
-    useEffect(() => {
-        if (isLogged && browseRecords && selectedLanguageSetId) {
 
-            fetchRows(0, limit, filterCategory, searchTerm, selectedLanguageSetId);
-            setOffset(0);
-
-        }
-
-    }, [isLogged, browseRecords, selectedLanguageSetId]);
-
-    const handleStartAddRow = useCallback(() => {
-        if (!selectedLanguageSetId || newRow) {
-            return;
-        }
-        setNewRow({ categories: '', phrase: '', translation: '' });
-        setError('');
-    }, [selectedLanguageSetId, newRow]);
-
-    const handleNewRowFieldChange = useCallback((field, value) => {
-        setNewRow(prev => (prev ? { ...prev, [field]: value } : prev));
-    }, []);
-
-    const handleCancelNewRow = useCallback(() => {
-        setNewRow(null);
-    }, []);
-
-    // Helper to map error messages to user-friendly translated messages
-    const getErrorMessage = useCallback((error) => {
-        // Extract raw message from error object
-        let rawMessage = '';
-        if (typeof error === 'string') {
-            rawMessage = error;
-        } else if (error?.response?.data?.message) {
-            rawMessage = error.response.data.message;
-        } else if (error?.response?.data?.detail) {
-            rawMessage = error.response.data.detail;
-        } else if (error?.response?.data?.error) {
-            rawMessage = error.response.data.error;
-        } else if (error?.message) {
-            rawMessage = error.message;
-        }
-
-        const lowerMessage = rawMessage.toLowerCase();
-
-        // Map known error patterns to translation keys
-        if (lowerMessage.includes('session expired') || lowerMessage.includes('not authenticated')) {
-            return t('session_expired', 'Session expired, please log in again.');
-        }
-        if (lowerMessage.includes('too many requests') || lowerMessage.includes('rate limit')) {
-            return t('error_too_many_requests', 'Too many requests. Please wait before trying again.');
-        }
-        if (lowerMessage.includes('network') || lowerMessage.includes('fetch')) {
-            return t('error_network', 'Network error. Please check your connection and try again.');
-        }
-        if (lowerMessage.includes('unauthorized') || lowerMessage.includes('forbidden') || lowerMessage.includes('access denied')) {
-            return t('error_unauthorized', 'You do not have permission to perform this action.');
-        }
-        if (lowerMessage.includes('duplicate') || lowerMessage.includes('already exists')) {
-            return t('error_duplicate_phrase', 'This phrase already exists.');
-        }
-        if (lowerMessage.includes('not found')) {
-            return t('error_not_found', 'The requested item was not found.');
-        }
-        if (lowerMessage.includes('failed to add phrase') || lowerMessage.includes('failed to save')) {
-            return t('error_save_failed', 'Failed to save the phrase. Please try again.');
-        }
-        if (lowerMessage.includes('failed to update')) {
-            return t('error_update_failed', 'Failed to update the phrase. Please try again.');
-        }
-        if (lowerMessage.includes('server') || lowerMessage.includes('internal')) {
-            return t('error_server', 'Server error. Please try again later.');
-        }
-
-        // Fallback to generic error message
-        return t('operation_failed', 'Operation failed. Please try again.');
-    }, [t]);
-
-    const handleConfirmNewRow = useCallback(async () => {
-        if (!newRow || !selectedLanguageSetId) {
-            return;
-        }
-
-        const payload = {
-            categories: newRow.categories?.trim() || '',
-            phrase: newRow.phrase?.trim() || '',
-            translation: newRow.translation?.trim() || ''
-        };
-
-        if (!payload.categories || !payload.phrase || !payload.translation) {
-            return;
-        }
-
-        const refreshRows = () => fetchRows(offset, limit, filterCategory, searchTerm, selectedLanguageSetId);
-
-        try {
-            setIsSavingNewRow(true);
-            setError('');
-            await handleSave(payload, refreshRows, () => {
-                setNewRow(null);
-                invalidateCategoriesCache();
-                // Show success notification
-                setNotification({
-                    open: true,
-                    message: t('row_added_successfully', 'Row added successfully'),
-                    severity: 'success'
-                });
-            }, selectedLanguageSetId);
-        } catch (err) {
-            const errorMessage = getErrorMessage(err);
-            setError(errorMessage);
-            // Show error notification
-            setNotification({
-                open: true,
-                message: errorMessage,
-                severity: 'error'
-            });
-        } finally {
-            setIsSavingNewRow(false);
-        }
-    }, [newRow, selectedLanguageSetId, fetchRows, offset, limit, filterCategory, searchTerm, handleSave, invalidateCategoriesCache, t, getErrorMessage]);
-
-    useEffect(() => {
-        setNewRow(null);
-        setIsSavingNewRow(false);
-    }, [browseRecords, selectedLanguageSetId]);
-
-    // Handle inline save from table with optimistic updates
-    const handleInlineSave = useCallback((updatedRow) => {
-        // Optimistically update the local state first
-        setRows(prevRows =>
-            prevRows.map(row =>
-                row.id === updatedRow.id ? { ...row, ...updatedRow } : row
-            )
-        );
-
-        // Then save to server
-        // If it's a new row, use POST; otherwise, use PUT to update
-        const method = updatedRow.id ? 'PUT' : 'POST';
-        const url = updatedRow.id
-            ? `/admin/row/${updatedRow.id}?language_set_id=${selectedLanguageSetId}`
-            : `/admin/row?language_set_id=${selectedLanguageSetId}`;
-        const token = localStorage.getItem(STORAGE_KEYS.ADMIN_TOKEN);
-        const headers = token
-            ? { Authorization: 'Bearer ' + token, 'Content-Type': 'application/json' }
-            : { 'Content-Type': 'application/json' };
-
-        fetch(url, {
-            method,
-            headers,
-            body: JSON.stringify(updatedRow)
-        })
-            .then(res => {
-                if (!res.ok) {
-                    if (handleAuthError(res)) {
-                        return;
-                    }
-                    throw new Error('Save failed');
-                }
-            })
-            .catch(err => {
-                // If save fails, revert the optimistic update
-                console.error('Save failed:', err);
-                if (selectedLanguageSetId) {
-                    fetchRows(offset, limit, filterCategory, searchTerm, selectedLanguageSetId);
-                }
-            });
-    }, [offset, limit, filterCategory, selectedLanguageSetId, fetchRows]);
-
-    // Handle inline delete from table with optimistic updates
-    const handleInlineDelete = useCallback((id) => {
-        if (window.confirm(t('confirm_delete_phrase'))) {
-            // Optimistically remove from local state first
-            setRows(prevRows => prevRows.filter(row => row.id !== id));
-            setTotalRows(prev => prev - 1);
-
-            // Then delete from server
-            const token = localStorage.getItem(STORAGE_KEYS.ADMIN_TOKEN);
-            const headers = token
-                ? { Authorization: 'Bearer ' + token }
-                : {};
-
-            fetch(`/admin/row/${id}?language_set_id=${selectedLanguageSetId}`, {
-                method: 'DELETE',
-                headers
-            })
-                .then(res => {
-                    if (!res.ok) {
-                        if (handleAuthError(res)) {
-                            return;
-                        }
-                        throw new Error('Delete failed');
-                    }
-                })
-                .catch(err => {
-                    // If delete fails, reload the data
-                    console.error('Delete failed:', err);
-                    if (selectedLanguageSetId) {
-                        fetchRows(offset, limit, filterCategory, searchTerm, selectedLanguageSetId);
-                    }
-                });
-        }
-    }, [offset, limit, filterCategory, selectedLanguageSetId, fetchRows, t]);
-
-    // Function to toggle ignored categories for logged in users
-    const toggleIgnoredCategory = async (category) => {
-        if (!currentUser || !selectedLanguageSetId) return;
-
-        try {
-            const isCurrentlyIgnored = userIgnoredCategories.includes(category);
-            const newIgnoredCategories = isCurrentlyIgnored
-                ? userIgnoredCategories.filter(c => c !== category)
-                : [...userIgnoredCategories, category];
-
-            // Update backend
-            const response = await fetch('/api/user/ignored-categories', {
-                method: 'PUT',
-                headers: {
-                    'Authorization': `Bearer ${token}`,
-                    'Content-Type': 'application/json'
-                },
-                body: JSON.stringify({
-                    language_set_id: selectedLanguageSetId,
-                    categories: newIgnoredCategories
-                })
-            });
-
-            if (!response.ok) {
-                if (handleAuthError(response)) {
-                    return;
-                }
-                const data = await response.json();
-                setError(data.error || t('ignored_categories_updated_error'));
-                return;
-            }
-
-            onUpdateUserIgnoredCategories(newIgnoredCategories);
-            // Refresh the data to reflect the changes
-            if (selectedLanguageSetId) {
-                fetchRows(offset, limit, filterCategory, searchTerm, selectedLanguageSetId);
-            }
-        } catch (err) {
-            console.error('Failed to update ignored categories:', err);
-            setError(t('ignored_categories_updated_error'));
-        }
-    };
 
     // Logout handler
     const handleLogout = () => {
@@ -1138,139 +636,100 @@ export default function AdminPanel({
                 </>
             }
         >
-            {teacherDashboard ? (
-                <TeacherDashboard
-                    token={token}
-                    setError={setError}
-                    currentUser={currentUser}
-                    languageSets={languageSets}
-                    currentLanguageSetId={selectedLanguageSetId}
-                />
-            ) : (
-                <>
-                    {userManagement ? (
-                        <UserManagement currentUser={currentUser} />
-                    ) : statisticsDashboard ? (
-                        <StatisticsDashboard token={token} setError={setError} currentUser={currentUser} />
-                    ) : systemSettings ? (
-                        <SystemSettings />
-                    ) : languageSetManagement ? (
-                        <LanguageSetManagement
-                            currentUser={currentUser}
-                            initialLanguageSets={languageSets}
-                            initialCategories={categories}
-                            showAdminActions={currentUser?.role === 'admin' || currentUser?.role === 'root_admin' || currentUser?.role === 'administrative'}
-                        />
-                    ) : userProfile ? (
-                        <UserProfile currentUser={currentUser} />
-                    ) : myStudy ? (
-                        <MyStudy token={token} />
-                    ) : duplicateManagement ? (
-                        <DuplicateManagement
-                            currentUser={currentUser}
-                            selectedLanguageSetId={selectedLanguageSetId}
-                        />
-                    ) : listManagement ? (
-                        <PrivateListManager
-                            languageSetId={selectedLanguageSetForLists}
-                            isFullPage={true}
-                        />
-                    ) : browseRecords ? (
-                        <BrowseRecordsView
-                            rows={rows}
-                            totalRows={totalRows}
-                            loading={dataLoading}
-                            error={error}
-                            offset={offset}
-                            limit={limit}
-                            setOffset={setOffset}
-                            setLimit={setLimit}
-                            offsetInput={offsetInput}
-                            handleOffsetInput={handleOffsetInput}
-                            goToOffset={goToOffset}
-                            searchTerm={searchTerm}
-                            handleSearchChange={handleSearchChange}
-                            languageSets={languageSets}
-                            selectedLanguageSetId={selectedLanguageSetId}
-                            setSelectedLanguageSetId={setSelectedLanguageSetId}
-                            categories={categories}
-                            filterCategory={filterCategory}
-                            setFilterCategory={setFilterCategory}
-                            currentUser={currentUser}
-                            userIgnoredCategories={userIgnoredCategories}
-                            ignoredCategories={ignoredCategories}
-                            toggleIgnoredCategory={toggleIgnoredCategory}
-                            ignoredCategoriesCount={ignoredCategoriesCount}
-                            showIgnoredCategories={showIgnoredCategories}
-                            batchMode={batchMode}
-                            handleBatchModeToggle={handleBatchModeToggle}
-                            selectedRows={selectedRows}
-                            handleRowSelectionChange={handleRowSelectionChange}
-                            handleBatchDeleteClick={handleBatchDeleteClick}
-                            handleBatchAddCategoryClick={handleBatchAddCategoryClick}
-                            handleBatchRemoveCategoryClick={handleBatchRemoveCategoryClick}
-                            batchLoading={batchLoading}
-                            batchDialog={batchDialog}
-                            handleBatchDialogClose={handleBatchDialogClose}
-                            handleBatchConfirm={handleBatchConfirm}
-                            batchResult={batchResult}
-                            handleBatchResultClose={handleBatchResultClose}
-                            handleInlineSave={handleInlineSave}
-                            handleInlineDelete={handleInlineDelete}
-                            handleStartAddRow={handleStartAddRow}
-                            newRow={newRow}
-                            handleNewRowFieldChange={handleNewRowFieldChange}
-                            handleCancelNewRow={handleCancelNewRow}
-                            handleConfirmNewRow={handleConfirmNewRow}
-                            isSavingNewRow={isSavingNewRow}
-                            canAddNewRow={Boolean(isLogged && selectedLanguageSetId)}
-                            isControlBarCollapsed={isControlBarCollapsed}
-                            isLayoutCompact={isLayoutCompact}
-                            onReloadData={() => fetchRows(offset, limit, filterCategory, searchTerm, selectedLanguageSetId)}
-                            onDownloadPhrases={() => handleExportTxt(filterCategory)}
-                            onClearDatabase={() => clearDb(() => fetchRows(offset, limit, filterCategory, searchTerm, selectedLanguageSetId))}
-                            canManageAdvanced={canManageAdvanced}
-                            notification={notification}
-                            onNotificationClose={() => setNotification(prev => ({ ...prev, open: false }))}
-                        />
-                    ) : dashboard ? (
-                        // Default Dashboard View
-                        <Paper sx={{ p: 4, borderRadius: 2, display: 'flex', flexDirection: 'column', gap: 3 }}>
-                            <Typography variant="h4" component="h2">
-                                {t('admin_dashboard')}
-                            </Typography>
-                            <Typography variant="body1" sx={{ color: 'text.secondary' }}>
-                                {t('welcome_user', { username: currentUser?.username, role: currentUser?.role })}
-                            </Typography>
-                            <Stack spacing={4} sx={{ mt: 1 }}>
-                                {sections.map(section => (
-                                    <Box key={section.key}>
-                                        <Typography variant="h6" sx={{ fontWeight: 600, mb: 1 }}>
-                                            {section.title}
-                                        </Typography>
-                                        <Divider sx={{ mb: 2, maxWidth: { xs: '100%', sm: 480 } }} />
-                                        <Stack
-                                            direction="row"
-                                            spacing={1.5}
-                                            flexWrap="wrap"
-                                            useFlexGap
-                                            justifyContent="flex-start"
-                                            alignItems="center"
-                                        >
-                                            {section.buttons}
-                                        </Stack>
+            <Box ref={containerRef} sx={{ width: '100%' }}>
+                {teacherDashboard ? (
+                    <TeacherDashboard
+                        token={token}
+                        setError={setError}
+                        currentUser={currentUser}
+                        languageSets={languageSets}
+                        currentLanguageSetId={selectedLanguageSetId}
+                    />
+                ) : (
+                    <>
+                        {userManagement ? (
+                            <UserManagement currentUser={currentUser} />
+                        ) : statisticsDashboard ? (
+                            <StatisticsDashboard token={token} setError={setError} currentUser={currentUser} />
+                        ) : systemSettings ? (
+                            <SystemSettings />
+                        ) : languageSetManagement ? (
+                            <LanguageSetManagement
+                                currentUser={currentUser}
+                                initialLanguageSets={languageSets}
+                                initialCategories={categories}
+                                showAdminActions={currentUser?.role === 'admin' || currentUser?.role === 'root_admin' || currentUser?.role === 'administrative'}
+                            />
+                        ) : userProfile ? (
+                            <UserProfile currentUser={currentUser} />
+                        ) : myStudy ? (
+                            <MyStudy token={token} />
+                        ) : duplicateManagement ? (
+                            <DuplicateManagement
+                                currentUser={currentUser}
+                                selectedLanguageSetId={selectedLanguageSetId}
+                            />
+                        ) : listManagement ? (
+                            <PrivateListManager
+                                languageSetId={selectedLanguageSetForLists}
+                                isFullPage={true}
+                            />
+                        ) : browseRecords ? (
+                            <BrowseRecordsContainer
+                                token={token}
+                                currentUser={currentUser}
+                                selectedLanguageSetId={selectedLanguageSetId}
+                                languageSets={languageSets}
+                                setSelectedLanguageSetId={setSelectedLanguageSetId}
+                                categories={categories}
+                                userIgnoredCategories={userIgnoredCategories}
+                                ignoredCategories={ignoredCategories}
+                                onUpdateUserIgnoredCategories={onUpdateUserIgnoredCategories}
+                                setDashboard={setDashboard}
+                                setToken={setToken}
+                                setIsLogged={setIsLogged}
+                                isControlBarCollapsed={isControlBarCollapsed}
+                                isLayoutCompact={isLayoutCompact}
+                            />
+                        ) : dashboard ? (
+                            // Default Dashboard View
+                            <Paper sx={{ p: 4, borderRadius: 2, display: 'flex', flexDirection: 'column', gap: 3 }}>
+                                <Typography variant="h4" component="h2">
+                                    {t('admin_dashboard')}
+                                </Typography>
+                                <Typography variant="body1" sx={{ color: 'text.secondary' }}>
+                                    {t('welcome_user', { username: currentUser?.username, role: currentUser?.role })}
+                                </Typography>
+                                <Stack spacing={4} sx={{ mt: 1 }}>
+                                    {sections.map(section => (
+                                        <Box key={section.key}>
+                                            <Typography variant="h6" sx={{ fontWeight: 600, mb: 1 }}>
+                                                {section.title}
+                                            </Typography>
+                                            <Divider sx={{ mb: 2, maxWidth: { xs: '100%', sm: 480 } }} />
+                                            <Stack
+                                                direction="row"
+                                                spacing={1.5}
+                                                flexWrap="wrap"
+                                                useFlexGap
+                                                justifyContent="flex-start"
+                                                alignItems="center"
+                                            >
+                                                {section.buttons}
+                                            </Stack>
+                                        </Box>
+                                    ))}
+                                </Stack>
+                                {error && (
+                                    <Box sx={{ mt: 1, p: 2, bgcolor: 'error.light', borderRadius: 1 }}>
+                                        <Typography color="error.contrastText">{error}</Typography>
                                     </Box>
-                                ))}
-                            </Stack>
-                            {error && (
-                                <Box sx={{ mt: 1, p: 2, bgcolor: 'error.light', borderRadius: 1 }}>
-                                    <Typography color="error.contrastText">{error}</Typography>
-                                </Box>
-                            )}
-                        </Paper>
-                    ) : null}
-                </>
-            )}
+                                )}
+                            </Paper>
+                        ) : null}
+                    </>
+                )}
+            </Box>
 
             {/* Rate Limit Warning */}
             <RateLimitWarning
