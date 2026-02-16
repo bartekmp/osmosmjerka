@@ -50,19 +50,9 @@ export default function AdminPanel({
     const [auth, setAuth] = useState({ user: '', pass: '' });
     const [error, setError] = useState("");
     const [isLogged, setIsLogged] = useState(false);
-    const [dashboard, setDashboard] = useState(true);
-    const [browseRecords, setBrowseRecords] = useState(false);
-    const [userManagement, setUserManagement] = useState(false);
-    const [userProfile, setUserProfile] = useState(false);
-    const [statisticsDashboard, setStatisticsDashboard] = useState(false);
-    const [systemSettings, setSystemSettings] = useState(false);
-    const [languageSetManagement, setLanguageSetManagement] = useState(false);
-    const [duplicateManagement, setDuplicateManagement] = useState(false);
-    const [listManagement, setListManagement] = useState(false);
+    const [activeView, setActiveView] = useState('dashboard');
     const [showListManager, setShowListManager] = useState(false);
     const [selectedLanguageSetForLists, setSelectedLanguageSetForLists] = useState(null);
-    const [teacherDashboard, setTeacherDashboard] = useState(false);
-    const [myStudy, setMyStudy] = useState(false);
     const [currentUser, setCurrentUser] = useState(null);
     const [categories, setCategories] = useState([]);
     const [languageSets, setLanguageSets] = useState([]);
@@ -93,7 +83,7 @@ export default function AdminPanel({
         setError,
         setToken,
         setIsLogged,
-        setDashboard
+        setDashboard: () => setActiveView('dashboard')
     });
 
     // Notifications
@@ -122,8 +112,7 @@ export default function AdminPanel({
         handleNotificationClose();
         // Parse link: /teacher-dashboard?tab=2&set_id=123
         if (link.startsWith('/teacher-dashboard')) {
-            setDashboard(false);
-            setTeacherDashboard(true);
+            setActiveView('teacherDashboard');
             // TODO: Handle deep linking to specific set in the future
             // const url = new URL(link, window.location.origin);
             // const setId = url.searchParams.get('set_id');
@@ -140,11 +129,11 @@ export default function AdminPanel({
             setToken('');
             localStorage.removeItem(STORAGE_KEYS.ADMIN_TOKEN);
             setIsLogged(false);
-            setDashboard(true);
+            setActiveView('dashboard');
             return true;
         }
         return false;
-    }, [setDashboard]);
+    }, []);
 
 
 
@@ -215,7 +204,7 @@ export default function AdminPanel({
 
     useEffect(() => {
         // Only load categories when navigating to views that need them and language set is selected
-        const needsCategories = browseRecords || languageSetManagement;
+        const needsCategories = activeView === 'browseRecords' || activeView === 'languageSetManagement';
         if (isLogged && token && selectedLanguageSetId && needsCategories && !categoriesLoaded) {
             fetch(`${API_ENDPOINTS.ALL_CATEGORIES}?language_set_id=${selectedLanguageSetId}`, {
                 headers: {
@@ -239,7 +228,7 @@ export default function AdminPanel({
                 })
                 .catch(err => console.error('Failed to load categories:', err));
         }
-    }, [isLogged, token, selectedLanguageSetId, dashboard, userManagement, userProfile, statisticsDashboard, systemSettings, languageSetManagement, duplicateManagement, categoriesLoaded, handleAuthError]);
+    }, [isLogged, token, selectedLanguageSetId, activeView, categoriesLoaded, handleAuthError]);
 
 
 
@@ -298,32 +287,12 @@ export default function AdminPanel({
         setIsLogged(false);
         setCurrentUser(null);
         setTokenExpired(false); // User logged out on purpose, not expired
-        setDashboard(true);
-        setUserManagement(false);
-        setLanguageSetManagement(false);
-        setDuplicateManagement(false);
-        setUserProfile(false);
-        setStatisticsDashboard(false);
-        setSystemSettings(false);
-        setTeacherDashboard(false);
-        setMyStudy(false);
+        setActiveView('dashboard');
         window.dispatchEvent(new window.Event('admin-auth-changed'));
     };
 
     // Helper function to properly navigate back to dashboard
-    const goToDashboard = () => {
-        setBrowseRecords(false);
-        setUserManagement(false);
-        setLanguageSetManagement(false);
-        setDuplicateManagement(false);
-        setListManagement(false);
-        setUserProfile(false);
-        setStatisticsDashboard(false);
-        setSystemSettings(false);
-        setTeacherDashboard(false);
-        setMyStudy(false);
-        setDashboard(true);
-    };
+    const goToDashboard = () => setActiveView('dashboard');
 
     if (!isLogged) {
         return (
@@ -399,13 +368,7 @@ export default function AdminPanel({
                 key="browse-records"
                 onClick={() => {
                     if (languageSetsLoading) return;
-                    if (languageSets.length === 0) {
-                        setDashboard(false);
-                        setLanguageSetManagement(true);
-                    } else {
-                        setDashboard(false);
-                        setBrowseRecords(true);
-                    }
+                    setActiveView(languageSets.length === 0 ? 'languageSetManagement' : 'browseRecords');
                 }}
                 variant="contained"
                 disabled={languageSetsLoading}
@@ -418,10 +381,7 @@ export default function AdminPanel({
     recordsButtons.push(
         <Button
             key="language-sets"
-            onClick={() => {
-                setDashboard(false);
-                setLanguageSetManagement(true);
-            }}
+            onClick={() => setActiveView('languageSetManagement')}
             variant="contained"
             color="warning"
         >
@@ -435,10 +395,7 @@ export default function AdminPanel({
         recordsButtons.push(
             <Button
                 key="duplicate-management"
-                onClick={() => {
-                    setDashboard(false);
-                    setDuplicateManagement(true);
-                }}
+                onClick={() => setActiveView('duplicateManagement')}
                 variant="contained"
                 color="error"
             >
@@ -456,8 +413,7 @@ export default function AdminPanel({
                 if (languageSets.length > 0) {
                     setSelectedLanguageSetForLists(languageSets[0].id);
                 }
-                setDashboard(false);
-                setListManagement(true);
+                setActiveView('listManagement');
             }}
             variant="contained"
             color="info"
@@ -477,10 +433,7 @@ export default function AdminPanel({
         userButtons.push(
             <Button
                 key="user-management"
-                onClick={() => {
-                    setDashboard(false);
-                    setUserManagement(true);
-                }}
+                onClick={() => setActiveView('userManagement')}
                 variant="contained"
                 color="secondary"
             >
@@ -492,10 +445,7 @@ export default function AdminPanel({
     userButtons.push(
         <Button
             key="user-profile"
-            onClick={() => {
-                setDashboard(false);
-                setUserProfile(true);
-            }}
+            onClick={() => setActiveView('userProfile')}
             variant="contained"
             color="info"
         >
@@ -507,10 +457,7 @@ export default function AdminPanel({
     const learningButtons = [
         <Button
             key="my-study-groups"
-            onClick={() => {
-                setDashboard(false);
-                setMyStudy(true);
-            }}
+            onClick={() => setActiveView('myStudy')}
             variant="contained"
             color="success"
         >
@@ -524,10 +471,7 @@ export default function AdminPanel({
         systemButtons.push(
             <Button
                 key="statistics-dashboard"
-                onClick={() => {
-                    setDashboard(false);
-                    setStatisticsDashboard(true);
-                }}
+                onClick={() => setActiveView('statisticsDashboard')}
                 variant="contained"
                 color="success"
             >
@@ -538,10 +482,7 @@ export default function AdminPanel({
         systemButtons.push(
             <Button
                 key="system-settings"
-                onClick={() => {
-                    setDashboard(false);
-                    setSystemSettings(true);
-                }}
+                onClick={() => setActiveView('systemSettings')}
                 variant="contained"
                 color="primary"
             >
@@ -555,10 +496,7 @@ export default function AdminPanel({
         teacherButtons.push(
             <Button
                 key="teacher-mode"
-                onClick={() => {
-                    setDashboard(false);
-                    setTeacherDashboard(true);
-                }}
+                onClick={() => setActiveView('teacherDashboard')}
                 variant="contained"
                 color="primary"
                 startIcon={<SchoolIcon />}
@@ -598,9 +536,9 @@ export default function AdminPanel({
 
     return (
         <AdminLayout
-            maxWidth={teacherDashboard || browseRecords || userManagement || statisticsDashboard || systemSettings || languageSetManagement || userProfile || duplicateManagement || listManagement ? 'xl' : 'md'}
+            maxWidth={activeView !== 'dashboard' ? 'xl' : 'md'}
             showBackToGame={true}
-            showDashboard={!dashboard}
+            showDashboard={activeView !== 'dashboard'}
             showLogout={true}
             onDashboard={goToDashboard}
             onLogout={handleLogout}
@@ -637,7 +575,7 @@ export default function AdminPanel({
             }
         >
             <Box ref={containerRef} sx={{ width: '100%' }}>
-                {teacherDashboard ? (
+                {activeView === 'teacherDashboard' && (
                     <TeacherDashboard
                         token={token}
                         setError={setError}
@@ -645,89 +583,94 @@ export default function AdminPanel({
                         languageSets={languageSets}
                         currentLanguageSetId={selectedLanguageSetId}
                     />
-                ) : (
-                    <>
-                        {userManagement ? (
-                            <UserManagement currentUser={currentUser} />
-                        ) : statisticsDashboard ? (
-                            <StatisticsDashboard token={token} setError={setError} currentUser={currentUser} />
-                        ) : systemSettings ? (
-                            <SystemSettings />
-                        ) : languageSetManagement ? (
-                            <LanguageSetManagement
-                                currentUser={currentUser}
-                                initialLanguageSets={languageSets}
-                                initialCategories={categories}
-                                showAdminActions={currentUser?.role === 'admin' || currentUser?.role === 'root_admin' || currentUser?.role === 'administrative'}
-                            />
-                        ) : userProfile ? (
-                            <UserProfile currentUser={currentUser} />
-                        ) : myStudy ? (
-                            <MyStudy token={token} />
-                        ) : duplicateManagement ? (
-                            <DuplicateManagement
-                                currentUser={currentUser}
-                                selectedLanguageSetId={selectedLanguageSetId}
-                            />
-                        ) : listManagement ? (
-                            <PrivateListManager
-                                languageSetId={selectedLanguageSetForLists}
-                                isFullPage={true}
-                            />
-                        ) : browseRecords ? (
-                            <BrowseRecordsContainer
-                                token={token}
-                                currentUser={currentUser}
-                                selectedLanguageSetId={selectedLanguageSetId}
-                                languageSets={languageSets}
-                                setSelectedLanguageSetId={setSelectedLanguageSetId}
-                                categories={categories}
-                                userIgnoredCategories={userIgnoredCategories}
-                                ignoredCategories={ignoredCategories}
-                                onUpdateUserIgnoredCategories={onUpdateUserIgnoredCategories}
-                                setDashboard={setDashboard}
-                                setToken={setToken}
-                                setIsLogged={setIsLogged}
-                                isControlBarCollapsed={isControlBarCollapsed}
-                                isLayoutCompact={isLayoutCompact}
-                            />
-                        ) : dashboard ? (
-                            // Default Dashboard View
-                            <Paper sx={{ p: 4, borderRadius: 2, display: 'flex', flexDirection: 'column', gap: 3 }}>
-                                <Typography variant="h4" component="h2">
-                                    {t('admin_dashboard')}
-                                </Typography>
-                                <Typography variant="body1" sx={{ color: 'text.secondary' }}>
-                                    {t('welcome_user', { username: currentUser?.username, role: currentUser?.role })}
-                                </Typography>
-                                <Stack spacing={4} sx={{ mt: 1 }}>
-                                    {sections.map(section => (
-                                        <Box key={section.key}>
-                                            <Typography variant="h6" sx={{ fontWeight: 600, mb: 1 }}>
-                                                {section.title}
-                                            </Typography>
-                                            <Divider sx={{ mb: 2, maxWidth: { xs: '100%', sm: 480 } }} />
-                                            <Stack
-                                                direction="row"
-                                                spacing={1.5}
-                                                flexWrap="wrap"
-                                                useFlexGap
-                                                justifyContent="flex-start"
-                                                alignItems="center"
-                                            >
-                                                {section.buttons}
-                                            </Stack>
-                                        </Box>
-                                    ))}
-                                </Stack>
-                                {error && (
-                                    <Box sx={{ mt: 1, p: 2, bgcolor: 'error.light', borderRadius: 1 }}>
-                                        <Typography color="error.contrastText">{error}</Typography>
-                                    </Box>
-                                )}
-                            </Paper>
-                        ) : null}
-                    </>
+                )}
+                {activeView === 'userManagement' && (
+                    <UserManagement currentUser={currentUser} />
+                )}
+                {activeView === 'statisticsDashboard' && (
+                    <StatisticsDashboard token={token} setError={setError} currentUser={currentUser} />
+                )}
+                {activeView === 'systemSettings' && (
+                    <SystemSettings />
+                )}
+                {activeView === 'languageSetManagement' && (
+                    <LanguageSetManagement
+                        currentUser={currentUser}
+                        initialLanguageSets={languageSets}
+                        initialCategories={categories}
+                        showAdminActions={currentUser?.role === 'admin' || currentUser?.role === 'root_admin' || currentUser?.role === 'administrative'}
+                    />
+                )}
+                {activeView === 'userProfile' && (
+                    <UserProfile currentUser={currentUser} />
+                )}
+                {activeView === 'myStudy' && (
+                    <MyStudy token={token} />
+                )}
+                {activeView === 'duplicateManagement' && (
+                    <DuplicateManagement
+                        currentUser={currentUser}
+                        selectedLanguageSetId={selectedLanguageSetId}
+                    />
+                )}
+                {activeView === 'listManagement' && (
+                    <PrivateListManager
+                        languageSetId={selectedLanguageSetForLists}
+                        isFullPage={true}
+                    />
+                )}
+                {activeView === 'browseRecords' && (
+                    <BrowseRecordsContainer
+                        token={token}
+                        currentUser={currentUser}
+                        selectedLanguageSetId={selectedLanguageSetId}
+                        languageSets={languageSets}
+                        setSelectedLanguageSetId={setSelectedLanguageSetId}
+                        categories={categories}
+                        userIgnoredCategories={userIgnoredCategories}
+                        ignoredCategories={ignoredCategories}
+                        onUpdateUserIgnoredCategories={onUpdateUserIgnoredCategories}
+                        setDashboard={() => setActiveView('dashboard')}
+                        setToken={setToken}
+                        setIsLogged={setIsLogged}
+                        isControlBarCollapsed={isControlBarCollapsed}
+                        isLayoutCompact={isLayoutCompact}
+                    />
+                )}
+                {activeView === 'dashboard' && (
+                    <Paper sx={{ p: 4, borderRadius: 2, display: 'flex', flexDirection: 'column', gap: 3 }}>
+                        <Typography variant="h4" component="h2">
+                            {t('admin_dashboard')}
+                        </Typography>
+                        <Typography variant="body1" sx={{ color: 'text.secondary' }}>
+                            {t('welcome_user', { username: currentUser?.username, role: currentUser?.role })}
+                        </Typography>
+                        <Stack spacing={4} sx={{ mt: 1 }}>
+                            {sections.map(section => (
+                                <Box key={section.key}>
+                                    <Typography variant="h6" sx={{ fontWeight: 600, mb: 1 }}>
+                                        {section.title}
+                                    </Typography>
+                                    <Divider sx={{ mb: 2, maxWidth: { xs: '100%', sm: 480 } }} />
+                                    <Stack
+                                        direction="row"
+                                        spacing={1.5}
+                                        flexWrap="wrap"
+                                        useFlexGap
+                                        justifyContent="flex-start"
+                                        alignItems="center"
+                                    >
+                                        {section.buttons}
+                                    </Stack>
+                                </Box>
+                            ))}
+                        </Stack>
+                        {error && (
+                            <Box sx={{ mt: 1, p: 2, bgcolor: 'error.light', borderRadius: 1 }}>
+                                <Typography color="error.contrastText">{error}</Typography>
+                            </Box>
+                        )}
+                    </Paper>
                 )}
             </Box>
 
