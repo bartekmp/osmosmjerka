@@ -2,6 +2,30 @@
 
 <!-- version list -->
 
+## v1.41.1 (2026-03-01)
+
+### Chores
+
+- **deps**: Pin dependencies ([#156](https://github.com/bartekmp/osmosmjerka/pull/156),
+  [`2267c9e`](https://github.com/bartekmp/osmosmjerka/commit/2267c9e8e69a316d60f38a1f7f2982776b6da8b9))
+
+- **deps**: Update actions/checkout digest to de0fac2
+  ([#157](https://github.com/bartekmp/osmosmjerka/pull/157),
+  [`ceb46e0`](https://github.com/bartekmp/osmosmjerka/commit/ceb46e03c3024a28ed29d071aa577d3b0a5bb744))
+
+- **deps**: Update actions/setup-node digest to 6044e13
+  ([#158](https://github.com/bartekmp/osmosmjerka/pull/158),
+  [`75ff55e`](https://github.com/bartekmp/osmosmjerka/commit/75ff55ee8bf02bb839231d666842a5763d9a6e90))
+
+- **deps**: Update actions/setup-python digest to a309ff8
+  ([#159](https://github.com/bartekmp/osmosmjerka/pull/159),
+  [`1d7f670`](https://github.com/bartekmp/osmosmjerka/commit/1d7f670883f8f6a55876c3ae56c9ab5ead57569b))
+
+- **deps**: Update docker/build-push-action digest to 10e90e3
+  ([#160](https://github.com/bartekmp/osmosmjerka/pull/160),
+  [`56dc889`](https://github.com/bartekmp/osmosmjerka/commit/56dc8898edfbd6799ba989c8c04b9a9c0989d205))
+
+
 ## v1.41.0 (2026-02-12)
 
 ### Features
