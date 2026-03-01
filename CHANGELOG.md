@@ -2,6 +2,19 @@
 
 <!-- version list -->
 
+## v1.41.2 (2026-03-01)
+
+### Chores
+
+- **deps**: Update docker/login-action digest to c94ce9f
+  ([#161](https://github.com/bartekmp/osmosmjerka/pull/161),
+  [`315bbd4`](https://github.com/bartekmp/osmosmjerka/commit/315bbd4b334dacb1722a03e310824f588753ddeb))
+
+- **deps**: Update postgres:18 docker digest to 69e8582
+  ([#162](https://github.com/bartekmp/osmosmjerka/pull/162),
+  [`d1e538c`](https://github.com/bartekmp/osmosmjerka/commit/d1e538c856f46cb8a77b97bda01d8c89a8062f3a))
+
+
 ## v1.41.1 (2026-03-01)
 
 ### Chores
