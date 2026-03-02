@@ -5,25 +5,11 @@ import {
   CardContent,
   Typography,
   Grid,
-  Select,
-  MenuItem,
-  FormControl,
-  InputLabel,
-  Table,
-  TableBody,
-  TableCell,
-  TableContainer,
-  TableHead,
-  TableRow,
   Paper,
   CircularProgress,
   Alert,
-  Chip,
   Tab,
   Tabs,
-  Accordion,
-  AccordionSummary,
-  AccordionDetails,
   useTheme,
   Switch,
   FormControlLabel,
@@ -35,18 +21,18 @@ import {
   DialogActions,
 } from '@mui/material';
 import {
-  ExpandMore as ExpandMoreIcon,
-  TrendingUp as TrendingUpIcon,
-  People as PeopleIcon,
-  Games as GamesIcon,
-  Timer as TimerIcon,
-  Star as StarIcon,
   Delete as DeleteIcon,
   Settings as SettingsIcon
 } from '@mui/icons-material';
 import { useTranslation } from 'react-i18next';
 import { useAdminApi } from '../AdminPanel/useAdminApi';
 import axios from 'axios';
+
+// Imported Tab Components
+import OverviewTab from './Tabs/OverviewTab';
+import LanguageSetsTab from './Tabs/LanguageSetsTab';
+import UserStatisticsTab from './Tabs/UserStatisticsTab';
+import HighScoresTab from './Tabs/HighScoresTab';
 
 const StatisticsDashboard = ({ token, setError: onError, currentUser }) => {
   const { t } = useTranslation();
@@ -175,13 +161,47 @@ const StatisticsDashboard = ({ token, setError: onError, currentUser }) => {
     }
   };
 
-  const handleHighScoresFilterChange = async () => {
+  const handleHighScoresFilterChange = async (filterName, value) => {
+    // Update local state based on filter name
+    let newLangSet = highScoresLanguageSet;
+    let newCategory = highScoresCategory;
+    let newDifficulty = highScoresDifficulty;
+    let newLimit = highScoresLimit;
+    let newGameType = highScoresGameType;
+
+    switch (filterName) {
+      case 'languageSet':
+        setHighScoresLanguageSet(value);
+        newLangSet = value;
+        break;
+      case 'category':
+        setHighScoresCategory(value);
+        newCategory = value;
+        break;
+      case 'difficulty':
+        setHighScoresDifficulty(value);
+        newDifficulty = value;
+        break;
+      case 'gameType':
+        setHighScoresGameType(value);
+        newGameType = value;
+        break;
+      case 'limit':
+        setHighScoresLimit(value);
+        newLimit = value;
+        break;
+      default:
+        break;
+    }
+
+    // Debounce/Delay slightly if needed, or just load immediately
+    // For dropdowns, immediate load is usually fine
     await loadHighScores(
-      highScoresLanguageSet || null,
-      highScoresCategory || null,
-      highScoresDifficulty || null,
-      highScoresLimit,
-      highScoresGameType || null
+      newLangSet || null,
+      newCategory || null,
+      newDifficulty || null,
+      newLimit,
+      newGameType || null
     );
   };
 
@@ -339,435 +359,44 @@ const StatisticsDashboard = ({ token, setError: onError, currentUser }) => {
       </Tabs>
 
       {/* Overview Tab */}
-      {activeTab === 0 && overview && (
-        <Grid container spacing={3}>
-          <Grid size={{ xs: 12, sm: 6, md: 3 }}>
-            <Card>
-              <CardContent>
-                <Box display="flex" alignItems="center">
-                  <PeopleIcon color="primary" sx={{ mr: 2 }} />
-                  <Box>
-                    <Typography color="textSecondary" gutterBottom>
-                      {t('total_users')}
-                    </Typography>
-                    <Typography variant="h4">
-                      {overview.total_users}
-                    </Typography>
-                  </Box>
-                </Box>
-              </CardContent>
-            </Card>
-          </Grid>
-
-          <Grid size={{ xs: 12, sm: 6, md: 3 }}>
-            <Card>
-              <CardContent>
-                <Box display="flex" alignItems="center">
-                  <TrendingUpIcon color="success" sx={{ mr: 2 }} />
-                  <Box>
-                    <Typography color="textSecondary" gutterBottom>
-                      {t('active_users_30d')}
-                    </Typography>
-                    <Typography variant="h4">
-                      {overview.active_users_30d}
-                    </Typography>
-                  </Box>
-                </Box>
-              </CardContent>
-            </Card>
-          </Grid>
-
-          <Grid size={{ xs: 12, sm: 6, md: 3 }}>
-            <Card>
-              <CardContent>
-                <Box display="flex" alignItems="center">
-                  <GamesIcon color="info" sx={{ mr: 2 }} />
-                  <Box>
-                    <Typography color="textSecondary" gutterBottom>
-                      {t('total_games')}
-                    </Typography>
-                    <Typography variant="h4">
-                      {overview.total_games_completed}/{overview.total_games_started}
-                    </Typography>
-                  </Box>
-                </Box>
-              </CardContent>
-            </Card>
-          </Grid>
-
-          <Grid size={{ xs: 12, sm: 6, md: 3 }}>
-            <Card>
-              <CardContent>
-                <Box display="flex" alignItems="center">
-                  <TimerIcon color="warning" sx={{ mr: 2 }} />
-                  <Box>
-                    <Typography color="textSecondary" gutterBottom>
-                      {t('total_time_played')}
-                    </Typography>
-                    <Typography variant="h4">
-                      {overview.total_time_played_hours}h
-                    </Typography>
-                  </Box>
-                </Box>
-              </CardContent>
-            </Card>
-          </Grid>
-        </Grid>
+      {activeTab === 0 && (
+        <OverviewTab overview={overview} />
       )}
 
       {/* Language Set Statistics Tab */}
       {activeTab === 1 && (
-        <Grid container spacing={3}>
-          {languageSetStats.map((stat) => (
-            <Grid size={{ xs: 12, md: 6 }} key={stat.language_set_id}>
-              <Card>
-                <CardContent>
-                  <Typography variant="h6" gutterBottom>
-                    {stat.language_set_display_name}
-                  </Typography>
-
-                  <Grid container spacing={2}>
-                    <Grid size={6}>
-                      <Typography variant="body2" color="textSecondary">
-                        {t('games_completed')}
-                      </Typography>
-                      <Typography variant="h6">
-                        {stat.games_completed}/{stat.games_started}
-                      </Typography>
-                    </Grid>
-
-                    <Grid size={6}>
-                      <Typography variant="body2" color="textSecondary">
-                        {t('unique_players')}
-                      </Typography>
-                      <Typography variant="h6">
-                        {stat.unique_players}
-                      </Typography>
-                    </Grid>
-
-                    <Grid size={6}>
-                      <Typography variant="body2" color="textSecondary">
-                        {t('phrases_found')}
-                      </Typography>
-                      <Typography variant="h6">
-                        {stat.phrases_found}
-                      </Typography>
-                    </Grid>
-
-                    <Grid size={6}>
-                      <Typography variant="body2" color="textSecondary">
-                        {t('time_played')}
-                      </Typography>
-                      <Typography variant="h6">
-                        {stat.time_played_hours}h
-                      </Typography>
-                    </Grid>
-                  </Grid>
-                </CardContent>
-              </Card>
-            </Grid>
-          ))}
-        </Grid>
+        <LanguageSetsTab languageSetStats={languageSetStats} />
       )}
 
       {/* User Statistics Tab */}
       {activeTab === 2 && (
-        <Box>
-          <FormControl sx={{ mb: 3, minWidth: 200 }}>
-            <InputLabel>{t('filter_by_language_set')}</InputLabel>
-            <Select
-              value={selectedLanguageSet}
-              onChange={handleLanguageSetChange}
-              label={t('filter_by_language_set')}
-            >
-              <MenuItem value="">{t('all_language_sets')}</MenuItem>
-              {languageSets.map((langSet) => (
-                <MenuItem key={langSet.id} value={langSet.id}>
-                  {langSet.display_name}
-                </MenuItem>
-              ))}
-            </Select>
-          </FormControl>
-
-          <TableContainer component={Paper}>
-            <Table>
-              <TableHead>
-                <TableRow>
-                  <TableCell>{t('username')}</TableCell>
-                  <TableCell align="right">{t('games_completed')}</TableCell>
-                  <TableCell align="right">{t('phrases_found')}</TableCell>
-                  <TableCell align="right">{t('time_played')}</TableCell>
-                  <TableCell align="right">{t('phrases_added')}</TableCell>
-                  <TableCell align="right">{t('last_activity')}</TableCell>
-                </TableRow>
-              </TableHead>
-              <TableBody>
-                {userStatistics.map((user) => (
-                  <TableRow
-                    key={user.id}
-                    sx={{
-                      cursor: 'pointer',
-                      '&:hover': { backgroundColor: theme.palette.action.hover }
-                    }}
-                    onClick={() => loadUserDetail(user.id)}
-                  >
-                    <TableCell component="th" scope="row">
-                      {user.username}
-                    </TableCell>
-                    <TableCell align="right">
-                      {user.games_completed}/{user.games_started}
-                    </TableCell>
-                    <TableCell align="right">
-                      {user.total_phrases_found || 0}
-                    </TableCell>
-                    <TableCell align="right">
-                      {formatTime(user.total_time_played_seconds)}
-                    </TableCell>
-                    <TableCell align="right">
-                      {(user.phrases_added || 0) + (user.phrases_edited || 0)}
-                    </TableCell>
-                    <TableCell align="right">
-                      {formatDate(user.last_played)}
-                    </TableCell>
-                  </TableRow>
-                ))}
-              </TableBody>
-            </Table>
-          </TableContainer>
-
-          {/* User Detail Modal/Expansion */}
-          {selectedUserDetail && (
-            <Card sx={{ mt: 3 }}>
-              <CardContent>
-                <Typography variant="h6" gutterBottom>
-                  {t('detailed_statistics')} - {selectedUserDetail.user?.username || `User ${selectedUserDetail.statistics.user_id}`}
-                </Typography>
-
-                {(selectedUserDetail.favorite_categories || []).map((langSetData, index) => (
-                  <Accordion key={index}>
-                    <AccordionSummary expandIcon={<ExpandMoreIcon />}>
-                      <Typography>
-                        {langSetData.language_set_name} - {t('favorite_categories')}
-                      </Typography>
-                    </AccordionSummary>
-                    <AccordionDetails>
-                      <Box display="flex" flexWrap="wrap" gap={1}>
-                        {(langSetData.categories || []).map((cat, catIndex) => (
-                          <Chip
-                            key={catIndex}
-                            icon={<StarIcon />}
-                            label={`${cat.category} (${cat.plays_count} ${t('plays')})`}
-                            variant="outlined"
-                            color="primary"
-                          />
-                        ))}
-                        {(!langSetData.categories || langSetData.categories.length === 0) && (
-                          <Typography variant="body2" color="text.secondary">
-                            {t('no_favorite_categories', 'No favorite categories')}
-                          </Typography>
-                        )}
-                      </Box>
-                    </AccordionDetails>
-                  </Accordion>
-                ))}
-              </CardContent>
-            </Card>
-          )}
-        </Box>
+        <UserStatisticsTab
+          userStatistics={userStatistics}
+          languageSets={languageSets}
+          selectedLanguageSet={selectedLanguageSet}
+          onLanguageSetChange={handleLanguageSetChange}
+          onUserSelect={loadUserDetail}
+          selectedUserDetail={selectedUserDetail}
+          formatTime={formatTime}
+          formatDate={formatDate}
+        />
       )}
 
       {/* High Scores Tab */}
       {activeTab === 3 && (
-        <Box>
-          {/* Filters */}
-          <Grid container spacing={2} sx={{ mb: 3 }}>
-            <Grid size={{ xs: 12, sm: 6, md: 3 }}>
-              <FormControl fullWidth>
-                <InputLabel>{t('language_set')}</InputLabel>
-                <Select
-                  value={highScoresLanguageSet}
-                  onChange={(e) => {
-                    setHighScoresLanguageSet(e.target.value);
-                    setTimeout(handleHighScoresFilterChange, 100);
-                  }}
-                  label={t('language_set')}
-                >
-                  <MenuItem value="">{t('all_language_sets')}</MenuItem>
-                  {languageSets.map((langSet) => (
-                    <MenuItem key={langSet.id} value={langSet.id}>
-                      {langSet.display_name}
-                    </MenuItem>
-                  ))}
-                </Select>
-              </FormControl>
-            </Grid>
-
-            <Grid size={{ xs: 12, sm: 6, md: 3 }}>
-              <FormControl fullWidth>
-                <InputLabel>{t('category')}</InputLabel>
-                <Select
-                  value={highScoresCategory}
-                  onChange={(e) => {
-                    setHighScoresCategory(e.target.value);
-                    setTimeout(handleHighScoresFilterChange, 100);
-                  }}
-                  label={t('category')}
-                >
-                  <MenuItem value="">{t('all_categories')}</MenuItem>
-                  {/* Categories would need to be loaded separately or extracted from existing data */}
-                </Select>
-              </FormControl>
-            </Grid>
-
-            <Grid size={{ xs: 12, sm: 6, md: 3 }}>
-              <FormControl fullWidth>
-                <InputLabel>{t('difficulty')}</InputLabel>
-                <Select
-                  value={highScoresDifficulty}
-                  onChange={(e) => {
-                    setHighScoresDifficulty(e.target.value);
-                    setTimeout(handleHighScoresFilterChange, 100);
-                  }}
-                  label={t('difficulty')}
-                >
-                  <MenuItem value="">{t('all_difficulties')}</MenuItem>
-                  <MenuItem value="very_easy">{t('very_easy')}</MenuItem>
-                  <MenuItem value="easy">{t('easy')}</MenuItem>
-                  <MenuItem value="medium">{t('medium')}</MenuItem>
-                  <MenuItem value="hard">{t('hard')}</MenuItem>
-                  <MenuItem value="very_hard">{t('very_hard')}</MenuItem>
-                </Select>
-              </FormControl>
-            </Grid>
-
-            <Grid size={{ xs: 12, sm: 6, md: 3 }}>
-              <FormControl fullWidth>
-                <InputLabel>{t('game_type')}</InputLabel>
-                <Select
-                  value={highScoresGameType}
-                  onChange={(e) => {
-                    setHighScoresGameType(e.target.value);
-                    setTimeout(handleHighScoresFilterChange, 100);
-                  }}
-                  label={t('game_type')}
-                >
-                  <MenuItem value="">{t('all_game_types')}</MenuItem>
-                  <MenuItem value="word_search">{t('gameType.word_search')}</MenuItem>
-                  <MenuItem value="crossword">{t('gameType.crossword')}</MenuItem>
-                </Select>
-              </FormControl>
-            </Grid>
-
-            <Grid size={{ xs: 12, sm: 6, md: 3 }}>
-              <FormControl fullWidth>
-                <InputLabel>{t('limit')}</InputLabel>
-                <Select
-                  value={highScoresLimit}
-                  onChange={(e) => {
-                    setHighScoresLimit(e.target.value);
-                    setTimeout(handleHighScoresFilterChange, 100);
-                  }}
-                  label={t('limit')}
-                >
-                  <MenuItem value={25}>25</MenuItem>
-                  <MenuItem value={50}>50</MenuItem>
-                  <MenuItem value={100}>100</MenuItem>
-                  <MenuItem value={200}>200</MenuItem>
-                </Select>
-              </FormControl>
-            </Grid>
-          </Grid>
-
-          {/* High Scores Table */}
-          <TableContainer component={Paper}>
-            <Table>
-              <TableHead>
-                <TableRow>
-                  <TableCell>{t('rank')}</TableCell>
-                  <TableCell>{t('player')}</TableCell>
-                  <TableCell>{t('score')}</TableCell>
-                  <TableCell>{t('category')}</TableCell>
-                  <TableCell>{t('difficulty')}</TableCell>
-                  <TableCell>{t('completion')}</TableCell>
-                  <TableCell>{t('time')}</TableCell>
-                  <TableCell>{t('hints_used')}</TableCell>
-                  <TableCell>{t('date')}</TableCell>
-                </TableRow>
-              </TableHead>
-              <TableBody>
-                {highScores.map((score, index) => (
-                  <TableRow key={`${score.user_id}-${score.created_at}-${index}`}>
-                    <TableCell>
-                      <Box display="flex" alignItems="center">
-                        {index < 3 && (
-                          <StarIcon
-                            sx={{
-                              mr: 1,
-                              color: index === 0 ? '#FFD700' : index === 1 ? '#C0C0C0' : '#CD7F32'
-                            }}
-                          />
-                        )}
-                        #{index + 1}
-                      </Box>
-                    </TableCell>
-                    <TableCell>
-                      <Typography variant="body2" fontWeight="medium">
-                        {score.username}
-                      </Typography>
-                    </TableCell>
-                    <TableCell>
-                      <Typography variant="body2" fontWeight="bold" color="primary">
-                        {score.final_score?.toLocaleString() || 0}
-                      </Typography>
-                    </TableCell>
-                    <TableCell>{score.category}</TableCell>
-                    <TableCell>
-                      <Chip
-                        label={t(score.difficulty)}
-                        size="small"
-                        color={
-                          score.difficulty === 'very_easy' ? 'info' :
-                            score.difficulty === 'easy' ? 'success' :
-                              score.difficulty === 'medium' ? 'warning' :
-                                score.difficulty === 'hard' ? 'error' :
-                                  'secondary'
-                        }
-                      />
-                    </TableCell>
-                    <TableCell>
-                      {score.phrases_found}/{score.total_phrases}
-                      {score.phrases_found === score.total_phrases && (
-                        <Chip label={t('perfect')} size="small" color="success" sx={{ ml: 1 }} />
-                      )}
-                    </TableCell>
-                    <TableCell>{formatTime(score.duration_seconds)}</TableCell>
-                    <TableCell>
-                      {score.hints_used > 0 ? (
-                        <Chip label={score.hints_used} size="small" color="warning" />
-                      ) : (
-                        <Chip label="0" size="small" color="success" />
-                      )}
-                    </TableCell>
-                    <TableCell>
-                      <Typography variant="body2" color="text.secondary">
-                        {score.created_at ? new Date(score.created_at).toLocaleDateString() : '-'}
-                      </Typography>
-                    </TableCell>
-                  </TableRow>
-                ))}
-                {highScores.length === 0 && (
-                  <TableRow>
-                    <TableCell colSpan={9} align="center">
-                      <Typography variant="body2" color="text.secondary">
-                        {t('no_high_scores')}
-                      </Typography>
-                    </TableCell>
-                  </TableRow>
-                )}
-              </TableBody>
-            </Table>
-          </TableContainer>
-        </Box>
+        <HighScoresTab
+          highScores={highScores}
+          languageSets={languageSets}
+          filters={{
+            languageSet: highScoresLanguageSet,
+            category: highScoresCategory,
+            difficulty: highScoresDifficulty,
+            gameType: highScoresGameType,
+            limit: highScoresLimit
+          }}
+          onFilterChange={handleHighScoresFilterChange}
+          formatTime={formatTime}
+        />
       )}
 
       {/* Confirmation Dialogs */}
@@ -800,9 +429,7 @@ const StatisticsDashboard = ({ token, setError: onError, currentUser }) => {
         open={toggleStatsDialogOpen}
         onClose={() => setToggleStatsDialogOpen(false)}
       >
-        <DialogTitle>
-          {statisticsEnabled ? t('disable_statistics') : t('enable_statistics')}
-        </DialogTitle>
+        <DialogTitle>{t('confirm_change_settings')}</DialogTitle>
         <DialogContent>
           <DialogContentText>
             {statisticsEnabled

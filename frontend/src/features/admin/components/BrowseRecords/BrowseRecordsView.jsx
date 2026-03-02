@@ -16,7 +16,9 @@ import {
     useTheme,
     Snackbar,
     Alert,
-    IconButton
+    IconButton,
+    CircularProgress,
+    Fade,
 } from '@mui/material';
 import TranslateIcon from '@mui/icons-material/Translate';
 import CategoryIcon from '@mui/icons-material/Category';
@@ -343,28 +345,50 @@ const BrowseRecordsView = ({
                 )
             }
             {/* Data Table */}
-            <AdminTable
-                rows={rows}
-                onSaveRow={handleInlineSave}
-                onDeleteRow={handleInlineDelete}
-                totalRows={totalRows}
-                searchTerm={searchTerm}
-                onSearchChange={handleSearchChange}
-                isLoading={loading}
-                batchMode={batchMode}
-                selectedRows={selectedRows}
-                onRowSelectionChange={handleRowSelectionChange}
-                onBatchModeToggle={handleBatchModeToggle}
-                onAddNewRow={handleStartAddRow}
-                newRow={newRow}
-                onNewRowChange={handleNewRowFieldChange}
-                onCancelNewRow={handleCancelNewRow}
-                onConfirmNewRow={handleConfirmNewRow}
-                isSavingNewRow={isSavingNewRow}
-                canAddNewRow={canAddNewRow}
-                categoryOptions={categories}
-                compactMode={isLayoutCompact}
-            />
+            <Box sx={{ position: 'relative' }}>
+                <AdminTable
+                    rows={rows}
+                    onSaveRow={handleInlineSave}
+                    onDeleteRow={handleInlineDelete}
+                    totalRows={totalRows}
+                    searchTerm={searchTerm}
+                    onSearchChange={handleSearchChange}
+                    isLoading={loading}
+                    batchMode={batchMode}
+                    selectedRows={selectedRows}
+                    onRowSelectionChange={handleRowSelectionChange}
+                    onBatchModeToggle={handleBatchModeToggle}
+                    onAddNewRow={handleStartAddRow}
+                    newRow={newRow}
+                    onNewRowChange={handleNewRowFieldChange}
+                    onCancelNewRow={handleCancelNewRow}
+                    onConfirmNewRow={handleConfirmNewRow}
+                    isSavingNewRow={isSavingNewRow}
+                    canAddNewRow={canAddNewRow}
+                    categoryOptions={categories}
+                    compactMode={isLayoutCompact}
+                />
+                <Fade in={loading} unmountOnExit>
+                    <Box
+                        sx={{
+                            position: 'absolute',
+                            inset: 0,
+                            display: 'flex',
+                            alignItems: 'center',
+                            justifyContent: 'center',
+                            backgroundColor: (theme) =>
+                                theme.palette.mode === 'dark'
+                                    ? 'rgba(0, 0, 0, 0.45)'
+                                    : 'rgba(255, 255, 255, 0.65)',
+                            backdropFilter: 'blur(2px)',
+                            borderRadius: 1,
+                            zIndex: 10,
+                        }}
+                    >
+                        <CircularProgress size={48} />
+                    </Box>
+                </Fade>
+            </Box>
             {/* Pagination */}
             <Box sx={{ mt: 3 }}>
                 <PaginationControls

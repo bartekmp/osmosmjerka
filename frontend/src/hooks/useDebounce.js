@@ -13,7 +13,7 @@ export const useDebounce = (callback, delay, deps = []) => {
 
     const debouncedFn = useCallback((...args) => {
         setIsDebouncing(true);
-        
+
         if (timeoutRef.current) {
             clearTimeout(timeoutRef.current);
         }
@@ -75,21 +75,33 @@ export const useDebouncedApiCall = (apiCall, delay = 750, options = {}) => {
     const [isLoading, setIsLoading] = useState(false);
     const [error, setError] = useState(null);
     const [showRateLimit, setShowRateLimit] = useState(false);
-    const { onSuccess, onError } = options;
+
+    // Use refs for callbacks and loading flag so they don't need to be in
+    // dependency arrays — prevents cascade re-creation on every state change
+    const isLoadingRef = useRef(false);
+    const onSuccessRef = useRef(options.onSuccess);
+    const onErrorRef = useRef(options.onError);
+    const apiCallRef = useRef(apiCall);
+
+    // Keep refs up-to-date without triggering re-renders
+    onSuccessRef.current = options.onSuccess;
+    onErrorRef.current = options.onError;
+    apiCallRef.current = apiCall;
 
     const debouncedCall = useCallback(async (...args) => {
-        if (isLoading) {
+        if (isLoadingRef.current) {
             setShowRateLimit(true);
             setTimeout(() => setShowRateLimit(false), 3000);
             return;
         }
 
+        isLoadingRef.current = true;
         setIsLoading(true);
         setError(null);
 
         try {
-            const result = await apiCall(...args);
-            if (onSuccess) onSuccess(result);
+            const result = await apiCallRef.current(...args);
+            if (onSuccessRef.current) onSuccessRef.current(result);
             return result;
         } catch (err) {
             setError(err);
@@ -97,14 +109,15 @@ export const useDebouncedApiCall = (apiCall, delay = 750, options = {}) => {
                 setShowRateLimit(true);
                 setTimeout(() => setShowRateLimit(false), 4000);
             }
-            if (onError) onError(err);
+            if (onErrorRef.current) onErrorRef.current(err);
             throw err;
         } finally {
+            isLoadingRef.current = false;
             setIsLoading(false);
         }
-    }, [apiCall, isLoading, onSuccess, onError]);
+    }, []); // stable — uses refs for all external values
 
-    const { debouncedFn: call } = useDebounce(debouncedCall, delay);
+    const { debouncedFn: call, isDebouncing } = useDebounce(debouncedCall, delay);
 
-    return { call, isLoading, error, showRateLimit };
+    return { call, isLoading: isLoading || isDebouncing, error, showRateLimit };
 };
