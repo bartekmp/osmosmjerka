@@ -482,7 +482,7 @@ class PrivateListsMixin:
         current_count = await self.get_private_list_phrase_count(list_id)
 
         if current_count >= phrase_limit:
-            raise ValueError(f"List is full ({phrase_limit} phrases). " f"Current count: {current_count}")
+            raise ValueError(f"List is full ({phrase_limit} phrases). Current count: {current_count}")
 
         # Get the list to retrieve language_set_id
         list_query = select(user_private_lists_table.c.language_set_id).where(user_private_lists_table.c.id == list_id)
