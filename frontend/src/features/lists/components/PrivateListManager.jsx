@@ -38,6 +38,12 @@ import DownloadIcon from '@mui/icons-material/Download';
 import { useTranslation } from 'react-i18next';
 import axios from 'axios';
 import { STORAGE_KEYS } from '../../../shared/constants/constants';
+import CreateListDialog from './Dialogs/CreateListDialog';
+import DeleteConfirmationDialog from './Dialogs/DeleteConfirmationDialog';
+import AddCustomPhraseDialog from './Dialogs/AddCustomPhraseDialog';
+import BatchImportDialog from './Dialogs/BatchImportDialog';
+import ShareListDialog from './Dialogs/ShareListDialog';
+import StatisticsDialog from './Dialogs/StatisticsDialog';
 
 export default function PrivateListManager({ open, onClose, languageSetId, isFullPage = false }) {
   const { t } = useTranslation();
@@ -50,7 +56,6 @@ export default function PrivateListManager({ open, onClose, languageSetId, isFul
   // Lists Tab State
   const [editingListId, setEditingListId] = useState(null);
   const [editingListName, setEditingListName] = useState('');
-  const [newListName, setNewListName] = useState('');
   const [showCreateDialog, setShowCreateDialog] = useState(false);
   const [deleteConfirmation, setDeleteConfirmation] = useState(null);
 
@@ -58,9 +63,6 @@ export default function PrivateListManager({ open, onClose, languageSetId, isFul
   const [phrases, setPhrases] = useState([]);
   const [selectedPhrases, setSelectedPhrases] = useState(new Set());
   const [showAddCustomDialog, setShowAddCustomDialog] = useState(false);
-  const [customPhrase, setCustomPhrase] = useState('');
-  const [customTranslation, setCustomTranslation] = useState('');
-  const [customCategories, setCustomCategories] = useState('');
 
   // Batch Import State
   const [showImportDialog, setShowImportDialog] = useState(false);
@@ -71,8 +73,6 @@ export default function PrivateListManager({ open, onClose, languageSetId, isFul
 
   // List Sharing State
   const [showShareDialog, setShowShareDialog] = useState(false);
-  const [shareUsername, setShareUsername] = useState('');
-  const [sharePermission, setSharePermission] = useState('read');
   const [listShares, setListShares] = useState([]);
 
   // Statistics State
@@ -293,13 +293,13 @@ export default function PrivateListManager({ open, onClose, languageSetId, isFul
 
   // ===== Lists Tab Functions =====
 
-  const handleCreateList = async () => {
-    if (!newListName.trim()) {
+  const handleCreateList = async (listName) => {
+    if (!listName.trim()) {
       showNotification(t('privateListManager.validation.listNameRequired'), 'error');
       return;
     }
 
-    if (newListName.length > 100) {
+    if (listName.length > 100) {
       showNotification(t('privateListManager.validation.listNameTooLong'), 'error');
       return;
     }
@@ -307,14 +307,13 @@ export default function PrivateListManager({ open, onClose, languageSetId, isFul
     setLoading(true);
     try {
       await axios.post('/api/user/private-lists', {
-        list_name: newListName.trim(),
+        list_name: listName.trim(),
         language_set_id: languageSetId
       }, {
         headers: getAuthHeader()
       });
 
       showNotification(t('privateListManager.success.listCreated'), 'success');
-      setNewListName('');
       setShowCreateDialog(false);
       await fetchLists(true);
     } catch (error) {
@@ -401,13 +400,13 @@ export default function PrivateListManager({ open, onClose, languageSetId, isFul
 
   // ===== Phrases Tab Functions =====
 
-  const handleAddCustomPhrase = async () => {
-    if (!customPhrase.trim()) {
+  const handleAddCustomPhrase = async (phrase, translation, categories) => {
+    if (!phrase.trim()) {
       showNotification(t('privateListManager.validation.phraseRequired'), 'error');
       return;
     }
 
-    if (!customTranslation.trim()) {
+    if (!translation.trim()) {
       showNotification(t('privateListManager.validation.translationRequired'), 'error');
       return;
     }
@@ -415,17 +414,14 @@ export default function PrivateListManager({ open, onClose, languageSetId, isFul
     setLoading(true);
     try {
       await axios.post(`/api/user/private-lists/${selectedListId}/phrases`, {
-        custom_phrase: customPhrase.trim(),
-        custom_translation: customTranslation.trim(),
-        custom_categories: customCategories.trim() || null
+        custom_phrase: phrase.trim(),
+        custom_translation: translation.trim(),
+        custom_categories: categories.trim() || null
       }, {
         headers: getAuthHeader()
       });
 
       showNotification(t('privateListManager.success.phraseAdded'), 'success');
-      setCustomPhrase('');
-      setCustomTranslation('');
-      setCustomCategories('');
       setShowAddCustomDialog(false);
       await fetchPhrases(true);
       await fetchLists(true); // Update phrase count
@@ -579,8 +575,8 @@ export default function PrivateListManager({ open, onClose, languageSetId, isFul
     }
   };
 
-  const handleShareList = async () => {
-    if (!shareUsername.trim()) {
+  const handleShareList = async (username, permission) => {
+    if (!username.trim()) {
       showNotification('Please enter a username', 'error');
       return;
     }
@@ -590,14 +586,13 @@ export default function PrivateListManager({ open, onClose, languageSetId, isFul
       await axios.post(
         `/api/user/private-lists/${selectedListId}/share`,
         {
-          shared_with_username: shareUsername.trim(),
-          permission: sharePermission
+          shared_with_username: username.trim(),
+          permission: permission
         },
         { headers: getAuthHeader() }
       );
 
-      showNotification(t('privateListManager.phrases.shareSuccess', 'List shared with {{username}}', { username: shareUsername }), 'success');
-      setShareUsername('');
+      showNotification(t('privateListManager.phrases.shareSuccess', 'List shared with {{username}}', { username }), 'success');
       await fetchListShares();
     } catch (error) {
       const message = error.response?.data?.error || 'Failed to share list';
@@ -925,59 +920,21 @@ export default function PrivateListManager({ open, onClose, languageSetId, isFul
         )}
 
         {/* Create List Dialog */}
-        <Dialog open={showCreateDialog} onClose={() => setShowCreateDialog(false)}>
-          <DialogTitle>{t('privateListManager.lists.createNew')}</DialogTitle>
-          <DialogContent>
-            <TextField
-              autoFocus
-              margin="dense"
-              label={t('privateListManager.lists.listName')}
-              fullWidth
-              value={newListName}
-              onChange={(e) => setNewListName(e.target.value)}
-              onKeyPress={(e) => {
-                if (e.key === 'Enter') handleCreateList();
-              }}
-              helperText={t('privateListManager.validation.maxLength', { max: 100 })}
-            />
-          </DialogContent>
-          <DialogActions>
-            <Button onClick={() => setShowCreateDialog(false)} disabled={loading}>
-              {t('privateListManager.buttons.cancel')}
-            </Button>
-            <Button onClick={handleCreateList} variant="contained" disabled={loading}>
-              {t('privateListManager.buttons.create')}
-            </Button>
-          </DialogActions>
-        </Dialog>
+        <CreateListDialog
+          open={showCreateDialog}
+          onClose={() => setShowCreateDialog(false)}
+          onSubmit={handleCreateList}
+          loading={loading}
+        />
 
         {/* Delete Confirmation Dialog */}
-        <Dialog open={!!deleteConfirmation} onClose={() => setDeleteConfirmation(null)}>
-          <DialogTitle>{t('privateListManager.lists.confirmDelete')}</DialogTitle>
-          <DialogContent>
-            <Typography>
-              {t('privateListManager.lists.deleteWarning', { name: deleteConfirmation?.list_name })}
-            </Typography>
-            {deleteConfirmation?.is_system_list && (
-              <Typography color="error" sx={{ mt: 2 }}>
-                {t('privateListManager.lists.cannotDeleteSystem')}
-              </Typography>
-            )}
-          </DialogContent>
-          <DialogActions>
-            <Button onClick={() => setDeleteConfirmation(null)} disabled={loading}>
-              {t('privateListManager.buttons.cancel')}
-            </Button>
-            <Button
-              onClick={handleConfirmDelete}
-              color="error"
-              variant="contained"
-              disabled={loading || deleteConfirmation?.is_system_list}
-            >
-              {t('privateListManager.buttons.delete')}
-            </Button>
-          </DialogActions>
-        </Dialog>
+        <DeleteConfirmationDialog
+          open={!!deleteConfirmation}
+          list={deleteConfirmation}
+          onClose={() => setDeleteConfirmation(null)}
+          onConfirm={handleConfirmDelete}
+          loading={loading}
+        />
       </Box>
     );
   };
@@ -1202,44 +1159,13 @@ export default function PrivateListManager({ open, onClose, languageSetId, isFul
         )}
 
         {/* Add Custom Phrase Dialog */}
-        <Dialog open={showAddCustomDialog} onClose={() => setShowAddCustomDialog(false)} maxWidth="sm" fullWidth>
-          <DialogTitle>{t('privateListManager.phrases.addCustom')}</DialogTitle>
-          <DialogContent>
-            <TextField
-              autoFocus
-              margin="dense"
-              label={t('privateListManager.phrases.phrase')}
-              fullWidth
-              value={customPhrase}
-              onChange={(e) => setCustomPhrase(e.target.value)}
-              required
-            />
-            <TextField
-              margin="dense"
-              label={t('privateListManager.phrases.translation')}
-              fullWidth
-              value={customTranslation}
-              onChange={(e) => setCustomTranslation(e.target.value)}
-              required
-            />
-            <TextField
-              margin="dense"
-              label={t('privateListManager.phrases.categories')}
-              fullWidth
-              value={customCategories}
-              onChange={(e) => setCustomCategories(e.target.value)}
-              helperText={t('privateListManager.phrases.categoriesOptional')}
-            />
-          </DialogContent>
-          <DialogActions>
-            <Button onClick={() => setShowAddCustomDialog(false)} disabled={loading}>
-              {t('privateListManager.buttons.cancel')}
-            </Button>
-            <Button onClick={handleAddCustomPhrase} variant="contained" disabled={loading}>
-              {t('privateListManager.buttons.add')}
-            </Button>
-          </DialogActions>
-        </Dialog>
+        {/* Add Custom Phrase Dialog */}
+        <AddCustomPhraseDialog
+          open={showAddCustomDialog}
+          onClose={() => setShowAddCustomDialog(false)}
+          onSubmit={handleAddCustomPhrase}
+          loading={loading}
+        />
       </Box>
     );
   };
@@ -1298,262 +1224,38 @@ export default function PrivateListManager({ open, onClose, languageSetId, isFul
       </Snackbar>
 
       {/* Batch Import Dialog */}
-      <Dialog open={showImportDialog} onClose={handleCloseImportDialog} maxWidth="md" fullWidth>
-        <DialogTitle>{t('privateListManager.phrases.importTitle', 'Import Phrases from CSV')}</DialogTitle>
-        <DialogContent>
-          <Box sx={{ mb: 2 }}>
-            <Typography variant="body2" color="text.secondary" gutterBottom>
-              {t('privateListManager.phrases.importDescription', 'Upload a CSV file with phrases. Format: phrase; translation; categories (optional)')}
-            </Typography>
-            <Button
-              variant="contained"
-              component="label"
-              startIcon={<UploadFileIcon />}
-              sx={{ mt: 1 }}
-            >
-              Select File
-              <input
-                type="file"
-                hidden
-                accept=".csv"
-                onChange={handleFileSelect}
-              />
-            </Button>
-            {importFile && (
-              <Typography variant="body2" sx={{ mt: 1 }}>
-                Selected: {importFile.name} ({importData.length} phrases)
-              </Typography>
-            )}
-          </Box>
-
-          {importPreview.length > 0 && (
-            <Box>
-              <Typography variant="subtitle2" gutterBottom>
-                Preview (first 10 rows):
-              </Typography>
-              <Table size="small">
-                <TableHead>
-                  <TableRow>
-                    <TableCell>Phrase</TableCell>
-                    <TableCell>Translation</TableCell>
-                    <TableCell>Categories</TableCell>
-                  </TableRow>
-                </TableHead>
-                <TableBody>
-                  {importPreview.map((item, idx) => (
-                    <TableRow key={idx}>
-                      <TableCell>{item.phrase}</TableCell>
-                      <TableCell>{item.translation}</TableCell>
-                      <TableCell>{item.categories || '-'}</TableCell>
-                    </TableRow>
-                  ))}
-                </TableBody>
-              </Table>
-            </Box>
-          )}
-
-          {importResult && (
-            <Box sx={{ mt: 2 }}>
-              <Alert severity={importResult.error_count > 0 ? 'warning' : 'success'}>
-                Imported: {importResult.added_count} | Errors: {importResult.error_count}
-              </Alert>
-              {importResult.errors && importResult.errors.length > 0 && (
-                <Box sx={{ mt: 1 }}>
-                  <Typography variant="caption" color="error">
-                    First {importResult.errors.length} errors:
-                  </Typography>
-                  {importResult.errors.map((err, idx) => (
-                    <Typography key={idx} variant="caption" display="block">
-                      Row {err.index + 1}: {err.error}
-                    </Typography>
-                  ))}
-                </Box>
-              )}
-            </Box>
-          )}
-        </DialogContent>
-        <DialogActions>
-          <Button onClick={handleCloseImportDialog}>Close</Button>
-          <Button
-            onClick={handleBatchImport}
-            variant="contained"
-            disabled={loading || importData.length === 0}
-          >
-            Import {importData.length} Phrases
-          </Button>
-        </DialogActions>
-      </Dialog>
+      {/* Batch Import Dialog */}
+      <BatchImportDialog
+        open={showImportDialog}
+        onClose={handleCloseImportDialog}
+        onImport={handleBatchImport}
+        onFileSelect={handleFileSelect}
+        loading={loading}
+        importFile={importFile}
+        importData={importData}
+        importPreview={importPreview}
+        importResult={importResult}
+      />
 
       {/* Share List Dialog */}
-      <Dialog open={showShareDialog} onClose={() => setShowShareDialog(false)} maxWidth="sm" fullWidth>
-        <DialogTitle>{t('privateListManager.phrases.shareList', 'Share List')}</DialogTitle>
-        <DialogContent>
-          <Box sx={{ mb: 2 }}>
-            <TextField
-              fullWidth
-              label={t('privateListManager.phrases.shareUsername', 'Username')}
-              value={shareUsername}
-              onChange={(e) => setShareUsername(e.target.value)}
-              margin="dense"
-            />
-            <Box sx={{ mt: 1, display: 'flex', gap: 1 }}>
-              <Chip
-                label={t('privateListManager.phrases.shareReadOnly', 'Read Only')}
-                color={sharePermission === 'read' ? 'primary' : 'default'}
-                onClick={() => setSharePermission('read')}
-                clickable
-              />
-              <Chip
-                label={t('privateListManager.phrases.shareReadWrite', 'Read & Write')}
-                color={sharePermission === 'write' ? 'primary' : 'default'}
-                onClick={() => setSharePermission('write')}
-                clickable
-              />
-            </Box>
-            <Button
-              variant="contained"
-              onClick={handleShareList}
-              disabled={loading || !shareUsername.trim()}
-              sx={{ mt: 2 }}
-              fullWidth
-            >
-              {t('privateListManager.buttons.share', 'Share')}
-            </Button>
-          </Box>
-
-          <Typography variant="subtitle2" gutterBottom>
-            {t('privateListManager.phrases.currentlyShared', 'Currently shared with:')}
-          </Typography>
-          {listShares.length === 0 ? (
-            <Typography variant="body2" color="text.secondary">
-              {t('privateListManager.phrases.notShared', 'Not shared with anyone')}
-            </Typography>
-          ) : (
-            <Table size="small">
-              <TableHead>
-                <TableRow>
-                  <TableCell>{t('privateListManager.phrases.user', 'User')}</TableCell>
-                  <TableCell>{t('privateListManager.phrases.permission', 'Permission')}</TableCell>
-                  <TableCell align="right">{t('privateListManager.phrases.actions', 'Actions')}</TableCell>
-                </TableRow>
-              </TableHead>
-              <TableBody>
-                {listShares.map((share) => (
-                  <TableRow key={share.id}>
-                    <TableCell>{share.username}</TableCell>
-                    <TableCell>
-                      <Chip
-                        label={share.permission}
-                        size="small"
-                        color={share.permission === 'write' ? 'primary' : 'default'}
-                      />
-                    </TableCell>
-                    <TableCell align="right">
-                      <IconButton
-                        size="small"
-                        onClick={() => handleUnshare(share.shared_with_user_id)}
-                        disabled={loading}
-                        color="error"
-                      >
-                        <DeleteIcon />
-                      </IconButton>
-                    </TableCell>
-                  </TableRow>
-                ))}
-              </TableBody>
-            </Table>
-          )}
-        </DialogContent>
-        <DialogActions>
-          <Button onClick={() => setShowShareDialog(false)}>{t('privateListManager.buttons.close')}</Button>
-        </DialogActions>
-      </Dialog>
+      <ShareListDialog
+        open={showShareDialog}
+        onClose={() => setShowShareDialog(false)}
+        onShare={handleShareList}
+        onUnshare={handleUnshare}
+        loading={loading}
+        listShares={listShares}
+      />
 
       {/* Statistics Dialog */}
-      <Dialog open={showStatsDialog} onClose={() => setShowStatsDialog(false)} maxWidth="sm" fullWidth>
-        <DialogTitle>{t('privateListManager.phrases.statisticsTitle', 'List Statistics')}</DialogTitle>
-        <DialogContent>
-          {listStats ? (
-            <Box>
-              <Typography variant="h6" gutterBottom>
-                {listStats.list_name}
-              </Typography>
-              <Table size="small">
-                <TableBody>
-                  <TableRow>
-                    <TableCell>Total Phrases</TableCell>
-                    <TableCell align="right"><strong>{listStats.total_phrases}</strong></TableCell>
-                  </TableRow>
-                  <TableRow>
-                    <TableCell>Custom Phrases</TableCell>
-                    <TableCell align="right">{listStats.custom_phrases}</TableCell>
-                  </TableRow>
-                  <TableRow>
-                    <TableCell>Public Phrases</TableCell>
-                    <TableCell align="right">{listStats.public_phrases}</TableCell>
-                  </TableRow>
-                  <TableRow>
-                    <TableCell>Created</TableCell>
-                    <TableCell align="right">
-                      {listStats.created_at ? new Date(listStats.created_at).toLocaleDateString() : '-'}
-                    </TableCell>
-                  </TableRow>
-                  <TableRow>
-                    <TableCell>Last Updated</TableCell>
-                    <TableCell align="right">
-                      {listStats.updated_at ? new Date(listStats.updated_at).toLocaleDateString() : '-'}
-                    </TableCell>
-                  </TableRow>
-                </TableBody>
-              </Table>
-            </Box>
-          ) : (
-            <CircularProgress />
-          )}
-
-          {userStats && (
-            <Box sx={{ mt: 3 }}>
-              <Typography variant="h6" gutterBottom>
-                {t('privateListManager.phrases.overallStatistics', 'Your Overall Statistics')}
-              </Typography>
-              <Table size="small">
-                <TableBody>
-                  <TableRow>
-                    <TableCell>Total Lists</TableCell>
-                    <TableCell align="right"><strong>{userStats.total_lists}</strong></TableCell>
-                  </TableRow>
-                  <TableRow>
-                    <TableCell>Total Phrases</TableCell>
-                    <TableCell align="right"><strong>{userStats.total_phrases}</strong></TableCell>
-                  </TableRow>
-                </TableBody>
-              </Table>
-
-              {userStats.most_used_lists && userStats.most_used_lists.length > 0 && (
-                <Box sx={{ mt: 2 }}>
-                  <Typography variant="subtitle2" gutterBottom>
-                    Most Used Lists:
-                  </Typography>
-                  {userStats.most_used_lists.map((list) => (
-                    <Box key={list.id} sx={{ display: 'flex', justifyContent: 'space-between', py: 0.5 }}>
-                      <Typography variant="body2">{list.list_name}</Typography>
-                      <Chip label={`${list.phrase_count} phrases`} size="small" />
-                    </Box>
-                  ))}
-                </Box>
-              )}
-            </Box>
-          )}
-        </DialogContent>
-        <DialogActions>
-          <Button onClick={() => {
-            fetchUserStatistics();
-          }} disabled={loading}>
-            Refresh Stats
-          </Button>
-          <Button onClick={() => setShowStatsDialog(false)}>Close</Button>
-        </DialogActions>
-      </Dialog>
+      <StatisticsDialog
+        open={showStatsDialog}
+        onClose={() => setShowStatsDialog(false)}
+        onRefresh={fetchUserStatistics}
+        loading={loading}
+        listStats={listStats}
+        userStats={userStats}
+      />
     </>
   );
 }

@@ -1,4 +1,4 @@
-import { computeControlBarMode } from '../AdminPanel';
+import { computeControlBarMode } from '../../../hooks/useAdminLayout';
 
 describe('AdminPanel responsive control bar mode', () => {
   it('uses compact mode for narrow layouts', () => {

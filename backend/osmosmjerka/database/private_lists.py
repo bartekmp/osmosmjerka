@@ -422,7 +422,7 @@ class PrivateListsMixin:
             current_count = await self.get_user_current_list_count(user_id, language_set_id)
 
             if current_count >= list_limit:
-                raise ValueError(f"List limit reached ({list_limit} lists). " f"Current count: {current_count}")
+                raise ValueError(f"List limit reached ({list_limit} lists). Current count: {current_count}")
 
         # Check for duplicate name
         check_query = select(user_private_lists_table.c.id).where(
