@@ -278,9 +278,9 @@ def test_high_density_placement():
 
     # Grid shouldn't be too large for the given phrases
     max_phrase_len = max(len(normalize_phrase(w["phrase"].replace(" ", "").upper())) for w in phrases)
-    assert (
-        len(grid) <= max_phrase_len + 6
-    ), f"Grid too large: {len(grid)}x{len(grid)} for max phrase length {max_phrase_len}"
+    assert len(grid) <= max_phrase_len + 6, (
+        f"Grid too large: {len(grid)}x{len(grid)} for max phrase length {max_phrase_len}"
+    )
 
 
 def test_ten_phrases_in_reasonable_grid():

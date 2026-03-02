@@ -68,7 +68,7 @@ Branch name: '{branch_name}'
 REQUIRED FORMAT: <type>/<description>
 
 Where <type> must be one of the allowed semantic release tags:
-{', '.join(sorted(allowed_tags))}
+{", ".join(sorted(allowed_tags))}
 
 EXAMPLES:
   ✅ feat/user-authentication
@@ -94,7 +94,7 @@ Branch type: '{branch_type}'
 REQUIRED FORMAT: <type>/<description>
 
 Where <type> must be one of the allowed semantic release tags:
-{', '.join(sorted(allowed_tags))}
+{", ".join(sorted(allowed_tags))}
 
 EXAMPLES:
   ✅ feat/user-authentication
@@ -242,7 +242,7 @@ Commit message: '{commit_message}'
 REQUIRED FORMAT: <type>: <description> or <type>(<scope>): <description>
 
 Where <type> must be one of the allowed semantic release tags:
-{', '.join(sorted(allowed_tags))}
+{", ".join(sorted(allowed_tags))}
 
 EXAMPLES:
   ✅ feat: add user authentication
@@ -269,7 +269,7 @@ Commit type: '{commit_type}'
 REQUIRED FORMAT: <type>: <description> or <type>(<scope>): <description>
 
 Where <type> must be one of the allowed semantic release tags:
-{', '.join(sorted(allowed_tags))}
+{", ".join(sorted(allowed_tags))}
 
 EXAMPLES:
   ✅ feat: add user authentication
