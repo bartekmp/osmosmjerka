@@ -34,7 +34,6 @@ export default function BrowseRecordsContainer({
     const [offsetInput, setOffsetInput] = useState(0);
     const [searchTerm, setSearchTerm] = useState('');
     const [filterCategory, setFilterCategory] = useState('');
-    const [loading, setLoading] = useState(false);
 
     // Row Editing State
     const [newRow, setNewRow] = useState(null);
@@ -52,7 +51,7 @@ export default function BrowseRecordsContainer({
 
     // API Hook
     const {
-        fetchRows: originalFetchRows,
+        fetchRows,
         handleSave,
         handleExportTxt,
         clearDb,
@@ -60,7 +59,8 @@ export default function BrowseRecordsContainer({
         handleBatchDelete,
         handleBatchAddCategory,
         handleBatchRemoveCategory,
-        invalidateCategoriesCache
+        invalidateCategoriesCache,
+        isFetchingRows,
     } = useAdminApi({
         token,
         setRows,
@@ -70,20 +70,6 @@ export default function BrowseRecordsContainer({
         setToken,
         setIsLogged
     });
-
-    // Wrap fetchRows to handle loading state
-    const fetchRows = useCallback((...args) => {
-        setLoading(true);
-        originalFetchRows(...args);
-    }, [originalFetchRows]);
-
-    // Clear loading state when rows change
-    useEffect(() => {
-        if (loading) {
-            const timer = setTimeout(() => setLoading(false), 100);
-            return () => clearTimeout(timer);
-        }
-    }, [rows, loading]);
 
     // Initial Fetch & Updates
     useEffect(() => {
@@ -303,7 +289,7 @@ export default function BrowseRecordsContainer({
         <BrowseRecordsView
             rows={rows}
             totalRows={totalRows}
-            loading={loading}
+            loading={isFetchingRows}
             error={error}
 
             offset={offset}

@@ -1,5 +1,5 @@
 import axios from "axios";
-import { useCallback } from "react";
+import { useCallback, useMemo } from "react";
 import { API_ENDPOINTS } from '../../../../shared/constants/constants';
 import { useDebouncedApiCall } from '../../../../hooks/useDebounce';
 
@@ -9,9 +9,10 @@ let cacheTimestamp = null;
 const CACHE_DURATION = 5 * 60 * 1000; // 5 minutes
 
 export function useAdminApi({ token, setRows, setTotalRows, setDashboard, setError, setToken, setIsLogged }) {
-    const authHeader = token
+    // Memoize so all downstream useCallbacks only recreate when token actually changes
+    const authHeader = useMemo(() => token
         ? { Authorization: 'Bearer ' + token, 'Content-Type': 'application/json' }
-        : {};
+        : {}, [token]);
 
     // Helper function to handle authentication errors
     const handleAuthError = useCallback((response) => {
@@ -33,7 +34,7 @@ export function useAdminApi({ token, setRows, setTotalRows, setDashboard, setErr
         if (filterCategory) url += `&category=${encodeURIComponent(filterCategory)}`;
         if (searchTerm && searchTerm.trim()) url += `&search=${encodeURIComponent(searchTerm.trim())}`;
         if (languageSetId) url += `&language_set_id=${languageSetId}`;
-        
+
         const response = await fetch(url, { headers: authHeader });
         if (!response.ok) {
             if (handleAuthError(response)) {
@@ -47,20 +48,24 @@ export function useAdminApi({ token, setRows, setTotalRows, setDashboard, setErr
         return response.json();
     }, [authHeader, handleAuthError]);
 
-    const { 
-        call: debouncedFetchRows, 
-        isLoading: isFetchingRows, 
-        showRateLimit: showFetchRateLimit 
+    // Stable callbacks — memoized so useDebouncedApiCall doesn't recreate on every render
+    const onFetchSuccess = useCallback((data) => {
+        setRows(data.rows || data);
+        setTotalRows(data.total || data.length || 0);
+        setError("");
+    }, [setRows, setTotalRows, setError]);
+
+    const onFetchError = useCallback((err) => {
+        setError(err.message);
+    }, [setError]);
+
+    const {
+        call: debouncedFetchRows,
+        isLoading: isFetchingRows,
+        showRateLimit: showFetchRateLimit
     } = useDebouncedApiCall(fetchRowsApiCall, 750, {
-        onSuccess: (data) => {
-            setRows(data.rows || data);
-            setTotalRows(data.total || data.length || 0);
-            setDashboard(false);
-            setError("");
-        },
-        onError: (err) => {
-            setError(err.message);
-        }
+        onSuccess: onFetchSuccess,
+        onError: onFetchError,
     });
 
     const fetchRows = useCallback((offset, limit, filterCategory, searchTerm, languageSetId) => {
@@ -234,7 +239,7 @@ export function useAdminApi({ token, setRows, setTotalRows, setDashboard, setErr
             const response = await fetch(`${API_ENDPOINTS.ADMIN_BATCH_ADD_CATEGORY}?language_set_id=${languageSetId}`, {
                 method: 'POST',
                 headers: authHeader,
-                body: JSON.stringify({ 
+                body: JSON.stringify({
                     row_ids: rowIds,
                     category: category.trim()
                 })
@@ -270,7 +275,7 @@ export function useAdminApi({ token, setRows, setTotalRows, setDashboard, setErr
             const response = await fetch(`${API_ENDPOINTS.ADMIN_BATCH_REMOVE_CATEGORY}?language_set_id=${languageSetId}`, {
                 method: 'POST',
                 headers: authHeader,
-                body: JSON.stringify({ 
+                body: JSON.stringify({
                     row_ids: rowIds,
                     category: category.trim()
                 })
@@ -312,13 +317,13 @@ export function useAdminApi({ token, setRows, setTotalRows, setDashboard, setErr
         return response.json();
     }, [authHeader, handleAuthError]);
 
-    return { 
-        fetchRows, 
-        handleLogin, 
-        handleSave, 
-        handleExportTxt, 
-        clearDb, 
-        handleDelete, 
+    return {
+        fetchRows,
+        handleLogin,
+        handleSave,
+        handleExportTxt,
+        clearDb,
+        handleDelete,
         fetchCategories,
         invalidateCategoriesCache,
         handleBatchDelete,
