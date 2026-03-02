@@ -2,6 +2,86 @@
 
 <!-- version list -->
 
+## v1.41.3 (2026-03-02)
+
+### Bug Fixes
+
+- Code formatting ([#165](https://github.com/bartekmp/osmosmjerka/pull/165),
+  [`1d79b16`](https://github.com/bartekmp/osmosmjerka/commit/1d79b16928763728ae7eee7cafcf31540d355ea8))
+
+- Loading phrases in record browser ([#164](https://github.com/bartekmp/osmosmjerka/pull/164),
+  [`cbf83e5`](https://github.com/bartekmp/osmosmjerka/commit/cbf83e52d3eb9437036d988784b085b44f7ee7e8))
+
+### Chores
+
+- Update python deps
+  ([`70574e8`](https://github.com/bartekmp/osmosmjerka/commit/70574e8a048b7b8beed6bd4e2721c58b461e58d1))
+
+### Refactoring
+
+- Extract AddCustomPhraseDialog from PrivateListManager
+  ([#164](https://github.com/bartekmp/osmosmjerka/pull/164),
+  [`cbf83e5`](https://github.com/bartekmp/osmosmjerka/commit/cbf83e52d3eb9437036d988784b085b44f7ee7e8))
+
+- Extract BatchImportDialog from PrivateListManager
+  ([#164](https://github.com/bartekmp/osmosmjerka/pull/164),
+  [`cbf83e5`](https://github.com/bartekmp/osmosmjerka/commit/cbf83e52d3eb9437036d988784b085b44f7ee7e8))
+
+- Extract CreateListDialog from PrivateListManager
+  ([#164](https://github.com/bartekmp/osmosmjerka/pull/164),
+  [`cbf83e5`](https://github.com/bartekmp/osmosmjerka/commit/cbf83e52d3eb9437036d988784b085b44f7ee7e8))
+
+- Extract DeleteConfirmationDialog from PrivateListManager
+  ([#164](https://github.com/bartekmp/osmosmjerka/pull/164),
+  [`cbf83e5`](https://github.com/bartekmp/osmosmjerka/commit/cbf83e52d3eb9437036d988784b085b44f7ee7e8))
+
+- Extract scoring utilities from App.jsx ([#164](https://github.com/bartekmp/osmosmjerka/pull/164),
+  [`cbf83e5`](https://github.com/bartekmp/osmosmjerka/commit/cbf83e52d3eb9437036d988784b085b44f7ee7e8))
+
+- Extract ShareListDialog from PrivateListManager
+  ([#164](https://github.com/bartekmp/osmosmjerka/pull/164),
+  [`cbf83e5`](https://github.com/bartekmp/osmosmjerka/commit/cbf83e52d3eb9437036d988784b085b44f7ee7e8))
+
+- Extract StatisticsDashboard tabs and colocate BrowseRecords components
+  ([#164](https://github.com/bartekmp/osmosmjerka/pull/164),
+  [`cbf83e5`](https://github.com/bartekmp/osmosmjerka/commit/cbf83e52d3eb9437036d988784b085b44f7ee7e8))
+
+- Extract StatisticsDialog from PrivateListManager
+  ([#164](https://github.com/bartekmp/osmosmjerka/pull/164),
+  [`cbf83e5`](https://github.com/bartekmp/osmosmjerka/commit/cbf83e52d3eb9437036d988784b085b44f7ee7e8))
+
+- Fix backend scripts formatting ([#164](https://github.com/bartekmp/osmosmjerka/pull/164),
+  [`cbf83e5`](https://github.com/bartekmp/osmosmjerka/commit/cbf83e52d3eb9437036d988784b085b44f7ee7e8))
+
+- Fix tests formatting ([#164](https://github.com/bartekmp/osmosmjerka/pull/164),
+  [`cbf83e5`](https://github.com/bartekmp/osmosmjerka/commit/cbf83e52d3eb9437036d988784b085b44f7ee7e8))
+
+- Replace boolean view state with single activeView string
+  ([#164](https://github.com/bartekmp/osmosmjerka/pull/164),
+  [`cbf83e5`](https://github.com/bartekmp/osmosmjerka/commit/cbf83e52d3eb9437036d988784b085b44f7ee7e8))
+
+- Split components & add tests ([#164](https://github.com/bartekmp/osmosmjerka/pull/164),
+  [`cbf83e5`](https://github.com/bartekmp/osmosmjerka/commit/cbf83e52d3eb9437036d988784b085b44f7ee7e8))
+
+### Testing
+
+- Add comprehensive tests for GameHeader and Timer components
+  ([#164](https://github.com/bartekmp/osmosmjerka/pull/164),
+  [`cbf83e5`](https://github.com/bartekmp/osmosmjerka/commit/cbf83e52d3eb9437036d988784b085b44f7ee7e8))
+
+- Add comprehensive tests for ScoreDisplay component
+  ([#164](https://github.com/bartekmp/osmosmjerka/pull/164),
+  [`cbf83e5`](https://github.com/bartekmp/osmosmjerka/commit/cbf83e52d3eb9437036d988784b085b44f7ee7e8))
+
+- Add tests for CreateListDialog and DeleteConfirmationDialog
+  ([#164](https://github.com/bartekmp/osmosmjerka/pull/164),
+  [`cbf83e5`](https://github.com/bartekmp/osmosmjerka/commit/cbf83e52d3eb9437036d988784b085b44f7ee7e8))
+
+- Add tests for remaining dialog components
+  ([#164](https://github.com/bartekmp/osmosmjerka/pull/164),
+  [`cbf83e5`](https://github.com/bartekmp/osmosmjerka/commit/cbf83e52d3eb9437036d988784b085b44f7ee7e8))
+
+
 ## v1.41.2 (2026-03-01)
 
 ### Chores
