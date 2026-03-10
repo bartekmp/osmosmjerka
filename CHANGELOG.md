@@ -2,6 +2,19 @@
 
 <!-- version list -->
 
+## v1.41.4 (2026-03-10)
+
+### Chores
+
+- **deps**: Update docker/build-push-action action to v7
+  ([#166](https://github.com/bartekmp/osmosmjerka/pull/166),
+  [`efb8939`](https://github.com/bartekmp/osmosmjerka/commit/efb8939e7d20a2e387501c97dc27bf217995f2ed))
+
+- **deps**: Update docker/login-action action to v4
+  ([#167](https://github.com/bartekmp/osmosmjerka/pull/167),
+  [`5aa1e1d`](https://github.com/bartekmp/osmosmjerka/commit/5aa1e1d9a5bf9076c67c520c8dfd3947a4b7006b))
+
+
 ## v1.41.3 (2026-03-02)
 
 ### Bug Fixes
