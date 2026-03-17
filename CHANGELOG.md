@@ -2,6 +2,19 @@
 
 <!-- version list -->
 
+## v1.41.5 (2026-03-17)
+
+### Chores
+
+- **deps**: Update actions/create-github-app-token action to v3
+  ([#168](https://github.com/bartekmp/osmosmjerka/pull/168),
+  [`f15b944`](https://github.com/bartekmp/osmosmjerka/commit/f15b944e4e55d85d36558aa480ab33482273e367))
+
+- **deps**: Update docker/setup-buildx-action action to v4
+  ([#169](https://github.com/bartekmp/osmosmjerka/pull/169),
+  [`a384f50`](https://github.com/bartekmp/osmosmjerka/commit/a384f50659c41c565a68c5281df7fd0e901e26ca))
+
+
 ## v1.41.4 (2026-03-10)
 
 ### Chores
