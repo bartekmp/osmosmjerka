@@ -2,6 +2,14 @@
 
 <!-- version list -->
 
+## v1.41.6 (2026-04-01)
+
+### Bug Fixes
+
+- **deps**: Update python dependencies ([#172](https://github.com/bartekmp/osmosmjerka/pull/172),
+  [`8c15450`](https://github.com/bartekmp/osmosmjerka/commit/8c154501ce67e6190941af77faeaa2bd67465257))
+
+
 ## v1.41.5 (2026-03-17)
 
 ### Chores
