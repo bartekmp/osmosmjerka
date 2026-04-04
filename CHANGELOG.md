@@ -2,6 +2,15 @@
 
 <!-- version list -->
 
+## v1.41.8 (2026-04-04)
+
+### Chores
+
+- **deps**: Update postgres:18 docker digest to a9abf42
+  ([#171](https://github.com/bartekmp/osmosmjerka/pull/171),
+  [`f1d5c5a`](https://github.com/bartekmp/osmosmjerka/commit/f1d5c5a8d3b08b6f4e51e8c4db25c030e6b0bd53))
+
+
 ## v1.41.7 (2026-04-04)
 
 ### Chores
