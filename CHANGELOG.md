@@ -2,6 +2,15 @@
 
 <!-- version list -->
 
+## v1.41.7 (2026-04-04)
+
+### Chores
+
+- **deps**: Update actions/setup-node digest to 53b8394
+  ([#170](https://github.com/bartekmp/osmosmjerka/pull/170),
+  [`85b966f`](https://github.com/bartekmp/osmosmjerka/commit/85b966f87ea2eff32456a0ca523fad1106fcf287))
+
+
 ## v1.41.6 (2026-04-01)
 
 ### Bug Fixes
