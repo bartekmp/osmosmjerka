@@ -2,6 +2,19 @@
 
 <!-- version list -->
 
+## v1.41.10 (2026-04-14)
+
+### Chores
+
+- **deps**: Update actions/create-github-app-token digest to 1b10c78
+  ([#174](https://github.com/bartekmp/osmosmjerka/pull/174),
+  [`938214a`](https://github.com/bartekmp/osmosmjerka/commit/938214a7382c62381d1882408622ff3085a73658))
+
+- **deps**: Update docker/build-push-action digest to bcafcac
+  ([#175](https://github.com/bartekmp/osmosmjerka/pull/175),
+  [`7cbfdda`](https://github.com/bartekmp/osmosmjerka/commit/7cbfdda9b338908ec8c76fd18324150fb38124fc))
+
+
 ## v1.41.9 (2026-04-06)
 
 ### Chores
