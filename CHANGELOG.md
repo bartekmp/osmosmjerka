@@ -2,6 +2,19 @@
 
 <!-- version list -->
 
+## v1.41.12 (2026-04-28)
+
+### Chores
+
+- **deps**: Update actions/setup-node digest to 48b55a0
+  ([#177](https://github.com/bartekmp/osmosmjerka/pull/177),
+  [`0b73bd3`](https://github.com/bartekmp/osmosmjerka/commit/0b73bd334cbedf51b50167767e4fefbebb5d12eb))
+
+- **deps**: Update postgres:18 docker digest to 7848165
+  ([#178](https://github.com/bartekmp/osmosmjerka/pull/178),
+  [`24c615e`](https://github.com/bartekmp/osmosmjerka/commit/24c615ebde514898f0652d7ad46ece77e1ba8988))
+
+
 ## v1.41.11 (2026-04-20)
 
 ### Chores
