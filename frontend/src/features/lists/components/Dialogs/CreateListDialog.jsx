@@ -46,7 +46,7 @@ export default function CreateListDialog({ open, onClose, onSubmit, loading }) {
                     onChange={(e) => setListName(e.target.value)}
                     onKeyPress={handleKeyPress}
                     disabled={loading}
-                    inputProps={{ maxLength: 100 }}
+                    slotProps={{ htmlInput: { maxLength: 100 } }}
                 />
             </DialogContent>
             <DialogActions>

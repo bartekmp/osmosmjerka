@@ -269,9 +269,11 @@ function TeacherDashboard({ token, languageSets, currentLanguageSetId }) {
                                                 <TextField
                                                     size="small"
                                                     value={api.getShareableLink(set.current_hotlink_token)}
-                                                    InputProps={{
-                                                        readOnly: true,
-                                                        sx: { fontFamily: 'monospace', fontSize: '0.85rem' },
+                                                    slotProps={{
+                                                        input: {
+                                                            readOnly: true,
+                                                            sx: { fontFamily: 'monospace', fontSize: '0.85rem' },
+                                                        }
                                                     }}
                                                     fullWidth
                                                 />

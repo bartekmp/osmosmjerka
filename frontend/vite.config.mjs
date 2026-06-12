@@ -9,10 +9,6 @@ const packageJson = JSON.parse(readFileSync(path.resolve(__dirname, 'package.jso
 export default defineConfig({
     root: './',
     plugins: [react()],
-    // Development-specific settings
-    esbuild: {
-        sourcemap: true, // Ensure source maps in dev
-    },
     css: {
         devSourcemap: true, // CSS source maps
     },
@@ -63,37 +59,13 @@ export default defineConfig({
         emptyOutDir: true,
         rollupOptions: {
             output: {
-                manualChunks: {
-                    // Core React dependencies
-                    'vendor-react': [
-                        'react',
-                        'react-dom',
-                        'react/jsx-runtime',
-                    ],
-                    // Material-UI and styling
-                    'vendor-mui': [
-                        '@mui/material',
-                        '@mui/icons-material',
-                        '@mui/system',
-                        '@emotion/react',
-                        '@emotion/styled',
-                    ],
-                    // Internationalization
-                    'vendor-i18n': [
-                        'i18next',
-                        'react-i18next',
-                    ],
-                    // Table components
-                    'vendor-table': [
-                        '@tanstack/react-table',
-                    ],
-                    // Utilities and external libraries
-                    'vendor-utils': [
-                        'axios',
-                        'react-router-dom',
-                        'react-canvas-confetti',
-                        'jwt-decode',
-                    ],
+                manualChunks(id) {
+                    if (!id.includes('node_modules')) return;
+                    if (['/react/', '/react-dom/', '/react/jsx-runtime', '/scheduler/'].some(p => id.includes(p))) return 'vendor-react';
+                    if (['/@mui/material/', '/@mui/icons-material/', '/@mui/system/', '/@emotion/react/', '/@emotion/styled/'].some(p => id.includes(p))) return 'vendor-mui';
+                    if (id.includes('/i18next/') || id.includes('/react-i18next/')) return 'vendor-i18n';
+                    if (id.includes('/@tanstack/react-table/')) return 'vendor-table';
+                    if (['/axios/', '/react-router-dom/', '/react-canvas-confetti/', '/jwt-decode/'].some(p => id.includes(p))) return 'vendor-utils';
                 }
             }
         },

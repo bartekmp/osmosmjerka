@@ -760,7 +760,7 @@ export default function AdminTable({
                                                     disabled
                                                     size="small"
                                                     fullWidth
-                                                    InputProps={{ readOnly: true }}
+                                                    slotProps={{ input: { readOnly: true } }}
                                                 />
                                             </TableCell>
                                         );
@@ -805,10 +805,10 @@ export default function AdminTable({
                                                         ))
                                                     }
                                                     renderInput={(params) => {
-                                                        const { inputProps } = params;
+                                                        const paramsHtmlInput = params.slotProps?.htmlInput ?? {};
                                                         const handleKeyDown = (event) => {
-                                                            if (inputProps?.onKeyDown) {
-                                                                inputProps.onKeyDown(event);
+                                                            if (paramsHtmlInput?.onKeyDown) {
+                                                                paramsHtmlInput.onKeyDown(event);
                                                             }
                                                             if (event.key === ' ' && categoryInputValue.trim()) {
                                                                 event.preventDefault();
@@ -823,10 +823,13 @@ export default function AdminTable({
                                                                 placeholder={t('categories')}
                                                                 size="small"
                                                                 autoComplete="off"
-                                                                inputProps={{
-                                                                    ...inputProps,
-                                                                    'aria-label': t('categories'),
-                                                                    onKeyDown: handleKeyDown,
+                                                                slotProps={{
+                                                                    ...params.slotProps,
+                                                                    htmlInput: {
+                                                                        ...paramsHtmlInput,
+                                                                        'aria-label': t('categories'),
+                                                                        onKeyDown: handleKeyDown,
+                                                                    },
                                                                 }}
                                                             />
                                                         );
@@ -853,7 +856,7 @@ export default function AdminTable({
                                                     size="small"
                                                     fullWidth
                                                     autoComplete="off"
-                                                    inputProps={{ 'aria-label': t('phrase') }}
+                                                    slotProps={{ htmlInput: { 'aria-label': t('phrase') } }}
                                                 />
                                             </TableCell>
                                         );
@@ -879,7 +882,7 @@ export default function AdminTable({
                                                     multiline
                                                     minRows={1}
                                                     maxRows={4}
-                                                    inputProps={{ 'aria-label': t('translation') }}
+                                                    slotProps={{ htmlInput: { 'aria-label': t('translation') } }}
                                                 />
                                             </TableCell>
                                         );

@@ -592,7 +592,7 @@ export default function UserProfile() {
                         const sanitized = e.target.value.replace(/<[^>]*>/g, '').slice(0, 100);
                         setDescription(sanitized);
                     }}
-                    inputProps={{ maxLength: 100 }}
+                    slotProps={{ htmlInput: { maxLength: 100 } }}
                     helperText={`${description.length}/100`}
                     sx={{ mb: 2 }}
                 />

@@ -2,7 +2,7 @@ import React from 'react';
 import { Button, Badge, Tooltip, useTheme } from '@mui/material';
 import ListIcon from '@mui/icons-material/List';
 import FlashOnIcon from '@mui/icons-material/FlashOn';
-import HelpOutlineIcon from '@mui/icons-material/HelpOutline';
+import HelpOutlineIcon from '@mui/icons-material/HelpOutlined';
 import { useTranslation } from 'react-i18next';
 import './MobileFloatingActions.css';
 

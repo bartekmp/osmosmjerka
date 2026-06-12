@@ -362,10 +362,10 @@ describe('PrivateListManager', () => {
       // Find the delete button within this dialog - it should be the error-colored button
       const { getAllByRole } = within(deleteDialog);
       const buttons = getAllByRole('button');
-      // The delete button is the one with error color (containedError) and text "Delete"
-      const confirmDeleteButton = buttons.find(btn => 
-        btn.textContent === 'Delete' && 
-        btn.classList.toString().includes('MuiButton-containedError')
+      // The delete button is the one with error color and text "Delete"
+      const confirmDeleteButton = buttons.find(btn =>
+        btn.textContent === 'Delete' &&
+        btn.classList.toString().includes('MuiButton-colorError')
       );
       
       expect(confirmDeleteButton).toBeInTheDocument();

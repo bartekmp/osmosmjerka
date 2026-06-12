@@ -476,7 +476,7 @@ function EditPhraseSetDialog({ open, onClose, onUpdated, token, phraseSet }) {
                             value={maxPlays}
                             onChange={e => setMaxPlays(e.target.value)}
                             helperText={t('teacher.create.max_plays_helper', 'Leave empty for unlimited plays')}
-                            inputProps={{ min: 1 }}
+                            slotProps={{ htmlInput: { min: 1 } }}
                         />
 
                         <Box>
