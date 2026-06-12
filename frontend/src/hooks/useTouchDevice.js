@@ -10,29 +10,26 @@ export const useTouchDevice = () => {
   const [isTouchDevice, setIsTouchDevice] = useState(false);
 
   useEffect(() => {
-    // Check for touch capability
-    // We check multiple indicators to be thorough:
-    // 1. 'ontouchstart' in window - most reliable
-    // 2. navigator.maxTouchPoints > 0 - modern API
-    // 3. window.matchMedia('(pointer: coarse)') - CSS media query
+    // Detect touch capability via an actual coarse (touch) pointer.
+    //
+    // We deliberately rely on `(any-pointer: coarse)` rather than
+    // `navigator.maxTouchPoints` or `'ontouchstart' in window`: Firefox under
+    // Wayland reports a phantom `maxTouchPoints: 1` (and exposes `ontouchstart`)
+    // on non-touch laptops, which only expose a fine pointer. Trusting those
+    // signals forced the mobile layout on a regular desktop. `any-pointer:
+    // coarse` is true only when a real coarse pointer exists, and also covers
+    // hybrid devices (touch laptops with a mouse) where the primary pointer is
+    // fine.
+    const COARSE_POINTER_QUERY = '(any-pointer: coarse)';
     const checkTouchDevice = () => {
-      const hasTouchStart = 'ontouchstart' in window;
-      const hasMaxTouchPoints = navigator.maxTouchPoints > 0;
-      const hasCoarsePointer = window.matchMedia('(pointer: coarse)').matches;
-
-      // Device is touch-capable if any of these are true
-      // Hybrid devices (tablet with stylus) that have both fine and coarse pointers
-      // are still considered touch devices
-      const isTouch = hasTouchStart || hasMaxTouchPoints || hasCoarsePointer;
-
-      setIsTouchDevice(isTouch);
+      setIsTouchDevice(window.matchMedia(COARSE_POINTER_QUERY).matches);
     };
 
     // Check immediately
     checkTouchDevice();
 
-    // Also listen for changes (e.g., device orientation, external displays)
-    const mediaQuery = window.matchMedia('(pointer: coarse)');
+    // Also listen for changes (e.g., plugging in / removing a touch display)
+    const mediaQuery = window.matchMedia(COARSE_POINTER_QUERY);
     const handleChange = () => checkTouchDevice();
 
     // Modern browsers
