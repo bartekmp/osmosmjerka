@@ -894,7 +894,7 @@ export default function AdminTable({
                                                 key={`new-${columnId}`}
                                                 sx={{ width: widthPercentage }}
                                             >
-                                                <Stack direction="row" spacing={1.5} justifyContent="center">
+                                                <Stack direction="row" spacing={1.5} sx={{ justifyContent: "center" }}>
                                                     <Button
                                                         size="small"
                                                         variant="text"

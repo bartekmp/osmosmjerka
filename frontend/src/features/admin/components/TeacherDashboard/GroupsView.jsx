@@ -138,7 +138,7 @@ export default function GroupsView({ token }) {
 
     return (
         <Box sx={{ mt: 2 }}>
-            <Stack direction="row" justifyContent="space-between" alignItems="center" sx={{ mb: 3 }}>
+            <Stack direction="row" sx={{ mb: 3, justifyContent: "space-between", alignItems: "center" }}>
                 <Typography variant="h6">
                     {t('teacher.groups.title', 'My Groups')}
                 </Typography>
@@ -168,7 +168,7 @@ export default function GroupsView({ token }) {
                     <Grid size={{ xs: 12, sm: 6, md: 4 }} key={group.id}>
                         <Card variant="outlined">
                             <CardContent>
-                                <Stack direction="row" spacing={1} alignItems="center" sx={{ mb: 1 }}>
+                                <Stack direction="row" spacing={1} sx={{ mb: 1, alignItems: "center" }}>
                                     <GroupIcon color="primary" />
                                     <Typography variant="h6">{group.name}</Typography>
                                 </Stack>
@@ -223,7 +223,7 @@ export default function GroupsView({ token }) {
                 </DialogTitle>
                 <DialogContent>
                     <Stack spacing={2} sx={{ mt: 1 }}>
-                        <Stack direction="row" spacing={1} alignItems="flex-start">
+                        <Stack direction="row" spacing={1} sx={{ alignItems: "flex-start" }}>
                             <TextField
                                 label={t('teacher.groups.add_student_label', 'Student Usernames')}
                                 placeholder={t('teacher.groups.add_student_placeholder', 'Enter usernames (comma or newline separated)')}
@@ -273,7 +273,7 @@ export default function GroupsView({ token }) {
                                     <ListItem key={member.id}>
                                         <ListItemText
                                             primary={
-                                                <Stack direction="row" spacing={1} alignItems="center">
+                                                <Stack direction="row" spacing={1} sx={{ alignItems: "center" }}>
                                                     <span>{member.username}</span>
                                                     <Typography
                                                         variant="caption"

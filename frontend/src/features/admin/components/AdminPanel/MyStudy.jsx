@@ -178,7 +178,7 @@ export default function MyStudy({ token }) {
                                                         date: formatDate(puzzle.created_at)
                                                     })}
                                                 </Typography>
-                                                <Stack direction="row" spacing={1} flexWrap="wrap" useFlexGap sx={{ mt: 1 }}>
+                                                <Stack direction="row" spacing={1} useFlexGap sx={{ mt: 1, flexWrap: "wrap" }}>
                                                     <Chip
                                                         size="small"
                                                         label={t('student.study.phrase_count', { count: puzzle.phrase_count, defaultValue: '{{count}} phrases' })}
@@ -290,7 +290,7 @@ export default function MyStudy({ token }) {
                                     {invitations.map(invite => (
                                         <Card key={invite.id} variant="outlined" sx={{ bgcolor: 'action.hover' }}>
                                             <CardContent>
-                                                <Stack direction="row" spacing={2} alignItems="center">
+                                                <Stack direction="row" spacing={2} sx={{ alignItems: "center" }}>
                                                     <GroupIcon color="primary" />
                                                     <Box sx={{ flex: 1 }}>
                                                         <Typography variant="subtitle1" fontWeight="bold">
@@ -351,7 +351,7 @@ export default function MyStudy({ token }) {
                                     <Grid size={{ xs: 12, md: 6 }} key={group.id}>
                                         <Card variant="outlined">
                                             <CardContent>
-                                                <Stack direction="row" spacing={2} alignItems="center">
+                                                <Stack direction="row" spacing={2} sx={{ alignItems: "center" }}>
                                                     <GroupIcon color="primary" />
                                                     <Box sx={{ flex: 1 }}>
                                                         <Typography variant="subtitle1" fontWeight="bold">

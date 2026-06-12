@@ -255,7 +255,7 @@ const BrowseRecordsView = ({
                                 <Typography variant="caption" sx={{ fontWeight: 600, display: 'block', mb: 0.5 }}>
                                     {t('your_ignored_categories', 'Your Ignored Categories')}
                                 </Typography>
-                                <Stack direction="row" spacing={0.5} flexWrap="wrap" useFlexGap>
+                                <Stack direction="row" spacing={0.5} useFlexGap sx={{ flexWrap: "wrap" }}>
                                     {userIgnoredCategories.map(category => (
                                         <Tooltip key={category} title={t('click_to_remove_ignored', 'Click to remove from ignored categories')}>
                                             <Chip
@@ -280,7 +280,7 @@ const BrowseRecordsView = ({
                                 <Typography variant="caption" sx={{ fontWeight: 600, display: 'block', mb: 0.5 }}>
                                     {t('global_ignored_categories', 'Global Ignored Categories')}
                                 </Typography>
-                                <Stack direction="row" spacing={0.5} flexWrap="wrap" useFlexGap>
+                                <Stack direction="row" spacing={0.5} useFlexGap sx={{ flexWrap: "wrap" }}>
                                     {ignoredCategories.map(category => (
                                         <Tooltip key={category} title={t('ignored_category_tooltip')}>
                                             <Chip
@@ -311,7 +311,7 @@ const BrowseRecordsView = ({
                                 <Typography variant="caption" sx={{ fontWeight: 600, display: 'block', mb: 0.5 }}>
                                     {t('available_categories', 'Available Categories')} ({t('click_to_ignore', 'click to ignore')})
                                 </Typography>
-                                <Stack direction="row" spacing={0.5} flexWrap="wrap" useFlexGap>
+                                <Stack direction="row" spacing={0.5} useFlexGap sx={{ flexWrap: "wrap" }}>
                                     {categories
                                         .filter(cat => !userIgnoredCategories.includes(cat) && !ignoredCategories.includes(cat))
                                         .map(category => (

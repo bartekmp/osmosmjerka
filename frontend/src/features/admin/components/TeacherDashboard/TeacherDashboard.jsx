@@ -164,7 +164,7 @@ function TeacherDashboard({ token, languageSets, currentLanguageSetId }) {
     return (
         <Paper sx={{ p: 3 }}>
             {/* Header */}
-            <Stack direction="row" justifyContent="space-between" alignItems="center" sx={{ mb: 3 }}>
+            <Stack direction="row" sx={{ mb: 3, justifyContent: "space-between", alignItems: "center" }}>
                 <Typography variant="h5" gutterBottom>
                     {t('teacher.dashboard.title', 'Teacher Mode')}
                 </Typography>
@@ -228,7 +228,7 @@ function TeacherDashboard({ token, languageSets, currentLanguageSetId }) {
                         {phraseSets.map((set) => (
                             <Card key={set.id} variant="outlined">
                                 <CardContent>
-                                    <Stack direction="row" justifyContent="space-between" alignItems="flex-start">
+                                    <Stack direction="row" sx={{ justifyContent: "space-between", alignItems: "flex-start" }}>
                                         <Box sx={{ flex: 1 }}>
                                             <Typography variant="h6" component="h2">
                                                 {set.name}
@@ -259,13 +259,13 @@ function TeacherDashboard({ token, languageSets, currentLanguageSetId }) {
 
                                     <Divider sx={{ my: 1.5 }} />
 
-                                    <Stack direction="row" spacing={3} flexWrap="wrap">
+                                    <Stack direction="row" spacing={3} sx={{ flexWrap: "wrap" }}>
                                         {/* Shareable Link */}
                                         <Box sx={{ flex: 1, minWidth: 250 }}>
                                             <Typography variant="caption" color="text.secondary">
                                                 {t('teacher.dashboard.shareable_link', 'Shareable Link')}
                                             </Typography>
-                                            <Stack direction="row" spacing={1} alignItems="center">
+                                            <Stack direction="row" spacing={1} sx={{ alignItems: "center" }}>
                                                 <TextField
                                                     size="small"
                                                     value={api.getShareableLink(set.current_hotlink_token)}

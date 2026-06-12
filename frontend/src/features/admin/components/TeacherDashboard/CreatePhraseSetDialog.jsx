@@ -357,7 +357,7 @@ function CreatePhraseSetDialog({ open, onClose, onCreated, token, languageSets, 
 
                         {/* Grid Size - moved here so teacher knows capacity upfront */}
                         <Box>
-                            <Stack direction="row" justifyContent="space-between" alignItems="center">
+                            <Stack direction="row" sx={{ justifyContent: "space-between", alignItems: "center" }}>
                                 <Typography gutterBottom sx={{ mb: 0 }}>
                                     {t('teacher.create.grid_size_label', { size: config.grid_size, defaultValue: 'Grid Size: {{size}}x{{size}}' })}
                                 </Typography>
@@ -391,7 +391,7 @@ function CreatePhraseSetDialog({ open, onClose, onCreated, token, languageSets, 
                 {/* Step 2: Select Phrases */}
                 {activeStep === 1 && (
                     <Box>
-                        <Stack direction="row" spacing={2} justifyContent="space-between" alignItems="center" sx={{ mb: 2 }}>
+                        <Stack direction="row" spacing={2} sx={{ mb: 2, justifyContent: "space-between", alignItems: "center" }}>
                             <Typography variant="body2" color="text.secondary">
                                 {t('teacher.create.selected_count', { count: selectedPhraseIds.length, defaultValue: 'Selected: {{count}}/50 phrases' })}
                             </Typography>
@@ -609,7 +609,7 @@ function CreatePhraseSetDialog({ open, onClose, onCreated, token, languageSets, 
                         />
 
                         <Box>
-                            <Stack direction="row" justifyContent="space-between" alignItems="center">
+                            <Stack direction="row" sx={{ justifyContent: "space-between", alignItems: "center" }}>
                                 <Typography gutterBottom>
                                     {t('teacher.create.auto_delete_label', {
                                         days: neverDelete ? t('teacher.dashboard.never', 'Never') : t('teacher.dashboard.days', { count: autoDeleteDays }),

@@ -114,7 +114,7 @@ function PreviewDialog({ open, onClose, phraseSet, token }) {
             }}
         >
             <DialogTitle sx={{ flexShrink: 0 }}>
-                <Stack direction="row" justifyContent="space-between" alignItems="center">
+                <Stack direction="row" sx={{ justifyContent: "space-between", alignItems: "center" }}>
                     <Typography variant="h6">{t('teacher.preview.title', { name: phraseSet.name, defaultValue: 'Preview: {{name}}' })}</Typography>
                     <Alert severity="info" sx={{ py: 0 }}>{t('teacher.preview.click_hint', 'Click a phrase to highlight it')}</Alert>
                 </Stack>
@@ -184,7 +184,7 @@ function PreviewDialog({ open, onClose, phraseSet, token }) {
                             {/* Settings */}
                             <Box sx={{ mb: 1.5, p: 1.5, bgcolor: 'action.hover', borderRadius: 1, flexShrink: 0 }}>
                                 <Typography variant="subtitle2" gutterBottom>{t('teacher.preview.settings', 'Settings')}</Typography>
-                                <Stack direction="row" spacing={0.5} flexWrap="wrap" useFlexGap>
+                                <Stack direction="row" spacing={0.5} useFlexGap sx={{ flexWrap: "wrap" }}>
                                     <Chip size="small" label={`${config.grid_size || 10}×${config.grid_size || 10}`} variant="outlined" />
                                     <Chip size="small" label={config.allow_hints ? t('teacher.preview.hints_enabled', 'Hints ✓') : t('teacher.preview.hints_disabled', 'No hints')} color={config.allow_hints ? 'success' : 'default'} variant="outlined" />
                                     <Chip size="small" label={config.show_translations ? t('teacher.preview.translations_enabled', 'Translations ✓') : t('teacher.preview.translations_disabled', 'Hidden')} color={config.show_translations ? 'success' : 'default'} variant="outlined" />
