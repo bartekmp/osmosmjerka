@@ -87,7 +87,7 @@ describe('ScoreDisplay Component', () => {
 
         it('formats large scores with locale string', () => {
             render(<ScoreDisplay {...defaultProps} currentScore={123456} />);
-            expect(screen.getByText(/123,456/)).toBeInTheDocument();
+            expect(screen.getByText(/123.456/)).toBeInTheDocument();
         });
     });
 

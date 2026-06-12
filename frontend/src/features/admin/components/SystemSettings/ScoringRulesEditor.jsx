@@ -233,7 +233,7 @@ const ScoringRulesEditor = ({ scoringEnabled = true }) => {
               type="number"
               value={rules.base_points_per_phrase}
               onChange={handleBasePointsChange}
-              inputProps={{ min: 0, step: 10 }}
+              slotProps={{ htmlInput: { min: 0, step: 10 } }}
               disabled={!scoringEnabled}
             />
           </Grid>
@@ -247,7 +247,7 @@ const ScoringRulesEditor = ({ scoringEnabled = true }) => {
               type="number"
               value={rules.completion_bonus_points}
               onChange={handleCompletionBonusChange}
-              inputProps={{ min: 0, step: 10 }}
+              slotProps={{ htmlInput: { min: 0, step: 10 } }}
               disabled={!scoringEnabled}
             />
           </Grid>
@@ -261,7 +261,7 @@ const ScoringRulesEditor = ({ scoringEnabled = true }) => {
               type="number"
               value={rules.hint_penalty_per_hint}
               onChange={handleHintPenaltyChange}
-              inputProps={{ min: 0, step: 5 }}
+              slotProps={{ htmlInput: { min: 0, step: 5 } }}
               disabled={!scoringEnabled}
             />
           </Grid>
@@ -293,7 +293,7 @@ const ScoringRulesEditor = ({ scoringEnabled = true }) => {
                 type="number"
                 value={rules.difficulty_multipliers[key]}
                 onChange={handleDifficultyMultiplierChange(key)}
-                inputProps={{ min: 0, step: 0.1 }}
+                slotProps={{ htmlInput: { min: 0, step: 0.1 } }}
                 disabled={!scoringEnabled}
               />
             </Grid>
@@ -324,7 +324,7 @@ const ScoringRulesEditor = ({ scoringEnabled = true }) => {
             type="number"
             value={rules.time_bonus.max_ratio}
             onChange={handleMaxTimeBonusChange}
-            inputProps={{ min: 0, max: 1, step: 0.05 }}
+            slotProps={{ htmlInput: { min: 0, max: 1, step: 0.05 } }}
             helperText={t(
               "admin.scoringRules.maxRatioHelp",
               "Maximum percentage of base score as time bonus (0-1)"
@@ -346,7 +346,7 @@ const ScoringRulesEditor = ({ scoringEnabled = true }) => {
                 type="number"
                 value={rules.time_bonus.target_times_seconds[key]}
                 onChange={handleTargetTimeChange(key)}
-                inputProps={{ min: 0, step: 30 }}
+                slotProps={{ htmlInput: { min: 0, step: 30 } }}
                 disabled={!scoringEnabled}
               />
             </Grid>

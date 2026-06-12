@@ -856,7 +856,7 @@ function TeacherPuzzlePage() {
                                     handleTranslationSubmit();
                                 }
                             }}
-                            inputProps={{ maxLength: 50 }}
+                            slotProps={{ htmlInput: { maxLength: 50 } }}
                             helperText={`${translationInput.length}/50`}
                         />
                     </DialogContent>
@@ -922,7 +922,7 @@ function TeacherPuzzlePage() {
                                     onChange={e => setNickname(e.target.value)}
                                     fullWidth
                                     autoFocus
-                                    inputProps={{ maxLength: 100 }}
+                                    slotProps={{ htmlInput: { maxLength: 100 } }}
                                     onKeyPress={e => {
                                         if (e.key === 'Enter' && nickname.trim()) {
                                             handleStartSession();

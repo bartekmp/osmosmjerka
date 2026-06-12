@@ -57,10 +57,12 @@ export default function PaginationControls({
                         <TextField
                             type="number"
                             size="small"
-                            inputProps={{
-                                min: 0,
-                                max: Math.max(totalRows - limit, 0),
-                                style: { width: 60 }
+                            slotProps={{
+                                htmlInput: {
+                                    min: 0,
+                                    max: Math.max(totalRows - limit, 0),
+                                    style: { width: 60 }
+                                }
                             }}
                             value={offsetInput}
                             onChange={handleOffsetInput}

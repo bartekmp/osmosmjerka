@@ -294,14 +294,17 @@
 /* ==========================================
    WHOLE PHRASE BLINK (Navigation Aid)
    ========================================== */
-@keyframes phrase-blink {
-    0%, 100% { background-color: var(--cell-bg); }
-    50% { background-color: rgba(25, 118, 210, 0.3); } /* Primary color low opacity */
+:root {
+    --phrase-blink-color: rgba(25, 118, 210, 0.3);
 }
 
-[data-theme="dark"] @keyframes phrase-blink {
+[data-theme="dark"] {
+    --phrase-blink-color: rgba(144, 202, 249, 0.3);
+}
+
+@keyframes phrase-blink {
     0%, 100% { background-color: var(--cell-bg); }
-    50% { background-color: rgba(144, 202, 249, 0.3); } /* Dark mode primary */
+    50% { background-color: var(--phrase-blink-color); }
 }
 
 .crossword-cell.blinking {

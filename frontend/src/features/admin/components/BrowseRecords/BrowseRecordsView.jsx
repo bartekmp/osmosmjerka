@@ -206,12 +206,14 @@ const BrowseRecordsView = ({
                             setFilterCategory('');
                             localStorage.setItem(STORAGE_KEYS.SELECTED_LANGUAGE_SET, value.toString());
                         }}
-                        InputProps={{
-                            startAdornment: (
-                                <InputAdornment position="start">
-                                    <TranslateIcon fontSize="small" />
-                                </InputAdornment>
-                            )
+                        slotProps={{
+                            input: {
+                                startAdornment: (
+                                    <InputAdornment position="start">
+                                        <TranslateIcon fontSize="small" />
+                                    </InputAdornment>
+                                )
+                            }
                         }}
                     >
                         {languageSets.map(set => (
@@ -227,12 +229,14 @@ const BrowseRecordsView = ({
                         label={t('filter_by_category')}
                         value={filterCategory}
                         onChange={e => { setFilterCategory(e.target.value); setOffset(0); }}
-                        InputProps={{
-                            startAdornment: (
-                                <InputAdornment position="start">
-                                    <CategoryIcon fontSize="small" />
-                                </InputAdornment>
-                            )
+                        slotProps={{
+                            input: {
+                                startAdornment: (
+                                    <InputAdornment position="start">
+                                        <CategoryIcon fontSize="small" />
+                                    </InputAdornment>
+                                )
+                            }
                         }}
                     >
                         <MenuItem value="">{`-- ${t('all_categories')} --`}</MenuItem>

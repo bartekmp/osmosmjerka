@@ -297,7 +297,7 @@ const SystemSettings = () => {
                 onChange={(e) =>
                   setListLimits({ ...listLimits, userLimit: parseInt(e.target.value) || 0 })
                 }
-                inputProps={{ min: 1 }}
+                slotProps={{ htmlInput: { min: 1 } }}
                 fullWidth
               />
 
@@ -308,7 +308,7 @@ const SystemSettings = () => {
                 onChange={(e) =>
                   setListLimits({ ...listLimits, adminLimit: parseInt(e.target.value) || 0 })
                 }
-                inputProps={{ min: 1 }}
+                slotProps={{ htmlInput: { min: 1 } }}
                 fullWidth
               />
 

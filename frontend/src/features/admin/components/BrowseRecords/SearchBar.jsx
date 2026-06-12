@@ -60,38 +60,40 @@ export default function SearchBar({
             value={localValue}
             onChange={(e) => handleSearchChange(e.target.value)}
             fullWidth={fullWidth}
-            InputProps={{
-                startAdornment: (
-                    <InputAdornment position="start">
-                        {isSearching ? (
-                            <CircularProgress size={16} sx={{ color: '#b89c4e' }} />
-                        ) : (
-                            <SearchIcon sx={{ color: 'text.secondary' }} />
-                        )}
-                    </InputAdornment>
-                ),
-                endAdornment: localValue && (
-                    <InputAdornment position="end">
-                        <IconButton
-                            size="small"
-                            onClick={handleClearSearch}
-                            edge="end"
-                            sx={{ 
-                                color: 'text.secondary',
-                                '&:hover': {
-                                    color: '#b89c4e'
-                                }
-                            }}
-                        >
-                            <ClearIcon fontSize="small" />
-                        </IconButton>
-                    </InputAdornment>
-                ),
-                sx: {
-                    borderRadius: 1,
-                    backgroundColor: 'background.paper',
-                    '&:hover': {
-                        backgroundColor: 'background.default'
+            slotProps={{
+                input: {
+                    startAdornment: (
+                        <InputAdornment position="start">
+                            {isSearching ? (
+                                <CircularProgress size={16} sx={{ color: '#b89c4e' }} />
+                            ) : (
+                                <SearchIcon sx={{ color: 'text.secondary' }} />
+                            )}
+                        </InputAdornment>
+                    ),
+                    endAdornment: localValue && (
+                        <InputAdornment position="end">
+                            <IconButton
+                                size="small"
+                                onClick={handleClearSearch}
+                                edge="end"
+                                sx={{
+                                    color: 'text.secondary',
+                                    '&:hover': {
+                                        color: '#b89c4e'
+                                    }
+                                }}
+                            >
+                                <ClearIcon fontSize="small" />
+                            </IconButton>
+                        </InputAdornment>
+                    ),
+                    sx: {
+                        borderRadius: 1,
+                        backgroundColor: 'background.paper',
+                        '&:hover': {
+                            backgroundColor: 'background.default'
+                        }
                     }
                 }
             }}
