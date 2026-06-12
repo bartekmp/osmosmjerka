@@ -1444,7 +1444,7 @@ function AppContent() {
 
   // Define the Game View to be reused across multiple routes
   const gameView = (
-    <Stack spacing={3} alignItems="center">
+    <Stack spacing={3} sx={{ alignItems: "center" }}>
       {/* Use GameHeader component instead of duplicated header code */}
       <GameHeader
         logoFilter={logoFilter}
