@@ -2,6 +2,31 @@
 
 <!-- version list -->
 
+## v1.41.14 (2026-06-12)
+
+### Bug Fixes
+
+- Detect touch via any-pointer:coarse to avoid Firefox/Wayland false positive
+  ([#183](https://github.com/bartekmp/osmosmjerka/pull/183),
+  [`9528705`](https://github.com/bartekmp/osmosmjerka/commit/9528705b47bb3398e10343513dca4789efb14765))
+
+- Gate mobile score bar, FABs and padding on useMobileLayout not raw touch
+  ([#183](https://github.com/bartekmp/osmosmjerka/pull/183),
+  [`9528705`](https://github.com/bartekmp/osmosmjerka/commit/9528705b47bb3398e10343513dca4789efb14765))
+
+- Migrate remaining admin Stack alignItems/justifyContent/flexWrap to sx for MUI v9
+  ([#183](https://github.com/bartekmp/osmosmjerka/pull/183),
+  [`9528705`](https://github.com/bartekmp/osmosmjerka/commit/9528705b47bb3398e10343513dca4789efb14765))
+
+- Move Stack alignItems/justifyContent into sx (removed as props in MUI v9)
+  ([#183](https://github.com/bartekmp/osmosmjerka/pull/183),
+  [`9528705`](https://github.com/bartekmp/osmosmjerka/commit/9528705b47bb3398e10343513dca4789efb14765))
+
+- Touch wide duplicate layout, layout rendering problems
+  ([#183](https://github.com/bartekmp/osmosmjerka/pull/183),
+  [`9528705`](https://github.com/bartekmp/osmosmjerka/commit/9528705b47bb3398e10343513dca4789efb14765))
+
+
 ## v1.41.13 (2026-06-12)
 
 ### Chores
