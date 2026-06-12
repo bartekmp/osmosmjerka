@@ -1444,7 +1444,7 @@ function AppContent() {
 
   // Define the Game View to be reused across multiple routes
   const gameView = (
-    <Stack spacing={3} alignItems="center">
+    <Stack spacing={3} sx={{ alignItems: "center" }}>
       {/* Use GameHeader component instead of duplicated header code */}
       <GameHeader
         logoFilter={logoFilter}
@@ -1500,8 +1500,8 @@ function AppContent() {
         gameType={gameType}
       />
 
-      {/* All Found Message - Desktop Only */}
-      {!isTouchDevice && (
+      {/* All Found Message - Desktop/Sidebar Layout Only */}
+      {!useMobileLayout && (
         <AllFoundMessage
           allFound={allFound}
           loadPuzzle={loadPuzzle}
@@ -1514,7 +1514,7 @@ function AppContent() {
       )}
 
       {/* Timer and Score Display at Top - Mobile Layout Only */}
-      {isTouchDevice && scoringEnabled && (
+      {useMobileLayout && scoringEnabled && (
         <Box
           sx={{
             display: "flex",
@@ -1744,7 +1744,7 @@ function AppContent() {
       </Box>
 
       {/* Floating Action Buttons for Mobile */}
-      {isTouchDevice && (
+      {useMobileLayout && (
         <MobileFloatingActions
           onPhraseListClick={() => setMobileSheetOpen(true)}
           onHintClick={handleHintRequest}
@@ -1797,8 +1797,8 @@ function AppContent() {
         maxWidth="xl"
         sx={{
           minHeight: "100vh",
-          py: isTouchDevice ? 0.125 : 2, // 1px on mobile (0.125 * 8px = 1px), 16px on desktop
-          px: isTouchDevice ? 0.125 : 2, // 1px horizontal padding on mobile
+          py: useMobileLayout ? 0.125 : 2, // 1px on mobile (0.125 * 8px = 1px), 16px on desktop
+          px: useMobileLayout ? 0.125 : 2, // 1px horizontal padding on mobile
           position: "relative"
         }}
       >
@@ -1872,12 +1872,12 @@ function AppContent() {
             borderColor: "divider",
             display: "flex",
             alignItems: "center",
-            justifyContent: isTouchDevice ? "flex-end" : "center",
+            justifyContent: useMobileLayout ? "flex-end" : "center",
             gap: 2,
             px: 2,
           }}
         >
-          {!isTouchDevice && (
+          {!useMobileLayout && (
             <>
               <Typography
                 variant="body2"

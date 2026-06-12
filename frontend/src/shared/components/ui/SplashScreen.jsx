@@ -36,7 +36,7 @@ const SplashScreen = ({
                     pointerEvents: open ? 'auto' : 'none',
                 }}
             >
-                <Stack spacing={3} alignItems="center">
+                <Stack spacing={3} sx={{ alignItems: "center" }}>
                     <Box
                         component="img"
                         src={getAssetUrl('android-chrome-512x512.png')}

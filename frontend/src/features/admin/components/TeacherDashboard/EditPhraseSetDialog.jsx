@@ -304,7 +304,7 @@ function EditPhraseSetDialog({ open, onClose, onUpdated, token, phraseSet }) {
                 {/* Step 2: Select Phrases */}
                 {activeStep === 0 && (
                     <Box>
-                        <Stack direction="row" spacing={2} justifyContent="space-between" alignItems="center" sx={{ mb: 2 }}>
+                        <Stack direction="row" spacing={2} sx={{ mb: 2, justifyContent: "space-between", alignItems: "center" }}>
                             <Typography variant="body2" color="text.secondary">
                                 {t('teacher.create.selected_count', { count: selectedPhraseIds.length, defaultValue: 'Selected: {{count}}/50 phrases' })}
                             </Typography>
@@ -480,7 +480,7 @@ function EditPhraseSetDialog({ open, onClose, onUpdated, token, phraseSet }) {
                         />
 
                         <Box>
-                            <Stack direction="row" justifyContent="space-between" alignItems="center">
+                            <Stack direction="row" sx={{ justifyContent: "space-between", alignItems: "center" }}>
                                 <Typography gutterBottom>
                                     {t('teacher.create.auto_delete_label', {
                                         days: neverDelete ? t('teacher.dashboard.never', 'Never') : t('teacher.dashboard.days', { count: autoDeleteDays }),

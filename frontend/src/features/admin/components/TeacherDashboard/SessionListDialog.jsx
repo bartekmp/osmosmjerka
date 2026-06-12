@@ -140,7 +140,7 @@ function SessionListDialog({ open, onClose, phraseSet, token }) {
         <>
             <Dialog open={open} onClose={onClose} maxWidth="lg" fullWidth>
                 <DialogTitle>
-                    <Stack direction="row" justifyContent="space-between" alignItems="center">
+                    <Stack direction="row" sx={{ justifyContent: "space-between", alignItems: "center" }}>
                         <Box>
                             {t('teacher.sessions.title', { name: phraseSet?.name, defaultValue: 'Sessions: {{name}}' })}
                             <Typography variant="body2" color="text.secondary">
@@ -186,7 +186,7 @@ function SessionListDialog({ open, onClose, phraseSet, token }) {
                                     {sessions.map(session => (
                                         <TableRow key={session.id}>
                                             <TableCell>
-                                                <Stack direction="row" spacing={1} alignItems="center">
+                                                <Stack direction="row" spacing={1} sx={{ alignItems: "center" }}>
                                                     <Typography variant="body2">
                                                         {session.nickname}
                                                     </Typography>
@@ -226,7 +226,7 @@ function SessionListDialog({ open, onClose, phraseSet, token }) {
                                                 {formatDate(session.started_at)}
                                             </TableCell>
                                             <TableCell align="right">
-                                                <Stack direction="row" spacing={1} justifyContent="flex-end">
+                                                <Stack direction="row" spacing={1} sx={{ justifyContent: "flex-end" }}>
                                                     {/* Review Button */}
                                                     {session.translation_submissions && session.translation_submissions.length > 0 && (
                                                         <Tooltip title={t('teacher.sessions.review', 'Review Translations')}>

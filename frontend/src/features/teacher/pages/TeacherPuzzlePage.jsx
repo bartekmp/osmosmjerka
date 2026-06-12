@@ -414,7 +414,7 @@ function TeacherPuzzlePage() {
     if (loading) {
         return (
             <Container maxWidth="sm" sx={{ py: 8 }}>
-                <Stack alignItems="center" spacing={2}>
+                <Stack spacing={2} sx={{ alignItems: "center" }}>
                     <CircularProgress />
                     <Typography>{t('loading', 'Loading...')}</Typography>
                 </Stack>
@@ -428,7 +428,7 @@ function TeacherPuzzlePage() {
             <Container maxWidth="sm" sx={{ py: 8 }}>
                 <Card>
                     <CardContent>
-                        <Stack spacing={3} alignItems="center">
+                        <Stack spacing={3} sx={{ alignItems: "center" }}>
                             <Typography variant="h5" color="error">
                                 {t('teacher.puzzle.puzzle_error', 'Puzzle Error')}
                             </Typography>
@@ -817,7 +817,7 @@ function TeacherPuzzlePage() {
 
                     {/* Actions - Only show Play Again when all found */}
                     {allFound && (
-                        <Stack direction="row" spacing={2} justifyContent="center" alignItems="center">
+                        <Stack direction="row" spacing={2} sx={{ justifyContent: "center", alignItems: "center" }}>
                             <Button
                                 variant="contained"
                                 onClick={handleRestart}
@@ -890,7 +890,7 @@ function TeacherPuzzlePage() {
                         )}
 
                         {checkingAuth ? (
-                            <Stack alignItems="center" spacing={2}>
+                            <Stack spacing={2} sx={{ alignItems: "center" }}>
                                 <CircularProgress size={24} />
                                 <Typography color="text.secondary">
                                     {t('common.checking_auth', 'Checking login status...')}
