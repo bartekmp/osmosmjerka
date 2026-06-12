@@ -2,6 +2,15 @@
 
 <!-- version list -->
 
+## v1.41.13 (2026-06-12)
+
+### Chores
+
+- **deps**: Upgrade MUI to v9, vite to v8, plugin-react to v6, Node to 22
+  ([#182](https://github.com/bartekmp/osmosmjerka/pull/182),
+  [`ab1338a`](https://github.com/bartekmp/osmosmjerka/commit/ab1338a085d806e77e5b1d5494c58e1640956279))
+
+
 ## v1.41.12 (2026-04-28)
 
 ### Chores
