@@ -2,6 +2,36 @@
 
 <!-- version list -->
 
+## v1.41.15 (2026-06-13)
+
+### Bug Fixes
+
+- Migrate Box/Grid/Typography system props to sx for MUI v9
+  ([#185](https://github.com/bartekmp/osmosmjerka/pull/185),
+  [`a7920d2`](https://github.com/bartekmp/osmosmjerka/commit/a7920d2b9dd049a9469a5d5560bbc12ce64d57b2))
+
+- Migrate removed MUI v9 overlay slot props to slots/slotProps
+  ([#185](https://github.com/bartekmp/osmosmjerka/pull/185),
+  [`a7920d2`](https://github.com/bartekmp/osmosmjerka/commit/a7920d2b9dd049a9469a5d5560bbc12ce64d57b2))
+
+- Migrate Typography display prop to sx in NotificationList
+  ([#185](https://github.com/bartekmp/osmosmjerka/pull/185),
+  [`a7920d2`](https://github.com/bartekmp/osmosmjerka/commit/a7920d2b9dd049a9469a5d5560bbc12ce64d57b2))
+
+- Mui v9 compatibility issues ([#185](https://github.com/bartekmp/osmosmjerka/pull/185),
+  [`a7920d2`](https://github.com/bartekmp/osmosmjerka/commit/a7920d2b9dd049a9469a5d5560bbc12ce64d57b2))
+
+- Stop root-admin hash check warning on every startup
+  ([#184](https://github.com/bartekmp/osmosmjerka/pull/184),
+  [`57f2c15`](https://github.com/bartekmp/osmosmjerka/commit/57f2c15990fc3fc2e0cf02a316712166e2bb475a))
+
+### Chores
+
+- Guard MUI v9 system-prop regressions and remove dead StyledComponents
+  ([#185](https://github.com/bartekmp/osmosmjerka/pull/185),
+  [`a7920d2`](https://github.com/bartekmp/osmosmjerka/commit/a7920d2b9dd049a9469a5d5560bbc12ce64d57b2))
+
+
 ## v1.41.14 (2026-06-12)
 
 ### Bug Fixes
