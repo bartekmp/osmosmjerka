@@ -113,8 +113,7 @@ const NotificationList = ({
                                                 component="span"
                                                 variant="body2"
                                                 color="text.primary"
-                                                display="block"
-                                                sx={{ my: 0.5 }}
+                                                sx={{ display: 'block', my: 0.5 }}
                                             >
                                                 {notification.message}
                                             </Typography>

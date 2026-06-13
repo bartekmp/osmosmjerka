@@ -1,23 +1,16 @@
 import SchoolIcon from '@mui/icons-material/School';
 import {
+    Box,
+    Button,
+    Container,
     Divider,
+    Paper,
     Stack,
     TextField,
     Typography,
-    Button,
 } from '@mui/material';
 import { AdminButton, AdminLayout, API_ENDPOINTS, STORAGE_KEYS } from '@shared';
 import { RateLimitWarning } from '@shared/components/ui/RateLimitWarning';
-import {
-    PaddedContainer,
-    RightAlignedBox,
-    ContentPaper,
-    FormBox,
-    ErrorBox,
-    WarningBox,
-    Paper,
-    Box,
-} from '@shared/components/ui/StyledComponents';
 import { useCallback, useEffect, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { isTokenExpired } from './helpers';
@@ -296,20 +289,21 @@ export default function AdminPanel({
 
     if (!isLogged) {
         return (
-            <PaddedContainer maxWidth="sm">
-                <RightAlignedBox>
+            <Container maxWidth="sm" sx={{ pt: 4, pb: 4 }}>
+                <Box sx={{ textAlign: 'right', mb: 2 }}>
                     <AdminButton
                         to="/"
                         desktopText={`⇇ ${t('back_to_game')}`}
                         mobileText="🏠"
                     />
-                </RightAlignedBox>
-                <ContentPaper>
+                </Box>
+                <Paper sx={{ p: 4, borderRadius: 4 }}>
                     <Typography variant="h4" component="h2" gutterBottom align="center">
                         {t('admin_login')}
                     </Typography>
-                    <FormBox
+                    <Box
                         component="form"
+                        sx={{ mt: 3 }}
                         onSubmit={e => {
                             e.preventDefault();
                             handleLogin(auth, setError, (user) => {
@@ -338,21 +332,21 @@ export default function AdminPanel({
                                 {t('login')}
                             </Button>
                         </Stack>
-                    </FormBox>
+                    </Box>
                     {error && (
-                        <ErrorBox>
+                        <Box sx={{ mt: 2, p: 2, bgcolor: 'error.light', borderRadius: 2, color: 'error.contrastText' }}>
                             <Typography color="error.contrastText">{error}</Typography>
-                        </ErrorBox>
+                        </Box>
                     )}
                     {tokenExpired && (
-                        <WarningBox>
+                        <Box sx={{ mt: 2, p: 2, bgcolor: 'warning.light', borderRadius: 2, color: 'warning.contrastText' }}>
                             <Typography color="warning.contrastText">
                                 {t('session_expired')}
                             </Typography>
-                        </WarningBox>
+                        </Box>
                     )}
-                </ContentPaper>
-            </PaddedContainer>
+                </Paper>
+            </Container>
         );
     }
 
@@ -655,10 +649,8 @@ export default function AdminPanel({
                                     <Stack
                                         direction="row"
                                         spacing={1.5}
-                                        flexWrap="wrap"
                                         useFlexGap
-                                        justifyContent="flex-start"
-                                        alignItems="center"
+                                        sx={{ flexWrap: 'wrap', justifyContent: 'flex-start', alignItems: 'center' }}
                                     >
                                         {section.buttons}
                                     </Stack>

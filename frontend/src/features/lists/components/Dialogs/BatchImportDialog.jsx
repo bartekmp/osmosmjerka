@@ -101,7 +101,7 @@ export default function BatchImportDialog({
                                     First {importResult.errors.length} errors:
                                 </Typography>
                                 {importResult.errors.map((err, idx) => (
-                                    <Typography key={idx} variant="caption" display="block">
+                                    <Typography key={idx} variant="caption" sx={{ display: 'block' }}>
                                         Row {err.index + 1}: {err.error}
                                     </Typography>
                                 ))}

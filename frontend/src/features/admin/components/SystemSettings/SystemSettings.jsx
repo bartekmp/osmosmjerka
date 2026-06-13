@@ -177,7 +177,7 @@ const SystemSettings = () => {
 
   if (loading) {
     return (
-      <Box display="flex" justifyContent="center" p={3}>
+      <Box sx={{ display: 'flex', justifyContent: 'center', p: 3 }}>
         <Typography>{t("common.loading")}</Typography>
       </Box>
     );
@@ -189,7 +189,7 @@ const SystemSettings = () => {
         {t("admin.settings.title")}
       </Typography>
 
-      <Typography variant="body1" color="text.secondary" paragraph>
+      <Typography variant="body1" color="text.secondary" sx={{ mb: 2 }}>
         {t("admin.settings.description")}
       </Typography>
 
@@ -285,7 +285,7 @@ const SystemSettings = () => {
               {t("admin.settings.listLimits.title", "Private List Limits")}
             </Typography>
 
-            <Typography variant="body2" color="text.secondary" paragraph>
+            <Typography variant="body2" color="text.secondary" sx={{ mb: 2 }}>
               {t("admin.settings.listLimits.description", "Configure maximum number of private lists users can create")}
             </Typography>
 
@@ -326,11 +326,11 @@ const SystemSettings = () => {
       </Grid>
 
       {/* Scoring Rules Configuration */}
-      <Box mt={3}>
+      <Box sx={{ mt: 3 }}>
         <ScoringRulesEditor scoringEnabled={settings.scoringEnabled} />
       </Box>
 
-      <Box mt={3}>
+      <Box sx={{ mt: 3 }}>
         <Alert severity="info">{t("admin.settings.notice")}</Alert>
       </Box>
 

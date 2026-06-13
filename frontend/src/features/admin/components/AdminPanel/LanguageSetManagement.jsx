@@ -348,7 +348,7 @@ export default function LanguageSetManagement({ currentUser, initialLanguageSets
 
     return (
         <Paper sx={{ p: 3 }}>
-            <Box display="flex" justifyContent="space-between" alignItems="center" mb={2}>
+            <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 2 }}>
                 <Typography variant="h5" gutterBottom>
                     {showAdminActions ? t('language_sets_management') : t('manage_ignored_categories', 'Manage Ignored Categories')}
                 </Typography>
@@ -371,7 +371,7 @@ export default function LanguageSetManagement({ currentUser, initialLanguageSets
             )}
 
             {loading && (
-                <Box display="flex" justifyContent="center" py={3}>
+                <Box sx={{ display: 'flex', justifyContent: 'center', py: 3 }}>
                     <CircularProgress />
                 </Box>
             )}
@@ -393,7 +393,7 @@ export default function LanguageSetManagement({ currentUser, initialLanguageSets
                         {languageSets.map((set) => (
                             <TableRow key={set.id}>
                                 <TableCell>
-                                    <Box display="flex" alignItems="center" gap={1}>
+                                    <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
                                         <span>{set.name}</span>
                                         {set.is_default && (
                                             <Chip size="small" color="warning" label={t('default', 'Default')} />
@@ -570,7 +570,7 @@ export default function LanguageSetManagement({ currentUser, initialLanguageSets
                                 </Box>
                             )}
                         </Box>
-                        <Box mt={2}>
+                        <Box sx={{ mt: 2 }}>
                             <input
                                 ref={fileInputRef}
                                 type="file"
@@ -587,7 +587,7 @@ export default function LanguageSetManagement({ currentUser, initialLanguageSets
                                 </Typography>
                             )}
                             {editingSet && (
-                                <Typography variant="caption" display="block" color="text.secondary" sx={{ mt: 1 }}>
+                                <Typography variant="caption" color="text.secondary" sx={{ display: 'block', mt: 1 }}>
                                     {t('upload_replace_hint', 'Uploading a file while editing will erase previous contents and replace them.')}
                                 </Typography>
                             )}

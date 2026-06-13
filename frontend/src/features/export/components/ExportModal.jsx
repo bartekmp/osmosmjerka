@@ -44,10 +44,12 @@ export default function ExportModal({ open, onClose, onFormatSelect }) {
             open={open}
             onClose={onClose}
             closeAfterTransition
-            BackdropComponent={Backdrop}
-            BackdropProps={{
-                timeout: 300,
-                sx: { backgroundColor: 'rgba(0, 0, 0, 0.6)' }
+            slots={{ backdrop: Backdrop }}
+            slotProps={{
+                backdrop: {
+                    timeout: 300,
+                    sx: { backgroundColor: 'rgba(0, 0, 0, 0.6)' }
+                }
             }}
         >
             <Fade in={open} timeout={300}>

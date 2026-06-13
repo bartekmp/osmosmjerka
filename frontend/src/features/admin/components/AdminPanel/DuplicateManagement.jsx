@@ -281,11 +281,11 @@ export default function DuplicateManagement({ currentUser, selectedLanguageSetId
 
     return (
         <Paper sx={{ p: 3 }}>
-            <Box display="flex" justifyContent="space-between" alignItems="center" mb={2}>
+            <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 2 }}>
                 <Typography variant="h6">
                     {t('duplicate_management', 'Duplicate Management')}
                 </Typography>
-                <Box display="flex" gap={2} alignItems="center">
+                <Box sx={{ display: 'flex', gap: 2, alignItems: 'center' }}>
                     <FormControl size="small" sx={{ minWidth: 160 }}>
                         <InputLabel>{t('duplicates_per_page', 'Duplicates per page')}</InputLabel>
                         <Select
@@ -341,10 +341,10 @@ export default function DuplicateManagement({ currentUser, selectedLanguageSetId
                 >
                     {operationResult.type === 'merge' ? (
                         <Box>
-                            <Typography variant="body2" fontWeight="bold">
+                            <Typography variant="body2" sx={{ fontWeight: 'bold' }}>
                                 {t('merge_categories_success', 'Categories merged successfully')}
                             </Typography>
-                            <Box mt={1}>
+                            <Box sx={{ mt: 1 }}>
                                 <Typography variant="body2">
                                     <strong>{t('kept_phrase_info', 'Kept Phrase:')}</strong>
                                     "{operationResult.data.kept_phrase?.phrase}" (ID: {operationResult.data.kept_phrase?.id})
@@ -374,11 +374,11 @@ export default function DuplicateManagement({ currentUser, selectedLanguageSetId
                         </Box>
                     ) : operationResult.type === 'delete' ? (
                         <Box>
-                            <Typography variant="body2" fontWeight="bold">
+                            <Typography variant="body2" sx={{ fontWeight: 'bold' }}>
                                 {t('delete_selected_success', 'Selected phrases deleted successfully')}
                             </Typography>
                             {operationResult.data.remaining_phrases && operationResult.data.remaining_phrases.length > 0 && (
-                                <Box mt={1}>
+                                <Box sx={{ mt: 1 }}>
                                     <Typography variant="body2">
                                         <strong>{t('remaining_phrases_info', 'Remaining Phrases:')}</strong>
                                     </Typography>
@@ -400,7 +400,7 @@ export default function DuplicateManagement({ currentUser, selectedLanguageSetId
             )}
 
             {loading && (
-                <Box display="flex" justifyContent="center" p={4}>
+                <Box sx={{ display: 'flex', justifyContent: 'center', p: 4 }}>
                     <CircularProgress />
                 </Box>
             )}
@@ -429,7 +429,7 @@ export default function DuplicateManagement({ currentUser, selectedLanguageSetId
                     {duplicateGroups.map((group, groupIndex) => (
                         <Accordion key={groupIndex} sx={{ mb: 1 }}>
                             <AccordionSummary expandIcon={<ExpandMoreIcon />}>
-                                <Box display="flex" alignItems="center" width="100%">
+                                <Box sx={{ display: 'flex', alignItems: 'center', width: '100%' }}>
                                     <WarningIcon color="warning" sx={{ mr: 1 }} />
                                     <Typography variant="subtitle1" sx={{ flexGrow: 1 }}>
                                         "{formatPreview(group.duplicates[0].phrase)}"
@@ -444,7 +444,7 @@ export default function DuplicateManagement({ currentUser, selectedLanguageSetId
                             </AccordionSummary>
                             <AccordionDetails>
                                 <Box>
-                                    <Box display="flex" justifyContent="space-between" alignItems="center" mb={2}>
+                                    <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 2 }}>
                                         <Button
                                             size="small"
                                             onClick={() => handleSelectAllInGroup(
@@ -500,7 +500,7 @@ export default function DuplicateManagement({ currentUser, selectedLanguageSetId
                                                             </Typography>
                                                         </TableCell>
                                                         <TableCell>
-                                                            <Box display="flex" gap={1} flexWrap="wrap">
+                                                            <Box sx={{ display: 'flex', gap: 1, flexWrap: 'wrap' }}>
                                                                 <Tooltip title={t('keep_this_delete_others', 'Keep this, delete others')}>
                                                                     <Button
                                                                         size="small"
@@ -534,7 +534,7 @@ export default function DuplicateManagement({ currentUser, selectedLanguageSetId
                     ))}
 
                     {totalPages > 1 && (
-                        <Box display="flex" justifyContent="center" alignItems="center" mt={3} gap={2}>
+                        <Box sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center', mt: 3, gap: 2 }}>
                             <Typography variant="body2" color="text.secondary">
                                 {t('page', 'Page')} {currentPage} {t('of', 'of')} {totalPages}
                             </Typography>
@@ -564,7 +564,7 @@ export default function DuplicateManagement({ currentUser, selectedLanguageSetId
                             count: phrasesToDelete.length
                         })}
                     </Typography>
-                    <Box mt={2}>
+                    <Box sx={{ mt: 2 }}>
                         {phrasesToDelete.map((phrase) => (
                             <Typography key={phrase.id} variant="body2" color="text.secondary">
                                 • {formatPreview(phrase.phrase)}

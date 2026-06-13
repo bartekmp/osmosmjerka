@@ -117,13 +117,6 @@ const MobilePhraseListSheet = ({
     };
   }, [open]);
 
-  const handleBackdropClick = (e) => {
-    // Only close if clicking the backdrop, not the sheet content
-    if (e.target === e.currentTarget) {
-      onClose();
-    }
-  };
-
   return (
     <Drawer
       anchor="bottom"
@@ -131,18 +124,19 @@ const MobilePhraseListSheet = ({
       onClose={onClose}
       ModalProps={{
         keepMounted: false,
-        onBackdropClick: handleBackdropClick,
       }}
-      PaperProps={{
-        ref: sheetRef,
-        className: 'mobile-phrase-sheet',
-        style: {
-          height: `${sheetHeight * 100}%`,
-          maxHeight: '85%',
-          minHeight: '50%',
-          borderTopLeftRadius: '20px',
-          borderTopRightRadius: '20px',
-          transition: isDragging.current ? 'none' : 'height 0.3s ease-out',
+      slotProps={{
+        paper: {
+          ref: sheetRef,
+          className: 'mobile-phrase-sheet',
+          style: {
+            height: `${sheetHeight * 100}%`,
+            maxHeight: '85%',
+            minHeight: '50%',
+            borderTopLeftRadius: '20px',
+            borderTopRightRadius: '20px',
+            transition: isDragging.current ? 'none' : 'height 0.3s ease-out',
+          },
         },
       }}
       sx={{

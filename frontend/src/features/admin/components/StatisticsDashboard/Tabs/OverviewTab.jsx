@@ -25,7 +25,7 @@ const OverviewTab = ({ overview }) => {
             <Grid size={{ xs: 12, sm: 6, md: 3 }}>
                 <Card>
                     <CardContent>
-                        <Box display="flex" alignItems="center">
+                        <Box sx={{ display: 'flex', alignItems: 'center' }}>
                             <PeopleIcon color="primary" sx={{ mr: 2 }} />
                             <Box>
                                 <Typography color="textSecondary" gutterBottom>
@@ -43,7 +43,7 @@ const OverviewTab = ({ overview }) => {
             <Grid size={{ xs: 12, sm: 6, md: 3 }}>
                 <Card>
                     <CardContent>
-                        <Box display="flex" alignItems="center">
+                        <Box sx={{ display: 'flex', alignItems: 'center' }}>
                             <TrendingUpIcon color="success" sx={{ mr: 2 }} />
                             <Box>
                                 <Typography color="textSecondary" gutterBottom>
@@ -61,7 +61,7 @@ const OverviewTab = ({ overview }) => {
             <Grid size={{ xs: 12, sm: 6, md: 3 }}>
                 <Card>
                     <CardContent>
-                        <Box display="flex" alignItems="center">
+                        <Box sx={{ display: 'flex', alignItems: 'center' }}>
                             <GamesIcon color="info" sx={{ mr: 2 }} />
                             <Box>
                                 <Typography color="textSecondary" gutterBottom>
@@ -79,7 +79,7 @@ const OverviewTab = ({ overview }) => {
             <Grid size={{ xs: 12, sm: 6, md: 3 }}>
                 <Card>
                     <CardContent>
-                        <Box display="flex" alignItems="center">
+                        <Box sx={{ display: 'flex', alignItems: 'center' }}>
                             <TimerIcon color="warning" sx={{ mr: 2 }} />
                             <Box>
                                 <Typography color="textSecondary" gutterBottom>

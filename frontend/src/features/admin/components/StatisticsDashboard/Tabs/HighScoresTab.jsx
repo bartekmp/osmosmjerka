@@ -135,7 +135,7 @@ const HighScoresTab = ({
                         {highScores.map((score, index) => (
                             <TableRow key={`${score.user_id}-${score.created_at}-${index}`}>
                                 <TableCell>
-                                    <Box display="flex" alignItems="center">
+                                    <Box sx={{ display: 'flex', alignItems: 'center' }}>
                                         {index < 3 && (
                                             <StarIcon
                                                 sx={{
@@ -148,12 +148,12 @@ const HighScoresTab = ({
                                     </Box>
                                 </TableCell>
                                 <TableCell>
-                                    <Typography variant="body2" fontWeight="medium">
+                                    <Typography variant="body2" sx={{ fontWeight: 500 }}>
                                         {score.username}
                                     </Typography>
                                 </TableCell>
                                 <TableCell>
-                                    <Typography variant="body2" fontWeight="bold" color="primary">
+                                    <Typography variant="body2" sx={{ fontWeight: 'bold' }} color="primary">
                                         {score.final_score?.toLocaleString() || 0}
                                     </Typography>
                                 </TableCell>

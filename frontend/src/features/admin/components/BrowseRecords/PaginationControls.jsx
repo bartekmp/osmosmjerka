@@ -15,7 +15,7 @@ export default function PaginationControls({
     const { t } = useTranslation();
     return (
         <Box sx={{ mt: 2, p: 2, bgcolor: 'background.paper', borderRadius: 1 }}>
-            <Grid container spacing={2} alignItems="center" justifyContent="space-between">
+            <Grid container spacing={2} sx={{ alignItems: 'center', justifyContent: 'space-between' }}>
                 <Grid sx={{ width: { xs: '100%', sm: 'auto' }, display: 'flex', alignItems: 'center', gap: 2, flexWrap: 'wrap', justifyContent: { xs: 'center', sm: 'flex-start' } }}>
                     <Button
                         variant="outlined"

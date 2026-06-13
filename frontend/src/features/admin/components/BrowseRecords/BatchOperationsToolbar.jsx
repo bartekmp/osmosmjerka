@@ -28,11 +28,11 @@ export default function BatchOperationsToolbar({
             border: 1,
             borderColor: 'warning.main'
         }}>
-            <Stack 
-                direction={{ xs: 'column', sm: 'row' }} 
-                spacing={2} 
-                alignItems={{ xs: 'stretch', sm: 'center' }}
+            <Stack
+                direction={{ xs: 'column', sm: 'row' }}
+                spacing={2}
                 divider={<Divider orientation="vertical" flexItem />}
+                sx={{ alignItems: { xs: 'stretch', sm: 'center' } }}
             >
                 <Button
                     variant="contained"
