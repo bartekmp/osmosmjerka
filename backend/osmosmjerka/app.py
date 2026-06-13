@@ -101,11 +101,16 @@ def ensure_root_admin_account():
             )
             return
 
-        # If the correct one exists, update fields as needed
+        # If the correct one exists, update fields as needed.
+        # Note: get_account_by_id omits password_hash (to avoid leaking it via the
+        # user-management API), so read the stored hash from by_username, whose query
+        # selects all columns. Otherwise the comparison always sees None and warns +
+        # rewrites the hash on every startup.
         account = by_id or by_username
         if account:
             updates = {}
-            if account.get("password_hash") != ROOT_ADMIN_PASSWORD_HASH:
+            existing_hash = (by_username or {}).get("password_hash")
+            if existing_hash != ROOT_ADMIN_PASSWORD_HASH:
                 logger.warning(
                     "Root admin password hash in DB differs from ADMIN_PASSWORD_HASH env var. Updating password hash.",
                     extra={"username": ROOT_ADMIN_USERNAME},
