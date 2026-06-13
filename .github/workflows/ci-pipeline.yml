@@ -5,8 +5,13 @@ on:
     branches: [ '**' ]
 
 env:
-  PYTHON_VERSION: '3.13'
-  NODE_VERSION: '22'
+  # Keep in sync with the Dockerfile runtime stage (python:3.14-slim) so CI tests
+  # on the same Python the app ships on. The supported floor is requires-python
+  # (>=3.13) in pyproject.toml.
+  PYTHON_VERSION: '3.14'
+  # Keep in sync with the Dockerfile frontend stage (node:24) and .nvmrc so CI
+  # tests on the same Node the production bundle is built with.
+  NODE_VERSION: '24'
 
 jobs:
   # Stage 1: Fast validation (runs first)
@@ -205,6 +210,13 @@ jobs:
     name: "🚀 Semantic Release"
     runs-on: ubuntu-latest
     needs: [validate-format, test-backend, test-frontend]
+    # Serialize releases: when multiple PRs land on main close together, run the
+    # release jobs one at a time instead of racing on the version tag push (which
+    # made the loser fail with a non-fast-forward exit 1). Don't cancel an
+    # in-progress release; let the next one wait and then no-op if nothing changed.
+    concurrency:
+      group: semantic-release-${{ github.ref }}
+      cancel-in-progress: false
     outputs:
       image_tag: ${{ steps.semrel.outputs.image_tag }}
       skip_image_push: ${{ steps.semrel.outputs.skip_image_push }}

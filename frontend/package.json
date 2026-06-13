@@ -3,6 +3,9 @@
     "version": "1.41.15",
     "type": "module",
     "private": true,
+    "engines": {
+        "node": ">=22.12.0"
+    },
     "scripts": {
         "build": "vite build",
         "dev": "vite",
