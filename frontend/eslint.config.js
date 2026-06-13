@@ -77,6 +77,21 @@ export default [
       'no-debugger': 'error',
       'prefer-const': 'error',
       'no-var': 'error',
+
+      // MUI v9 silently drops system/style props passed directly to layout
+      // components (e.g. <Box display="flex" mb={2}>); they must live in `sx`.
+      // This guards against that class of regression at author time.
+      // Container is handled separately because `maxWidth` is one of its real props.
+      'no-restricted-syntax': ['error',
+        {
+          selector: "JSXOpeningElement[name.name=/^(Box|Grid|Stack|Typography|Paper|Card)$/] > JSXAttribute[name.name=/^(display|flexDirection|flexWrap|alignItems|alignContent|justifyContent|justifyItems|gap|rowGap|columnGap|flex|flexGrow|flexShrink|flexBasis|order|p|px|py|pt|pb|pl|pr|padding|m|mx|my|mt|mb|ml|mr|margin|width|height|minWidth|maxWidth|minHeight|maxHeight|boxShadow|bgcolor|borderRadius|borderColor|position|top|right|bottom|left|zIndex|overflow|fontWeight|fontSize|textAlign|lineHeight|letterSpacing|paragraph)$/]",
+          message: 'MUI v9 ignores system props passed directly to layout components — move this into the `sx` prop (e.g. sx={{ display: "flex" }}).',
+        },
+        {
+          selector: "JSXOpeningElement[name.name='Container'] > JSXAttribute[name.name=/^(display|flexDirection|flexWrap|alignItems|alignContent|justifyContent|justifyItems|gap|rowGap|columnGap|flex|flexGrow|flexShrink|flexBasis|order|p|px|py|pt|pb|pl|pr|padding|m|mx|my|mt|mb|ml|mr|margin|width|height|minWidth|minHeight|maxHeight|boxShadow|bgcolor|borderRadius|borderColor|position|top|right|bottom|left|zIndex|overflow|fontWeight|fontSize|textAlign|lineHeight|letterSpacing|paragraph)$/]",
+          message: 'MUI v9 ignores system props passed directly to Container — move this into the `sx` prop (e.g. sx={{ display: "flex" }}).',
+        },
+      ],
       
       // Accessibility rules
       'jsx-a11y/alt-text': 'warn',

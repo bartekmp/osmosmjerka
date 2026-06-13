@@ -118,12 +118,11 @@ export default function BatchOperationDialog({
                                     <Typography variant="caption" sx={{ mb: 1, display: 'block', color: 'text.secondary' }}>
                                         {t('click_category_to_select', 'Click on a category to select it')}
                                     </Typography>
-                                    <Stack 
-                                        direction="row" 
-                                        spacing={0.5} 
-                                        flexWrap="wrap" 
-                                        useFlexGap 
-                                        sx={{ mb: 2, maxHeight: 120, overflowY: 'auto' }}
+                                    <Stack
+                                        direction="row"
+                                        spacing={0.5}
+                                        useFlexGap
+                                        sx={{ flexWrap: 'wrap', mb: 2, maxHeight: 120, overflowY: 'auto' }}
                                     >
                                         {availableCategories.map(category => (
                                             <Chip

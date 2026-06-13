@@ -21,9 +21,6 @@ export { default as WhatsNewModal } from './components/ui/WhatsNewModal';
 export { default as CookieConsentBar } from './components/ui/CookieConsentBar';
 export { default as GameTypeSelector } from './components/ui/GameTypeSelector';
 
-// Styled Components
-export * from './components/ui/StyledComponents';
-
 // Utilities
 export * from './utils/responsive';
 export * from './utils/assets';

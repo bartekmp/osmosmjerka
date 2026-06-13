@@ -143,8 +143,8 @@ const BrowseRecordsView = ({
                         <Stack
                             direction="row"
                             spacing={1}
-                            flexWrap="wrap"
                             useFlexGap
+                            sx={{ flexWrap: 'wrap' }}
                         >
                             <ResponsiveActionButton
                                 fullWidth={false}
