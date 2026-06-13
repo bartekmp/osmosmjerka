@@ -2,6 +2,15 @@
 
 <!-- version list -->
 
+## v1.41.16 (2026-06-13)
+
+### Chores
+
+- Pin Node/Python to shipped versions in CI and serialize release job
+  ([#186](https://github.com/bartekmp/osmosmjerka/pull/186),
+  [`957ec1c`](https://github.com/bartekmp/osmosmjerka/commit/957ec1cf57a8d5e0fc8d9c505e29cce7b337983d))
+
+
 ## v1.41.15 (2026-06-13)
 
 ### Bug Fixes
