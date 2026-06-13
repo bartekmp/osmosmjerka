@@ -26,10 +26,12 @@ export default function TextViewDialog({
             onClose={onClose}
             maxWidth="md"
             fullWidth
-            PaperProps={{
-                sx: {
-                    maxHeight: '80vh',
-                    backgroundColor: 'background.paper'
+            slotProps={{
+                paper: {
+                    sx: {
+                        maxHeight: '80vh',
+                        backgroundColor: 'background.paper'
+                    }
                 }
             }}
         >

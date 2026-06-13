@@ -91,6 +91,12 @@ export default [
           selector: "JSXOpeningElement[name.name='Container'] > JSXAttribute[name.name=/^(display|flexDirection|flexWrap|alignItems|alignContent|justifyContent|justifyItems|gap|rowGap|columnGap|flex|flexGrow|flexShrink|flexBasis|order|p|px|py|pt|pb|pl|pr|padding|m|mx|my|mt|mb|ml|mr|margin|width|height|minWidth|minHeight|maxHeight|boxShadow|bgcolor|borderRadius|borderColor|position|top|right|bottom|left|zIndex|overflow|fontWeight|fontSize|textAlign|lineHeight|letterSpacing|paragraph)$/]",
           message: 'MUI v9 ignores system props passed directly to Container — move this into the `sx` prop (e.g. sx={{ display: "flex" }}).',
         },
+        {
+          // MUI v9 removed the legacy slot-override props on overlay components
+          // (PaperProps/BackdropProps/MenuListProps/etc.) in favour of slots/slotProps.
+          selector: "JSXOpeningElement[name.name=/^(Dialog|Drawer|Modal|Menu|Popover|Popper|Snackbar|Tooltip)$/] > JSXAttribute[name.name=/^(PaperProps|BackdropProps|BackdropComponent|MenuListProps|componentsProps|onBackdropClick)$/]",
+          message: 'MUI v9 removed this slot-override prop — use `slots`/`slotProps` instead (e.g. slotProps={{ paper: {...}, backdrop: {...}, list: {...} }}).',
+        },
       ],
       
       // Accessibility rules

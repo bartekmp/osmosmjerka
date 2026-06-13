@@ -104,12 +104,14 @@ function PreviewDialog({ open, onClose, phraseSet, token }) {
             onClose={handleClose}
             maxWidth="lg"
             fullWidth
-            PaperProps={{
-                sx: {
-                    height: '85vh',
-                    maxHeight: '85vh',
-                    display: 'flex',
-                    flexDirection: 'column',
+            slotProps={{
+                paper: {
+                    sx: {
+                        height: '85vh',
+                        maxHeight: '85vh',
+                        display: 'flex',
+                        flexDirection: 'column',
+                    }
                 }
             }}
         >

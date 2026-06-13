@@ -164,16 +164,18 @@ export default function EditWordDialog({
             onClose={onClose}
             maxWidth="sm"
             fullWidth
-            PaperProps={{
-                sx: {
-                    backgroundColor: 'background.paper',
-                    backgroundFilter: 'blur(10px)'
-                }
-            }}
-            BackdropProps={{
-                sx: {
-                    backdropFilter: 'blur(8px)',
-                    backgroundColor: 'rgba(0, 0, 0, 0.5)'
+            slotProps={{
+                paper: {
+                    sx: {
+                        backgroundColor: 'background.paper',
+                        backgroundFilter: 'blur(10px)'
+                    }
+                },
+                backdrop: {
+                    sx: {
+                        backdropFilter: 'blur(8px)',
+                        backgroundColor: 'rgba(0, 0, 0, 0.5)'
+                    }
                 }
             }}
         >

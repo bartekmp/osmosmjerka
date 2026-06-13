@@ -82,8 +82,10 @@ export default function GameTypeSelector({
                 anchorEl={anchorEl}
                 open={open}
                 onClose={handleClose}
-                MenuListProps={{
-                    'aria-labelledby': 'game-type-button',
+                slotProps={{
+                    list: {
+                        'aria-labelledby': 'game-type-button',
+                    },
                 }}
                 anchorOrigin={{
                     vertical: 'bottom',
