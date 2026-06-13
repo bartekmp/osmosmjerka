@@ -121,7 +121,7 @@ const UserStatisticsTab = ({
                                     </Typography>
                                 </AccordionSummary>
                                 <AccordionDetails>
-                                    <Box display="flex" flexWrap="wrap" gap={1}>
+                                    <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 1 }}>
                                         {(langSetData.categories || []).map((cat, catIndex) => (
                                             <Chip
                                                 key={catIndex}

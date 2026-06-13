@@ -285,7 +285,7 @@ const StatisticsDashboard = ({ token, setError: onError, currentUser }) => {
 
   if (loading) {
     return (
-      <Box display="flex" justifyContent="center" alignItems="center" minHeight="400px">
+      <Box sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center', minHeight: '400px' }}>
         <CircularProgress />
       </Box>
     );
@@ -309,12 +309,12 @@ const StatisticsDashboard = ({ token, setError: onError, currentUser }) => {
       {currentUser?.role === 'root_admin' && (
         <Card sx={{ mb: 3, bgcolor: theme.palette.mode === 'dark' ? '#2d2d2d' : '#f5f5f5' }}>
           <CardContent>
-            <Box display="flex" alignItems="center" mb={2}>
+            <Box sx={{ display: 'flex', alignItems: 'center', mb: 2 }}>
               <SettingsIcon sx={{ mr: 1 }} />
               <Typography variant="h6">{t('admin_settings')}</Typography>
             </Box>
 
-            <Grid container spacing={2} alignItems="center">
+            <Grid container spacing={2} sx={{ alignItems: 'center' }}>
               <Grid size={{ xs: 12, md: 6 }}>
                 <FormControlLabel
                   control={

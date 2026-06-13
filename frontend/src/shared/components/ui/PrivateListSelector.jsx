@@ -124,7 +124,7 @@ const PrivateListSelector = ({
     if (error) {
         return (
             <Box sx={{ minWidth: 120 }}>
-                <Typography variant="body2" color="error" fontSize="small">
+                <Typography variant="body2" color="error" sx={{ fontSize: 'small' }}>
                     {error}
                 </Typography>
             </Box>

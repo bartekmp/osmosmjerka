@@ -172,7 +172,7 @@ export default function MyStudy({ token }) {
                                                         {puzzle.description}
                                                     </Typography>
                                                 )}
-                                                <Typography variant="caption" display="block" color="text.secondary" sx={{ mb: 1 }}>
+                                                <Typography variant="caption" color="text.secondary" sx={{ display: 'block', mb: 1 }}>
                                                     {t('student.study.created_by_date', {
                                                         name: puzzle.creator_username || t('unknown'),
                                                         date: formatDate(puzzle.created_at)
@@ -293,7 +293,7 @@ export default function MyStudy({ token }) {
                                                 <Stack direction="row" spacing={2} sx={{ alignItems: "center" }}>
                                                     <GroupIcon color="primary" />
                                                     <Box sx={{ flex: 1 }}>
-                                                        <Typography variant="subtitle1" fontWeight="bold">
+                                                        <Typography variant="subtitle1" sx={{ fontWeight: 'bold' }}>
                                                             {invite.group_name}
                                                         </Typography>
                                                         <Typography variant="body2" color="text.secondary">
@@ -354,7 +354,7 @@ export default function MyStudy({ token }) {
                                                 <Stack direction="row" spacing={2} sx={{ alignItems: "center" }}>
                                                     <GroupIcon color="primary" />
                                                     <Box sx={{ flex: 1 }}>
-                                                        <Typography variant="subtitle1" fontWeight="bold">
+                                                        <Typography variant="subtitle1" sx={{ fontWeight: 'bold' }}>
                                                             {group.name}
                                                         </Typography>
                                                         {group.teacher_username && (

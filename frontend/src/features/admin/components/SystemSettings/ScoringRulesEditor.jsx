@@ -187,7 +187,7 @@ const ScoringRulesEditor = ({ scoringEnabled = true }) => {
 
   if (loading) {
     return (
-      <Box display="flex" justifyContent="center" alignItems="center" p={3}>
+      <Box sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center', p: 3 }}>
         <CircularProgress />
       </Box>
     );
@@ -199,7 +199,7 @@ const ScoringRulesEditor = ({ scoringEnabled = true }) => {
         {t("admin.scoringRules.title", "Scoring Rules Configuration")}
       </Typography>
 
-      <Typography variant="body2" color="text.secondary" paragraph>
+      <Typography variant="body2" color="text.secondary" sx={{ mb: 2 }}>
         {t(
           "admin.scoringRules.description",
           "Configure how points are calculated for games. Changes will apply to all new games."
@@ -218,8 +218,8 @@ const ScoringRulesEditor = ({ scoringEnabled = true }) => {
       <Divider sx={{ my: 2 }} />
 
       {/* Base Settings */}
-      <Box mb={3}>
-        <Typography variant="subtitle1" gutterBottom fontWeight="bold">
+      <Box sx={{ mb: 3 }}>
+        <Typography variant="subtitle1" gutterBottom sx={{ fontWeight: 'bold' }}>
           {t("admin.scoringRules.baseSettings", "Base Settings")}
         </Typography>
         <Grid container spacing={2}>
@@ -271,14 +271,14 @@ const ScoringRulesEditor = ({ scoringEnabled = true }) => {
       <Divider sx={{ my: 2 }} />
 
       {/* Difficulty Multipliers */}
-      <Box mb={3}>
-        <Typography variant="subtitle1" gutterBottom fontWeight="bold">
+      <Box sx={{ mb: 3 }}>
+        <Typography variant="subtitle1" gutterBottom sx={{ fontWeight: 'bold' }}>
           {t(
             "admin.scoringRules.difficultyMultipliers",
             "Difficulty Multipliers"
           )}
         </Typography>
-        <Typography variant="body2" color="text.secondary" paragraph>
+        <Typography variant="body2" color="text.secondary" sx={{ mb: 2 }}>
           {t(
             "admin.scoringRules.multipliersHelp",
             "Higher multipliers give more bonus points for harder difficulties"
@@ -304,18 +304,18 @@ const ScoringRulesEditor = ({ scoringEnabled = true }) => {
       <Divider sx={{ my: 2 }} />
 
       {/* Time Bonus Settings */}
-      <Box mb={3}>
-        <Typography variant="subtitle1" gutterBottom fontWeight="bold">
+      <Box sx={{ mb: 3 }}>
+        <Typography variant="subtitle1" gutterBottom sx={{ fontWeight: 'bold' }}>
           {t("admin.scoringRules.timeBonus", "Time Bonus Settings")}
         </Typography>
-        <Typography variant="body2" color="text.secondary" paragraph>
+        <Typography variant="body2" color="text.secondary" sx={{ mb: 2 }}>
           {t(
             "admin.scoringRules.timeBonusHelp",
             "Players get bonus points for completing within target times"
           )}
         </Typography>
 
-        <Box mb={2}>
+        <Box sx={{ mb: 2 }}>
           <TextField
             label={t(
               "admin.scoringRules.maxTimeBonusRatio",
@@ -334,7 +334,7 @@ const ScoringRulesEditor = ({ scoringEnabled = true }) => {
           />
         </Box>
 
-        <Typography variant="body2" gutterBottom fontWeight="medium">
+        <Typography variant="body2" gutterBottom sx={{ fontWeight: 500 }}>
           {t("admin.scoringRules.targetTimes", "Target Times (seconds)")}
         </Typography>
         <Grid container spacing={2}>
@@ -357,7 +357,7 @@ const ScoringRulesEditor = ({ scoringEnabled = true }) => {
       <Divider sx={{ my: 2 }} />
 
       {/* Save Button */}
-      <Box display="flex" justifyContent="flex-end" gap={2}>
+      <Box sx={{ display: 'flex', justifyContent: 'flex-end', gap: 2 }}>
         <Button
           variant="outlined"
           onClick={loadScoringRules}

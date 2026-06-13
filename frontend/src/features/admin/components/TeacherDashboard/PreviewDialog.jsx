@@ -193,7 +193,7 @@ function PreviewDialog({ open, onClose, phraseSet, token }) {
                             </Box>
 
                             {/* Phrase list header */}
-                            <Typography variant="subtitle1" fontWeight="bold" sx={{ flexShrink: 0, mb: 1 }}>
+                            <Typography variant="subtitle1" sx={{ fontWeight: 'bold', flexShrink: 0, mb: 1 }}>
                                 {t('teacher.preview.phrases_count', { count: phrases.length, defaultValue: 'Phrases ({{count}})' })}
                             </Typography>
 
@@ -237,7 +237,7 @@ function PreviewDialog({ open, onClose, phraseSet, token }) {
                                             {index + 1}
                                         </Box>
                                         <Box sx={{ flex: 1, minWidth: 0 }}>
-                                            <Typography variant="body2" fontWeight="medium" noWrap>{phrase.phrase}</Typography>
+                                            <Typography variant="body2" sx={{ fontWeight: 500 }} noWrap>{phrase.phrase}</Typography>
                                             {phrase.translation && (
                                                 <Typography variant="caption" color="text.secondary" noWrap>→ {phrase.translation}</Typography>
                                             )}

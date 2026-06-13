@@ -390,7 +390,7 @@ export default function UserProfile() {
                 </Typography>
 
                 {statisticsLoading ? (
-                    <Box display="flex" justifyContent="center" alignItems="center" minHeight="200px">
+                    <Box sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center', minHeight: '200px' }}>
                         <CircularProgress />
                     </Box>
                 ) : statisticsError ? (
