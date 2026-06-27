@@ -2,6 +2,15 @@
 
 <!-- version list -->
 
+## v1.41.19 (2026-06-27)
+
+### Chores
+
+- **deps**: Update actions/create-github-app-token digest to bcd2ba4
+  ([#188](https://github.com/bartekmp/osmosmjerka/pull/188),
+  [`3b3b294`](https://github.com/bartekmp/osmosmjerka/commit/3b3b2949e491acf485672459f5e1cf506e14c00d))
+
+
 ## v1.41.18 (2026-06-27)
 
 ### Chores
