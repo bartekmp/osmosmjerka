@@ -10,7 +10,6 @@ import {
   IconButton,
 } from "@mui/material";
 import GitHubIcon from "@mui/icons-material/GitHub";
-import axios from "axios";
 import confetti from "canvas-confetti";
 import React, {
   Suspense,
@@ -65,13 +64,15 @@ import { useSystemPreferences } from "./hooks/useSystemPreferences";
 import { useWhatsNew } from "./hooks/useWhatsNew";
 import { useGameSession } from "./hooks/useGameSession";
 import { useScoring } from "./hooks/useScoring";
+import { useCategories } from "./hooks/useCategories";
+import { useSplash } from "./hooks/useSplash";
 
 import {
   loadPuzzle as loadPuzzleHelper,
   restoreGameState,
   saveGameState,
 } from "./helpers/appHelpers";
-import { API_ENDPOINTS, STORAGE_KEYS } from "./shared/constants/constants";
+import { STORAGE_KEYS } from "./shared/constants/constants";
 import { RateLimitWarning } from "./shared/components/ui/RateLimitWarning";
 import appVersion from "./version";
 
@@ -88,9 +89,6 @@ const UserProfile = lazy(() =>
 const TeacherPuzzlePage = lazy(() =>
   import("./features/teacher").then((module) => ({ default: module.TeacherPuzzlePage }))
 );
-
-const SPLASH_EXIT_DURATION = 600;
-const SPLASH_MIN_VISIBLE_DURATION = 1200;
 
 function AppContent() {
   const { t } = useTranslation();
@@ -109,9 +107,6 @@ function AppContent() {
   const { scoringEnabled, progressiveHintsEnabled } = useSystemPreferences();
   const { showWhatsNew, whatsNewEntries, handleWhatsNewClose } = useWhatsNew();
 
-  const [categories, setCategories] = useState([]);
-  const [ignoredCategories, setIgnoredCategories] = useState([]);
-  const [userIgnoredCategories, setUserIgnoredCategories] = useState([]);
   const [selectedCategory, setSelectedCategory] = useState("");
   const [selectedLanguageSetId, setSelectedLanguageSetId] = useState(() => {
     // Load from localStorage or default to null
@@ -186,10 +181,7 @@ function AppContent() {
   const [isPaused, setIsPaused] = useState(false);
 
   const [languageSetsStatus, setLanguageSetsStatus] = useState("pending");
-  const [categoriesStatus, setCategoriesStatus] = useState("pending");
   const [gridStatus, setGridStatus] = useState("pending");
-  const [initialLoadComplete, setInitialLoadComplete] = useState(false);
-  const [showSplash, setShowSplash] = useState(true);
 
   const [currentElapsedTime, setCurrentElapsedTime] = useState(0);
   const currentElapsedTimeRef = useRef(0);
@@ -248,10 +240,41 @@ function AppContent() {
     currentElapsedTimeRef,
   });
 
-  // Refs to prevent duplicate API calls in StrictMode
-  const lastFetchedLanguageSetIdRef = useRef(null);
-  const splashShownAtRef = useRef(Date.now());
   const justRestoredRef = useRef(false);
+
+  const handleRateLimit = useCallback(() => {
+    setShowRateLimit(true);
+    setTimeout(() => setShowRateLimit(false), 4000);
+  }, []);
+
+  // Categories hook
+  const {
+    ignoredCategories,
+    userIgnoredCategories,
+    categoriesStatus,
+    setCategoriesStatus,
+    visibleCategories,
+    updateUserIgnoredCategories,
+  } = useCategories({
+    debouncedLanguageSetId,
+    selectedPrivateListId,
+    restored,
+    selectedLanguageSetId,
+    selectedCategory,
+    hasGrid: grid.length > 0,
+    setSelectedCategory,
+    setGridStatus,
+    onRateLimit: handleRateLimit,
+  });
+
+  // Splash / initial load hook
+  const { showSplash, initialLoadComplete } = useSplash({
+    languageSetsStatus,
+    categoriesStatus,
+    gridStatus,
+    restored,
+    isAdminRoute,
+  });
 
   // Winning condition: all phrases found
   const allFound = phrases.length > 0 && found.length === phrases.length;
@@ -327,192 +350,6 @@ function AppContent() {
     }
   }, []);
 
-  // Load default and user-specific ignored categories when language set changes
-  useEffect(() => {
-    if (!debouncedLanguageSetId) {
-      setIgnoredCategories([]);
-      setUserIgnoredCategories([]);
-      return;
-    }
-
-    // Load default ignored categories for the language set
-    axios
-      .get(
-        `${API_ENDPOINTS.DEFAULT_IGNORED_CATEGORIES}?language_set_id=${debouncedLanguageSetId}`
-      )
-      .then((res) => setIgnoredCategories(res.data))
-      .catch((err) => {
-        setIgnoredCategories([]);
-        if (err.response?.status === 429) {
-          setShowRateLimit(true);
-          setTimeout(() => setShowRateLimit(false), 4000);
-        }
-      });
-
-    // Load user-specific ignored categories
-    const token = localStorage.getItem("adminToken"); // reuse admin token if logged in
-    axios
-      .get(
-        `${API_ENDPOINTS.USER_IGNORED_CATEGORIES}?language_set_id=${debouncedLanguageSetId}`,
-        {
-          headers: token ? { Authorization: `Bearer ${token}` } : {},
-        }
-      )
-      .then((res) => setUserIgnoredCategories(res.data))
-      .catch((err) => {
-        setUserIgnoredCategories([]);
-        if (err.response?.status === 429) {
-          setShowRateLimit(true);
-          setTimeout(() => setShowRateLimit(false), 4000);
-        }
-      });
-  }, [debouncedLanguageSetId]);
-
-  useEffect(() => {
-    // Only run after game state restoration is complete
-    if (!restored) return;
-
-    // Skip if a private list is selected - categories will be loaded by the private list effect
-    if (selectedPrivateListId) return;
-
-    // Prevent duplicate API calls for the same language set
-    if (lastFetchedLanguageSetIdRef.current === debouncedLanguageSetId) return;
-    lastFetchedLanguageSetIdRef.current = debouncedLanguageSetId;
-
-    // Load categories with language set parameter
-    let categoriesUrl = API_ENDPOINTS.CATEGORIES;
-    if (debouncedLanguageSetId) {
-      categoriesUrl += `?language_set_id=${debouncedLanguageSetId}`;
-    }
-
-    setCategoriesStatus("pending");
-    axios
-      .get(categoriesUrl)
-      .then((res) => {
-        const publicCategories = res.data || [];
-        // Add "ALL" option at the beginning for public categories
-        const categoriesWithAll = ["ALL", ...publicCategories];
-        setCategories(categoriesWithAll);
-        if (publicCategories.length === 0) {
-          setCategoriesStatus("empty");
-          setGridStatus("empty");
-          return;
-        }
-        setCategoriesStatus("success");
-        // Automatically select a random category if none is selected and no game is loaded
-        if (publicCategories.length > 0 && !selectedCategory && grid.length === 0) {
-          const randomIndex = Math.floor(Math.random() * publicCategories.length);
-          const randomCategory = publicCategories[randomIndex];
-          setSelectedCategory(randomCategory);
-          // Automatically load puzzle with the selected category
-          loadPuzzle(randomCategory, difficulty);
-        }
-      })
-      .catch((err) => {
-        console.error("Error loading categories:", err);
-        setCategoriesStatus("error");
-        setGridStatus("error");
-        if (err.response?.status === 429) {
-          setShowRateLimit(true);
-          setTimeout(() => setShowRateLimit(false), 4000);
-        }
-        lastFetchedLanguageSetIdRef.current = null; // Reset on error to allow retry
-      });
-  }, [restored, debouncedLanguageSetId, selectedPrivateListId]);
-
-  // Fetch categories when private list selection changes
-  useEffect(() => {
-    if (!restored || !selectedLanguageSetId) return;
-
-    const token = localStorage.getItem(STORAGE_KEYS.ADMIN_TOKEN);
-
-    if (selectedPrivateListId) {
-      // Fetch categories from the private list
-      setCategoriesStatus("pending");
-      axios
-        .get(`/api/user/private-lists/${selectedPrivateListId}/categories?language_set_id=${selectedLanguageSetId}`, {
-          headers: token ? { Authorization: `Bearer ${token}` } : {}
-        })
-        .then((res) => {
-          const listCategories = res.data || [];
-          // Add "ALL" option at the beginning for private lists
-          const categoriesWithAll = ["ALL", ...listCategories];
-          setCategories(categoriesWithAll);
-          if (listCategories.length === 0) {
-            setCategoriesStatus("empty");
-          } else {
-            setCategoriesStatus("success");
-            // Clear selected category if it doesn't exist in the new list (but keep "ALL" if selected)
-            if (selectedCategory && selectedCategory !== "ALL" && !listCategories.includes(selectedCategory)) {
-              setSelectedCategory("");
-            }
-          }
-        })
-        .catch((err) => {
-          console.error("Error loading categories from private list:", err);
-          setCategoriesStatus("error");
-          setCategories([]);
-        });
-    } else {
-      // When switching back to public, reset the last fetched language set ID
-      // so the public categories effect can fetch them
-      lastFetchedLanguageSetIdRef.current = null;
-    }
-  }, [restored, selectedPrivateListId, selectedLanguageSetId]);
-
-  useEffect(() => {
-    if (initialLoadComplete || !restored) {
-      return;
-    }
-
-    const statuses = [languageSetsStatus, categoriesStatus, gridStatus];
-    const isWaiting = statuses.some((status) => status === "pending");
-
-    if (isWaiting) {
-      return;
-    }
-
-    const elapsed = Date.now() - splashShownAtRef.current;
-    if (elapsed >= SPLASH_MIN_VISIBLE_DURATION) {
-      setInitialLoadComplete(true);
-      return;
-    }
-
-    const timeout = setTimeout(
-      () => setInitialLoadComplete(true),
-      SPLASH_MIN_VISIBLE_DURATION - elapsed
-    );
-    return () => clearTimeout(timeout);
-  }, [
-    languageSetsStatus,
-    categoriesStatus,
-    gridStatus,
-    initialLoadComplete,
-    restored,
-  ]);
-
-  useEffect(() => {
-    if (isAdminRoute) {
-      if (showSplash) {
-        setShowSplash(false);
-      }
-      return;
-    }
-
-    if (!restored || !initialLoadComplete) {
-      if (!showSplash) {
-        splashShownAtRef.current = Date.now();
-      }
-      setShowSplash(true);
-      return;
-    }
-
-    const timeout = setTimeout(
-      () => setShowSplash(false),
-      SPLASH_EXIT_DURATION
-    );
-    return () => clearTimeout(timeout);
-  }, [initialLoadComplete, isAdminRoute, restored, showSplash]);
 
 
   // Save state to localStorage on change, including showTranslations and selectedLanguageSetId
@@ -541,7 +378,6 @@ function AppContent() {
     allFound,
     showTranslations,
     selectedLanguageSetId,
-    currentElapsedTime,
     currentElapsedTime,
     isPaused,
     gameType,
@@ -855,10 +691,6 @@ function AppContent() {
     if (allFound) setHidePhrases(false);
   }, [allFound]);
 
-  const visibleCategories = categories.filter(
-    (cat) =>
-      !ignoredCategories.includes(cat) && !userIgnoredCategories.includes(cat)
-  );
   const isTeacherPuzzleRoute = location.pathname.startsWith("/t/");
   const shouldShowSplash = !isAdminRoute && !isTeacherPuzzleRoute && showSplash;
 
@@ -872,11 +704,6 @@ function AppContent() {
       setDifficulty(availableDifficulties[availableDifficulties.length - 1].value);
     }
   }, [availableDifficulties, difficulty]);
-
-  // Callback function for AdminPanel to update user ignored categories
-  const updateUserIgnoredCategories = (newCategories) => {
-    setUserIgnoredCategories(newCategories);
-  };
 
   // Define the Game View to be reused across multiple routes
   const gameView = (
@@ -1226,7 +1053,7 @@ function AppContent() {
           open={!initialLoadComplete}
           messageKey="loading_game"
           isDarkMode={isDarkMode}
-          exitDuration={SPLASH_EXIT_DURATION}
+          exitDuration={600}
         />
       )}
       <Container
