@@ -1,16 +1,13 @@
 import {
   Box,
-  Button,
   CircularProgress,
   Container,
   CssBaseline,
   ThemeProvider as MUIThemeProvider,
-  Stack,
   Typography,
   IconButton,
 } from "@mui/material";
 import GitHubIcon from "@mui/icons-material/GitHub";
-import axios from "axios";
 import confetti from "canvas-confetti";
 import React, {
   Suspense,
@@ -29,33 +26,10 @@ import "./styles/features/all-found-message.css";
 import "./styles/controls/admin-controls.css";
 import "./styles/controls/game-controls.css";
 import "./styles/responsive/app-responsive.css";
-// Mobile component styles
-import "./features/game/components/MobilePhraseListSheet/MobilePhraseListSheet.css";
-import "./features/game/components/MobileFloatingActions/MobileFloatingActions.css";
 import { ThemeProvider, useThemeMode } from "./contexts/ThemeContext";
-import {
-  AdminControls,
-  AllFoundMessage,
-  GameControls,
-  GameHeader,
-  LoadingOverlay,
-  PhraseList,
-  ScrabbleGrid,
-  CrosswordGrid,
-  Timer,
-  ScoreDisplay,
-  HintButton,
-  MobilePhraseListSheet,
-  MobileFloatingActions,
-} from "./features";
-import { NotEnoughPhrasesOverlay, ScreenTooSmallOverlay, SplashScreen, WhatsNewModal, CookieConsentBar } from "./shared";
-import {
-  getLastSeenVersion,
-  setLastSeenVersion,
-  isNewerVersion,
-  fetchWhatsNew,
-  getCurrentVersion,
-} from "./shared/utils/versionUtils";
+import { AdminControls } from "./features";
+import { SplashScreen, WhatsNewModal, CookieConsentBar } from "./shared";
+import { GameView } from "./GameView";
 import "./style.css";
 import createAppTheme from "./theme";
 
@@ -67,16 +41,22 @@ import { useDebouncedValue } from "./hooks/useDebounce";
 import { useTouchDevice } from "./hooks/useTouchDevice";
 import { useScreenTooSmall } from "./hooks/useScreenTooSmall";
 import { useGridTooSmall } from "./hooks/useGridTooSmall";
+import { useAuth } from "./hooks/useAuth";
+import { useSystemPreferences } from "./hooks/useSystemPreferences";
+import { useWhatsNew } from "./hooks/useWhatsNew";
+import { useGameSession } from "./hooks/useGameSession";
+import { useScoring } from "./hooks/useScoring";
+import { useCategories } from "./hooks/useCategories";
+import { useSplash } from "./hooks/useSplash";
 
 import {
   loadPuzzle as loadPuzzleHelper,
   restoreGameState,
   saveGameState,
 } from "./helpers/appHelpers";
-import { API_ENDPOINTS, STORAGE_KEYS } from "./shared/constants/constants";
+import { STORAGE_KEYS } from "./shared/constants/constants";
 import { RateLimitWarning } from "./shared/components/ui/RateLimitWarning";
 import appVersion from "./version";
-import { calculateScoreClientSide, DEFAULT_SCORING_RULES } from "./utils/scoringUtils";
 
 // Lazy load admin components
 const AdminPanel = lazy(() =>
@@ -92,9 +72,6 @@ const TeacherPuzzlePage = lazy(() =>
   import("./features/teacher").then((module) => ({ default: module.TeacherPuzzlePage }))
 );
 
-const SPLASH_EXIT_DURATION = 600;
-const SPLASH_MIN_VISIBLE_DURATION = 1200;
-
 function AppContent() {
   const { t } = useTranslation();
   const location = useLocation();
@@ -108,10 +85,10 @@ function AppContent() {
   const { availableDifficulties } = useGameDifficulties();
   const isTouchDevice = useTouchDevice();
   const isScreenTooSmall = useScreenTooSmall();
+  const { currentUser, statisticsEnabled } = useAuth();
+  const { scoringEnabled, progressiveHintsEnabled } = useSystemPreferences();
+  const { showWhatsNew, whatsNewEntries, handleWhatsNewClose } = useWhatsNew();
 
-  const [categories, setCategories] = useState([]);
-  const [ignoredCategories, setIgnoredCategories] = useState([]);
-  const [userIgnoredCategories, setUserIgnoredCategories] = useState([]);
   const [selectedCategory, setSelectedCategory] = useState("");
   const [selectedLanguageSetId, setSelectedLanguageSetId] = useState(() => {
     // Load from localStorage or default to null
@@ -183,36 +160,15 @@ function AppContent() {
   const [isGridLoading, setIsGridLoading] = useState(false);
   const [panelOpen, setPanelOpen] = useState(false);
   const [showRateLimit, setShowRateLimit] = useState(false);
-  const [currentUser, setCurrentUser] = useState(null);
   const [isPaused, setIsPaused] = useState(false);
 
   const [languageSetsStatus, setLanguageSetsStatus] = useState("pending");
-  const [categoriesStatus, setCategoriesStatus] = useState("pending");
   const [gridStatus, setGridStatus] = useState("pending");
-  const [initialLoadComplete, setInitialLoadComplete] = useState(false);
-  const [showSplash, setShowSplash] = useState(true);
 
-  // Game session tracking for statistics
-  const [gameSessionId, setGameSessionId] = useState(null);
-  const [gameStartTime, setGameStartTime] = useState(null);
-  const [currentElapsedTime, setCurrentElapsedTime] = useState(0); // Track current elapsed time for saving
+  const [currentElapsedTime, setCurrentElapsedTime] = useState(0);
   const currentElapsedTimeRef = useRef(0);
-  const [lastFoundCount, setLastFoundCount] = useState(0);
-  const [sessionCompleted, setSessionCompleted] = useState(false);
-  const [statisticsEnabled, setStatisticsEnabled] = useState(true); // Default to true, will be checked from server
-
-  // Scoring system state
-  const [scoringEnabled, setScoringEnabled] = useState(true);
-  const [currentScore, setCurrentScore] = useState(0);
-  const [scoreBreakdown, setScoreBreakdown] = useState(null);
-  const [scoringRules, setScoringRules] = useState(null);
-  const [scoringRulesStatus, setScoringRulesStatus] = useState("idle");
-  const [firstPhraseTime, setFirstPhraseTime] = useState(null);
-  const [timerResetTrigger, setTimerResetTrigger] = useState(0);
-  const scoreDialogOpenerRef = useRef(null);
 
   // Progressive hint system state
-  const [progressiveHintsEnabled, setProgressiveHintsEnabled] = useState(false);
   const [hintsUsed, setHintsUsed] = useState(0);
   const [remainingHints, setRemainingHints] = useState(3);
   const [currentHintLevel, setCurrentHintLevel] = useState(0);
@@ -220,18 +176,87 @@ function AppContent() {
   // Mobile UI state
   const [mobileSheetOpen, setMobileSheetOpen] = useState(false);
 
-  // What's New modal state
-  const [showWhatsNew, setShowWhatsNew] = useState(false);
-  const [whatsNewEntries, setWhatsNewEntries] = useState([]);
-
   // Debounced language set ID to prevent excessive API calls
   const debouncedLanguageSetId = useDebouncedValue(selectedLanguageSetId, 500);
 
-  // Refs to prevent duplicate API calls in StrictMode
-  const lastFetchedLanguageSetIdRef = useRef(null);
-  const completionInProgressRef = useRef(false);
-  const splashShownAtRef = useRef(Date.now());
+  // Game session hook
+  const {
+    gameSessionId,
+    gameStartTime,
+    setGameStartTime,
+    lastFoundCount,
+    setLastFoundCount,
+    sessionCompleted,
+    completionInProgressRef,
+    startGameSession,
+    updateGameProgress,
+    completeGameSession,
+    resetSession,
+  } = useGameSession({ selectedLanguageSetId, statisticsEnabled });
+
+  // Scoring hook
+  const {
+    currentScore,
+    scoreBreakdown,
+    scoringRules,
+    scoringRulesStatus,
+    setFirstPhraseTime,
+    timerResetTrigger,
+    loadScoringRules,
+    saveGameScore,
+    updateScore,
+    ensureScoreBreakdownFromApi,
+    registerScoreDialogOpener,
+    openScoreBreakdownDialog,
+    resetScoringState,
+  } = useScoring({
+    scoringEnabled,
+    difficulty,
+    phrases,
+    found,
+    hintsUsed,
+    gameSessionId,
+    selectedLanguageSetId,
+    selectedCategory,
+    grid,
+    currentElapsedTimeRef,
+  });
+
   const justRestoredRef = useRef(false);
+
+  const handleRateLimit = useCallback(() => {
+    setShowRateLimit(true);
+    setTimeout(() => setShowRateLimit(false), 4000);
+  }, []);
+
+  // Categories hook
+  const {
+    ignoredCategories,
+    userIgnoredCategories,
+    categoriesStatus,
+    setCategoriesStatus,
+    visibleCategories,
+    updateUserIgnoredCategories,
+  } = useCategories({
+    debouncedLanguageSetId,
+    selectedPrivateListId,
+    restored,
+    selectedLanguageSetId,
+    selectedCategory,
+    hasGrid: grid.length > 0,
+    setSelectedCategory,
+    setGridStatus,
+    onRateLimit: handleRateLimit,
+  });
+
+  // Splash / initial load hook
+  const { showSplash, initialLoadComplete } = useSplash({
+    languageSetsStatus,
+    categoriesStatus,
+    gridStatus,
+    restored,
+    isAdminRoute,
+  });
 
   // Winning condition: all phrases found
   const allFound = phrases.length > 0 && found.length === phrases.length;
@@ -256,13 +281,8 @@ function AppContent() {
     setGrid([]);
     setPhrases([]);
     setFound([]);
-
-    // Reset session tracking state when changing language set
-    setSessionCompleted(false);
-    setGameSessionId(null);
-    setGameStartTime(null);
-    setLastFoundCount(0);
-  }, []);
+    resetSession();
+  }, [resetSession]);
 
   const handleLanguageSetStatusChange = useCallback((status) => {
     setLanguageSetsStatus(status);
@@ -312,389 +332,7 @@ function AppContent() {
     }
   }, []);
 
-  // Load default and user-specific ignored categories when language set changes
-  useEffect(() => {
-    if (!debouncedLanguageSetId) {
-      setIgnoredCategories([]);
-      setUserIgnoredCategories([]);
-      return;
-    }
 
-    // Load default ignored categories for the language set
-    axios
-      .get(
-        `${API_ENDPOINTS.DEFAULT_IGNORED_CATEGORIES}?language_set_id=${debouncedLanguageSetId}`
-      )
-      .then((res) => setIgnoredCategories(res.data))
-      .catch((err) => {
-        setIgnoredCategories([]);
-        if (err.response?.status === 429) {
-          setShowRateLimit(true);
-          setTimeout(() => setShowRateLimit(false), 4000);
-        }
-      });
-
-    // Load user-specific ignored categories
-    const token = localStorage.getItem("adminToken"); // reuse admin token if logged in
-    axios
-      .get(
-        `${API_ENDPOINTS.USER_IGNORED_CATEGORIES}?language_set_id=${debouncedLanguageSetId}`,
-        {
-          headers: token ? { Authorization: `Bearer ${token}` } : {},
-        }
-      )
-      .then((res) => setUserIgnoredCategories(res.data))
-      .catch((err) => {
-        setUserIgnoredCategories([]);
-        if (err.response?.status === 429) {
-          setShowRateLimit(true);
-          setTimeout(() => setShowRateLimit(false), 4000);
-        }
-      });
-  }, [debouncedLanguageSetId]);
-
-  useEffect(() => {
-    // Only run after game state restoration is complete
-    if (!restored) return;
-
-    // Skip if a private list is selected - categories will be loaded by the private list effect
-    if (selectedPrivateListId) return;
-
-    // Prevent duplicate API calls for the same language set
-    if (lastFetchedLanguageSetIdRef.current === debouncedLanguageSetId) return;
-    lastFetchedLanguageSetIdRef.current = debouncedLanguageSetId;
-
-    // Load categories with language set parameter
-    let categoriesUrl = API_ENDPOINTS.CATEGORIES;
-    if (debouncedLanguageSetId) {
-      categoriesUrl += `?language_set_id=${debouncedLanguageSetId}`;
-    }
-
-    setCategoriesStatus("pending");
-    axios
-      .get(categoriesUrl)
-      .then((res) => {
-        const publicCategories = res.data || [];
-        // Add "ALL" option at the beginning for public categories
-        const categoriesWithAll = ["ALL", ...publicCategories];
-        setCategories(categoriesWithAll);
-        if (publicCategories.length === 0) {
-          setCategoriesStatus("empty");
-          setGridStatus("empty");
-          return;
-        }
-        setCategoriesStatus("success");
-        // Automatically select a random category if none is selected and no game is loaded
-        if (publicCategories.length > 0 && !selectedCategory && grid.length === 0) {
-          const randomIndex = Math.floor(Math.random() * publicCategories.length);
-          const randomCategory = publicCategories[randomIndex];
-          setSelectedCategory(randomCategory);
-          // Automatically load puzzle with the selected category
-          loadPuzzle(randomCategory, difficulty);
-        }
-      })
-      .catch((err) => {
-        console.error("Error loading categories:", err);
-        setCategoriesStatus("error");
-        setGridStatus("error");
-        if (err.response?.status === 429) {
-          setShowRateLimit(true);
-          setTimeout(() => setShowRateLimit(false), 4000);
-        }
-        lastFetchedLanguageSetIdRef.current = null; // Reset on error to allow retry
-      });
-  }, [restored, debouncedLanguageSetId, selectedPrivateListId]);
-
-  // Fetch categories when private list selection changes
-  useEffect(() => {
-    if (!restored || !selectedLanguageSetId) return;
-
-    const token = localStorage.getItem(STORAGE_KEYS.ADMIN_TOKEN);
-
-    if (selectedPrivateListId) {
-      // Fetch categories from the private list
-      setCategoriesStatus("pending");
-      axios
-        .get(`/api/user/private-lists/${selectedPrivateListId}/categories?language_set_id=${selectedLanguageSetId}`, {
-          headers: token ? { Authorization: `Bearer ${token}` } : {}
-        })
-        .then((res) => {
-          const listCategories = res.data || [];
-          // Add "ALL" option at the beginning for private lists
-          const categoriesWithAll = ["ALL", ...listCategories];
-          setCategories(categoriesWithAll);
-          if (listCategories.length === 0) {
-            setCategoriesStatus("empty");
-          } else {
-            setCategoriesStatus("success");
-            // Clear selected category if it doesn't exist in the new list (but keep "ALL" if selected)
-            if (selectedCategory && selectedCategory !== "ALL" && !listCategories.includes(selectedCategory)) {
-              setSelectedCategory("");
-            }
-          }
-        })
-        .catch((err) => {
-          console.error("Error loading categories from private list:", err);
-          setCategoriesStatus("error");
-          setCategories([]);
-        });
-    } else {
-      // When switching back to public, reset the last fetched language set ID
-      // so the public categories effect can fetch them
-      lastFetchedLanguageSetIdRef.current = null;
-    }
-  }, [restored, selectedPrivateListId, selectedLanguageSetId]);
-
-  useEffect(() => {
-    if (initialLoadComplete || !restored) {
-      return;
-    }
-
-    const statuses = [languageSetsStatus, categoriesStatus, gridStatus];
-    const isWaiting = statuses.some((status) => status === "pending");
-
-    if (isWaiting) {
-      return;
-    }
-
-    const elapsed = Date.now() - splashShownAtRef.current;
-    if (elapsed >= SPLASH_MIN_VISIBLE_DURATION) {
-      setInitialLoadComplete(true);
-      return;
-    }
-
-    const timeout = setTimeout(
-      () => setInitialLoadComplete(true),
-      SPLASH_MIN_VISIBLE_DURATION - elapsed
-    );
-    return () => clearTimeout(timeout);
-  }, [
-    languageSetsStatus,
-    categoriesStatus,
-    gridStatus,
-    initialLoadComplete,
-    restored,
-  ]);
-
-  useEffect(() => {
-    if (isAdminRoute) {
-      if (showSplash) {
-        setShowSplash(false);
-      }
-      return;
-    }
-
-    if (!restored || !initialLoadComplete) {
-      if (!showSplash) {
-        splashShownAtRef.current = Date.now();
-      }
-      setShowSplash(true);
-      return;
-    }
-
-    const timeout = setTimeout(
-      () => setShowSplash(false),
-      SPLASH_EXIT_DURATION
-    );
-    return () => clearTimeout(timeout);
-  }, [initialLoadComplete, isAdminRoute, restored, showSplash]);
-
-  const fetchAuthenticatedUser = useCallback(async () => {
-    const token = localStorage.getItem(STORAGE_KEYS.ADMIN_TOKEN);
-
-    if (!token) {
-      setCurrentUser(null);
-      return null;
-    }
-
-    try {
-      const profileResponse = await axios.get(`${API_ENDPOINTS.USER_PROFILE}`, {
-        headers: {
-          Authorization: `Bearer ${token}`,
-          "Content-Type": "application/json",
-        },
-      });
-
-      if (!profileResponse.data) {
-        setCurrentUser(null);
-        return null;
-      }
-
-      setCurrentUser(profileResponse.data);
-      return profileResponse.data;
-    } catch (error) {
-      console.warn("Failed to load authenticated user profile:", error);
-      setCurrentUser(null);
-      return null;
-    }
-  }, []);
-
-  // Check if statistics are enabled on the server
-  const checkStatisticsEnabled = useCallback(async () => {
-    const userProfile = await fetchAuthenticatedUser();
-    if (!userProfile) {
-      setStatisticsEnabled(false);
-      return;
-    }
-
-    // For all users, enable statistics by default
-    setStatisticsEnabled(true);
-
-    // If user is root admin, check if statistics are explicitly disabled on server
-    if (userProfile.role === "root_admin") {
-      const token = localStorage.getItem(STORAGE_KEYS.ADMIN_TOKEN);
-      if (!token) {
-        return;
-      }
-
-      try {
-        const response = await axios.get(
-          `${API_ENDPOINTS.ADMIN}/settings/statistics-enabled`,
-          {
-            headers: {
-              Authorization: `Bearer ${token}`,
-              "Content-Type": "application/json",
-            },
-          }
-        );
-        // Only disable if explicitly set to false
-        if (response.data.enabled === false) {
-          setStatisticsEnabled(false);
-        }
-      } catch (_settingsError) {
-        // If settings endpoint fails, keep statistics enabled (default behavior)
-        console.warn("Failed to load statistics settings:", _settingsError);
-      }
-    }
-  }, [fetchAuthenticatedUser]);
-
-  // Check scoring and hint preferences
-  const checkUserPreferences = useCallback(async () => {
-    try {
-      // Check system-wide scoring preference (public endpoint)
-      const scoringResponse = await axios.get(
-        `${API_ENDPOINTS.GAME}/system/scoring-enabled`
-      );
-      setScoringEnabled(scoringResponse.data.enabled);
-
-      // Check system-wide progressive hints preference (public endpoint)
-      const hintsResponse = await axios.get(
-        `${API_ENDPOINTS.GAME}/system/progressive-hints-enabled`
-      );
-      setProgressiveHintsEnabled(hintsResponse.data.enabled);
-    } catch (error) {
-      console.error("Failed to check system preferences:", error);
-      setScoringEnabled(true);
-      setProgressiveHintsEnabled(false);
-    }
-  }, []);
-
-  const loadScoringRules = useCallback(
-    async ({ force = false } = {}) => {
-      if (!force && scoringRulesStatus === "loading") {
-        return;
-      }
-
-      setScoringRulesStatus("loading");
-      try {
-        const response = await axios.get(
-          `${API_ENDPOINTS.GAME}/system/scoring-rules`
-        );
-        setScoringRules(response.data);
-        setScoringRulesStatus("loaded");
-      } catch (error) {
-        console.error("Failed to load scoring rules:", error);
-        setScoringRulesStatus("error");
-      }
-    },
-    [scoringRulesStatus]
-  );
-
-  // Check statistics enabled status on component mount and when auth changes
-  useEffect(() => {
-    checkStatisticsEnabled();
-  }, [checkStatisticsEnabled]);
-
-  // Check preferences on mount and auth changes
-  useEffect(() => {
-    checkUserPreferences();
-  }, [checkUserPreferences]);
-
-  useEffect(() => {
-    const handleAuthChanged = () => {
-      checkStatisticsEnabled();
-      checkUserPreferences();
-    };
-
-    window.addEventListener("admin-auth-changed", handleAuthChanged);
-    return () =>
-      window.removeEventListener("admin-auth-changed", handleAuthChanged);
-  }, [checkStatisticsEnabled, checkUserPreferences]);
-
-  // Check for new version and show What's New modal for logged-in users
-  const checkWhatsNew = useCallback(async () => {
-    const token = localStorage.getItem(STORAGE_KEYS.ADMIN_TOKEN);
-    if (!token) return; // Only show for logged-in users
-
-    try {
-      const currentVersion = await getCurrentVersion();
-      if (!currentVersion) return;
-
-      const lastSeenVersion = getLastSeenVersion();
-
-      if (isNewerVersion(currentVersion, lastSeenVersion)) {
-        const entries = await fetchWhatsNew(lastSeenVersion, 5);
-        if (entries && entries.length > 0) {
-          setWhatsNewEntries(entries);
-          setShowWhatsNew(true);
-        } else {
-          // No changelog entries but version is newer, still update last seen
-          setLastSeenVersion(currentVersion);
-        }
-      }
-    } catch (error) {
-      console.warn("Failed to check for updates:", error);
-    }
-  }, []);
-
-  // Handle What's New modal close
-  const handleWhatsNewClose = useCallback(async () => {
-    setShowWhatsNew(false);
-    // Save the current version when user dismisses
-    const currentVersion = await getCurrentVersion();
-    if (currentVersion) {
-      setLastSeenVersion(currentVersion);
-    }
-  }, []);
-
-  // Check for new version on mount and when auth changes
-  useEffect(() => {
-    checkWhatsNew();
-  }, [checkWhatsNew]);
-
-  useEffect(() => {
-    const handleAuthChanged = () => {
-      // Small delay to ensure token is saved before checking
-      setTimeout(checkWhatsNew, 500);
-    };
-
-    window.addEventListener("admin-auth-changed", handleAuthChanged);
-    return () =>
-      window.removeEventListener("admin-auth-changed", handleAuthChanged);
-  }, [checkWhatsNew]);
-
-  useEffect(() => {
-    if (!scoringEnabled) {
-      return;
-    }
-
-    if (
-      scoringRulesStatus === "idle" ||
-      (scoringRulesStatus === "error" && !scoringRules)
-    ) {
-      loadScoringRules();
-    }
-  }, [loadScoringRules, scoringEnabled, scoringRules, scoringRulesStatus]);
 
   // Save state to localStorage on change, including showTranslations and selectedLanguageSetId
   useEffect(() => {
@@ -722,7 +360,6 @@ function AppContent() {
     allFound,
     showTranslations,
     selectedLanguageSetId,
-    currentElapsedTime,
     currentElapsedTime,
     isPaused,
     gameType,
@@ -755,16 +392,9 @@ function AppContent() {
   const loadPuzzle = (category, diff = difficulty, refresh = false, overrideGameType = null) => {
     setIsGridLoading(true);
     setGridStatus("pending");
-    resetCelebration(); // Reset celebration state using hook
+    resetCelebration();
 
-    // Reset session tracking state when loading a new puzzle
-    setSessionCompleted(false);
-    setGameSessionId(null);
-    setGameStartTime(null);
-    setLastFoundCount(0);
-    completionInProgressRef.current = false; // Reset completion flag for new puzzle
-
-    // Reset scoring and hint state
+    resetSession();
     resetGameState();
 
     return loadPuzzleHelper(
@@ -808,377 +438,6 @@ function AppContent() {
     loadPuzzle(category, diff, true);
   };
 
-  // Game session tracking functions
-  const startGameSession = useCallback(
-    async (category, difficulty, gridSize, totalPhrases) => {
-      const token = localStorage.getItem(STORAGE_KEYS.ADMIN_TOKEN);
-      if (!token || !selectedLanguageSetId || !statisticsEnabled) {
-        return;
-      }
-
-      try {
-        const response = await axios.post(
-          `${API_ENDPOINTS.GAME}/game/start`,
-          {
-            language_set_id: selectedLanguageSetId,
-            category,
-            difficulty,
-            grid_size: gridSize,
-            total_phrases: totalPhrases,
-          },
-          {
-            headers: {
-              Authorization: `Bearer ${token}`,
-              "Content-Type": "application/json",
-            },
-          }
-        );
-
-        setGameSessionId(response.data.session_id);
-        // Only set gameStartTime if not already set (for restored games)
-        if (!gameStartTime) {
-          setGameStartTime(Date.now());
-        }
-        setLastFoundCount(0);
-        setSessionCompleted(false);
-        completionInProgressRef.current = false; // Reset completion flag for new session
-      } catch (error) {
-        console.error("Failed to start game session:", error);
-      }
-    },
-    [selectedLanguageSetId, statisticsEnabled, gameStartTime]
-  );
-
-  const updateGameProgress = useCallback(
-    async (phrasesFound) => {
-      const token = localStorage.getItem(STORAGE_KEYS.ADMIN_TOKEN);
-      if (!token || !gameSessionId || !statisticsEnabled) {
-        return;
-      }
-
-      try {
-        await axios.put(
-          `${API_ENDPOINTS.GAME}/game/progress`,
-          {
-            session_id: gameSessionId,
-            phrases_found: phrasesFound,
-          },
-          {
-            headers: {
-              Authorization: `Bearer ${token}`,
-              "Content-Type": "application/json",
-            },
-          }
-        );
-      } catch (error) {
-        console.error("Failed to update game progress:", error);
-      }
-    },
-    [gameSessionId, statisticsEnabled]
-  );
-
-  const saveGameScore = useCallback(
-    async (phrasesFound, durationSeconds, isCompleted) => {
-      const token = localStorage.getItem(STORAGE_KEYS.ADMIN_TOKEN);
-      if (!token || !gameSessionId || !scoringEnabled) return;
-
-      try {
-        const completionTime = isCompleted ? new Date().toISOString() : null;
-
-        const response = await axios.post(
-          `${API_ENDPOINTS.GAME}/game/score`,
-          {
-            session_id: gameSessionId,
-            language_set_id: selectedLanguageSetId,
-            category: selectedCategory,
-            difficulty: difficulty,
-            grid_size: grid.length,
-            total_phrases: phrases.length,
-            phrases_found: phrasesFound,
-            hints_used: hintsUsed,
-            duration_seconds: durationSeconds,
-            first_phrase_time: firstPhraseTime,
-            completion_time: completionTime,
-          },
-          {
-            headers: {
-              Authorization: `Bearer ${token}`,
-              "Content-Type": "application/json",
-            },
-          }
-        );
-
-        const scoringDetails = response?.data?.scoring_details;
-        if (scoringDetails) {
-          const totalFoundPhrases = found.length;
-          const basePointsPerPhrase =
-            scoringRules?.base_points_per_phrase ??
-            (totalFoundPhrases > 0
-              ? Math.round(scoringDetails.base_score / totalFoundPhrases)
-              : 0);
-          const perPhraseBreakdown = isCompleted
-            ? found.map((phraseText, index) => ({
-              id: `${index}-${phraseText}`,
-              phrase: phraseText,
-              points: basePointsPerPhrase,
-            }))
-            : [];
-
-          setScoreBreakdown({
-            ...scoringDetails,
-            per_phrase: perPhraseBreakdown,
-            hints_used: hintsUsed,
-            hint_penalty_per_hint:
-              scoringRules?.hint_penalty_per_hint ??
-              DEFAULT_SCORING_RULES.hint_penalty_per_hint,
-            duration_seconds: durationSeconds,
-            difficulty,
-            total_phrases: phrases.length,
-            phrases_found: totalFoundPhrases,
-            source: "final",
-          });
-
-          setCurrentScore(scoringDetails.final_score);
-        }
-      } catch (error) {
-        console.error("Failed to save game score:", error);
-      }
-    },
-    [
-      gameSessionId,
-      scoringEnabled,
-      selectedLanguageSetId,
-      selectedCategory,
-      difficulty,
-      grid.length,
-      phrases.length,
-      hintsUsed,
-      firstPhraseTime,
-      found,
-      scoringRules,
-    ]
-  );
-
-  const registerScoreDialogOpener = useCallback((fn) => {
-    scoreDialogOpenerRef.current = typeof fn === "function" ? fn : null;
-  }, []);
-
-  const openScoreBreakdownDialog = useCallback(() => {
-    if (scoreDialogOpenerRef.current) {
-      scoreDialogOpenerRef.current();
-    }
-  }, []);
-
-  const completeGameSession = useCallback(
-    async (phrasesFound, isCompleted) => {
-      const token = localStorage.getItem(STORAGE_KEYS.ADMIN_TOKEN);
-      if (
-        !token ||
-        !gameSessionId ||
-        !gameStartTime ||
-        sessionCompleted ||
-        completionInProgressRef.current ||
-        !statisticsEnabled
-      ) {
-        return;
-      }
-
-      // Set flag to prevent duplicate calls
-      completionInProgressRef.current = true;
-
-      try {
-        const durationSeconds = Math.floor((Date.now() - gameStartTime) / 1000);
-
-        await axios.post(
-          `${API_ENDPOINTS.GAME}/game/complete`,
-          {
-            session_id: gameSessionId,
-            phrases_found: phrasesFound,
-            duration_seconds: durationSeconds,
-          },
-          {
-            headers: {
-              Authorization: `Bearer ${token}`,
-              "Content-Type": "application/json",
-            },
-          }
-        );
-
-        // Save final score if scoring is enabled
-        if (scoringEnabled) {
-          await saveGameScore(phrasesFound, durationSeconds, isCompleted);
-        }
-
-        // Reset session tracking
-        setSessionCompleted(true);
-        setGameSessionId(null);
-        setGameStartTime(null);
-        setLastFoundCount(0);
-      } catch (error) {
-        console.error("Failed to complete game session:", error);
-      } finally {
-        // Reset flag after completion (successful or failed)
-        completionInProgressRef.current = false;
-      }
-    },
-    [
-      gameSessionId,
-      gameStartTime,
-      sessionCompleted,
-      statisticsEnabled,
-      scoringEnabled,
-      saveGameScore,
-    ]
-  );
-
-  const latestScoreRequestRef = useRef(0);
-
-  const calculateScoreFromApi = useCallback(
-    async ({ phrasesFound, totalPhrases, durationSeconds, hintsCount }) => {
-      const token = localStorage.getItem(STORAGE_KEYS.ADMIN_TOKEN);
-
-      // For anonymous users: calculate client-side (no need for API call)
-      if (!token) {
-        // Use loaded rules or fall back to defaults
-        return calculateScoreClientSide(
-          difficulty,
-          phrasesFound,
-          totalPhrases,
-          durationSeconds,
-          hintsCount,
-          scoringRules || DEFAULT_SCORING_RULES
-        );
-      }
-
-      // For authenticated users: use server-side calculation (ensures consistency with saved scores)
-      try {
-        const response = await axios.post(
-          `${API_ENDPOINTS.GAME}/system/calculate-score`,
-          {
-            difficulty,
-            phrases_found: phrasesFound,
-            total_phrases: totalPhrases,
-            duration_seconds: durationSeconds,
-            hints_used: hintsCount,
-          }
-        );
-        return response.data;
-      } catch (error) {
-        console.error(
-          "Failed to calculate score from API, falling back to client-side:",
-          error
-        );
-        // Fallback to client-side calculation if API fails
-        return calculateScoreClientSide(
-          difficulty,
-          phrasesFound,
-          totalPhrases,
-          durationSeconds,
-          hintsCount,
-          scoringRules || DEFAULT_SCORING_RULES
-        );
-      }
-    },
-    [difficulty, scoringRules]
-  );
-
-  const updateScore = useCallback(
-    async (phrasesFound, durationSeconds = 0, hintsCount = hintsUsed) => {
-      if (!scoringEnabled) return;
-
-      const totalPhrases = phrases.length;
-      if (totalPhrases === 0) {
-        setCurrentScore(0);
-        return;
-      }
-
-      const requestId = ++latestScoreRequestRef.current;
-      const result = await calculateScoreFromApi({
-        phrasesFound,
-        totalPhrases,
-        durationSeconds,
-        hintsCount,
-      });
-
-      if (result && latestScoreRequestRef.current === requestId) {
-        setCurrentScore(result.final_score);
-      }
-    },
-    [scoringEnabled, phrases.length, calculateScoreFromApi, hintsUsed]
-  );
-
-  const ensureScoreBreakdownFromApi = useCallback(async () => {
-    if (!scoringEnabled) {
-      return;
-    }
-
-    const totalPhrases = phrases.length;
-    if (totalPhrases === 0) {
-      return;
-    }
-
-    const result = await calculateScoreFromApi({
-      phrasesFound: found.length,
-      totalPhrases,
-      durationSeconds: currentElapsedTimeRef.current,
-      hintsCount: hintsUsed,
-    });
-
-    if (!result) {
-      return;
-    }
-
-    const basePoints =
-      scoringRules?.base_points_per_phrase ??
-      DEFAULT_SCORING_RULES.base_points_per_phrase;
-    const multiplierMap =
-      scoringRules?.difficulty_multipliers ??
-      DEFAULT_SCORING_RULES.difficulty_multipliers;
-    const multiplier = multiplierMap?.[difficulty] ?? 1;
-    const perPhraseEntries = found.map((phraseValue, index) => {
-      const phraseObj = phrases.find((item) => {
-        if (item && typeof item === "object") {
-          return item.phrase === phraseValue;
-        }
-        return item === phraseValue;
-      });
-      const phraseLabel =
-        phraseObj && phraseObj.phrase ? phraseObj.phrase : phraseValue;
-      const phraseId =
-        phraseObj && phraseObj.id !== undefined
-          ? phraseObj.id
-          : `${phraseLabel}-${index}`;
-      const phrasePoints = Math.max(0, Math.round(basePoints * multiplier));
-      return {
-        id: phraseId,
-        phrase: phraseLabel,
-        points: phrasePoints,
-      };
-    });
-
-    setScoreBreakdown({
-      ...result,
-      per_phrase: perPhraseEntries,
-      hints_used: hintsUsed,
-      hint_penalty_per_hint:
-        result.hint_penalty_per_hint ??
-        scoringRules?.hint_penalty_per_hint ??
-        DEFAULT_SCORING_RULES.hint_penalty_per_hint,
-      duration_seconds: currentElapsedTimeRef.current,
-      difficulty,
-      total_phrases: totalPhrases,
-      phrases_found: found.length,
-      source: "api-preview",
-    });
-  }, [
-    scoringEnabled,
-    phrases,
-    calculateScoreFromApi,
-    found,
-    hintsUsed,
-    scoringRules,
-    difficulty,
-  ]);
 
   // Hint system functions
   const handleHintRequest = useCallback(async () => {
@@ -1194,31 +453,19 @@ function AppContent() {
   }, [remainingHints, progressiveHintsEnabled]);
 
   const resetGameState = useCallback(() => {
-    setCurrentScore(0);
-    setScoreBreakdown(null);
+    resetScoringState();
     setHintsUsed(0);
-
-    // Set hint count based on game type
-    // In crossword mode: hints = number of phrases
-    // In word search mode: 3 hints (classic)
-    const initialHints = gameType === "crossword"
-      ? phrases.length
-      : 3;
-    setRemainingHints(initialHints);
-
+    setRemainingHints(gameType === "crossword" ? phrases.length : 3);
     setCurrentHintLevel(0);
-    setFirstPhraseTime(null);
     setCurrentElapsedTime(0);
     currentElapsedTimeRef.current = 0;
-    latestScoreRequestRef.current = 0;
     setFound([]);
-    setTimerResetTrigger((prev) => prev + 1);
     setIsPaused(false);
 
     if (gridRef.current) {
       gridRef.current.clearHints();
     }
-  }, [gameType, phrases.length]);
+  }, [resetScoringState, gameType, phrases.length]);
 
   // Update hint count when game type changes (without refresh)
   useEffect(() => {
@@ -1384,9 +631,14 @@ function AppContent() {
   }, [found.length, gameSessionId, lastFoundCount, updateGameProgress]);
 
   useEffect(() => {
-    // Complete session when all phrases are found (only once)
     if (allFound && gameSessionId && gameStartTime && !sessionCompleted) {
-      completeGameSession(found.length, true);
+      const finish = async () => {
+        const durationSeconds = await completeGameSession(found.length, true);
+        if (scoringEnabled && durationSeconds != null) {
+          await saveGameScore(found.length, durationSeconds, true);
+        }
+      };
+      finish();
     }
   }, [
     allFound,
@@ -1394,6 +646,8 @@ function AppContent() {
     gameStartTime,
     sessionCompleted,
     completeGameSession,
+    scoringEnabled,
+    saveGameScore,
     found.length,
   ]);
 
@@ -1419,10 +673,6 @@ function AppContent() {
     if (allFound) setHidePhrases(false);
   }, [allFound]);
 
-  const visibleCategories = categories.filter(
-    (cat) =>
-      !ignoredCategories.includes(cat) && !userIgnoredCategories.includes(cat)
-  );
   const isTeacherPuzzleRoute = location.pathname.startsWith("/t/");
   const shouldShowSplash = !isAdminRoute && !isTeacherPuzzleRoute && showSplash;
 
@@ -1437,349 +687,82 @@ function AppContent() {
     }
   }, [availableDifficulties, difficulty]);
 
-  // Callback function for AdminPanel to update user ignored categories
-  const updateUserIgnoredCategories = (newCategories) => {
-    setUserIgnoredCategories(newCategories);
-  };
+  const handleGameTypeChange = useCallback((type) => {
+    setGameType(type);
+    const path = window.location.pathname;
+    if (path !== "/" && path !== "/index.html") {
+      navigate(type === "crossword" ? "/crosswords" : "/wordsearch");
+    }
+    loadPuzzle(selectedCategory, difficulty, true, type);
+  }, [navigate, selectedCategory, difficulty, loadPuzzle]);
 
-  // Define the Game View to be reused across multiple routes
   const gameView = (
-    <Stack spacing={3} sx={{ alignItems: "center" }}>
-      {/* Use GameHeader component instead of duplicated header code */}
-      <GameHeader
-        logoFilter={logoFilter}
-        handleLogoClick={changeLogoColor}
-        showCelebration={showCelebration}
-        isDarkMode={isDarkMode}
-        currentUser={currentUser}
-        gameType={!isAdminRoute ? gameType : undefined}
-        onGameTypeChange={!isAdminRoute ? (type) => {
-          setGameType(type);
-
-          // Update URL based on game type, but behave like SPA on root
-          const path = window.location.pathname;
-          if (path !== '/' && path !== '/index.html') {
-            if (type === 'crossword') {
-              navigate('/crosswords');
-            } else {
-              navigate('/wordsearch');
-            }
-          }
-
-          // Reload puzzle with new game type
-          loadPuzzle(selectedCategory, difficulty, true, type);
-        } : undefined}
-        isGridLoading={isGridLoading}
-      />
-
-      <GameControls
-        panelOpen={panelOpen}
-        setPanelOpen={setPanelOpen}
-        visibleCategories={visibleCategories}
-        selectedCategory={selectedCategory}
-        setSelectedCategory={setSelectedCategory}
-        difficulty={difficulty}
-        setDifficulty={setDifficulty}
-        availableDifficulties={availableDifficulties}
-        loadPuzzle={loadPuzzle}
-        refreshPuzzle={refreshPuzzle}
-        selectedCategoryState={selectedCategory}
-        difficultyState={difficulty}
-        grid={grid}
-        phrases={phrases}
-        isLoading={isGridLoading}
-        notEnoughPhrases={notEnoughPhrases}
-        selectedLanguageSetId={selectedLanguageSetId}
-        onLanguageSetChange={handleLanguageSetChange}
-        onLanguageSetStatusChange={handleLanguageSetStatusChange}
-        currentUser={currentUser}
-        selectedPrivateListId={selectedPrivateListId}
-        onPrivateListChange={(listId) => {
-          setSelectedPrivateListId(listId);
-        }}
-        gameType={gameType}
-      />
-
-      {/* All Found Message - Desktop/Sidebar Layout Only */}
-      {!useMobileLayout && (
-        <AllFoundMessage
-          allFound={allFound}
-          loadPuzzle={loadPuzzle}
-          refreshPuzzle={refreshPuzzle}
-          selectedCategory={selectedCategory}
-          difficulty={difficulty}
-          canShowBreakdown={scoringEnabled && !!scoreBreakdown}
-          onShowBreakdown={openScoreBreakdownDialog}
-        />
-      )}
-
-      {/* Timer and Score Display at Top - Mobile Layout Only */}
-      {useMobileLayout && scoringEnabled && (
-        <Box
-          sx={{
-            display: "flex",
-            flexDirection: "row",
-            alignItems: "center",
-            justifyContent: "center",
-            gap: 2,
-            width: "100%",
-            flexWrap: "wrap",
-          }}
-        >
-          <Timer
-            isActive={isTimerActive}
-            isPaused={isPaused}
-            onTimeUpdate={handleTimerUpdate}
-            startTime={gameStartTime}
-            resetTrigger={timerResetTrigger}
-            showTimer={scoringEnabled}
-            currentElapsedTime={currentElapsedTime}
-            onTogglePause={handlePauseToggle}
-            canPause={found.length > 0 && !allFound}
-          />
-          <ScoreDisplay
-            currentScore={currentScore}
-            scoreBreakdown={scoreBreakdown}
-            phrasesFound={found.length}
-            totalPhrases={phrases.length}
-            hintsUsed={hintsUsed}
-            showScore={scoringEnabled}
-            compact={true}
-            scoringRules={scoringRules}
-            scoringRulesStatus={scoringRulesStatus}
-            onReloadScoringRules={() =>
-              loadScoringRules({ force: true })
-            }
-            registerDialogOpener={registerScoreDialogOpener}
-          />
-          {allFound && (
-            <Button
-              onClick={() => refreshPuzzle(selectedCategory, difficulty)}
-              variant="contained"
-              sx={{
-                minWidth: '48px',
-                minHeight: '48px',
-                fontSize: '1.5rem'
-              }}
-            >
-              🆕
-            </Button>
-          )}
-        </Box>
-      )}
-
-      {/* Main Game Area */}
-      <Box
-        sx={{
-          display: "flex",
-          flexDirection: "row",
-          alignItems: "flex-start",
-          width: "100%",
-          maxWidth: "100vw",
-          position: "relative",
-          gap: useMobileLayout ? 3 : { xs: 3, md: 6 },
-          justifyContent: "center",
-          overflow: "hidden", // Prevent horizontal overflow
-        }}
-      >
-        <Box
-          sx={{
-            position: "relative",
-            flex: "0 0 auto",
-            display: "flex",
-            justifyContent: "center",
-            alignItems: "center",
-            width: useMobileLayout ? "100%" : "auto",
-            maxWidth: "100%",
-          }}
-        >
-          <Box
-            sx={{
-              filter: (isScreenTooSmall || isGridTooSmall) ? 'blur(8px)' : 'none',
-              pointerEvents: (isScreenTooSmall || isGridTooSmall) ? 'none' : 'auto',
-            }}
-          >
-            {gameType === "crossword" ? (
-              <CrosswordGrid
-                key={`crossword-${selectedCategory}-${difficulty}`}
-                ref={gridRef}
-                grid={grid}
-                phrases={phrases}
-                onPhraseComplete={(phrase) => {
-                  markFound(phrase);
-                }}
-                onPhraseWrong={() => { }}
-                disabled={allFound || isScreenTooSmall || isGridTooSmall}
-                isDarkMode={isDarkMode}
-                showWrongHighlight={true}
-                onHintUsed={() => { }}
-                isTouchDevice={isTouchDevice}
-                useMobileLayout={useMobileLayout}
-                isLoading={isGridLoading}
-              />
-            ) : (
-              <ScrabbleGrid
-                key={`wordsearch-${selectedCategory}-${difficulty}`}
-                ref={gridRef}
-                grid={grid}
-                phrases={phrases}
-                found={found}
-                onFound={markFound}
-                disabled={allFound || isScreenTooSmall || isGridTooSmall}
-                isDarkMode={isDarkMode}
-                showCelebration={showCelebration}
-                onHintUsed={() => { }} // Placeholder - hint tracking is handled in handleHintRequest
-                onGridInteraction={handleGridInteraction}
-                isTouchDevice={isTouchDevice}
-                useMobileLayout={useMobileLayout}
-                isLoading={isGridLoading}
-              />
-            )}
-          </Box>
-
-          <LoadingOverlay
-            isLoading={isGridLoading}
-            isDarkMode={isDarkMode}
-          />
-
-          <NotEnoughPhrasesOverlay
-            show={notEnoughPhrases}
-            message={notEnoughPhrasesMsg}
-            isDarkMode={isDarkMode}
-          />
-
-          <ScreenTooSmallOverlay
-            visible={isScreenTooSmall || isGridTooSmall}
-            isGridTooSmall={isGridTooSmall}
-          />
-        </Box>
-
-        {/* Sidebar Layout: Phrase List and Controls */}
-        {!useMobileLayout && (
-          <Box sx={{
-            width: { md: 280, lg: 320 },
-            display: "flex",
-            flexDirection: "column",
-            gap: 2,
-            position: "sticky",
-            top: 24,
-            maxHeight: "calc(100vh - 48px)",
-            overflowY: "auto",
-            pr: 1
-          }}>
-            {scoringEnabled && (
-              <Box
-                sx={{
-                  display: "flex",
-                  flexDirection: { xs: "row", sm: "row" },
-                  alignItems: "center",
-                  justifyContent: "flex-start",
-                  gap: 2,
-                  mb: 2,
-                  flexWrap: "wrap",
-                }}
-              >
-                <Timer
-                  isActive={isTimerActive}
-                  isPaused={isPaused}
-                  onTimeUpdate={handleTimerUpdate}
-                  startTime={gameStartTime}
-                  resetTrigger={timerResetTrigger}
-                  showTimer={scoringEnabled}
-                  currentElapsedTime={currentElapsedTime}
-                  onTogglePause={handlePauseToggle}
-                  canPause={found.length > 0 && !allFound}
-                />
-                <ScoreDisplay
-                  currentScore={currentScore}
-                  scoreBreakdown={scoreBreakdown}
-                  phrasesFound={found.length}
-                  totalPhrases={phrases.length}
-                  hintsUsed={hintsUsed}
-                  showScore={scoringEnabled}
-                  compact={true}
-                  scoringRules={scoringRules}
-                  scoringRulesStatus={scoringRulesStatus}
-                  onReloadScoringRules={() =>
-                    loadScoringRules({ force: true })
-                  }
-                  registerDialogOpener={registerScoreDialogOpener}
-                />
-              </Box>
-            )}
-
-            {/* Hint Button - only show when progressive hints are enabled */}
-            {progressiveHintsEnabled &&
-              phrases.length > 0 &&
-              found.length < phrases.length && (
-                <HintButton
-                  onHintRequest={handleHintRequest}
-                  remainingHints={remainingHints}
-                  isProgressiveMode={progressiveHintsEnabled}
-                  disabled={allFound || phrases.length === 0 || isGridTooSmall || isGridLoading}
-                  maxHints={gameType === "crossword" ? phrases.length : 3}
-                  showHintButton={true}
-                  compact={window.innerWidth < 1200}
-                  gameType={gameType}
-                />
-              )}
-
-            <PhraseList
-              phrases={phrases}
-              found={found}
-              hidePhrases={hidePhrases}
-              setHidePhrases={setHidePhrases}
-              onPhraseClick={handlePhraseClick}
-              gameType={gameType}
-              showTranslations={showTranslations}
-              setShowTranslations={setShowTranslations}
-              disableShowPhrases={notEnoughPhrases || isGridTooSmall}
-              currentUser={currentUser}
-              languageSetId={selectedLanguageSetId}
-              compact={window.innerWidth < 1200}
-              isLoading={isGridLoading}
-            />
-          </Box>
-        )}
-      </Box>
-
-      {/* Floating Action Buttons for Mobile */}
-      {useMobileLayout && (
-        <MobileFloatingActions
-          onPhraseListClick={() => setMobileSheetOpen(true)}
-          onHintClick={handleHintRequest}
-          phrasesFound={found.length}
-          remainingHints={remainingHints}
-          showHintButton={progressiveHintsEnabled && phrases.length > 0 && found.length < phrases.length}
-          disabled={allFound || isGridTooSmall}
-          isProgressiveMode={progressiveHintsEnabled}
-          gameType={gameType}
-          currentHintLevel={currentHintLevel}
-        />
-      )}
-      {/* Mobile Layout - Bottom Sheet */}
-      {useMobileLayout && (
-        <MobilePhraseListSheet
-          open={mobileSheetOpen}
-          onClose={() => setMobileSheetOpen(false)}
-          phrases={phrases}
-          found={found}
-          hidePhrases={hidePhrases}
-          setHidePhrases={setHidePhrases}
-          allFound={allFound}
-          showTranslations={showTranslations}
-          setShowTranslations={setShowTranslations}
-          disableShowPhrases={notEnoughPhrases || isGridTooSmall}
-          onPhraseClick={handlePhraseClick}
-          progressiveHintsEnabled={progressiveHintsEnabled}
-          currentUser={currentUser}
-          languageSetId={selectedLanguageSetId}
-          t={t}
-          gameType={gameType}
-          isLoading={isGridLoading}
-        />
-      )}
-    </Stack>
+    <GameView
+      useMobileLayout={useMobileLayout}
+      isDarkMode={isDarkMode}
+      isTouchDevice={isTouchDevice}
+      isScreenTooSmall={isScreenTooSmall}
+      isGridTooSmall={isGridTooSmall}
+      logoFilter={logoFilter}
+      onLogoClick={changeLogoColor}
+      showCelebration={showCelebration}
+      onGameTypeChange={handleGameTypeChange}
+      gameType={gameType}
+      selectedCategory={selectedCategory}
+      setSelectedCategory={setSelectedCategory}
+      difficulty={difficulty}
+      setDifficulty={setDifficulty}
+      availableDifficulties={availableDifficulties}
+      grid={grid}
+      phrases={phrases}
+      found={found}
+      allFound={allFound}
+      hidePhrases={hidePhrases}
+      setHidePhrases={setHidePhrases}
+      showTranslations={showTranslations}
+      setShowTranslations={setShowTranslations}
+      notEnoughPhrases={notEnoughPhrases}
+      notEnoughPhrasesMsg={notEnoughPhrasesMsg}
+      isGridLoading={isGridLoading}
+      panelOpen={panelOpen}
+      setPanelOpen={setPanelOpen}
+      visibleCategories={visibleCategories}
+      selectedLanguageSetId={selectedLanguageSetId}
+      onLanguageSetChange={handleLanguageSetChange}
+      onLanguageSetStatusChange={handleLanguageSetStatusChange}
+      selectedPrivateListId={selectedPrivateListId}
+      setSelectedPrivateListId={setSelectedPrivateListId}
+      scoringEnabled={scoringEnabled}
+      currentScore={currentScore}
+      scoreBreakdown={scoreBreakdown}
+      scoringRules={scoringRules}
+      scoringRulesStatus={scoringRulesStatus}
+      loadScoringRules={loadScoringRules}
+      openScoreBreakdownDialog={openScoreBreakdownDialog}
+      registerScoreDialogOpener={registerScoreDialogOpener}
+      isTimerActive={isTimerActive}
+      isPaused={isPaused}
+      onPauseToggle={handlePauseToggle}
+      onTimerUpdate={handleTimerUpdate}
+      currentElapsedTime={currentElapsedTime}
+      timerResetTrigger={timerResetTrigger}
+      gameStartTime={gameStartTime}
+      progressiveHintsEnabled={progressiveHintsEnabled}
+      hintsUsed={hintsUsed}
+      remainingHints={remainingHints}
+      currentHintLevel={currentHintLevel}
+      onHintRequest={handleHintRequest}
+      gridRef={gridRef}
+      onFound={markFound}
+      onPhraseClick={handlePhraseClick}
+      onGridInteraction={handleGridInteraction}
+      loadPuzzle={loadPuzzle}
+      refreshPuzzle={refreshPuzzle}
+      currentUser={currentUser}
+      mobileSheetOpen={mobileSheetOpen}
+      setMobileSheetOpen={setMobileSheetOpen}
+      t={t}
+    />
   );
 
   return (
@@ -1790,7 +773,7 @@ function AppContent() {
           open={!initialLoadComplete}
           messageKey="loading_game"
           isDarkMode={isDarkMode}
-          exitDuration={SPLASH_EXIT_DURATION}
+          exitDuration={600}
         />
       )}
       <Container
