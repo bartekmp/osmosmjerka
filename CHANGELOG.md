@@ -2,6 +2,23 @@
 
 <!-- version list -->
 
+## v1.41.18 (2026-06-27)
+
+### Chores
+
+- **deps**: Update actions/checkout action to v7
+  ([#191](https://github.com/bartekmp/osmosmjerka/pull/191),
+  [`92987c4`](https://github.com/bartekmp/osmosmjerka/commit/92987c4cad8f79973e33ef92c280c668289e1ddb))
+
+- **deps**: Update docker/build-push-action digest to f9f3042
+  ([#189](https://github.com/bartekmp/osmosmjerka/pull/189),
+  [`3852017`](https://github.com/bartekmp/osmosmjerka/commit/385201770b92c85a9eee5598b7f4dc804d7a4a46))
+
+- **deps**: Update docker/login-action digest to 650006c
+  ([#190](https://github.com/bartekmp/osmosmjerka/pull/190),
+  [`2c32261`](https://github.com/bartekmp/osmosmjerka/commit/2c322618f93017e9b1571d56606d8e1ece0bf81e))
+
+
 ## v1.41.17 (2026-06-27)
 
 ### Bug Fixes
