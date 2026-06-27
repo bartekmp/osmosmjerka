@@ -18,6 +18,8 @@ export function useCategories({
   const [userIgnoredCategories, setUserIgnoredCategories] = useState([]);
   const [categoriesStatus, setCategoriesStatus] = useState("pending");
   const lastFetchedLanguageSetIdRef = useRef(null);
+  const selectedCategoryRef = useRef(selectedCategory);
+  useEffect(() => { selectedCategoryRef.current = selectedCategory; }, [selectedCategory]);
 
   // Load ignored categories when language set changes
   useEffect(() => {
@@ -70,7 +72,7 @@ export function useCategories({
           return;
         }
         setCategoriesStatus("success");
-        if (!selectedCategory && !hasGrid) {
+        if (!selectedCategoryRef.current && !hasGrid) {
           const randomCategory = publicCategories[Math.floor(Math.random() * publicCategories.length)];
           setSelectedCategory(randomCategory);
         }
@@ -82,7 +84,7 @@ export function useCategories({
         if (err.response?.status === 429) onRateLimit();
         lastFetchedLanguageSetIdRef.current = null;
       });
-  }, [restored, debouncedLanguageSetId, selectedPrivateListId, selectedCategory, hasGrid, setSelectedCategory, setGridStatus, onRateLimit]);
+  }, [restored, debouncedLanguageSetId, selectedPrivateListId, hasGrid, setSelectedCategory, setGridStatus, onRateLimit]);
 
   // Load categories from private list
   useEffect(() => {
@@ -103,7 +105,7 @@ export function useCategories({
             setCategoriesStatus("empty");
           } else {
             setCategoriesStatus("success");
-            if (selectedCategory && selectedCategory !== "ALL" && !listCategories.includes(selectedCategory)) {
+            if (selectedCategoryRef.current && selectedCategoryRef.current !== "ALL" && !listCategories.includes(selectedCategoryRef.current)) {
               setSelectedCategory("");
             }
           }
@@ -116,7 +118,7 @@ export function useCategories({
     } else {
       lastFetchedLanguageSetIdRef.current = null;
     }
-  }, [restored, selectedPrivateListId, selectedLanguageSetId, selectedCategory, setSelectedCategory]);
+  }, [restored, selectedPrivateListId, selectedLanguageSetId, setSelectedCategory]);
 
   const updateUserIgnoredCategories = (newCategories) => {
     setUserIgnoredCategories(newCategories);
