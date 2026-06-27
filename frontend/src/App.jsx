@@ -49,13 +49,6 @@ import {
   MobileFloatingActions,
 } from "./features";
 import { NotEnoughPhrasesOverlay, ScreenTooSmallOverlay, SplashScreen, WhatsNewModal, CookieConsentBar } from "./shared";
-import {
-  getLastSeenVersion,
-  setLastSeenVersion,
-  isNewerVersion,
-  fetchWhatsNew,
-  getCurrentVersion,
-} from "./shared/utils/versionUtils";
 import "./style.css";
 import createAppTheme from "./theme";
 
@@ -67,6 +60,11 @@ import { useDebouncedValue } from "./hooks/useDebounce";
 import { useTouchDevice } from "./hooks/useTouchDevice";
 import { useScreenTooSmall } from "./hooks/useScreenTooSmall";
 import { useGridTooSmall } from "./hooks/useGridTooSmall";
+import { useAuth } from "./hooks/useAuth";
+import { useSystemPreferences } from "./hooks/useSystemPreferences";
+import { useWhatsNew } from "./hooks/useWhatsNew";
+import { useGameSession } from "./hooks/useGameSession";
+import { useScoring } from "./hooks/useScoring";
 
 import {
   loadPuzzle as loadPuzzleHelper,
@@ -76,7 +74,6 @@ import {
 import { API_ENDPOINTS, STORAGE_KEYS } from "./shared/constants/constants";
 import { RateLimitWarning } from "./shared/components/ui/RateLimitWarning";
 import appVersion from "./version";
-import { calculateScoreClientSide, DEFAULT_SCORING_RULES } from "./utils/scoringUtils";
 
 // Lazy load admin components
 const AdminPanel = lazy(() =>
@@ -108,6 +105,9 @@ function AppContent() {
   const { availableDifficulties } = useGameDifficulties();
   const isTouchDevice = useTouchDevice();
   const isScreenTooSmall = useScreenTooSmall();
+  const { currentUser, statisticsEnabled } = useAuth();
+  const { scoringEnabled, progressiveHintsEnabled } = useSystemPreferences();
+  const { showWhatsNew, whatsNewEntries, handleWhatsNewClose } = useWhatsNew();
 
   const [categories, setCategories] = useState([]);
   const [ignoredCategories, setIgnoredCategories] = useState([]);
@@ -183,7 +183,6 @@ function AppContent() {
   const [isGridLoading, setIsGridLoading] = useState(false);
   const [panelOpen, setPanelOpen] = useState(false);
   const [showRateLimit, setShowRateLimit] = useState(false);
-  const [currentUser, setCurrentUser] = useState(null);
   const [isPaused, setIsPaused] = useState(false);
 
   const [languageSetsStatus, setLanguageSetsStatus] = useState("pending");
@@ -192,27 +191,10 @@ function AppContent() {
   const [initialLoadComplete, setInitialLoadComplete] = useState(false);
   const [showSplash, setShowSplash] = useState(true);
 
-  // Game session tracking for statistics
-  const [gameSessionId, setGameSessionId] = useState(null);
-  const [gameStartTime, setGameStartTime] = useState(null);
-  const [currentElapsedTime, setCurrentElapsedTime] = useState(0); // Track current elapsed time for saving
+  const [currentElapsedTime, setCurrentElapsedTime] = useState(0);
   const currentElapsedTimeRef = useRef(0);
-  const [lastFoundCount, setLastFoundCount] = useState(0);
-  const [sessionCompleted, setSessionCompleted] = useState(false);
-  const [statisticsEnabled, setStatisticsEnabled] = useState(true); // Default to true, will be checked from server
-
-  // Scoring system state
-  const [scoringEnabled, setScoringEnabled] = useState(true);
-  const [currentScore, setCurrentScore] = useState(0);
-  const [scoreBreakdown, setScoreBreakdown] = useState(null);
-  const [scoringRules, setScoringRules] = useState(null);
-  const [scoringRulesStatus, setScoringRulesStatus] = useState("idle");
-  const [firstPhraseTime, setFirstPhraseTime] = useState(null);
-  const [timerResetTrigger, setTimerResetTrigger] = useState(0);
-  const scoreDialogOpenerRef = useRef(null);
 
   // Progressive hint system state
-  const [progressiveHintsEnabled, setProgressiveHintsEnabled] = useState(false);
   const [hintsUsed, setHintsUsed] = useState(0);
   const [remainingHints, setRemainingHints] = useState(3);
   const [currentHintLevel, setCurrentHintLevel] = useState(0);
@@ -220,16 +202,54 @@ function AppContent() {
   // Mobile UI state
   const [mobileSheetOpen, setMobileSheetOpen] = useState(false);
 
-  // What's New modal state
-  const [showWhatsNew, setShowWhatsNew] = useState(false);
-  const [whatsNewEntries, setWhatsNewEntries] = useState([]);
-
   // Debounced language set ID to prevent excessive API calls
   const debouncedLanguageSetId = useDebouncedValue(selectedLanguageSetId, 500);
 
+  // Game session hook
+  const {
+    gameSessionId,
+    gameStartTime,
+    setGameStartTime,
+    lastFoundCount,
+    setLastFoundCount,
+    sessionCompleted,
+    completionInProgressRef,
+    startGameSession,
+    updateGameProgress,
+    completeGameSession,
+    resetSession,
+  } = useGameSession({ selectedLanguageSetId, statisticsEnabled });
+
+  // Scoring hook
+  const {
+    currentScore,
+    scoreBreakdown,
+    scoringRules,
+    scoringRulesStatus,
+    setFirstPhraseTime,
+    timerResetTrigger,
+    loadScoringRules,
+    saveGameScore,
+    updateScore,
+    ensureScoreBreakdownFromApi,
+    registerScoreDialogOpener,
+    openScoreBreakdownDialog,
+    resetScoringState,
+  } = useScoring({
+    scoringEnabled,
+    difficulty,
+    phrases,
+    found,
+    hintsUsed,
+    gameSessionId,
+    selectedLanguageSetId,
+    selectedCategory,
+    grid,
+    currentElapsedTimeRef,
+  });
+
   // Refs to prevent duplicate API calls in StrictMode
   const lastFetchedLanguageSetIdRef = useRef(null);
-  const completionInProgressRef = useRef(false);
   const splashShownAtRef = useRef(Date.now());
   const justRestoredRef = useRef(false);
 
@@ -256,13 +276,8 @@ function AppContent() {
     setGrid([]);
     setPhrases([]);
     setFound([]);
-
-    // Reset session tracking state when changing language set
-    setSessionCompleted(false);
-    setGameSessionId(null);
-    setGameStartTime(null);
-    setLastFoundCount(0);
-  }, []);
+    resetSession();
+  }, [resetSession]);
 
   const handleLanguageSetStatusChange = useCallback((status) => {
     setLanguageSetsStatus(status);
@@ -499,202 +514,6 @@ function AppContent() {
     return () => clearTimeout(timeout);
   }, [initialLoadComplete, isAdminRoute, restored, showSplash]);
 
-  const fetchAuthenticatedUser = useCallback(async () => {
-    const token = localStorage.getItem(STORAGE_KEYS.ADMIN_TOKEN);
-
-    if (!token) {
-      setCurrentUser(null);
-      return null;
-    }
-
-    try {
-      const profileResponse = await axios.get(`${API_ENDPOINTS.USER_PROFILE}`, {
-        headers: {
-          Authorization: `Bearer ${token}`,
-          "Content-Type": "application/json",
-        },
-      });
-
-      if (!profileResponse.data) {
-        setCurrentUser(null);
-        return null;
-      }
-
-      setCurrentUser(profileResponse.data);
-      return profileResponse.data;
-    } catch (error) {
-      console.warn("Failed to load authenticated user profile:", error);
-      setCurrentUser(null);
-      return null;
-    }
-  }, []);
-
-  // Check if statistics are enabled on the server
-  const checkStatisticsEnabled = useCallback(async () => {
-    const userProfile = await fetchAuthenticatedUser();
-    if (!userProfile) {
-      setStatisticsEnabled(false);
-      return;
-    }
-
-    // For all users, enable statistics by default
-    setStatisticsEnabled(true);
-
-    // If user is root admin, check if statistics are explicitly disabled on server
-    if (userProfile.role === "root_admin") {
-      const token = localStorage.getItem(STORAGE_KEYS.ADMIN_TOKEN);
-      if (!token) {
-        return;
-      }
-
-      try {
-        const response = await axios.get(
-          `${API_ENDPOINTS.ADMIN}/settings/statistics-enabled`,
-          {
-            headers: {
-              Authorization: `Bearer ${token}`,
-              "Content-Type": "application/json",
-            },
-          }
-        );
-        // Only disable if explicitly set to false
-        if (response.data.enabled === false) {
-          setStatisticsEnabled(false);
-        }
-      } catch (_settingsError) {
-        // If settings endpoint fails, keep statistics enabled (default behavior)
-        console.warn("Failed to load statistics settings:", _settingsError);
-      }
-    }
-  }, [fetchAuthenticatedUser]);
-
-  // Check scoring and hint preferences
-  const checkUserPreferences = useCallback(async () => {
-    try {
-      // Check system-wide scoring preference (public endpoint)
-      const scoringResponse = await axios.get(
-        `${API_ENDPOINTS.GAME}/system/scoring-enabled`
-      );
-      setScoringEnabled(scoringResponse.data.enabled);
-
-      // Check system-wide progressive hints preference (public endpoint)
-      const hintsResponse = await axios.get(
-        `${API_ENDPOINTS.GAME}/system/progressive-hints-enabled`
-      );
-      setProgressiveHintsEnabled(hintsResponse.data.enabled);
-    } catch (error) {
-      console.error("Failed to check system preferences:", error);
-      setScoringEnabled(true);
-      setProgressiveHintsEnabled(false);
-    }
-  }, []);
-
-  const loadScoringRules = useCallback(
-    async ({ force = false } = {}) => {
-      if (!force && scoringRulesStatus === "loading") {
-        return;
-      }
-
-      setScoringRulesStatus("loading");
-      try {
-        const response = await axios.get(
-          `${API_ENDPOINTS.GAME}/system/scoring-rules`
-        );
-        setScoringRules(response.data);
-        setScoringRulesStatus("loaded");
-      } catch (error) {
-        console.error("Failed to load scoring rules:", error);
-        setScoringRulesStatus("error");
-      }
-    },
-    [scoringRulesStatus]
-  );
-
-  // Check statistics enabled status on component mount and when auth changes
-  useEffect(() => {
-    checkStatisticsEnabled();
-  }, [checkStatisticsEnabled]);
-
-  // Check preferences on mount and auth changes
-  useEffect(() => {
-    checkUserPreferences();
-  }, [checkUserPreferences]);
-
-  useEffect(() => {
-    const handleAuthChanged = () => {
-      checkStatisticsEnabled();
-      checkUserPreferences();
-    };
-
-    window.addEventListener("admin-auth-changed", handleAuthChanged);
-    return () =>
-      window.removeEventListener("admin-auth-changed", handleAuthChanged);
-  }, [checkStatisticsEnabled, checkUserPreferences]);
-
-  // Check for new version and show What's New modal for logged-in users
-  const checkWhatsNew = useCallback(async () => {
-    const token = localStorage.getItem(STORAGE_KEYS.ADMIN_TOKEN);
-    if (!token) return; // Only show for logged-in users
-
-    try {
-      const currentVersion = await getCurrentVersion();
-      if (!currentVersion) return;
-
-      const lastSeenVersion = getLastSeenVersion();
-
-      if (isNewerVersion(currentVersion, lastSeenVersion)) {
-        const entries = await fetchWhatsNew(lastSeenVersion, 5);
-        if (entries && entries.length > 0) {
-          setWhatsNewEntries(entries);
-          setShowWhatsNew(true);
-        } else {
-          // No changelog entries but version is newer, still update last seen
-          setLastSeenVersion(currentVersion);
-        }
-      }
-    } catch (error) {
-      console.warn("Failed to check for updates:", error);
-    }
-  }, []);
-
-  // Handle What's New modal close
-  const handleWhatsNewClose = useCallback(async () => {
-    setShowWhatsNew(false);
-    // Save the current version when user dismisses
-    const currentVersion = await getCurrentVersion();
-    if (currentVersion) {
-      setLastSeenVersion(currentVersion);
-    }
-  }, []);
-
-  // Check for new version on mount and when auth changes
-  useEffect(() => {
-    checkWhatsNew();
-  }, [checkWhatsNew]);
-
-  useEffect(() => {
-    const handleAuthChanged = () => {
-      // Small delay to ensure token is saved before checking
-      setTimeout(checkWhatsNew, 500);
-    };
-
-    window.addEventListener("admin-auth-changed", handleAuthChanged);
-    return () =>
-      window.removeEventListener("admin-auth-changed", handleAuthChanged);
-  }, [checkWhatsNew]);
-
-  useEffect(() => {
-    if (!scoringEnabled) {
-      return;
-    }
-
-    if (
-      scoringRulesStatus === "idle" ||
-      (scoringRulesStatus === "error" && !scoringRules)
-    ) {
-      loadScoringRules();
-    }
-  }, [loadScoringRules, scoringEnabled, scoringRules, scoringRulesStatus]);
 
   // Save state to localStorage on change, including showTranslations and selectedLanguageSetId
   useEffect(() => {
@@ -755,16 +574,9 @@ function AppContent() {
   const loadPuzzle = (category, diff = difficulty, refresh = false, overrideGameType = null) => {
     setIsGridLoading(true);
     setGridStatus("pending");
-    resetCelebration(); // Reset celebration state using hook
+    resetCelebration();
 
-    // Reset session tracking state when loading a new puzzle
-    setSessionCompleted(false);
-    setGameSessionId(null);
-    setGameStartTime(null);
-    setLastFoundCount(0);
-    completionInProgressRef.current = false; // Reset completion flag for new puzzle
-
-    // Reset scoring and hint state
+    resetSession();
     resetGameState();
 
     return loadPuzzleHelper(
@@ -808,377 +620,6 @@ function AppContent() {
     loadPuzzle(category, diff, true);
   };
 
-  // Game session tracking functions
-  const startGameSession = useCallback(
-    async (category, difficulty, gridSize, totalPhrases) => {
-      const token = localStorage.getItem(STORAGE_KEYS.ADMIN_TOKEN);
-      if (!token || !selectedLanguageSetId || !statisticsEnabled) {
-        return;
-      }
-
-      try {
-        const response = await axios.post(
-          `${API_ENDPOINTS.GAME}/game/start`,
-          {
-            language_set_id: selectedLanguageSetId,
-            category,
-            difficulty,
-            grid_size: gridSize,
-            total_phrases: totalPhrases,
-          },
-          {
-            headers: {
-              Authorization: `Bearer ${token}`,
-              "Content-Type": "application/json",
-            },
-          }
-        );
-
-        setGameSessionId(response.data.session_id);
-        // Only set gameStartTime if not already set (for restored games)
-        if (!gameStartTime) {
-          setGameStartTime(Date.now());
-        }
-        setLastFoundCount(0);
-        setSessionCompleted(false);
-        completionInProgressRef.current = false; // Reset completion flag for new session
-      } catch (error) {
-        console.error("Failed to start game session:", error);
-      }
-    },
-    [selectedLanguageSetId, statisticsEnabled, gameStartTime]
-  );
-
-  const updateGameProgress = useCallback(
-    async (phrasesFound) => {
-      const token = localStorage.getItem(STORAGE_KEYS.ADMIN_TOKEN);
-      if (!token || !gameSessionId || !statisticsEnabled) {
-        return;
-      }
-
-      try {
-        await axios.put(
-          `${API_ENDPOINTS.GAME}/game/progress`,
-          {
-            session_id: gameSessionId,
-            phrases_found: phrasesFound,
-          },
-          {
-            headers: {
-              Authorization: `Bearer ${token}`,
-              "Content-Type": "application/json",
-            },
-          }
-        );
-      } catch (error) {
-        console.error("Failed to update game progress:", error);
-      }
-    },
-    [gameSessionId, statisticsEnabled]
-  );
-
-  const saveGameScore = useCallback(
-    async (phrasesFound, durationSeconds, isCompleted) => {
-      const token = localStorage.getItem(STORAGE_KEYS.ADMIN_TOKEN);
-      if (!token || !gameSessionId || !scoringEnabled) return;
-
-      try {
-        const completionTime = isCompleted ? new Date().toISOString() : null;
-
-        const response = await axios.post(
-          `${API_ENDPOINTS.GAME}/game/score`,
-          {
-            session_id: gameSessionId,
-            language_set_id: selectedLanguageSetId,
-            category: selectedCategory,
-            difficulty: difficulty,
-            grid_size: grid.length,
-            total_phrases: phrases.length,
-            phrases_found: phrasesFound,
-            hints_used: hintsUsed,
-            duration_seconds: durationSeconds,
-            first_phrase_time: firstPhraseTime,
-            completion_time: completionTime,
-          },
-          {
-            headers: {
-              Authorization: `Bearer ${token}`,
-              "Content-Type": "application/json",
-            },
-          }
-        );
-
-        const scoringDetails = response?.data?.scoring_details;
-        if (scoringDetails) {
-          const totalFoundPhrases = found.length;
-          const basePointsPerPhrase =
-            scoringRules?.base_points_per_phrase ??
-            (totalFoundPhrases > 0
-              ? Math.round(scoringDetails.base_score / totalFoundPhrases)
-              : 0);
-          const perPhraseBreakdown = isCompleted
-            ? found.map((phraseText, index) => ({
-              id: `${index}-${phraseText}`,
-              phrase: phraseText,
-              points: basePointsPerPhrase,
-            }))
-            : [];
-
-          setScoreBreakdown({
-            ...scoringDetails,
-            per_phrase: perPhraseBreakdown,
-            hints_used: hintsUsed,
-            hint_penalty_per_hint:
-              scoringRules?.hint_penalty_per_hint ??
-              DEFAULT_SCORING_RULES.hint_penalty_per_hint,
-            duration_seconds: durationSeconds,
-            difficulty,
-            total_phrases: phrases.length,
-            phrases_found: totalFoundPhrases,
-            source: "final",
-          });
-
-          setCurrentScore(scoringDetails.final_score);
-        }
-      } catch (error) {
-        console.error("Failed to save game score:", error);
-      }
-    },
-    [
-      gameSessionId,
-      scoringEnabled,
-      selectedLanguageSetId,
-      selectedCategory,
-      difficulty,
-      grid.length,
-      phrases.length,
-      hintsUsed,
-      firstPhraseTime,
-      found,
-      scoringRules,
-    ]
-  );
-
-  const registerScoreDialogOpener = useCallback((fn) => {
-    scoreDialogOpenerRef.current = typeof fn === "function" ? fn : null;
-  }, []);
-
-  const openScoreBreakdownDialog = useCallback(() => {
-    if (scoreDialogOpenerRef.current) {
-      scoreDialogOpenerRef.current();
-    }
-  }, []);
-
-  const completeGameSession = useCallback(
-    async (phrasesFound, isCompleted) => {
-      const token = localStorage.getItem(STORAGE_KEYS.ADMIN_TOKEN);
-      if (
-        !token ||
-        !gameSessionId ||
-        !gameStartTime ||
-        sessionCompleted ||
-        completionInProgressRef.current ||
-        !statisticsEnabled
-      ) {
-        return;
-      }
-
-      // Set flag to prevent duplicate calls
-      completionInProgressRef.current = true;
-
-      try {
-        const durationSeconds = Math.floor((Date.now() - gameStartTime) / 1000);
-
-        await axios.post(
-          `${API_ENDPOINTS.GAME}/game/complete`,
-          {
-            session_id: gameSessionId,
-            phrases_found: phrasesFound,
-            duration_seconds: durationSeconds,
-          },
-          {
-            headers: {
-              Authorization: `Bearer ${token}`,
-              "Content-Type": "application/json",
-            },
-          }
-        );
-
-        // Save final score if scoring is enabled
-        if (scoringEnabled) {
-          await saveGameScore(phrasesFound, durationSeconds, isCompleted);
-        }
-
-        // Reset session tracking
-        setSessionCompleted(true);
-        setGameSessionId(null);
-        setGameStartTime(null);
-        setLastFoundCount(0);
-      } catch (error) {
-        console.error("Failed to complete game session:", error);
-      } finally {
-        // Reset flag after completion (successful or failed)
-        completionInProgressRef.current = false;
-      }
-    },
-    [
-      gameSessionId,
-      gameStartTime,
-      sessionCompleted,
-      statisticsEnabled,
-      scoringEnabled,
-      saveGameScore,
-    ]
-  );
-
-  const latestScoreRequestRef = useRef(0);
-
-  const calculateScoreFromApi = useCallback(
-    async ({ phrasesFound, totalPhrases, durationSeconds, hintsCount }) => {
-      const token = localStorage.getItem(STORAGE_KEYS.ADMIN_TOKEN);
-
-      // For anonymous users: calculate client-side (no need for API call)
-      if (!token) {
-        // Use loaded rules or fall back to defaults
-        return calculateScoreClientSide(
-          difficulty,
-          phrasesFound,
-          totalPhrases,
-          durationSeconds,
-          hintsCount,
-          scoringRules || DEFAULT_SCORING_RULES
-        );
-      }
-
-      // For authenticated users: use server-side calculation (ensures consistency with saved scores)
-      try {
-        const response = await axios.post(
-          `${API_ENDPOINTS.GAME}/system/calculate-score`,
-          {
-            difficulty,
-            phrases_found: phrasesFound,
-            total_phrases: totalPhrases,
-            duration_seconds: durationSeconds,
-            hints_used: hintsCount,
-          }
-        );
-        return response.data;
-      } catch (error) {
-        console.error(
-          "Failed to calculate score from API, falling back to client-side:",
-          error
-        );
-        // Fallback to client-side calculation if API fails
-        return calculateScoreClientSide(
-          difficulty,
-          phrasesFound,
-          totalPhrases,
-          durationSeconds,
-          hintsCount,
-          scoringRules || DEFAULT_SCORING_RULES
-        );
-      }
-    },
-    [difficulty, scoringRules]
-  );
-
-  const updateScore = useCallback(
-    async (phrasesFound, durationSeconds = 0, hintsCount = hintsUsed) => {
-      if (!scoringEnabled) return;
-
-      const totalPhrases = phrases.length;
-      if (totalPhrases === 0) {
-        setCurrentScore(0);
-        return;
-      }
-
-      const requestId = ++latestScoreRequestRef.current;
-      const result = await calculateScoreFromApi({
-        phrasesFound,
-        totalPhrases,
-        durationSeconds,
-        hintsCount,
-      });
-
-      if (result && latestScoreRequestRef.current === requestId) {
-        setCurrentScore(result.final_score);
-      }
-    },
-    [scoringEnabled, phrases.length, calculateScoreFromApi, hintsUsed]
-  );
-
-  const ensureScoreBreakdownFromApi = useCallback(async () => {
-    if (!scoringEnabled) {
-      return;
-    }
-
-    const totalPhrases = phrases.length;
-    if (totalPhrases === 0) {
-      return;
-    }
-
-    const result = await calculateScoreFromApi({
-      phrasesFound: found.length,
-      totalPhrases,
-      durationSeconds: currentElapsedTimeRef.current,
-      hintsCount: hintsUsed,
-    });
-
-    if (!result) {
-      return;
-    }
-
-    const basePoints =
-      scoringRules?.base_points_per_phrase ??
-      DEFAULT_SCORING_RULES.base_points_per_phrase;
-    const multiplierMap =
-      scoringRules?.difficulty_multipliers ??
-      DEFAULT_SCORING_RULES.difficulty_multipliers;
-    const multiplier = multiplierMap?.[difficulty] ?? 1;
-    const perPhraseEntries = found.map((phraseValue, index) => {
-      const phraseObj = phrases.find((item) => {
-        if (item && typeof item === "object") {
-          return item.phrase === phraseValue;
-        }
-        return item === phraseValue;
-      });
-      const phraseLabel =
-        phraseObj && phraseObj.phrase ? phraseObj.phrase : phraseValue;
-      const phraseId =
-        phraseObj && phraseObj.id !== undefined
-          ? phraseObj.id
-          : `${phraseLabel}-${index}`;
-      const phrasePoints = Math.max(0, Math.round(basePoints * multiplier));
-      return {
-        id: phraseId,
-        phrase: phraseLabel,
-        points: phrasePoints,
-      };
-    });
-
-    setScoreBreakdown({
-      ...result,
-      per_phrase: perPhraseEntries,
-      hints_used: hintsUsed,
-      hint_penalty_per_hint:
-        result.hint_penalty_per_hint ??
-        scoringRules?.hint_penalty_per_hint ??
-        DEFAULT_SCORING_RULES.hint_penalty_per_hint,
-      duration_seconds: currentElapsedTimeRef.current,
-      difficulty,
-      total_phrases: totalPhrases,
-      phrases_found: found.length,
-      source: "api-preview",
-    });
-  }, [
-    scoringEnabled,
-    phrases,
-    calculateScoreFromApi,
-    found,
-    hintsUsed,
-    scoringRules,
-    difficulty,
-  ]);
 
   // Hint system functions
   const handleHintRequest = useCallback(async () => {
@@ -1194,31 +635,19 @@ function AppContent() {
   }, [remainingHints, progressiveHintsEnabled]);
 
   const resetGameState = useCallback(() => {
-    setCurrentScore(0);
-    setScoreBreakdown(null);
+    resetScoringState();
     setHintsUsed(0);
-
-    // Set hint count based on game type
-    // In crossword mode: hints = number of phrases
-    // In word search mode: 3 hints (classic)
-    const initialHints = gameType === "crossword"
-      ? phrases.length
-      : 3;
-    setRemainingHints(initialHints);
-
+    setRemainingHints(gameType === "crossword" ? phrases.length : 3);
     setCurrentHintLevel(0);
-    setFirstPhraseTime(null);
     setCurrentElapsedTime(0);
     currentElapsedTimeRef.current = 0;
-    latestScoreRequestRef.current = 0;
     setFound([]);
-    setTimerResetTrigger((prev) => prev + 1);
     setIsPaused(false);
 
     if (gridRef.current) {
       gridRef.current.clearHints();
     }
-  }, [gameType, phrases.length]);
+  }, [resetScoringState, gameType, phrases.length]);
 
   // Update hint count when game type changes (without refresh)
   useEffect(() => {
@@ -1384,9 +813,14 @@ function AppContent() {
   }, [found.length, gameSessionId, lastFoundCount, updateGameProgress]);
 
   useEffect(() => {
-    // Complete session when all phrases are found (only once)
     if (allFound && gameSessionId && gameStartTime && !sessionCompleted) {
-      completeGameSession(found.length, true);
+      const finish = async () => {
+        const durationSeconds = await completeGameSession(found.length, true);
+        if (scoringEnabled && durationSeconds != null) {
+          await saveGameScore(found.length, durationSeconds, true);
+        }
+      };
+      finish();
     }
   }, [
     allFound,
@@ -1394,6 +828,8 @@ function AppContent() {
     gameStartTime,
     sessionCompleted,
     completeGameSession,
+    scoringEnabled,
+    saveGameScore,
     found.length,
   ]);
 
