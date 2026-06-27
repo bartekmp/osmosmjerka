@@ -2,6 +2,31 @@
 
 <!-- version list -->
 
+## v1.41.17 (2026-06-27)
+
+### Bug Fixes
+
+- UseCategories re-fetching on every category selection
+  ([#192](https://github.com/bartekmp/osmosmjerka/pull/192),
+  [`b4e0eb2`](https://github.com/bartekmp/osmosmjerka/commit/b4e0eb21d07ff119a9d33f719f6d40216f7bee71))
+
+### Refactoring
+
+- App decomposition ([#192](https://github.com/bartekmp/osmosmjerka/pull/192),
+  [`b4e0eb2`](https://github.com/bartekmp/osmosmjerka/commit/b4e0eb21d07ff119a9d33f719f6d40216f7bee71))
+
+- Extract auth, session, scoring, preferences, whats-new hooks from App.jsx
+  ([#192](https://github.com/bartekmp/osmosmjerka/pull/192),
+  [`b4e0eb2`](https://github.com/bartekmp/osmosmjerka/commit/b4e0eb21d07ff119a9d33f719f6d40216f7bee71))
+
+- Extract categories and splash hooks from App.jsx
+  ([#192](https://github.com/bartekmp/osmosmjerka/pull/192),
+  [`b4e0eb2`](https://github.com/bartekmp/osmosmjerka/commit/b4e0eb21d07ff119a9d33f719f6d40216f7bee71))
+
+- Extract GameView component from App.jsx ([#192](https://github.com/bartekmp/osmosmjerka/pull/192),
+  [`b4e0eb2`](https://github.com/bartekmp/osmosmjerka/commit/b4e0eb21d07ff119a9d33f719f6d40216f7bee71))
+
+
 ## v1.41.16 (2026-06-13)
 
 ### Chores
