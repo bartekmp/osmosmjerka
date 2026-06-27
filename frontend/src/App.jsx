@@ -1,11 +1,9 @@
 import {
   Box,
-  Button,
   CircularProgress,
   Container,
   CssBaseline,
   ThemeProvider as MUIThemeProvider,
-  Stack,
   Typography,
   IconButton,
 } from "@mui/material";
@@ -28,26 +26,10 @@ import "./styles/features/all-found-message.css";
 import "./styles/controls/admin-controls.css";
 import "./styles/controls/game-controls.css";
 import "./styles/responsive/app-responsive.css";
-// Mobile component styles
-import "./features/game/components/MobilePhraseListSheet/MobilePhraseListSheet.css";
-import "./features/game/components/MobileFloatingActions/MobileFloatingActions.css";
 import { ThemeProvider, useThemeMode } from "./contexts/ThemeContext";
-import {
-  AdminControls,
-  AllFoundMessage,
-  GameControls,
-  GameHeader,
-  LoadingOverlay,
-  PhraseList,
-  ScrabbleGrid,
-  CrosswordGrid,
-  Timer,
-  ScoreDisplay,
-  HintButton,
-  MobilePhraseListSheet,
-  MobileFloatingActions,
-} from "./features";
-import { NotEnoughPhrasesOverlay, ScreenTooSmallOverlay, SplashScreen, WhatsNewModal, CookieConsentBar } from "./shared";
+import { AdminControls } from "./features";
+import { SplashScreen, WhatsNewModal, CookieConsentBar } from "./shared";
+import { GameView } from "./GameView";
 import "./style.css";
 import createAppTheme from "./theme";
 
@@ -705,344 +687,82 @@ function AppContent() {
     }
   }, [availableDifficulties, difficulty]);
 
-  // Define the Game View to be reused across multiple routes
+  const handleGameTypeChange = useCallback((type) => {
+    setGameType(type);
+    const path = window.location.pathname;
+    if (path !== "/" && path !== "/index.html") {
+      navigate(type === "crossword" ? "/crosswords" : "/wordsearch");
+    }
+    loadPuzzle(selectedCategory, difficulty, true, type);
+  }, [navigate, selectedCategory, difficulty, loadPuzzle]);
+
   const gameView = (
-    <Stack spacing={3} sx={{ alignItems: "center" }}>
-      {/* Use GameHeader component instead of duplicated header code */}
-      <GameHeader
-        logoFilter={logoFilter}
-        handleLogoClick={changeLogoColor}
-        showCelebration={showCelebration}
-        isDarkMode={isDarkMode}
-        currentUser={currentUser}
-        gameType={!isAdminRoute ? gameType : undefined}
-        onGameTypeChange={!isAdminRoute ? (type) => {
-          setGameType(type);
-
-          // Update URL based on game type, but behave like SPA on root
-          const path = window.location.pathname;
-          if (path !== '/' && path !== '/index.html') {
-            if (type === 'crossword') {
-              navigate('/crosswords');
-            } else {
-              navigate('/wordsearch');
-            }
-          }
-
-          // Reload puzzle with new game type
-          loadPuzzle(selectedCategory, difficulty, true, type);
-        } : undefined}
-        isGridLoading={isGridLoading}
-      />
-
-      <GameControls
-        panelOpen={panelOpen}
-        setPanelOpen={setPanelOpen}
-        visibleCategories={visibleCategories}
-        selectedCategory={selectedCategory}
-        setSelectedCategory={setSelectedCategory}
-        difficulty={difficulty}
-        setDifficulty={setDifficulty}
-        availableDifficulties={availableDifficulties}
-        loadPuzzle={loadPuzzle}
-        refreshPuzzle={refreshPuzzle}
-        selectedCategoryState={selectedCategory}
-        difficultyState={difficulty}
-        grid={grid}
-        phrases={phrases}
-        isLoading={isGridLoading}
-        notEnoughPhrases={notEnoughPhrases}
-        selectedLanguageSetId={selectedLanguageSetId}
-        onLanguageSetChange={handleLanguageSetChange}
-        onLanguageSetStatusChange={handleLanguageSetStatusChange}
-        currentUser={currentUser}
-        selectedPrivateListId={selectedPrivateListId}
-        onPrivateListChange={(listId) => {
-          setSelectedPrivateListId(listId);
-        }}
-        gameType={gameType}
-      />
-
-      {/* All Found Message - Desktop/Sidebar Layout Only */}
-      {!useMobileLayout && (
-        <AllFoundMessage
-          allFound={allFound}
-          loadPuzzle={loadPuzzle}
-          refreshPuzzle={refreshPuzzle}
-          selectedCategory={selectedCategory}
-          difficulty={difficulty}
-          canShowBreakdown={scoringEnabled && !!scoreBreakdown}
-          onShowBreakdown={openScoreBreakdownDialog}
-        />
-      )}
-
-      {/* Timer and Score Display at Top - Mobile Layout Only */}
-      {useMobileLayout && scoringEnabled && (
-        <Box
-          sx={{
-            display: "flex",
-            flexDirection: "row",
-            alignItems: "center",
-            justifyContent: "center",
-            gap: 2,
-            width: "100%",
-            flexWrap: "wrap",
-          }}
-        >
-          <Timer
-            isActive={isTimerActive}
-            isPaused={isPaused}
-            onTimeUpdate={handleTimerUpdate}
-            startTime={gameStartTime}
-            resetTrigger={timerResetTrigger}
-            showTimer={scoringEnabled}
-            currentElapsedTime={currentElapsedTime}
-            onTogglePause={handlePauseToggle}
-            canPause={found.length > 0 && !allFound}
-          />
-          <ScoreDisplay
-            currentScore={currentScore}
-            scoreBreakdown={scoreBreakdown}
-            phrasesFound={found.length}
-            totalPhrases={phrases.length}
-            hintsUsed={hintsUsed}
-            showScore={scoringEnabled}
-            compact={true}
-            scoringRules={scoringRules}
-            scoringRulesStatus={scoringRulesStatus}
-            onReloadScoringRules={() =>
-              loadScoringRules({ force: true })
-            }
-            registerDialogOpener={registerScoreDialogOpener}
-          />
-          {allFound && (
-            <Button
-              onClick={() => refreshPuzzle(selectedCategory, difficulty)}
-              variant="contained"
-              sx={{
-                minWidth: '48px',
-                minHeight: '48px',
-                fontSize: '1.5rem'
-              }}
-            >
-              🆕
-            </Button>
-          )}
-        </Box>
-      )}
-
-      {/* Main Game Area */}
-      <Box
-        sx={{
-          display: "flex",
-          flexDirection: "row",
-          alignItems: "flex-start",
-          width: "100%",
-          maxWidth: "100vw",
-          position: "relative",
-          gap: useMobileLayout ? 3 : { xs: 3, md: 6 },
-          justifyContent: "center",
-          overflow: "hidden", // Prevent horizontal overflow
-        }}
-      >
-        <Box
-          sx={{
-            position: "relative",
-            flex: "0 0 auto",
-            display: "flex",
-            justifyContent: "center",
-            alignItems: "center",
-            width: useMobileLayout ? "100%" : "auto",
-            maxWidth: "100%",
-          }}
-        >
-          <Box
-            sx={{
-              filter: (isScreenTooSmall || isGridTooSmall) ? 'blur(8px)' : 'none',
-              pointerEvents: (isScreenTooSmall || isGridTooSmall) ? 'none' : 'auto',
-            }}
-          >
-            {gameType === "crossword" ? (
-              <CrosswordGrid
-                key={`crossword-${selectedCategory}-${difficulty}`}
-                ref={gridRef}
-                grid={grid}
-                phrases={phrases}
-                onPhraseComplete={(phrase) => {
-                  markFound(phrase);
-                }}
-                onPhraseWrong={() => { }}
-                disabled={allFound || isScreenTooSmall || isGridTooSmall}
-                isDarkMode={isDarkMode}
-                showWrongHighlight={true}
-                onHintUsed={() => { }}
-                isTouchDevice={isTouchDevice}
-                useMobileLayout={useMobileLayout}
-                isLoading={isGridLoading}
-              />
-            ) : (
-              <ScrabbleGrid
-                key={`wordsearch-${selectedCategory}-${difficulty}`}
-                ref={gridRef}
-                grid={grid}
-                phrases={phrases}
-                found={found}
-                onFound={markFound}
-                disabled={allFound || isScreenTooSmall || isGridTooSmall}
-                isDarkMode={isDarkMode}
-                showCelebration={showCelebration}
-                onHintUsed={() => { }} // Placeholder - hint tracking is handled in handleHintRequest
-                onGridInteraction={handleGridInteraction}
-                isTouchDevice={isTouchDevice}
-                useMobileLayout={useMobileLayout}
-                isLoading={isGridLoading}
-              />
-            )}
-          </Box>
-
-          <LoadingOverlay
-            isLoading={isGridLoading}
-            isDarkMode={isDarkMode}
-          />
-
-          <NotEnoughPhrasesOverlay
-            show={notEnoughPhrases}
-            message={notEnoughPhrasesMsg}
-            isDarkMode={isDarkMode}
-          />
-
-          <ScreenTooSmallOverlay
-            visible={isScreenTooSmall || isGridTooSmall}
-            isGridTooSmall={isGridTooSmall}
-          />
-        </Box>
-
-        {/* Sidebar Layout: Phrase List and Controls */}
-        {!useMobileLayout && (
-          <Box sx={{
-            width: { md: 280, lg: 320 },
-            display: "flex",
-            flexDirection: "column",
-            gap: 2,
-            position: "sticky",
-            top: 24,
-            maxHeight: "calc(100vh - 48px)",
-            overflowY: "auto",
-            pr: 1
-          }}>
-            {scoringEnabled && (
-              <Box
-                sx={{
-                  display: "flex",
-                  flexDirection: { xs: "row", sm: "row" },
-                  alignItems: "center",
-                  justifyContent: "flex-start",
-                  gap: 2,
-                  mb: 2,
-                  flexWrap: "wrap",
-                }}
-              >
-                <Timer
-                  isActive={isTimerActive}
-                  isPaused={isPaused}
-                  onTimeUpdate={handleTimerUpdate}
-                  startTime={gameStartTime}
-                  resetTrigger={timerResetTrigger}
-                  showTimer={scoringEnabled}
-                  currentElapsedTime={currentElapsedTime}
-                  onTogglePause={handlePauseToggle}
-                  canPause={found.length > 0 && !allFound}
-                />
-                <ScoreDisplay
-                  currentScore={currentScore}
-                  scoreBreakdown={scoreBreakdown}
-                  phrasesFound={found.length}
-                  totalPhrases={phrases.length}
-                  hintsUsed={hintsUsed}
-                  showScore={scoringEnabled}
-                  compact={true}
-                  scoringRules={scoringRules}
-                  scoringRulesStatus={scoringRulesStatus}
-                  onReloadScoringRules={() =>
-                    loadScoringRules({ force: true })
-                  }
-                  registerDialogOpener={registerScoreDialogOpener}
-                />
-              </Box>
-            )}
-
-            {/* Hint Button - only show when progressive hints are enabled */}
-            {progressiveHintsEnabled &&
-              phrases.length > 0 &&
-              found.length < phrases.length && (
-                <HintButton
-                  onHintRequest={handleHintRequest}
-                  remainingHints={remainingHints}
-                  isProgressiveMode={progressiveHintsEnabled}
-                  disabled={allFound || phrases.length === 0 || isGridTooSmall || isGridLoading}
-                  maxHints={gameType === "crossword" ? phrases.length : 3}
-                  showHintButton={true}
-                  compact={window.innerWidth < 1200}
-                  gameType={gameType}
-                />
-              )}
-
-            <PhraseList
-              phrases={phrases}
-              found={found}
-              hidePhrases={hidePhrases}
-              setHidePhrases={setHidePhrases}
-              onPhraseClick={handlePhraseClick}
-              gameType={gameType}
-              showTranslations={showTranslations}
-              setShowTranslations={setShowTranslations}
-              disableShowPhrases={notEnoughPhrases || isGridTooSmall}
-              currentUser={currentUser}
-              languageSetId={selectedLanguageSetId}
-              compact={window.innerWidth < 1200}
-              isLoading={isGridLoading}
-            />
-          </Box>
-        )}
-      </Box>
-
-      {/* Floating Action Buttons for Mobile */}
-      {useMobileLayout && (
-        <MobileFloatingActions
-          onPhraseListClick={() => setMobileSheetOpen(true)}
-          onHintClick={handleHintRequest}
-          phrasesFound={found.length}
-          remainingHints={remainingHints}
-          showHintButton={progressiveHintsEnabled && phrases.length > 0 && found.length < phrases.length}
-          disabled={allFound || isGridTooSmall}
-          isProgressiveMode={progressiveHintsEnabled}
-          gameType={gameType}
-          currentHintLevel={currentHintLevel}
-        />
-      )}
-      {/* Mobile Layout - Bottom Sheet */}
-      {useMobileLayout && (
-        <MobilePhraseListSheet
-          open={mobileSheetOpen}
-          onClose={() => setMobileSheetOpen(false)}
-          phrases={phrases}
-          found={found}
-          hidePhrases={hidePhrases}
-          setHidePhrases={setHidePhrases}
-          allFound={allFound}
-          showTranslations={showTranslations}
-          setShowTranslations={setShowTranslations}
-          disableShowPhrases={notEnoughPhrases || isGridTooSmall}
-          onPhraseClick={handlePhraseClick}
-          progressiveHintsEnabled={progressiveHintsEnabled}
-          currentUser={currentUser}
-          languageSetId={selectedLanguageSetId}
-          t={t}
-          gameType={gameType}
-          isLoading={isGridLoading}
-        />
-      )}
-    </Stack>
+    <GameView
+      useMobileLayout={useMobileLayout}
+      isDarkMode={isDarkMode}
+      isTouchDevice={isTouchDevice}
+      isScreenTooSmall={isScreenTooSmall}
+      isGridTooSmall={isGridTooSmall}
+      logoFilter={logoFilter}
+      onLogoClick={changeLogoColor}
+      showCelebration={showCelebration}
+      onGameTypeChange={handleGameTypeChange}
+      gameType={gameType}
+      selectedCategory={selectedCategory}
+      setSelectedCategory={setSelectedCategory}
+      difficulty={difficulty}
+      setDifficulty={setDifficulty}
+      availableDifficulties={availableDifficulties}
+      grid={grid}
+      phrases={phrases}
+      found={found}
+      allFound={allFound}
+      hidePhrases={hidePhrases}
+      setHidePhrases={setHidePhrases}
+      showTranslations={showTranslations}
+      setShowTranslations={setShowTranslations}
+      notEnoughPhrases={notEnoughPhrases}
+      notEnoughPhrasesMsg={notEnoughPhrasesMsg}
+      isGridLoading={isGridLoading}
+      panelOpen={panelOpen}
+      setPanelOpen={setPanelOpen}
+      visibleCategories={visibleCategories}
+      selectedLanguageSetId={selectedLanguageSetId}
+      onLanguageSetChange={handleLanguageSetChange}
+      onLanguageSetStatusChange={handleLanguageSetStatusChange}
+      selectedPrivateListId={selectedPrivateListId}
+      setSelectedPrivateListId={setSelectedPrivateListId}
+      scoringEnabled={scoringEnabled}
+      currentScore={currentScore}
+      scoreBreakdown={scoreBreakdown}
+      scoringRules={scoringRules}
+      scoringRulesStatus={scoringRulesStatus}
+      loadScoringRules={loadScoringRules}
+      openScoreBreakdownDialog={openScoreBreakdownDialog}
+      registerScoreDialogOpener={registerScoreDialogOpener}
+      isTimerActive={isTimerActive}
+      isPaused={isPaused}
+      onPauseToggle={handlePauseToggle}
+      onTimerUpdate={handleTimerUpdate}
+      currentElapsedTime={currentElapsedTime}
+      timerResetTrigger={timerResetTrigger}
+      gameStartTime={gameStartTime}
+      progressiveHintsEnabled={progressiveHintsEnabled}
+      hintsUsed={hintsUsed}
+      remainingHints={remainingHints}
+      currentHintLevel={currentHintLevel}
+      onHintRequest={handleHintRequest}
+      gridRef={gridRef}
+      onFound={markFound}
+      onPhraseClick={handlePhraseClick}
+      onGridInteraction={handleGridInteraction}
+      loadPuzzle={loadPuzzle}
+      refreshPuzzle={refreshPuzzle}
+      currentUser={currentUser}
+      mobileSheetOpen={mobileSheetOpen}
+      setMobileSheetOpen={setMobileSheetOpen}
+      t={t}
+    />
   );
 
   return (
