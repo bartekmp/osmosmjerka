@@ -40,6 +40,7 @@ class ScoringMixin:
         completion_bonus_points: int,
         hint_penalty_per_hint: int,
         updated_by: int = 0,
+        game_type: str = "word_search",
     ) -> None:
         """Update scoring rules by inserting a new record."""
         database = self._ensure_database()
@@ -52,6 +53,7 @@ class ScoringMixin:
             completion_bonus_points=completion_bonus_points,
             hint_penalty_per_hint=hint_penalty_per_hint,
             updated_by=updated_by,
+            game_type=game_type,
         )
 
         await database.execute(query)

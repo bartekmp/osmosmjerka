@@ -1,7 +1,6 @@
 import os
 import sys
 import urllib.parse
-from logging.config import fileConfig
 
 from alembic import context
 from sqlalchemy import engine_from_config, pool
@@ -13,8 +12,10 @@ from osmosmjerka.database.models import metadata  # noqa: E402
 
 config = context.config
 
-if config.config_file_name is not None:
-    fileConfig(config.config_file_name)
+# fileConfig intentionally skipped: the app configures its own logging;
+# reconfiguring from a thread pool would conflict with the asyncio event loop logger.
+# if config.config_file_name is not None:
+#     fileConfig(config.config_file_name)
 
 target_metadata = metadata
 

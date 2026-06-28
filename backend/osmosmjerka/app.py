@@ -129,9 +129,6 @@ async def lifespan(_: FastAPI):
         await db_manager.connect()
         logger.info("Database connection established")
 
-        db_manager.create_tables()
-        logger.info("Database tables verified/created")
-
         await ensure_root_admin_account()()
         logger.info("Root admin account verified")
 

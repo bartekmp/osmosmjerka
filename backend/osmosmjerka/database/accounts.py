@@ -62,6 +62,7 @@ class AccountsMixin:
         username: str,
         password_hash: str,
         role: str = "regular",
+        account_tier: str = "tier1",
         self_description: str = "",
         id: Optional[int] = None,
     ) -> int:
@@ -71,6 +72,7 @@ class AccountsMixin:
             "username": username,
             "password_hash": password_hash,
             "role": role,
+            "account_tier": account_tier,
             "self_description": self_description,
             "is_active": True,
         }

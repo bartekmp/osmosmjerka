@@ -1,5 +1,6 @@
 """Base DatabaseManager class with connection management and utility methods."""
 
+import asyncio
 import datetime
 import os
 import urllib.parse
@@ -107,7 +108,8 @@ class BaseDatabaseManager:
                     "max_overflow": max_overflow,
                 },
             )
-            self.create_tables()
+            # Run Alembic (psycopg2/blocking) off the event loop thread
+            await asyncio.get_event_loop().run_in_executor(None, self.create_tables)
         except Exception as exc:
             logger.exception("Failed to connect to database", extra={"error": str(exc)})
             raise
