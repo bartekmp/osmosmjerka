@@ -32,7 +32,7 @@ pipeline {
         BACKEND_DIR = 'backend'
         FRONTEND_DIR = 'frontend'
 
-        GITOPS_REPO = env.OSMOSMJERKA_GITOPS_REPO ?: ''
+        GITOPS_REPO = "${env.OSMOSMJERKA_GITOPS_REPO}"
 
         ADMIN_USERNAME = credentials('osmosmjerka-admin-username')
         ADMIN_PASSWORD_HASH = credentials('osmosmjerka-admin-password-hash')
@@ -220,7 +220,7 @@ pipeline {
             }
             steps {
                 script {
-                    if (!env.GITOPS_REPO?.trim()) {
+                    if (!env.GITOPS_REPO?.trim() || env.GITOPS_REPO == 'null') {
                         echo 'Skipping GitOps deployment because GITOPS_REPO is not set.'
                     } else if (env.TRIGGER_GITOPS_CD == 'true') {
                         sh 'rm -rf gitops-tmp'
