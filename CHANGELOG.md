@@ -2,6 +2,21 @@
 
 <!-- version list -->
 
+## v1.41.21 (2026-06-28)
+
+### Bug Fixes
+
+- Silence noisy test output across frontend and backend
+  ([#195](https://github.com/bartekmp/osmosmjerka/pull/195),
+  [`dd4c1dd`](https://github.com/bartekmp/osmosmjerka/commit/dd4c1dd3dccd4e696943be9b916a5ddb48de0930))
+
+### Chores
+
+- Migrate from httpx to httpx2 for starlette compatibility
+  ([#195](https://github.com/bartekmp/osmosmjerka/pull/195),
+  [`dd4c1dd`](https://github.com/bartekmp/osmosmjerka/commit/dd4c1dd3dccd4e696943be9b916a5ddb48de0930))
+
+
 ## v1.41.20 (2026-06-28)
 
 ### Bug Fixes
