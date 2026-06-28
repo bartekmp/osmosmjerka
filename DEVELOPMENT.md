@@ -35,7 +35,7 @@ git config core.hooksPath .githooks
 After this, every `git push` will run:
 
 - Branch and commit format validation (`.github/scripts/validate_format.py`)
-- Python linters: `flake8`, `black --check`, `isort --check-only`
+- Python linters: `flake8`, `ruff check`, `ruff format --check`
 - Frontend lint (`npm run lint`)
 
 Make sure you have the development dependencies installed (`pip install -e .[dev]` and `npm install` in `frontend/`).
@@ -65,6 +65,31 @@ cp -r build/* ../backend/static/
 **Docker production:**
 - Dockerfile handles the build and copy automatically
 - Frontend build → `/app/backend/static`
+
+## Database Migrations
+
+Schema changes are managed with [Alembic](https://alembic.sqlalchemy.org/). The app handles bootstrapping automatically at startup — no manual steps needed for fresh installs or deployments.
+
+**To apply a schema change:**
+
+1. Edit the table definition in `backend/osmosmjerka/database/models.py`
+2. Generate a migration (run from `backend/` with the venv active and `POSTGRES_*` env vars pointing at a database that reflects the current schema):
+```bash
+cd backend
+source .venv/bin/activate
+alembic revision --autogenerate -m "describe your change"
+```
+3. Review the generated file in `backend/alembic/versions/` — autogenerate is not perfect, always check the `upgrade()` and `downgrade()` functions
+4. Commit the migration file alongside the model change
+5. On next startup the app runs `alembic upgrade head` automatically
+
+**Useful Alembic commands** (run from `backend/` with venv active):
+```bash
+alembic current          # show current revision in the database
+alembic history          # list all revisions
+alembic upgrade head     # apply all pending migrations manually
+alembic downgrade -1     # roll back one revision
+```
 
 ## Key Files
 

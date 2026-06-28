@@ -1,5 +1,6 @@
 """Base DatabaseManager class with connection management and utility methods."""
 
+import asyncio
 import datetime
 import os
 import urllib.parse
@@ -107,7 +108,8 @@ class BaseDatabaseManager:
                     "max_overflow": max_overflow,
                 },
             )
-            self.create_tables()
+            # Run Alembic (psycopg2/blocking) off the event loop thread
+            await asyncio.get_event_loop().run_in_executor(None, self.create_tables)
         except Exception as exc:
             logger.exception("Failed to connect to database", extra={"error": str(exc)})
             raise
@@ -119,14 +121,31 @@ class BaseDatabaseManager:
             logger.info("Disconnected from database")
 
     def create_tables(self) -> None:
-        """Create base tables if they don't exist."""
-        if self.engine:
-            try:
+        """Bootstrap schema on first run, then apply any pending Alembic migrations."""
+        if not self.engine:
+            return
+        try:
+            from alembic import command
+            from alembic.config import Config
+            from sqlalchemy import inspect
+
+            alembic_ini = os.path.normpath(
+                os.path.join(os.path.dirname(os.path.abspath(__file__)), "..", "..", "alembic.ini")
+            )
+            alembic_cfg = Config(alembic_ini)
+            alembic_cfg.set_main_option("sqlalchemy.url", str(self.engine.url))
+
+            if not inspect(self.engine).has_table("alembic_version"):
+                # First run: create all static tables then stamp so future upgrades apply cleanly
                 metadata.create_all(bind=self.engine)
-                logger.debug("Database tables verified/created")
-            except Exception as exc:
-                logger.exception("Failed to create database tables", extra={"error": str(exc)})
-                raise
+                command.stamp(alembic_cfg, "head")
+                logger.debug("Database schema bootstrapped and stamped at Alembic head")
+            else:
+                command.upgrade(alembic_cfg, "head")
+                logger.debug("Database migrations applied")
+        except Exception as exc:
+            logger.exception("Failed to initialise database schema", extra={"error": str(exc)})
+            raise
 
     def _get_phrase_table_name(self, language_set_name: str) -> str:
         """Get the table name for a language set's phrases using the set's short name."""
