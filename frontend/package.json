@@ -11,8 +11,8 @@
         "dev": "vite",
         "preview": "vite preview",
         "test": "jest",
-        "lint": "eslint src/ --ext .js,.jsx",
-        "lint:fix": "eslint src/ --ext .js,.jsx --fix"
+        "lint": "eslint .",
+        "lint:fix": "eslint . --fix"
     },
     "dependencies": {
         "@emotion/react": "^11.14.0",

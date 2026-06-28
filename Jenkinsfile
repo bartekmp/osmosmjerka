@@ -32,7 +32,7 @@ pipeline {
         BACKEND_DIR = 'backend'
         FRONTEND_DIR = 'frontend'
 
-        GITOPS_REPO = "${env.OSMOSMJERKA_GITOPS_REPO}"
+        GITOPS_REPO = env.OSMOSMJERKA_GITOPS_REPO ?: ''
 
         ADMIN_USERNAME = credentials('osmosmjerka-admin-username')
         ADMIN_PASSWORD_HASH = credentials('osmosmjerka-admin-password-hash')
@@ -147,8 +147,8 @@ pipeline {
                                     . .venv/bin/activate
                                     flake8 . --exclude=venv*,.venv*,__pycache__ --count --select=E9,F63,F7,F82 --show-source --statistics
                                     flake8 . --exclude=venv*,.venv*,__pycache__ --count --exit-zero --max-complexity=10 --max-line-length=127 --statistics
-                                    isort --check-only . || true
-                                    black --check --diff . || true
+                                    ruff check . || true
+                                    ruff format --check . || true
                                     '''
                                 }
                             }
@@ -175,7 +175,7 @@ pipeline {
                                 dir("${FRONTEND_DIR}") {
                                     script {
                                         if (fileExists('node_modules/.bin/eslint')) {
-                                            sh 'npx eslint . || true'
+                                            sh 'npm run lint || true'
                                         } else {
                                             echo 'No ESLint found, skipping lint.'
                                         }
