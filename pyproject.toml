@@ -41,6 +41,9 @@ exclude = ["backend.tests", "backend.tests.*"]
 
 [tool.pytest.ini_options]
 addopts = "-ra"
+filterwarnings = [
+    "ignore:Using `httpx` with `starlette.testclient`",
+]
 testpaths = ["backend/tests", "tests"]
 python_files = "test_*.py"
 python_classes = "Test*"
