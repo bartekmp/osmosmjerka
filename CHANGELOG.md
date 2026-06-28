@@ -2,6 +2,36 @@
 
 <!-- version list -->
 
+## v1.41.20 (2026-06-28)
+
+### Bug Fixes
+
+- Add Alembic for schema migrations ([#194](https://github.com/bartekmp/osmosmjerka/pull/194),
+  [`9b59aab`](https://github.com/bartekmp/osmosmjerka/commit/9b59aabebf386c591d2f384912059b0018ec8d15))
+
+- Alembic DB migrations ([#194](https://github.com/bartekmp/osmosmjerka/pull/194),
+  [`9b59aab`](https://github.com/bartekmp/osmosmjerka/commit/9b59aabebf386c591d2f384912059b0018ec8d15))
+
+- Alembic runs cleanly on startup without blocking event loop
+  ([#194](https://github.com/bartekmp/osmosmjerka/pull/194),
+  [`9b59aab`](https://github.com/bartekmp/osmosmjerka/commit/9b59aabebf386c591d2f384912059b0018ec8d15))
+
+### Chores
+
+- Strip alembic boilerplate comments and README
+  ([#194](https://github.com/bartekmp/osmosmjerka/pull/194),
+  [`9b59aab`](https://github.com/bartekmp/osmosmjerka/commit/9b59aabebf386c591d2f384912059b0018ec8d15))
+
+### Continuous Integration
+
+- Fix wrong variable expansion
+  ([`8b9c9bd`](https://github.com/bartekmp/osmosmjerka/commit/8b9c9bd502291ace66a58d043bb2faf8521c1bed))
+
+- Use the same linters and formatters as in GHA
+  ([#193](https://github.com/bartekmp/osmosmjerka/pull/193),
+  [`c6d09ca`](https://github.com/bartekmp/osmosmjerka/commit/c6d09cae433c4b8020ac986570515392c59c9ed9))
+
+
 ## v1.41.19 (2026-06-27)
 
 ### Chores
