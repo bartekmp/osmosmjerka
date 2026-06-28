@@ -223,6 +223,7 @@ pipeline {
                     if (!env.GITOPS_REPO?.trim() || env.GITOPS_REPO == 'null') {
                         echo 'Skipping GitOps deployment because GITOPS_REPO is not set.'
                     } else if (env.TRIGGER_GITOPS_CD == 'true') {
+                        sshagent(credentials: ['osmosmjerka-gitops-deploy-key']) {
                         sh 'rm -rf gitops-tmp'
                         sh "git clone ${env.GITOPS_REPO} gitops-tmp"
                         // staging bump
@@ -296,6 +297,7 @@ pipeline {
                         }
                         dir('gitops-tmp') { sh 'git push' }
                         sh 'rm -rf gitops-tmp'
+                        } // sshagent
                     } else {
                         echo 'Skipping GitOps deployment.'
                     }
