@@ -17,6 +17,7 @@ i18n
     lng: localStorage.getItem('lng') || 'en',
     fallbackLng: 'en',
     interpolation: { escapeValue: false },
+    showSupportNotice: false,
   });
 
 export default i18n;

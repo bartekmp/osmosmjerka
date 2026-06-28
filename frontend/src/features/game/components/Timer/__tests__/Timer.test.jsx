@@ -9,7 +9,7 @@ describe('Timer Component', () => {
     });
 
     afterEach(() => {
-        jest.runOnlyPendingTimers();
+        jest.clearAllTimers();
         jest.useRealTimers();
     });
 
