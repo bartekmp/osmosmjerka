@@ -2,6 +2,14 @@
 
 <!-- version list -->
 
+## v1.41.22 (2026-06-29)
+
+### Bug Fixes
+
+- Wrap gitops git operations in sshagent for deploy key auth
+  ([`c6f416c`](https://github.com/bartekmp/osmosmjerka/commit/c6f416c5a6730180ad76e371567d0e9a7b9aa0eb))
+
+
 ## v1.41.21 (2026-06-28)
 
 ### Bug Fixes
