@@ -2,6 +2,14 @@
 
 <!-- version list -->
 
+## v1.41.23 (2026-06-29)
+
+### Bug Fixes
+
+- Use withCredentials+GIT_SSH_COMMAND instead of sshagent (plugin not installed)
+  ([`bab23b8`](https://github.com/bartekmp/osmosmjerka/commit/bab23b8c04dbc3245a5af9aa78a53f2c8127243d))
+
+
 ## v1.41.22 (2026-06-29)
 
 ### Bug Fixes
