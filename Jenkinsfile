@@ -223,7 +223,8 @@ pipeline {
                     if (!env.GITOPS_REPO?.trim() || env.GITOPS_REPO == 'null') {
                         echo 'Skipping GitOps deployment because GITOPS_REPO is not set.'
                     } else if (env.TRIGGER_GITOPS_CD == 'true') {
-                        sshagent(credentials: ['osmosmjerka-gitops-deploy-key']) {
+                        withCredentials([sshUserPrivateKey(credentialsId: 'osmosmjerka-gitops-deploy-key', keyFileVariable: 'GITOPS_SSH_KEY')]) {
+                        withEnv(["GIT_SSH_COMMAND=ssh -i ${env.GITOPS_SSH_KEY}"]) {
                         sh 'rm -rf gitops-tmp'
                         sh "git clone ${env.GITOPS_REPO} gitops-tmp"
                         // staging bump
@@ -297,7 +298,7 @@ pipeline {
                         }
                         dir('gitops-tmp') { sh 'git push' }
                         sh 'rm -rf gitops-tmp'
-                        } // sshagent
+                        }} // withEnv, withCredentials
                     } else {
                         echo 'Skipping GitOps deployment.'
                     }
