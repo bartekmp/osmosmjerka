@@ -24,54 +24,29 @@ const MobileFloatingActions = ({
 }) => {
   const { t } = useTranslation();
   const theme = useTheme();
-  const isDarkMode = theme.palette.mode === 'dark';
+  const s = theme.palette.scrabble;
 
   // Match the desktop hint button color logic: secondary for progressive mode, primary otherwise
   const hintButtonColor = isProgressiveMode ? 'secondary' : 'primary';
 
-  // Get scrabble button colors from theme
+  // Build button styles from the shared scrabble palette tokens (theme.palette.scrabble)
+  // so the look stays in sync with the global MuiButton override.
   const getScrabbleButtonStyles = (color, isHintButton = false) => {
-    const isPrimary = color === 'primary';
     const isSecondary = color === 'secondary';
 
-    // Hint button uses gradient, others use solid colors
     const getBackground = () => {
-      if (isHintButton) {
-        return 'linear-gradient(135deg, #9c27b0 0%, #673ab7 100%)';
-      }
-      if (isPrimary) {
-        return isDarkMode ? '#4a4a4a' : '#f9e7b3';
-      }
-      if (isSecondary) {
-        return theme.palette.secondary.main;
-      }
-      return isDarkMode ? '#4a4a4a' : '#f9e7b3';
+      if (isHintButton) return s.hint.gradient;
+      if (isSecondary) return theme.palette.secondary.main;
+      return s.main;
     };
-
     const getHoverBackground = () => {
-      if (isHintButton) {
-        return 'linear-gradient(135deg, #8e24aa 0%, #5e35b1 100%)';
-      }
-      if (isPrimary) {
-        return isDarkMode ? '#5a5a5a' : '#f0d99a';
-      }
-      if (isSecondary) {
-        return isDarkMode ? '#7a6b4a' : '#f0d99a';
-      }
-      return isDarkMode ? '#5a5a5a' : '#f0d99a';
+      if (isHintButton) return s.hint.gradientHover;
+      return s.hover;
     };
-
     const getActiveBackground = () => {
-      if (isHintButton) {
-        return 'linear-gradient(135deg, #7b1fa2 0%, #512da8 100%)';
-      }
-      if (isPrimary) {
-        return isDarkMode ? '#6b5b3a' : '#e6c97a';
-      }
-      if (isSecondary) {
-        return theme.palette.secondary.dark || (isDarkMode ? '#5a4a2a' : '#d4b86a');
-      }
-      return isDarkMode ? '#6b5b3a' : '#e6c97a';
+      if (isHintButton) return s.hint.gradientActive;
+      if (isSecondary) return theme.palette.secondary.dark || s.active;
+      return s.active;
     };
 
     return {
@@ -80,26 +55,26 @@ const MobileFloatingActions = ({
       height: '48px',
       padding: 0,
       borderRadius: '12px',
-      border: `2px solid ${isDarkMode ? '#6b5b3a' : '#b89c4e'}`,
-      boxShadow: `1px 2px 0 ${isDarkMode ? '#6b5b3a' : '#b89c4e'}, 0 1px 0 ${isDarkMode ? '#5a5a5a' : '#fff'} inset`,
+      border: `2px solid ${s.border}`,
+      boxShadow: s.boxShadow,
       background: getBackground(),
-      color: isHintButton ? '#fff' : (isDarkMode ? '#e0e0e0' : '#333'),
+      color: isHintButton ? '#fff' : s.text,
       fontFamily: '"Arial Black", Arial, sans-serif',
       fontWeight: 'bold',
       transition: 'background 0.2s, box-shadow 0.2s, transform 0.1s',
       '&:hover': {
         background: getHoverBackground(),
-        boxShadow: `1px 2px 0 ${isDarkMode ? '#6b5b3a' : '#b89c4e'}, 0 1px 0 ${isDarkMode ? '#5a5a5a' : '#fff'} inset`,
+        boxShadow: s.boxShadow,
       },
       '&:active': {
         background: getActiveBackground(),
-        boxShadow: `0 1px 0 ${isDarkMode ? '#6b5b3a' : '#b89c4e'} inset`,
+        boxShadow: `0 1px 0 ${s.border} inset`,
         transform: 'translateY(2px)',
       },
       '&.Mui-disabled': {
-        background: isDarkMode ? '#3a3a3a' : '#eee6c7',
-        color: isDarkMode ? '#666' : '#aaa',
-        borderColor: isDarkMode ? '#555' : '#d1c18a',
+        background: s.disabled.background,
+        color: s.disabled.text,
+        borderColor: s.disabled.border,
         boxShadow: 'none',
       },
     };
