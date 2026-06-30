@@ -18,6 +18,7 @@ import { NotEnoughPhrasesOverlay, ScreenTooSmallOverlay } from "./shared";
 export function GameView({
   // layout
   useMobileLayout,
+  compactSidebar,
   isDarkMode,
   isTouchDevice,
   isScreenTooSmall,
@@ -339,7 +340,7 @@ export function GameView({
                   disabled={allFound || phrases.length === 0 || isGridTooSmall || isGridLoading}
                   maxHints={gameType === "crossword" ? phrases.length : 3}
                   showHintButton={true}
-                  compact={window.innerWidth < 1200}
+                  compact={compactSidebar}
                   gameType={gameType}
                 />
               )}
@@ -356,7 +357,7 @@ export function GameView({
               disableShowPhrases={notEnoughPhrases || isGridTooSmall}
               currentUser={currentUser}
               languageSetId={selectedLanguageSetId}
-              compact={window.innerWidth < 1200}
+              compact={compactSidebar}
               isLoading={isGridLoading}
             />
           </Box>

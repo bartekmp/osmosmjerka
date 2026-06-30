@@ -6,6 +6,7 @@ import {
   ThemeProvider as MUIThemeProvider,
   Typography,
   IconButton,
+  useMediaQuery,
 } from "@mui/material";
 import GitHubIcon from "@mui/icons-material/GitHub";
 import confetti from "canvas-confetti";
@@ -151,6 +152,11 @@ function AppContent() {
   // Mobile layout whenever the viewport is too narrow for a side-by-side sidebar,
   // regardless of pointer type.
   const useMobileLayout = !showSidebarLayout;
+
+  // Reactive compact flag for the sidebar (phrase list / hint button) so density
+  // updates on resize. Previously each component read window.innerWidth at render
+  // time, which never updated on viewport changes.
+  const compactSidebar = useMediaQuery("(max-width:1199.95px)");
 
   // Check if grid cells would be too small
   const isGridTooSmall = useGridTooSmall(grid.length, isTouchDevice, useMobileLayout);
@@ -700,6 +706,7 @@ function AppContent() {
   const gameView = (
     <GameView
       useMobileLayout={useMobileLayout}
+      compactSidebar={compactSidebar}
       isDarkMode={isDarkMode}
       isTouchDevice={isTouchDevice}
       isScreenTooSmall={isScreenTooSmall}
