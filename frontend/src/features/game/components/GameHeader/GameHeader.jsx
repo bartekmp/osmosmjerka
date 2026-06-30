@@ -125,6 +125,7 @@ const GameHeader = ({
                         sx={{
                             minWidth: { xs: 44, sm: 44, md: 48 },
                             height: { xs: 44, sm: 44, md: 48 },
+                            minHeight: { xs: 44, sm: 44, md: 48 },
                         }}
                     />
                 )}

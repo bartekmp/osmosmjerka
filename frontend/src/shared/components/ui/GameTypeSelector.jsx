@@ -10,6 +10,7 @@ import {
 } from '@mui/material';
 import GridViewIcon from '@mui/icons-material/GridView';
 import SearchIcon from '@mui/icons-material/Search';
+import ArrowDropDownIcon from '@mui/icons-material/ArrowDropDown';
 
 /**
  * GameTypeSelector - Dropdown to select between game types
@@ -22,6 +23,7 @@ export default function GameTypeSelector({
     currentType = 'word_search',
     onChange,
     disabled = false,
+    sx = {},
 }) {
     const { t } = useTranslation();
     const [anchorEl, setAnchorEl] = useState(null);
@@ -65,17 +67,24 @@ export default function GameTypeSelector({
                 aria-haspopup="true"
                 aria-expanded={open ? 'true' : undefined}
                 aria-label={t('gameType.select', 'Select game type')}
-                title={currentTypeData.label}
+                title={`${t('gameType.label', 'Game mode')}: ${currentTypeData.label}`}
                 onClick={handleClick}
                 disabled={disabled}
                 variant="outlined"
                 sx={{
                     minWidth: 'auto',
-                    padding: '8px',
+                    px: { xs: 1, md: 1.5 },
                     borderRadius: 2,
+                    textTransform: 'none',
+                    gap: 0.5,
+                    ...sx,
                 }}
             >
                 {currentTypeData.icon}
+                <Box component="span" sx={{ display: { xs: 'none', md: 'inline' }, whiteSpace: 'nowrap' }}>
+                    {currentTypeData.label}
+                </Box>
+                <ArrowDropDownIcon fontSize="small" />
             </Button>
             <Menu
                 id="game-type-menu"
