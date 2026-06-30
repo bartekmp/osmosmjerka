@@ -25,7 +25,10 @@ const GameHeader = ({
     return (
         <Box sx={{
             width: '100%',
-            display: 'flex',
+            display: 'grid',
+            // Mobile: [brand | controls]. Desktop (md+): [spacer | brand | controls]
+            // with equal 1fr side columns so the brand is centered in the viewport.
+            gridTemplateColumns: { xs: 'auto 1fr', md: '1fr auto 1fr' },
             alignItems: 'center',
             gap: { xs: 1, sm: 2 },
             mt: 2,
@@ -33,12 +36,17 @@ const GameHeader = ({
             px: { xs: 1, sm: 2 },
             minHeight: { xs: 48, sm: 56, md: 64, lg: 72 } // Ensure minimum height
         }}>
-            {/* Brand: logo + wordmark grouped as one clickable unit (left).
-                The wordmark hides below the sm breakpoint so the brand is logo-only
-                on small screens — never truncated next to the controls. */}
+            {/* Left spacer — present only on desktop to balance the controls column
+                so the brand lands dead-center. */}
+            <Box sx={{ display: { xs: 'none', md: 'block' } }} />
+
+            {/* Brand: logo + wordmark grouped as one clickable unit.
+                Left-aligned on mobile, centered on desktop. The wordmark hides below
+                the sm breakpoint so the brand is logo-only on small screens. */}
             <Box
                 sx={{
-                    flexShrink: 0,
+                    minWidth: 0,
+                    justifySelf: { xs: 'start', md: 'center' },
                     display: 'flex',
                     alignItems: 'center',
                     gap: { xs: 1, sm: 1.5 },
@@ -93,11 +101,10 @@ const GameHeader = ({
                 </Typography>
             </Box>
 
-            {/* Controls (right) — pushed to the far edge */}
+            {/* Controls (right) — pinned to the end of the row */}
             <Box
                 sx={{
-                    flexShrink: 0,
-                    ml: 'auto',
+                    justifySelf: 'end',
                     display: 'flex',
                     flexDirection: 'row',
                     alignItems: 'center',
