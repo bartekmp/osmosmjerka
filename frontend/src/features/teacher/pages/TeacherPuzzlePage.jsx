@@ -16,6 +16,7 @@ import {
     TextField,
     Tooltip,
     Typography,
+    useMediaQuery,
 } from '@mui/material';
 import ArrowBackIcon from '@mui/icons-material/ArrowBack';
 import ListIcon from '@mui/icons-material/List';
@@ -73,18 +74,10 @@ function TeacherPuzzlePage() {
 
     const gridRef = useRef(null);
 
-    // Mobile layout detection
+    // Mobile layout detection — touch device on a narrow (< md) viewport.
     const isTouchDevice = useTouchDevice();
-    const [useMobileLayout, setUseMobileLayout] = useState(false);
-
-    useEffect(() => {
-        const checkMobileLayout = () => {
-            setUseMobileLayout(isTouchDevice && window.innerWidth < 900);
-        };
-        checkMobileLayout();
-        window.addEventListener('resize', checkMobileLayout);
-        return () => window.removeEventListener('resize', checkMobileLayout);
-    }, [isTouchDevice]);
+    const isNarrow = useMediaQuery((theme) => theme.breakpoints.down('md'));
+    const useMobileLayout = isTouchDevice && isNarrow;
     const allFound = found.length === phrases.length && phrases.length > 0;
 
     // Clear any existing session on mount - every refresh starts fresh

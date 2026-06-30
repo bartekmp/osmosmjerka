@@ -4,15 +4,8 @@
  * These match the CSS variables but are available for JavaScript usage.
  */
 
-/**
- * Breakpoints (in pixels)
- * Use these for media queries and responsive logic
- */
-export const BREAKPOINTS = {
-  mobile: 600,
-  tablet: 900,
-  desktop: 1200,
-};
+// Breakpoints live in the MUI theme (theme.breakpoints); use useMediaQuery
+// for responsive logic in components rather than ad-hoc width checks.
 
 /**
  * Layout Dimensions
@@ -120,26 +113,6 @@ export const SEMANTIC_COLORS = {
 };
 
 /**
- * Media Query Helpers
- * Generate media query strings for responsive design
- */
-export const mediaQueries = {
-  mobile: `@media (max-width: ${BREAKPOINTS.mobile}px)`,
-  tablet: `@media (max-width: ${BREAKPOINTS.tablet}px)`,
-  desktop: `@media (min-width: ${BREAKPOINTS.desktop}px)`,
-  
-  // Min-width queries
-  mobileUp: `@media (min-width: ${BREAKPOINTS.mobile + 1}px)`,
-  tabletUp: `@media (min-width: ${BREAKPOINTS.tablet + 1}px)`,
-  desktopUp: `@media (min-width: ${BREAKPOINTS.desktop}px)`,
-  
-  // Range queries
-  mobileOnly: `@media (max-width: ${BREAKPOINTS.mobile}px)`,
-  tabletOnly: `@media (min-width: ${BREAKPOINTS.mobile + 1}px) and (max-width: ${BREAKPOINTS.tablet}px)`,
-  desktopOnly: `@media (min-width: ${BREAKPOINTS.tablet + 1}px)`,
-};
-
-/**
  * Grid Cell Sizes
  * Standard sizes for grid cells at different breakpoints
  */
@@ -186,30 +159,4 @@ export const EASING = {
 export const toPx = (size) => {
   const value = SPACING[size];
   return typeof value === 'number' ? `${value}px` : value;
-};
-
-/**
- * Check if viewport width is mobile
- * @returns {boolean}
- */
-export const isMobile = () => {
-  return typeof window !== 'undefined' && window.innerWidth <= BREAKPOINTS.mobile;
-};
-
-/**
- * Check if viewport width is tablet
- * @returns {boolean}
- */
-export const isTablet = () => {
-  return typeof window !== 'undefined' && 
-    window.innerWidth > BREAKPOINTS.mobile && 
-    window.innerWidth <= BREAKPOINTS.tablet;
-};
-
-/**
- * Check if viewport width is desktop
- * @returns {boolean}
- */
-export const isDesktop = () => {
-  return typeof window !== 'undefined' && window.innerWidth > BREAKPOINTS.tablet;
 };

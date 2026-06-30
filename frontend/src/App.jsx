@@ -59,10 +59,6 @@ import { STORAGE_KEYS } from "./shared/constants/constants";
 import { RateLimitWarning } from "./shared/components/ui/RateLimitWarning";
 import appVersion from "./version";
 
-// Minimum viewport width (px) at which the grid and sidebar render side by side.
-// Below this the page uses the mobile layout (floating actions + bottom sheet).
-const SIDEBAR_LAYOUT_MIN_WIDTH = 900;
-
 // Lazy load admin components
 const AdminPanel = lazy(() =>
   import("./features").then((module) => ({ default: module.AdminPanel }))
@@ -129,34 +125,20 @@ function AppContent() {
     return false;
   });
 
-  // Calculate if there's enough space for the grid + sidebar to sit side by side.
-  // This is purely viewport-width driven so that narrow non-touch windows (a
-  // resized desktop browser) get the same comfortable mobile layout as phones,
-  // instead of being forced into a cramped two-column layout. `isTouchDevice`
-  // still tunes interaction (cell sizing, FABs) downstream — it just no longer
-  // decides the overall layout.
-  const [showSidebarLayout, setShowSidebarLayout] = useState(false);
-
-  useEffect(() => {
-    const calculateLayout = () => {
-      // 900px comfortably fits the grid next to the ~280-320px sidebar. This
-      // matches the previous touch threshold, so touch behavior is unchanged.
-      setShowSidebarLayout(window.innerWidth >= SIDEBAR_LAYOUT_MIN_WIDTH);
-    };
-
-    calculateLayout();
-    window.addEventListener('resize', calculateLayout);
-    return () => window.removeEventListener('resize', calculateLayout);
-  }, []);
-
-  // Mobile layout whenever the viewport is too narrow for a side-by-side sidebar,
-  // regardless of pointer type.
+  // Layout is purely viewport-width driven (via theme breakpoints) so that narrow
+  // non-touch windows get the same comfortable mobile layout as phones instead of
+  // a cramped two-column layout. `isTouchDevice` still tunes interaction (cell
+  // sizing, FABs) downstream — it just no longer decides the overall layout.
+  // md (900px) comfortably fits the grid next to the ~280-320px sidebar.
+  // Note: AppContent renders the MUI ThemeProvider in its own return, so it is
+  // not itself inside that provider — the string query form is used here (values
+  // mirror the theme's md/lg breakpoints) instead of the theme-callback form.
+  const showSidebarLayout = useMediaQuery("(min-width:900px)"); // theme md
   const useMobileLayout = !showSidebarLayout;
 
-  // Reactive compact flag for the sidebar (phrase list / hint button) so density
-  // updates on resize. Previously each component read window.innerWidth at render
-  // time, which never updated on viewport changes.
-  const compactSidebar = useMediaQuery("(max-width:1199.95px)");
+  // Reactive compact flag for the sidebar (phrase list / hint button); updates on
+  // resize, unlike the previous render-time window.innerWidth reads.
+  const compactSidebar = useMediaQuery("(max-width:1199.95px)"); // below theme lg
 
   // Check if grid cells would be too small
   const isGridTooSmall = useGridTooSmall(grid.length, isTouchDevice, useMobileLayout);

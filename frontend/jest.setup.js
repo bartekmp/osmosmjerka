@@ -15,17 +15,28 @@ if (typeof window !== 'undefined') {
   window.URL.revokeObjectURL = jest.fn();
 }
 
-// Mock window.matchMedia for responsive hooks
+// Mock window.matchMedia for responsive hooks (useMediaQuery). Evaluate
+// min-width/max-width queries against a default desktop viewport so layout
+// logic resolves to the desktop/sidebar layout in tests; pointer queries
+// (e.g. any-pointer: coarse) resolve to false (non-touch).
+const MOCK_VIEWPORT_WIDTH = 1024;
 Object.defineProperty(window, 'matchMedia', {
   writable: true,
-  value: jest.fn().mockImplementation(query => ({
-    matches: false,
-    media: query,
-    onchange: null,
-    addListener: jest.fn(),
-    removeListener: jest.fn(),
-    addEventListener: jest.fn(),
-    removeEventListener: jest.fn(),
-    dispatchEvent: jest.fn(),
-  })),
+  value: jest.fn().mockImplementation(query => {
+    let matches = false;
+    const minWidth = query.match(/min-width:\s*([\d.]+)px/);
+    const maxWidth = query.match(/max-width:\s*([\d.]+)px/);
+    if (minWidth) matches = MOCK_VIEWPORT_WIDTH >= parseFloat(minWidth[1]);
+    if (maxWidth) matches = MOCK_VIEWPORT_WIDTH <= parseFloat(maxWidth[1]);
+    return {
+      matches,
+      media: query,
+      onchange: null,
+      addListener: jest.fn(),
+      removeListener: jest.fn(),
+      addEventListener: jest.fn(),
+      removeEventListener: jest.fn(),
+      dispatchEvent: jest.fn(),
+    };
+  }),
 });
