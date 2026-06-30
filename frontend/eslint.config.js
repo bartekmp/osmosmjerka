@@ -4,6 +4,8 @@ import reactHooks from 'eslint-plugin-react-hooks';
 import jsxA11y from 'eslint-plugin-jsx-a11y';
 
 export default [
+  // Build output and coverage are generated artifacts — never lint them.
+  { ignores: ['build/**', 'dist/**', 'coverage/**'] },
   js.configs.recommended,
   {
     files: ['**/*.{js,jsx,mjs}'],
