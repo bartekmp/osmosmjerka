@@ -2,6 +2,26 @@
 
 <!-- version list -->
 
+## v1.41.24 (2026-06-30)
+
+### Refactoring
+
+- Add Pydantic models for private list request bodies
+  ([#196](https://github.com/bartekmp/osmosmjerka/pull/196),
+  [`6d0ea6d`](https://github.com/bartekmp/osmosmjerka/commit/6d0ea6d87ff85f7539cacd7231b6f391f75d2e70))
+
+- Backed code quality ([#196](https://github.com/bartekmp/osmosmjerka/pull/196),
+  [`6d0ea6d`](https://github.com/bartekmp/osmosmjerka/commit/6d0ea6d87ff85f7539cacd7231b6f391f75d2e70))
+
+- Split teacher_sets.py into CRUD, access, and session modules
+  ([#196](https://github.com/bartekmp/osmosmjerka/pull/196),
+  [`6d0ea6d`](https://github.com/bartekmp/osmosmjerka/commit/6d0ea6d87ff85f7539cacd7231b6f391f75d2e70))
+
+- Stop silently swallowing exceptions in API handlers
+  ([#196](https://github.com/bartekmp/osmosmjerka/pull/196),
+  [`6d0ea6d`](https://github.com/bartekmp/osmosmjerka/commit/6d0ea6d87ff85f7539cacd7231b6f391f75d2e70))
+
+
 ## v1.41.23 (2026-06-29)
 
 ### Bug Fixes
