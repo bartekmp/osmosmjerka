@@ -1,4 +1,5 @@
 import SchoolIcon from '@mui/icons-material/School';
+import ArrowBackIcon from '@mui/icons-material/ArrowBack';
 import {
     Box,
     Button,
@@ -293,8 +294,8 @@ export default function AdminPanel({
                 <Box sx={{ textAlign: 'right', mb: 2 }}>
                     <AdminButton
                         to="/"
-                        desktopText={`⇇ ${t('back_to_game')}`}
-                        mobileText="🏠"
+                        icon={<ArrowBackIcon fontSize="small" />}
+                        desktopText={t('back_to_game')}
                     />
                 </Box>
                 <Paper sx={{ p: 4, borderRadius: 4 }}>

@@ -8,6 +8,9 @@ import {
     Fade,
     Backdrop
 } from '@mui/material';
+import ArticleIcon from '@mui/icons-material/Article';
+import ImageIcon from '@mui/icons-material/Image';
+import CloseIcon from '@mui/icons-material/Close';
 import { useTranslation } from 'react-i18next';
 import PropTypes from 'prop-types';
 
@@ -30,8 +33,8 @@ export default function ExportModal({ open, onClose, onFormatSelect }) {
     };
 
     const formatButtons = [
-        { format: 'docx', label: t('word_document'), icon: '📄', description: t('word_document_desc') },
-        { format: 'png', label: t('png_image'), icon: '🖼️', description: t('png_image_desc') }
+        { format: 'docx', label: t('word_document'), icon: <ArticleIcon fontSize="large" />, description: t('word_document_desc') },
+        { format: 'png', label: t('png_image'), icon: <ImageIcon fontSize="large" />, description: t('png_image_desc') }
     ];
 
     const handleFormatClick = (format) => {
@@ -95,7 +98,7 @@ export default function ExportModal({ open, onClose, onFormatSelect }) {
                                     fontSize: '1.2rem',
                                     fontWeight: 'bold'
                                 }}>
-                                    <span style={{ fontSize: '1.5rem' }}>{icon}</span>
+                                    <Box component="span" sx={{ display: 'inline-flex', alignItems: 'center' }}>{icon}</Box>
                                     {label}
                                 </Box>
                                 <Typography
@@ -129,8 +132,9 @@ export default function ExportModal({ open, onClose, onFormatSelect }) {
                                     boxShadow: '0 1px 0 #b71c1c inset',
                                 }
                             }}
+                            startIcon={<CloseIcon />}
                         >
-                            ❌ {t('cancel')}
+                            {t('cancel')}
                         </Button>
                     </Box>
                 </Box>

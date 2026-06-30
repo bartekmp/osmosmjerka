@@ -2,6 +2,7 @@ import AddIcon from '@mui/icons-material/Add';
 import DeleteIcon from '@mui/icons-material/Delete';
 import EditIcon from '@mui/icons-material/Edit';
 import SettingsIcon from '@mui/icons-material/Settings';
+import StarIcon from '@mui/icons-material/Star';
 import {
     Alert,
     Backdrop,
@@ -460,7 +461,7 @@ export default function LanguageSetManagement({ currentUser, initialLanguageSets
                                                 disabled={loading}
                                                 sx={{ border: 1, borderColor: 'divider' }}
                                             >
-                                                <span role="img" aria-hidden>⭐</span>
+                                                <StarIcon fontSize="small" />
                                             </IconButton>
                                         </Tooltip>
                                     )}

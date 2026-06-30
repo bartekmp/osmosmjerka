@@ -33,7 +33,8 @@ import {
 import {
     ExpandMore as ExpandMoreIcon,
     Delete as DeleteIcon,
-    Warning as WarningIcon
+    Warning as WarningIcon,
+    Refresh as RefreshIcon
 } from '@mui/icons-material';
 import { useTranslation } from 'react-i18next';
 import { API_ENDPOINTS } from '../../../../shared/constants/constants';
@@ -307,7 +308,7 @@ export default function DuplicateManagement({ currentUser, selectedLanguageSetId
                                 variant="outlined"
                                 size="small"
                             >
-                                {loading ? <CircularProgress size={20} /> : (isMobile ? '🔄' : t('refresh', 'Refresh'))}
+                                {loading ? <CircularProgress size={20} /> : (isMobile ? <RefreshIcon fontSize="small" /> : t('refresh', 'Refresh'))}
                             </Button>
                         </span>
                     </Tooltip>

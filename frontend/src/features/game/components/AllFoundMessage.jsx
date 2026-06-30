@@ -1,5 +1,7 @@
 import React from 'react';
 import { Box, Typography, Button, Tooltip } from '@mui/material';
+import CelebrationIcon from '@mui/icons-material/Celebration';
+import AutorenewIcon from '@mui/icons-material/Autorenew';
 import { useTranslation } from 'react-i18next';
 
 const AllFoundMessage = ({
@@ -47,7 +49,9 @@ const AllFoundMessage = ({
                             className="all-found-text"
                             color="success.main"
                         >
-                            🎉 {t('all_phrases_found')} 🎊
+                            <CelebrationIcon sx={{ verticalAlign: 'middle', mr: 0.5 }} />
+                            {t('all_phrases_found')}
+                            <CelebrationIcon sx={{ verticalAlign: 'middle', ml: 0.5 }} />
                         </Typography>
                     </Box>
                 </Tooltip>
@@ -57,7 +61,9 @@ const AllFoundMessage = ({
                     className="all-found-text"
                     color="success.main"
                 >
-                    🎉 {t('all_phrases_found')} 🎊
+                    <CelebrationIcon sx={{ verticalAlign: 'middle', mr: 0.5 }} />
+                    {t('all_phrases_found')}
+                    <CelebrationIcon sx={{ verticalAlign: 'middle', ml: 0.5 }} />
                 </Typography>
             )}
             <Button
@@ -67,8 +73,8 @@ const AllFoundMessage = ({
                 <Box component="span" className="new-game-text-desktop">
                     {t('new_game')}
                 </Box>
-                <Box component="span" className="new-game-text-mobile">
-                    🆕
+                <Box component="span" className="new-game-text-mobile" sx={{ display: 'inline-flex', alignItems: 'center' }}>
+                    <AutorenewIcon fontSize="small" />
                 </Box>
             </Button>
         </Box>

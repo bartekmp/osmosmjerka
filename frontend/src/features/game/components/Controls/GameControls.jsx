@@ -1,5 +1,7 @@
 import { Box, Button, FormControl, InputLabel, MenuItem, Select } from '@mui/material';
 import RefreshIcon from '@mui/icons-material/Refresh';
+import MenuIcon from '@mui/icons-material/Menu';
+import CloseIcon from '@mui/icons-material/Close';
 import { useTranslation } from 'react-i18next';
 import { LanguageSetSelector, PrivateListSelector } from '../../../../shared';
 import ExportButton from '../../../export/components/ExportButton';
@@ -66,7 +68,7 @@ const GameControls = ({
                     }}
                     aria-label={panelOpen ? t('hide_controls') : t('show_controls')}
                 >
-                    {panelOpen ? '✕' : '☰'}
+                    {panelOpen ? <CloseIcon /> : <MenuIcon />}
                 </Button>
             </Box>
 

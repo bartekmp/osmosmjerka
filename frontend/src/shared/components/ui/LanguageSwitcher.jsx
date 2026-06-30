@@ -1,18 +1,19 @@
 import React from 'react';
 import { useTranslation } from 'react-i18next';
 import { MenuItem, Select, FormControl, Box } from '@mui/material';
+import LanguageIcon from '@mui/icons-material/Language';
 import PropTypes from 'prop-types';
 
 const LANGS = [
-  { code: 'en', label: 'English', flag: '🇬🇧' },
-  { code: 'hr', label: 'Hrvatski', flag: '🇭🇷' },
-  { code: 'pl', label: 'Polski', flag: '🇵🇱' },
+  { code: 'en', label: 'English' },
+  { code: 'hr', label: 'Hrvatski' },
+  { code: 'pl', label: 'Polski' },
 ];
 
 export default function LanguageSwitcher({ sx = {}, ...props }) {
   const { i18n } = useTranslation();
   const current = i18n.language || 'en';
-  const currentFlag = LANGS.find(l => l.code === current)?.flag || '🌐';
+  const currentCode = (LANGS.find(l => l.code === current)?.code || current || 'en').toUpperCase();
 
   const handleChange = (e) => {
     i18n.changeLanguage(e.target.value);
@@ -48,15 +49,16 @@ export default function LanguageSwitcher({ sx = {}, ...props }) {
           }
         }}
         renderValue={() => (
-          <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-            <span style={{ fontSize: '1em' }}>{currentFlag}</span>
+          <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 0.5 }}>
+            <LanguageIcon fontSize="small" />
+            <span>{currentCode}</span>
           </Box>
         )}
       >
         {LANGS.map((lang) => (
           <MenuItem key={lang.code} value={lang.code}>
             <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-              <span style={{ fontSize: 20 }}>{lang.flag}</span>
+              <span style={{ fontWeight: 600, minWidth: 28 }}>{lang.code.toUpperCase()}</span>
               <span>{lang.label}</span>
             </Box>
           </MenuItem>

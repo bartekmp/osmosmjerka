@@ -1,5 +1,5 @@
 import React from 'react';
-import { Button } from '@mui/material';
+import { Box, Button } from '@mui/material';
 import { Link } from 'react-router-dom';
 import ResponsiveText from './ResponsiveText';
 import { RESPONSIVE_BUTTON_STYLES } from '../../utils/responsive';
@@ -17,6 +17,7 @@ import { RESPONSIVE_BUTTON_STYLES } from '../../utils/responsive';
  * @param {Object} ...props - Additional Button props
  */
 const AdminButton = ({
+  icon = null,
   desktopText,
   tabletText = null,
   mobileText = null,
@@ -35,17 +36,32 @@ const AdminButton = ({
       ...RESPONSIVE_BUTTON_STYLES.admin,
       width: { xs: '100%', sm: 'auto' },
       overflow: 'hidden',
+      display: 'flex',
+      alignItems: 'center',
       justifyContent: 'center',
+      gap: icon ? 0.75 : 0,
       ...sx
     },
     ...props
   };
 
-  const content = (
-    <ResponsiveText 
-      desktop={desktopText} 
+  // When an icon is provided, show it on all sizes and keep the text label for
+  // larger screens only (icon-only on mobile). Otherwise fall back to the
+  // responsive text behaviour.
+  const content = icon ? (
+    <>
+      {icon}
+      {desktopText && (
+        <Box component="span" sx={{ display: { xs: 'none', md: 'inline' } }}>
+          {desktopText}
+        </Box>
+      )}
+    </>
+  ) : (
+    <ResponsiveText
+      desktop={desktopText}
       tablet={tabletText}
-      mobile={mobileText} 
+      mobile={mobileText}
     />
   );
 

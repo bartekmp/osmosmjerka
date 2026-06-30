@@ -16,7 +16,9 @@ import {
 import {
     RocketLaunch as FeatureIcon,
     BugReport as BugIcon,
-    AutoAwesome as ImprovementIcon
+    AutoAwesome as ImprovementIcon,
+    Celebration as CelebrationIcon,
+    Check as CheckIcon
 } from '@mui/icons-material';
 import { useTranslation } from 'react-i18next';
 import PropTypes from 'prop-types';
@@ -96,7 +98,7 @@ export default function WhatsNewModal({ open, onClose, entries }) {
                             variant="subtitle2"
                             sx={{ fontWeight: 'bold', color: '#4caf50', mb: 0.5 }}
                         >
-                            🚀 {t('whatsNew.features')}
+                            <FeatureIcon fontSize="small" sx={{ verticalAlign: 'middle', mr: 0.5 }} />{t('whatsNew.features')}
                         </Typography>
                         {renderChangeList(entry.features, <FeatureIcon fontSize="small" />, '#4caf50')}
                     </Box>
@@ -108,7 +110,7 @@ export default function WhatsNewModal({ open, onClose, entries }) {
                             variant="subtitle2"
                             sx={{ fontWeight: 'bold', color: '#f44336', mb: 0.5 }}
                         >
-                            🐛 {t('whatsNew.bugfixes')}
+                            <BugIcon fontSize="small" sx={{ verticalAlign: 'middle', mr: 0.5 }} />{t('whatsNew.bugfixes')}
                         </Typography>
                         {renderChangeList(entry.bugfixes, <BugIcon fontSize="small" />, '#f44336')}
                     </Box>
@@ -120,7 +122,7 @@ export default function WhatsNewModal({ open, onClose, entries }) {
                             variant="subtitle2"
                             sx={{ fontWeight: 'bold', color: '#ff9800', mb: 0.5 }}
                         >
-                            ✨ {t('whatsNew.improvements')}
+                            <ImprovementIcon fontSize="small" sx={{ verticalAlign: 'middle', mr: 0.5 }} />{t('whatsNew.improvements')}
                         </Typography>
                         {renderChangeList(entry.improvements, <ImprovementIcon fontSize="small" />, '#ff9800')}
                     </Box>
@@ -159,7 +161,7 @@ export default function WhatsNewModal({ open, onClose, entries }) {
                             mb: 3
                         }}
                     >
-                        🎉 {t('whatsNew.title')}
+                        <CelebrationIcon sx={{ verticalAlign: 'middle', mr: 0.5 }} />{t('whatsNew.title')}
                     </Typography>
 
                     {hasEntries ? (
@@ -188,8 +190,9 @@ export default function WhatsNewModal({ open, onClose, entries }) {
                                     transform: 'translateY(-1px)',
                                 }
                             }}
+                            startIcon={<CheckIcon />}
                         >
-                            ✓ {t('whatsNew.dismiss')}
+                            {t('whatsNew.dismiss')}
                         </Button>
                     </Box>
                 </Box>

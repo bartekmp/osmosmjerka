@@ -1,5 +1,7 @@
 import React from 'react';
 import { Box, Typography, Button, Paper, Container } from '@mui/material';
+import SignalWifiOffIcon from '@mui/icons-material/SignalWifiOff';
+import WarningAmberIcon from '@mui/icons-material/WarningAmber';
 import { useTranslation } from 'react-i18next';
 
 class ErrorBoundary extends React.Component {
@@ -89,8 +91,10 @@ const ErrorDisplay = ({ error, isModuleError, onReload, onRetry }) => {
                 }}
             >
                 {/* Error Icon */}
-                <Box sx={{ fontSize: '4rem', mb: 2 }}>
-                    {isModuleError ? '📡' : '⚠️'}
+                <Box sx={{ fontSize: '4rem', mb: 2, lineHeight: 1 }}>
+                    {isModuleError
+                        ? <SignalWifiOffIcon sx={{ fontSize: 'inherit' }} />
+                        : <WarningAmberIcon sx={{ fontSize: 'inherit' }} />}
                 </Box>
 
                 {/* Error Title */}

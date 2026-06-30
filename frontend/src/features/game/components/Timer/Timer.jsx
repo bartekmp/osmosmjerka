@@ -1,5 +1,7 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { Box, Typography } from '@mui/material';
+import PauseCircleIcon from '@mui/icons-material/PauseCircle';
+import TimerIcon from '@mui/icons-material/Timer';
 import './Timer.css';
 
 const RESUME_BLINK_DURATION_MS = 1200;
@@ -169,7 +171,10 @@ const Timer = ({
                     }
                 }}
             >
-                {isPaused ? '⏸️' : '⏱️'} {formatTime(elapsedTime)}
+                {isPaused
+                    ? <PauseCircleIcon fontSize="small" sx={{ verticalAlign: 'middle', mr: 0.5 }} />
+                    : <TimerIcon fontSize="small" sx={{ verticalAlign: 'middle', mr: 0.5 }} />}
+                {formatTime(elapsedTime)}
             </Typography>
         </Box>
     );

@@ -160,20 +160,21 @@ const ScrabbleGrid = forwardRef(({
                 const deltaRow = endCoord[0] - startCoord[0];
                 const deltaCol = endCoord[1] - startCoord[1];
 
-                let arrow = '→';
-                if (deltaRow > 0 && deltaCol === 0) arrow = '↓';
-                else if (deltaRow < 0 && deltaCol === 0) arrow = '↑';
-                else if (deltaRow === 0 && deltaCol > 0) arrow = '→';
-                else if (deltaRow === 0 && deltaCol < 0) arrow = '←';
-                else if (deltaRow > 0 && deltaCol > 0) arrow = '↘';
-                else if (deltaRow > 0 && deltaCol < 0) arrow = '↙';
-                else if (deltaRow < 0 && deltaCol > 0) arrow = '↗';
-                else if (deltaRow < 0 && deltaCol < 0) arrow = '↖';
+                // Rotation (deg) applied to an upward-pointing arrow icon.
+                let rotation = 90; // right
+                if (deltaRow > 0 && deltaCol === 0) rotation = 180; // down
+                else if (deltaRow < 0 && deltaCol === 0) rotation = 0; // up
+                else if (deltaRow === 0 && deltaCol > 0) rotation = 90; // right
+                else if (deltaRow === 0 && deltaCol < 0) rotation = 270; // left
+                else if (deltaRow > 0 && deltaCol > 0) rotation = 135; // down-right
+                else if (deltaRow > 0 && deltaCol < 0) rotation = 225; // down-left
+                else if (deltaRow < 0 && deltaCol > 0) rotation = 45; // up-right
+                else if (deltaRow < 0 && deltaCol < 0) rotation = 315; // up-left
 
                 return {
                     ...prev,
                     hintLevel: newLevel,
-                    directionArrow: { coord: startCoord, symbol: arrow }
+                    directionArrow: { coord: startCoord, rotation }
                 };
             } else if (newLevel === 3) {
                 // Show full outline
@@ -400,7 +401,7 @@ const ScrabbleGrid = forwardRef(({
                             isSelected={selected.some(([sr, sc]) => sr === r && sc === c)}
                             isCelebrating={isCelebrating(r, c)}
                             isHintCell={isHintCell}
-                            directionArrow={hasDirectionArrow ? hintState.directionArrow.symbol : null}
+                            directionArrow={hasDirectionArrow ? hintState.directionArrow.rotation : null}
                             hintLevel={hintState.hintLevel}
                             handleMouseDown={handleCellMouseDown}
                             handleMouseEnter={handleMouseEnter}

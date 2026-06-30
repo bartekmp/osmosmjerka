@@ -48,7 +48,7 @@ function ReviewTranslationsDialog({ open, onClose, session }) {
                 `${i + 1}. ${s.phrase}` +
                 `\n   Correct: ${s.correct}` +
                 `\n   Answer: ${s.submitted}` +
-                `\n   ${s.is_correct ? '✓ Correct' : '✗ Incorrect'}`
+                `\n   ${s.is_correct ? 'Correct' : 'Incorrect'}`
             ),
         ];
 

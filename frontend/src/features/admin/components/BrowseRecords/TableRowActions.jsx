@@ -1,5 +1,7 @@
 import React from 'react';
 import { Box, Button } from '@mui/material';
+import EditIcon from '@mui/icons-material/Edit';
+import DeleteIcon from '@mui/icons-material/Delete';
 import { useTranslation } from 'react-i18next';
 
 export default function TableRowActions({ 
@@ -18,7 +20,7 @@ export default function TableRowActions({
                 title={t('edit')}
                 sx={{ minWidth: 0, width: 36, height: 36, fontSize: '1.1rem', lineHeight: 1 }}
             >
-                ✏️
+                <EditIcon fontSize="small" />
             </Button>
             <Button
                 size="small"
@@ -28,7 +30,7 @@ export default function TableRowActions({
                 title={t('delete')}
                 sx={{ minWidth: 0, width: 36, height: 36, fontSize: '1.1rem', lineHeight: 1 }}
             >
-                🗑️
+                <DeleteIcon fontSize="small" />
             </Button>
         </Box>
     );

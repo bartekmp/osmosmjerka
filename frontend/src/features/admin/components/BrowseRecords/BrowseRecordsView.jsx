@@ -23,6 +23,11 @@ import {
 import TranslateIcon from '@mui/icons-material/Translate';
 import CategoryIcon from '@mui/icons-material/Category';
 import CloseIcon from '@mui/icons-material/Close';
+import RefreshIcon from '@mui/icons-material/Refresh';
+import FileDownloadIcon from '@mui/icons-material/FileDownload';
+import DeleteIcon from '@mui/icons-material/Delete';
+import ExpandMoreIcon from '@mui/icons-material/ExpandMore';
+import ChevronRightIcon from '@mui/icons-material/ChevronRight';
 import { useTranslation } from 'react-i18next';
 import AdminTable from './AdminTable';
 import BatchOperationDialog from './BatchOperationDialog';
@@ -136,7 +141,7 @@ const BrowseRecordsView = ({
                             onClick={() => setAdminControlsOpen(!adminControlsOpen)}
                             sx={{ mb: 1, minWidth: 'auto', px: 1 }}
                         >
-                            {adminControlsOpen ? '▼' : '▶'}
+                            {adminControlsOpen ? <ExpandMoreIcon /> : <ChevronRightIcon />}
                         </Button>
                     )}
                     <Collapse in={adminControlsOpen || !isMobile} timeout="auto">
@@ -149,7 +154,7 @@ const BrowseRecordsView = ({
                             <ResponsiveActionButton
                                 fullWidth={false}
                                 onClick={onReloadData}
-                                icon="🔄"
+                                icon={<RefreshIcon fontSize="inherit" />}
                                 variant="outlined"
                                 color="primary"
                                 desktopText={t('reload_data', 'Reload Data')}
@@ -165,7 +170,7 @@ const BrowseRecordsView = ({
                             <ResponsiveActionButton
                                 fullWidth={false}
                                 onClick={onDownloadPhrases}
-                                icon="📥"
+                                icon={<FileDownloadIcon fontSize="inherit" />}
                                 variant="outlined"
                                 color="secondary"
                                 desktopText={t('download_phrases', 'Download Phrases')}
@@ -176,7 +181,7 @@ const BrowseRecordsView = ({
                             <ResponsiveActionButton
                                 fullWidth={false}
                                 onClick={onClearDatabase}
-                                icon="🗑️"
+                                icon={<DeleteIcon fontSize="inherit" />}
                                 variant="contained"
                                 color="error"
                                 desktopText={t('clear_database', 'Clear Database')}

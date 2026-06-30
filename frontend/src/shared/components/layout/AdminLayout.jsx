@@ -2,6 +2,10 @@ import React from 'react';
 import { Container, Box, Chip, Avatar } from '@mui/material';
 import useMediaQuery from '@mui/material/useMediaQuery';
 import { useTheme } from '@mui/material/styles';
+import SportsEsportsIcon from '@mui/icons-material/SportsEsports';
+import DashboardIcon from '@mui/icons-material/Dashboard';
+import LogoutIcon from '@mui/icons-material/Logout';
+import PersonIcon from '@mui/icons-material/Person';
 import { useTranslation } from 'react-i18next';
 import AdminButton from '../ui/AdminButton';
 import { SPACING } from '../../utils/responsive';
@@ -72,17 +76,15 @@ const AdminLayout = ({
           {showBackToGame && (
             <AdminButton
               to="/"
-              desktopText={`🎮 ${t('back_to_game')}`}
-              tabletText={t('game_short', 'Game')}
-              mobileText="🎮"
+              icon={<SportsEsportsIcon fontSize="small" />}
+              desktopText={t('back_to_game')}
             />
           )}
           {showDashboard && (
             <AdminButton
               onClick={onDashboard}
-              desktopText={`🛠️ ${t('dashboard')}`}
-              tabletText={t('dashboard_short', 'Admin')}
-              mobileText="🛠️"
+              icon={<DashboardIcon fontSize="small" />}
+              desktopText={t('dashboard')}
             />
           )}
         </Box>
@@ -95,8 +97,8 @@ const AdminLayout = ({
                 label={username}
                 variant="outlined"
                 avatar={(
-                  <Avatar sx={{ bgcolor: 'primary.main', color: 'primary.contrastText', width: 28, height: 28, fontSize: '1rem' }}>
-                    👤
+                  <Avatar sx={{ bgcolor: 'primary.main', color: 'primary.contrastText', width: 28, height: 28 }}>
+                    <PersonIcon sx={{ fontSize: '1rem' }} />
                   </Avatar>
                 )}
                 sx={{
@@ -110,8 +112,8 @@ const AdminLayout = ({
             <AdminButton
               onClick={onLogout}
               color="secondary"
-              desktopText={`🚪 ${t('logout')}`}
-              mobileText="🚪"
+              icon={<LogoutIcon fontSize="small" />}
+              desktopText={t('logout')}
               sx={logoutButtonSx}
             />
           </Box>

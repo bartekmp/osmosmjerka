@@ -19,6 +19,7 @@ import {
     useMediaQuery,
 } from '@mui/material';
 import ArrowBackIcon from '@mui/icons-material/ArrowBack';
+import CelebrationIcon from '@mui/icons-material/Celebration';
 import ListIcon from '@mui/icons-material/List';
 import { useTranslation } from 'react-i18next';
 import confetti from 'canvas-confetti';
@@ -612,8 +613,8 @@ function TeacherPuzzlePage() {
 
                     {/* All found message */}
                     {allFound && (
-                        <Alert severity="success" sx={{ textAlign: 'center' }}>
-                            🎉 {t('all_found', 'All phrases found!')}
+                        <Alert severity="success" sx={{ textAlign: 'center' }} icon={<CelebrationIcon />}>
+                            {t('all_found', 'All phrases found!')}
                             {showTimer && ` Time: ${Math.floor(currentElapsedTime / 60)}:${(currentElapsedTime % 60).toString().padStart(2, '0')}`}
                         </Alert>
                     )}

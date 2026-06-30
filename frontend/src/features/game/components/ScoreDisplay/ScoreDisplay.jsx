@@ -17,6 +17,7 @@ import {
     Tooltip,
     Typography
 } from '@mui/material';
+import EmojiEventsIcon from '@mui/icons-material/EmojiEvents';
 import './ScoreDisplay.css';
 
 const DEFAULT_DIFFICULTIES = ['very_easy', 'easy', 'medium', 'hard', 'very_hard'];
@@ -277,7 +278,7 @@ const ScoreDisplay = ({
                             <Stack spacing={2} className="score-dialog-summary">
                                 <Box className="score-dialog-total">
                                     <Typography variant="h4" component="p">
-                                        🏆 {finalScore.toLocaleString()}
+                                        <EmojiEventsIcon fontSize="small" sx={{ verticalAlign: 'middle', mr: 0.5 }} />{finalScore.toLocaleString()}
                                     </Typography>
                                     <Typography variant="body2" color="text.secondary">
                                         {t('score_details.final_score_label')}
@@ -418,7 +419,7 @@ const ScoreDisplay = ({
                                 color: 'primary.main'
                             }}
                         >
-                            🏆 {currentScore.toLocaleString()}
+                            <EmojiEventsIcon fontSize="small" sx={{ verticalAlign: 'middle', mr: 0.5 }} />{currentScore.toLocaleString()}
                         </Typography>
                     </Box>
                 </Tooltip>
@@ -441,7 +442,7 @@ const ScoreDisplay = ({
                             aria-label={scoringAriaLabel}
                         >
                             <Typography variant="h5" className="score-title">
-                                🏆 {currentScore.toLocaleString()}
+                                <EmojiEventsIcon fontSize="small" sx={{ verticalAlign: 'middle', mr: 0.5 }} />{currentScore.toLocaleString()}
                             </Typography>
                             <Typography variant="body2" color="text.secondary">
                                 {t('current_score')}

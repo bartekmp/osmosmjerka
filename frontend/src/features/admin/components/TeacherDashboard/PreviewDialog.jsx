@@ -12,6 +12,7 @@ import {
     Typography,
     Alert,
 } from '@mui/material';
+import CheckCircleIcon from '@mui/icons-material/CheckCircle';
 import { useTranslation } from 'react-i18next';
 import { useThemeMode } from '../../../../contexts/ThemeContext';
 import PreviewGrid, { PHRASE_COLORS_LIGHT, PHRASE_COLORS_DARK } from './PreviewGrid';
@@ -188,9 +189,9 @@ function PreviewDialog({ open, onClose, phraseSet, token }) {
                                 <Typography variant="subtitle2" gutterBottom>{t('teacher.preview.settings', 'Settings')}</Typography>
                                 <Stack direction="row" spacing={0.5} useFlexGap sx={{ flexWrap: "wrap" }}>
                                     <Chip size="small" label={`${config.grid_size || 10}×${config.grid_size || 10}`} variant="outlined" />
-                                    <Chip size="small" label={config.allow_hints ? t('teacher.preview.hints_enabled', 'Hints ✓') : t('teacher.preview.hints_disabled', 'No hints')} color={config.allow_hints ? 'success' : 'default'} variant="outlined" />
-                                    <Chip size="small" label={config.show_translations ? t('teacher.preview.translations_enabled', 'Translations ✓') : t('teacher.preview.translations_disabled', 'Hidden')} color={config.show_translations ? 'success' : 'default'} variant="outlined" />
-                                    <Chip size="small" label={config.show_timer ? t('teacher.preview.timer_enabled', 'Timer ✓') : t('teacher.preview.timer_disabled', 'No timer')} color={config.show_timer ? 'success' : 'default'} variant="outlined" />
+                                    <Chip size="small" icon={config.allow_hints ? <CheckCircleIcon /> : undefined} label={config.allow_hints ? t('teacher.preview.hints_enabled', 'Hints') : t('teacher.preview.hints_disabled', 'No hints')} color={config.allow_hints ? 'success' : 'default'} variant="outlined" />
+                                    <Chip size="small" icon={config.show_translations ? <CheckCircleIcon /> : undefined} label={config.show_translations ? t('teacher.preview.translations_enabled', 'Translations') : t('teacher.preview.translations_disabled', 'Hidden')} color={config.show_translations ? 'success' : 'default'} variant="outlined" />
+                                    <Chip size="small" icon={config.show_timer ? <CheckCircleIcon /> : undefined} label={config.show_timer ? t('teacher.preview.timer_enabled', 'Timer') : t('teacher.preview.timer_disabled', 'No timer')} color={config.show_timer ? 'success' : 'default'} variant="outlined" />
                                 </Stack>
                             </Box>
 
