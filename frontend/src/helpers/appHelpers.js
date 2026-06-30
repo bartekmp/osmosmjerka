@@ -1,3 +1,4 @@
+import logger from '@shared/utils/logger';
 import axios from 'axios';
 import { STORAGE_KEYS } from '../shared/constants/constants';
 
@@ -79,7 +80,7 @@ export function restoreGameState(setters, requiredGameType = null) {
             }
         } catch (error) {
             // Ignore JSON parsing errors
-            console.warn('Failed to parse stored game state:', error);
+            logger.warn('Failed to parse stored game state:', error);
         }
         localStorage.removeItem('osmosmjerkaGameState');
     }

@@ -1,3 +1,4 @@
+import logger from '@shared/utils/logger';
 import React, { useState, useEffect, useCallback } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useAdminApi } from '../AdminPanel/useAdminApi';
@@ -159,7 +160,7 @@ export default function BrowseRecordsContainer({
 
         // Let handleSave manage the API call
         handleSave(updatedRow, null, null, selectedLanguageSetId).catch(err => {
-            console.error('Save failed:', err);
+            logger.error('Save failed:', err);
             fetchRows(offset, limit, filterCategory, searchTerm, selectedLanguageSetId);
         });
     }, [offset, limit, filterCategory, searchTerm, selectedLanguageSetId, fetchRows, handleSave]);
@@ -275,7 +276,7 @@ export default function BrowseRecordsContainer({
                 fetchRows(offset, limit, filterCategory, searchTerm, selectedLanguageSetId);
             }
         } catch (err) {
-            console.error('Failed to update ignored categories:', err);
+            logger.error('Failed to update ignored categories:', err);
             setError(t('ignored_categories_updated_error'));
         }
     };

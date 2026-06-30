@@ -1,3 +1,4 @@
+import logger from '@shared/utils/logger';
 import React, { useState } from 'react';
 import axios from 'axios';
 import Box from '@mui/material/Box';
@@ -36,7 +37,7 @@ export default function ExportButton({ category, grid, phrases, disabled, classN
             link.remove();
             window.URL.revokeObjectURL(url);
         } catch (err) {
-            console.error(t('export_failed'), err);
+            logger.error(t('export_failed'), err);
         }
     };
 

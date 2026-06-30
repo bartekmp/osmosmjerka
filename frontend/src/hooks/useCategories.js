@@ -1,3 +1,4 @@
+import logger from '@shared/utils/logger';
 import axios from "axios";
 import { useEffect, useRef, useState } from "react";
 import { API_ENDPOINTS, STORAGE_KEYS } from "../shared/constants/constants";
@@ -78,7 +79,7 @@ export function useCategories({
         }
       })
       .catch((err) => {
-        console.error("Error loading categories:", err);
+        logger.error("Error loading categories:", err);
         setCategoriesStatus("error");
         setGridStatus("error");
         if (err.response?.status === 429) onRateLimit();
@@ -111,7 +112,7 @@ export function useCategories({
           }
         })
         .catch((err) => {
-          console.error("Error loading categories from private list:", err);
+          logger.error("Error loading categories from private list:", err);
           setCategoriesStatus("error");
           setCategories([]);
         });

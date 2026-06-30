@@ -1,3 +1,4 @@
+import logger from '@shared/utils/logger';
 import React, { useState, useEffect, useCallback } from 'react';
 import {
   Dialog,
@@ -143,7 +144,7 @@ export default function PrivateListManager({ open, onClose, languageSetId, isFul
         setSelectedListId(fetchedLists[0].id);
       }
     } catch (error) {
-      console.error('Failed to fetch lists:', error);
+      logger.error('Failed to fetch lists:', error);
       showNotification(t('privateListManager.errors.load_failed'), 'error');
     } finally {
       setLoading(false);
@@ -195,7 +196,7 @@ export default function PrivateListManager({ open, onClose, languageSetId, isFul
 
       setSelectedPhrases(new Set());
     } catch (error) {
-      console.error('Failed to fetch phrases:', error);
+      logger.error('Failed to fetch phrases:', error);
       showNotification(t('privateListManager.errors.load_failed'), 'error');
     } finally {
       setLoading(false);
@@ -233,7 +234,7 @@ export default function PrivateListManager({ open, onClose, languageSetId, isFul
             setSelectedListId(fetchedLists[0].id);
           }
         } catch (error) {
-          console.error('Failed to fetch lists:', error);
+          logger.error('Failed to fetch lists:', error);
           showNotification(t('privateListManager.errors.load_failed'), 'error');
         } finally {
           setLoading(false);
@@ -269,7 +270,7 @@ export default function PrivateListManager({ open, onClose, languageSetId, isFul
           });
           setSelectedPhrases(new Set());
         } catch (error) {
-          console.error('Failed to fetch phrases:', error);
+          logger.error('Failed to fetch phrases:', error);
           showNotification(t('privateListManager.errors.load_failed'), 'error');
         } finally {
           setLoading(false);
@@ -317,7 +318,7 @@ export default function PrivateListManager({ open, onClose, languageSetId, isFul
       setShowCreateDialog(false);
       await fetchLists(true);
     } catch (error) {
-      console.error('Failed to create list:', error);
+      logger.error('Failed to create list:', error);
       const message = error.response?.data?.detail || t('privateListManager.errors.createListFailed');
       showNotification(message, 'error');
     } finally {
@@ -359,7 +360,7 @@ export default function PrivateListManager({ open, onClose, languageSetId, isFul
       setEditingListName('');
       await fetchLists(true);
     } catch (error) {
-      console.error('Failed to rename list:', error);
+      logger.error('Failed to rename list:', error);
       const message = error.response?.data?.detail || t('privateListManager.errors.renameListFailed');
       showNotification(message, 'error');
     } finally {
@@ -390,7 +391,7 @@ export default function PrivateListManager({ open, onClose, languageSetId, isFul
 
       await fetchLists(true);
     } catch (error) {
-      console.error('Failed to delete list:', error);
+      logger.error('Failed to delete list:', error);
       const message = error.response?.data?.detail || t('privateListManager.errors.deleteListFailed');
       showNotification(message, 'error');
     } finally {
@@ -426,7 +427,7 @@ export default function PrivateListManager({ open, onClose, languageSetId, isFul
       await fetchPhrases(true);
       await fetchLists(true); // Update phrase count
     } catch (error) {
-      console.error('Failed to add custom phrase:', error);
+      logger.error('Failed to add custom phrase:', error);
       const message = error.response?.data?.detail || t('privateListManager.errors.addPhraseFailed');
       showNotification(message, 'error');
     } finally {
@@ -449,7 +450,7 @@ export default function PrivateListManager({ open, onClose, languageSetId, isFul
       await fetchPhrases(true);
       await fetchLists(true); // Update phrase count
     } catch (error) {
-      console.error('Failed to remove phrase:', error);
+      logger.error('Failed to remove phrase:', error);
       const message = error.response?.data?.detail || error.response?.data?.error || t('privateListManager.errors.removePhraseFailed');
 
       // Even if there's an error, refresh the list in case the deletion actually succeeded
@@ -513,7 +514,7 @@ export default function PrivateListManager({ open, onClose, languageSetId, isFul
         showNotification(t('privateListManager.phrases.importLoaded', 'Loaded {{count}} phrases for import', { count: parsedData.length }), 'success');
       } catch (error) {
         showNotification(t('privateListManager.errors.importParseFailed', 'Failed to parse file. Ensure correct CSV format.'), 'error');
-        console.error('Parse error:', error);
+        logger.error('Parse error:', error);
       }
     };
 
@@ -545,7 +546,7 @@ export default function PrivateListManager({ open, onClose, languageSetId, isFul
         await fetchLists(true);
       }
     } catch (error) {
-      console.error('Batch import failed:', error);
+      logger.error('Batch import failed:', error);
       showNotification('Batch import failed', 'error');
     } finally {
       setLoading(false);
@@ -571,7 +572,7 @@ export default function PrivateListManager({ open, onClose, languageSetId, isFul
       });
       setListShares(response.data.shares || []);
     } catch (error) {
-      console.error('Failed to fetch shares:', error);
+      logger.error('Failed to fetch shares:', error);
     }
   };
 
@@ -659,7 +660,7 @@ export default function PrivateListManager({ open, onClose, languageSetId, isFul
 
       showNotification(t('privateListManager.phrases.exportSuccess', 'List exported successfully'), 'success');
     } catch (error) {
-      console.error('Export failed:', error);
+      logger.error('Export failed:', error);
       showNotification(t('privateListManager.errors.exportFailed', 'Failed to export list'), 'error');
     }
   };
@@ -675,7 +676,7 @@ export default function PrivateListManager({ open, onClose, languageSetId, isFul
       });
       setListStats(response.data);
     } catch (error) {
-      console.error('Failed to fetch list statistics:', error);
+      logger.error('Failed to fetch list statistics:', error);
     }
   };
 
@@ -686,7 +687,7 @@ export default function PrivateListManager({ open, onClose, languageSetId, isFul
       });
       setUserStats(response.data);
     } catch (error) {
-      console.error('Failed to fetch user statistics:', error);
+      logger.error('Failed to fetch user statistics:', error);
     }
   };
 
@@ -735,7 +736,7 @@ export default function PrivateListManager({ open, onClose, languageSetId, isFul
       await fetchPhrases(true);
       await fetchLists(true); // Update phrase count
     } catch (error) {
-      console.error('Failed to remove phrases:', error);
+      logger.error('Failed to remove phrases:', error);
       showNotification(t('privateListManager.errors.removeSelectedFailed'), 'error');
     } finally {
       setLoading(false);
@@ -886,7 +887,7 @@ export default function PrivateListManager({ open, onClose, languageSetId, isFul
                       hasMore: data.has_more || false
                     }));
                   } catch (error) {
-                    console.error('Failed to fetch lists:', error);
+                    logger.error('Failed to fetch lists:', error);
                     showNotification(t('privateListManager.errors.load_failed'), 'error');
                   } finally {
                     setLoading(false);
@@ -1125,7 +1126,7 @@ export default function PrivateListManager({ open, onClose, languageSetId, isFul
                     }));
                     setSelectedPhrases(new Set());
                   } catch (error) {
-                    console.error('Failed to fetch phrases:', error);
+                    logger.error('Failed to fetch phrases:', error);
                     showNotification(t('privateListManager.errors.load_failed'), 'error');
                   } finally {
                     setLoading(false);

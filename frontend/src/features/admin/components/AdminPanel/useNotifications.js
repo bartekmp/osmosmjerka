@@ -1,3 +1,4 @@
+import logger from '@shared/utils/logger';
 import { useState, useCallback, useEffect } from 'react';
 import { API_ENDPOINTS } from '@shared';
 
@@ -34,7 +35,7 @@ export const useNotifications = (token, isLogged) => {
                 }
             }
         } catch (error) {
-            console.error('Failed to fetch notifications:', error);
+            logger.error('Failed to fetch notifications:', error);
         } finally {
             setLoading(false);
         }
@@ -50,7 +51,7 @@ export const useNotifications = (token, isLogged) => {
             setNotifications(prev => prev.map(n => n.id === id ? { ...n, is_read: true } : n));
             setUnreadCount(prev => Math.max(0, prev - 1));
         } catch (error) {
-            console.error('Failed to mark notification as read:', error);
+            logger.error('Failed to mark notification as read:', error);
         }
     }, [token]);
 
@@ -63,7 +64,7 @@ export const useNotifications = (token, isLogged) => {
             setNotifications(prev => prev.map(n => ({ ...n, is_read: true })));
             setUnreadCount(0);
         } catch (error) {
-            console.error('Failed to mark all as read:', error);
+            logger.error('Failed to mark all as read:', error);
         }
     }, [token]);
 
@@ -81,7 +82,7 @@ export const useNotifications = (token, isLogged) => {
                 return prev.filter(n => n.id !== id);
             });
         } catch (error) {
-            console.error('Failed to delete notification:', error);
+            logger.error('Failed to delete notification:', error);
         }
     }, [token]);
 

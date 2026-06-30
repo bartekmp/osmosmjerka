@@ -1,3 +1,4 @@
+import logger from '@shared/utils/logger';
 import axios from "axios";
 import { useCallback, useMemo } from "react";
 import { API_ENDPOINTS } from '../../../../shared/constants/constants';
@@ -120,7 +121,7 @@ export function useAdminApi({ token, setRows, setTotalRows, setDashboard, setErr
                 message = errorBody?.message || errorBody?.detail || message;
             } catch (error) {
                 if (process.env.NODE_ENV !== 'test') {
-                    console.debug('Failed to parse error response', error);
+                    logger.debug('Failed to parse error response', error);
                 }
                 // Ignore JSON parsing errors and fall back to default message
             }
@@ -173,7 +174,7 @@ export function useAdminApi({ token, setRows, setTotalRows, setDashboard, setErr
         }).then(() => {
             fetchRows();
         }).catch(err => {
-            console.error('Error deleting row:', err);
+            logger.error('Error deleting row:', err);
         });
     }, [authHeader]);
 
@@ -190,7 +191,7 @@ export function useAdminApi({ token, setRows, setTotalRows, setDashboard, setErr
             cacheTimestamp = now;
             return categoriesCache;
         } catch (error) {
-            console.error('Error fetching categories:', error);
+            logger.error('Error fetching categories:', error);
             // Return empty array on error, but don't cache it
             return [];
         }

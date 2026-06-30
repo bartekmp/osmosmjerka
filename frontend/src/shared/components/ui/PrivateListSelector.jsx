@@ -1,3 +1,4 @@
+import logger from '@shared/utils/logger';
 import React, { useState, useEffect, useCallback } from 'react';
 import { FormControl, InputLabel, MenuItem, Select, Box, Typography, Divider } from '@mui/material';
 import DescriptionIcon from '@mui/icons-material/Description';
@@ -47,7 +48,7 @@ const PrivateListSelector = ({
                         headers: { Authorization: `Bearer ${token}` }
                     }
                 ).catch((err) => {
-                    console.error('Failed to fetch private lists:', err);
+                    logger.error('Failed to fetch private lists:', err);
                     return { data: { lists: [] } };
                 }),
                 axios.get(
@@ -56,7 +57,7 @@ const PrivateListSelector = ({
                         headers: { Authorization: `Bearer ${token}` }
                     }
                 ).catch((err) => {
-                    console.error('Failed to fetch shared lists:', err);
+                    logger.error('Failed to fetch shared lists:', err);
                     return { data: { lists: [] } };
                 })
             ]);
@@ -66,7 +67,7 @@ const PrivateListSelector = ({
             setPrivateLists(privateListsData);
             setSharedLists(sharedListsData);
         } catch (err) {
-            console.error('Failed to fetch lists:', err);
+            logger.error('Failed to fetch lists:', err);
             setError(t('myLists.loading_failed', 'Failed to load your lists'));
             setPrivateLists([]);
             setSharedLists([]);

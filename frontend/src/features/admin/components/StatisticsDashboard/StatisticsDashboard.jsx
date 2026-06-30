@@ -1,3 +1,4 @@
+import logger from '@shared/utils/logger';
 import React, { useState, useEffect } from 'react';
 import {
   Box,
@@ -229,7 +230,7 @@ const StatisticsDashboard = ({ token, setError: onError, currentUser }) => {
       const response = await getWithAuth('/admin/settings/statistics-enabled');
       setStatisticsEnabled(response.enabled);
     } catch (err) {
-      console.error('Failed to load statistics settings:', err);
+      logger.error('Failed to load statistics settings:', err);
     }
   };
 

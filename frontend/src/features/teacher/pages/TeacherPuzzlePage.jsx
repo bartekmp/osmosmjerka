@@ -1,3 +1,4 @@
+import logger from '@shared/utils/logger';
 import React, { useState, useEffect, useCallback, useRef } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import {
@@ -109,7 +110,7 @@ function TeacherPuzzlePage() {
                     setNickname(userData.username || userData.display_name || '');
                 }
             } catch (err) {
-                console.error('Failed to check auth:', err);
+                logger.error('Failed to check auth:', err);
             } finally {
                 setCheckingAuth(false);
             }
@@ -128,7 +129,7 @@ function TeacherPuzzlePage() {
         if (loading) {
             const timer = setTimeout(() => {
                 if (loading) {
-                    console.error('Loading timeout - forcing error state');
+                    logger.error('Loading timeout - forcing error state');
                     setLoading(false);
                     if (!puzzleData && !error) {
                         setError(t('teacher.puzzle.error_loading', 'Timeout loading puzzle.'));
@@ -336,7 +337,7 @@ function TeacherPuzzlePage() {
                 }),
             });
         } catch (err) {
-            console.error('Failed to complete session:', err);
+            logger.error('Failed to complete session:', err);
         }
     };
 

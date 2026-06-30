@@ -1,3 +1,4 @@
+import logger from '@shared/utils/logger';
 import axios from 'axios';
 import { API_ENDPOINTS } from '../shared/constants/constants';
 
@@ -24,7 +25,7 @@ export const fetchCategories = async () => {
         return categoriesCache;
     } catch (error) {
         if (process.env.NODE_ENV !== 'test') {
-            console.error('Error fetching categories:', error);
+            logger.error('Error fetching categories:', error);
         }
         // Return empty array on error, but don't cache it
         return [];

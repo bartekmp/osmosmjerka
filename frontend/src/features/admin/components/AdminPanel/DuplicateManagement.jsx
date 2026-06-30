@@ -1,3 +1,4 @@
+import logger from '@shared/utils/logger';
 import React, { useState, useEffect, useCallback } from 'react';
 import {
     Box,
@@ -186,7 +187,7 @@ export default function DuplicateManagement({ currentUser, selectedLanguageSetId
             setSelectedPhrases(new Set());
 
         } catch (err) {
-            console.error('Error merging categories:', err);
+            logger.error('Error merging categories:', err);
             setError(t('merge_categories_failed', 'Failed to merge categories: {{error}}', {
                 error: err.message
             }));

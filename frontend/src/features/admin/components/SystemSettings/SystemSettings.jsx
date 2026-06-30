@@ -1,3 +1,4 @@
+import logger from '@shared/utils/logger';
 import React, { useState, useEffect } from "react";
 import {
   Box,
@@ -79,7 +80,7 @@ const SystemSettings = () => {
         adminLimit: limitsResponse.data.admin_limit || 500,
       });
     } catch (error) {
-      console.error("Failed to load system settings:", error);
+      logger.error("Failed to load system settings:", error);
       showNotification(t("admin.settings.loadError"), "error");
     } finally {
       setLoading(false);
@@ -121,7 +122,7 @@ const SystemSettings = () => {
 
       showNotification(t("admin.settings.updateSuccess"), "success");
     } catch (error) {
-      console.error(`Failed to update ${settingType} setting:`, error);
+      logger.error(`Failed to update ${settingType} setting:`, error);
       showNotification(t("admin.settings.updateError"), "error");
 
       // Revert the change on error
@@ -168,7 +169,7 @@ const SystemSettings = () => {
 
       showNotification(t("admin.settings.updateSuccess"), "success");
     } catch (error) {
-      console.error("Failed to update list limits:", error);
+      logger.error("Failed to update list limits:", error);
       showNotification(t("admin.settings.updateError"), "error");
     } finally {
       setListLimitsLoading(false);

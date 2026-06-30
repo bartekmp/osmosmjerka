@@ -1,3 +1,4 @@
+import logger from '@shared/utils/logger';
 import React, { useState, useEffect, useRef } from 'react';
 import { FormControl, InputLabel, MenuItem, Select, Box, Typography } from '@mui/material';
 import { useTranslation } from 'react-i18next';
@@ -35,7 +36,7 @@ const LanguageSetSelector = ({
                     onStatusChange(response.data.length > 0 ? 'success' : 'empty');
                 }
             } catch (err) {
-                console.error('Failed to fetch language sets:', err);
+                logger.error('Failed to fetch language sets:', err);
                 setError(t('language_set_loading_failed', 'Failed to load language sets'));
                 if (onStatusChange) {
                     onStatusChange('error');

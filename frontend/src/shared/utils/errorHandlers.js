@@ -1,10 +1,11 @@
+import logger from '@shared/utils/logger';
 /**
  * Global error handlers for module loading and other runtime errors
  */
 
 // Handle unhandled promise rejections (like module loading failures)
 window.addEventListener('unhandledrejection', (event) => {
-    console.error('Unhandled promise rejection:', event.reason);
+    logger.error('Unhandled promise rejection:', event.reason);
 
     // Check if it's a module loading error
     const isModuleError = event.reason?.message?.includes('loading dynamically imported module') ||
@@ -29,7 +30,7 @@ window.addEventListener('unhandledrejection', (event) => {
 
 // Handle general JavaScript errors
 window.addEventListener('error', (event) => {
-    console.error('Global error:', event.error);
+    logger.error('Global error:', event.error);
 
     // Check if it's a module loading error from script tags
     const isModuleError = event.error?.message?.includes('loading dynamically imported module') ||

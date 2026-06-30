@@ -1,3 +1,4 @@
+import logger from '@shared/utils/logger';
 import React, { useState, useEffect, useMemo } from 'react';
 import {
     Dialog,
@@ -41,7 +42,7 @@ export default function EditPhraseDialog({
                 const categories = await fetchCategories();
                 setAvailableCategories(categories);
             } catch (error) {
-                console.error('Failed to fetch categories:', error);
+                logger.error('Failed to fetch categories:', error);
                 // Fallback to empty array if API fails
                 setAvailableCategories([]);
             }

@@ -1,3 +1,4 @@
+import logger from '@shared/utils/logger';
 import axios from "axios";
 import { useCallback, useRef, useState } from "react";
 import { API_ENDPOINTS, STORAGE_KEYS } from "../shared/constants/constants";
@@ -26,7 +27,7 @@ export function useGameSession({ selectedLanguageSetId, statisticsEnabled }) {
         setSessionCompleted(false);
         completionInProgressRef.current = false;
       } catch (error) {
-        console.error("Failed to start game session:", error);
+        logger.error("Failed to start game session:", error);
       }
     },
     [selectedLanguageSetId, statisticsEnabled]
@@ -44,7 +45,7 @@ export function useGameSession({ selectedLanguageSetId, statisticsEnabled }) {
           { headers: { Authorization: `Bearer ${token}`, "Content-Type": "application/json" } }
         );
       } catch (error) {
-        console.error("Failed to update game progress:", error);
+        logger.error("Failed to update game progress:", error);
       }
     },
     [gameSessionId, statisticsEnabled]
@@ -79,7 +80,7 @@ export function useGameSession({ selectedLanguageSetId, statisticsEnabled }) {
         setLastFoundCount(0);
         return durationSeconds;
       } catch (error) {
-        console.error("Failed to complete game session:", error);
+        logger.error("Failed to complete game session:", error);
         return null;
       } finally {
         completionInProgressRef.current = false;

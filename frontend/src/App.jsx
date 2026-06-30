@@ -1,3 +1,4 @@
+import logger from '@shared/utils/logger';
 import {
   Box,
   CircularProgress,
@@ -119,7 +120,7 @@ function AppContent() {
         return !!state.showTranslations;
       } catch (error) {
         // Ignore parsing errors
-        console.warn("Failed to parse stored game state:", error);
+        logger.warn("Failed to parse stored game state:", error);
       }
     }
     return false;
