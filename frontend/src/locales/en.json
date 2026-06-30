@@ -844,10 +844,6 @@
     "dismiss": "Got it!",
     "empty": "No updates since your last visit"
   },
-  "cookies": {
-    "message": "This site uses cookies to enhance your experience.",
-    "accept": "Accept"
-  },
   "gameType": {
     "label": "Game Type",
     "word_search": "Word Search",

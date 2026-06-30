@@ -29,7 +29,7 @@ import "./styles/controls/game-controls.css";
 import "./styles/responsive/app-responsive.css";
 import { ThemeProvider, useThemeMode } from "./contexts/ThemeContext";
 import { AdminControls } from "./features";
-import { SplashScreen, WhatsNewModal, CookieConsentBar } from "./shared";
+import { SplashScreen, WhatsNewModal } from "./shared";
 import { GameView } from "./GameView";
 import "./style.css";
 import createAppTheme from "./theme";
@@ -922,9 +922,6 @@ function AppContent() {
         onClose={handleWhatsNewClose}
         entries={whatsNewEntries}
       />
-
-      {/* Cookie Consent Bar */}
-      <CookieConsentBar />
     </MUIThemeProvider>
   );
 }
