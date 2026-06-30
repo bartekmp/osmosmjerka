@@ -1,6 +1,6 @@
 {
     "name": "osmosmjerka",
-    "version": "1.41.24",
+    "version": "1.42.0",
     "type": "module",
     "private": true,
     "engines": {

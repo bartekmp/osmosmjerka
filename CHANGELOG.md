@@ -2,6 +2,90 @@
 
 <!-- version list -->
 
+## v1.42.0 (2026-06-30)
+
+### Bug Fixes
+
+- Stop the phrase-list blur being clipped at the sidebar edge
+  ([#197](https://github.com/bartekmp/osmosmjerka/pull/197),
+  [`ac7648b`](https://github.com/bartekmp/osmosmjerka/commit/ac7648b1a996b2bd462a6968cfcf1cf529c58b5f))
+
+### Chores
+
+- Ignore build/dist/coverage in eslint config
+  ([#197](https://github.com/bartekmp/osmosmjerka/pull/197),
+  [`ac7648b`](https://github.com/bartekmp/osmosmjerka/commit/ac7648b1a996b2bd462a6968cfcf1cf529c58b5f))
+
+### Feature
+
+- Overhaul layout structure ([#197](https://github.com/bartekmp/osmosmjerka/pull/197),
+  [`ac7648b`](https://github.com/bartekmp/osmosmjerka/commit/ac7648b1a996b2bd462a6968cfcf1cf529c58b5f))
+
+### Features
+
+- Center logo and title on desktop ([#197](https://github.com/bartekmp/osmosmjerka/pull/197),
+  [`ac7648b`](https://github.com/bartekmp/osmosmjerka/commit/ac7648b1a996b2bd462a6968cfcf1cf529c58b5f))
+
+- Drive main layout by viewport width instead of pointer type
+  ([#197](https://github.com/bartekmp/osmosmjerka/pull/197),
+  [`ac7648b`](https://github.com/bartekmp/osmosmjerka/commit/ac7648b1a996b2bd462a6968cfcf1cf529c58b5f))
+
+- Group logo with title, show logo-only on small screens
+  ([#197](https://github.com/bartekmp/osmosmjerka/pull/197),
+  [`ac7648b`](https://github.com/bartekmp/osmosmjerka/commit/ac7648b1a996b2bd462a6968cfcf1cf529c58b5f))
+
+- Label the game-mode selector and match header button sizing
+  ([#197](https://github.com/bartekmp/osmosmjerka/pull/197),
+  [`ac7648b`](https://github.com/bartekmp/osmosmjerka/commit/ac7648b1a996b2bd462a6968cfcf1cf529c58b5f))
+
+- Make sidebar compact density reactive to viewport
+  ([#197](https://github.com/bartekmp/osmosmjerka/pull/197),
+  [`ac7648b`](https://github.com/bartekmp/osmosmjerka/commit/ac7648b1a996b2bd462a6968cfcf1cf529c58b5f))
+
+- Raise header touch targets to 44px minimum
+  ([#197](https://github.com/bartekmp/osmosmjerka/pull/197),
+  [`ac7648b`](https://github.com/bartekmp/osmosmjerka/commit/ac7648b1a996b2bd462a6968cfcf1cf529c58b5f))
+
+- Rebuild header as a 3-region flexbox ([#197](https://github.com/bartekmp/osmosmjerka/pull/197),
+  [`ac7648b`](https://github.com/bartekmp/osmosmjerka/commit/ac7648b1a996b2bd462a6968cfcf1cf529c58b5f))
+
+- Remove cookie consent banner ([#197](https://github.com/bartekmp/osmosmjerka/pull/197),
+  [`ac7648b`](https://github.com/bartekmp/osmosmjerka/commit/ac7648b1a996b2bd462a6968cfcf1cf529c58b5f))
+
+- Unify control action button sizing into one class
+  ([#197](https://github.com/bartekmp/osmosmjerka/pull/197),
+  [`ac7648b`](https://github.com/bartekmp/osmosmjerka/commit/ac7648b1a996b2bd462a6968cfcf1cf529c58b5f))
+
+### Refactoring
+
+- Dedupe PhraseList activation into a single handler
+  ([#197](https://github.com/bartekmp/osmosmjerka/pull/197),
+  [`ac7648b`](https://github.com/bartekmp/osmosmjerka/commit/ac7648b1a996b2bd462a6968cfcf1cf529c58b5f))
+
+- Replace all remaining emoji with MUI icons
+  ([#197](https://github.com/bartekmp/osmosmjerka/pull/197),
+  [`ac7648b`](https://github.com/bartekmp/osmosmjerka/commit/ac7648b1a996b2bd462a6968cfcf1cf529c58b5f))
+
+- Replace emoji action icons with MUI icons
+  ([#197](https://github.com/bartekmp/osmosmjerka/pull/197),
+  [`ac7648b`](https://github.com/bartekmp/osmosmjerka/commit/ac7648b1a996b2bd462a6968cfcf1cf529c58b5f))
+
+- Route console calls through a dev-only logger
+  ([#197](https://github.com/bartekmp/osmosmjerka/pull/197),
+  [`ac7648b`](https://github.com/bartekmp/osmosmjerka/commit/ac7648b1a996b2bd462a6968cfcf1cf529c58b5f))
+
+- Single-source the scrabble theme colors ([#197](https://github.com/bartekmp/osmosmjerka/pull/197),
+  [`ac7648b`](https://github.com/bartekmp/osmosmjerka/commit/ac7648b1a996b2bd462a6968cfcf1cf529c58b5f))
+
+- Use stable keys instead of array index in lists
+  ([#197](https://github.com/bartekmp/osmosmjerka/pull/197),
+  [`ac7648b`](https://github.com/bartekmp/osmosmjerka/commit/ac7648b1a996b2bd462a6968cfcf1cf529c58b5f))
+
+- Use useMediaQuery for layout instead of manual resize listeners
+  ([#197](https://github.com/bartekmp/osmosmjerka/pull/197),
+  [`ac7648b`](https://github.com/bartekmp/osmosmjerka/commit/ac7648b1a996b2bd462a6968cfcf1cf529c58b5f))
+
+
 ## v1.41.24 (2026-06-30)
 
 ### Refactoring
