@@ -57,19 +57,7 @@ export default function ExportButton({ category, grid, phrases, disabled, classN
                 className={`scrabble-btn ${className || ''}`}
                 onClick={handleButtonClick}
                 disabled={disabled}
-                sx={{
-                    height: { xs: 60, sm: 60 },
-                    minWidth: { xs: 60, sm: 'auto' },
-                    fontSize: { xs: '1.2rem', sm: '1rem' },
-                    px: { xs: 1, sm: 2 },
-                    py: { xs: 0, sm: 1 },
-                    display: 'flex',
-                    flexDirection: { xs: 'column', sm: 'row' },
-                    alignItems: 'center',
-                    justifyContent: 'center',
-                    gap: { xs: 0, sm: 1 },
-                    ...(sx || {})
-                }}
+                sx={sx}
             >
                 <ResponsiveText desktop={'📥 ' + t('export')} mobile="📥" />
             </Button>

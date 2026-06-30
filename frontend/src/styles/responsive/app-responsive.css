@@ -43,23 +43,12 @@
   .control-action-button {
     width: auto;
     height: auto;
-    min-width: auto;
-    padding: 8px 16px;
-    flex-direction: row;
-    font-size: 1rem;
-  }
-
-  .refresh-button {
-    min-height: 60px;
-    height: auto;
     min-width: 120px;
-    font-size: 1rem;
+    min-height: 60px;
     padding: 8px 16px;
     flex-direction: row;
-  }
-
-  .refresh-button-text {
-    display: inline;
+    gap: 8px;
+    font-size: 1rem;
   }
 
   /* All found message */

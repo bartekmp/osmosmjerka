@@ -121,7 +121,7 @@ const GameControls = ({
                     <Button
                         onClick={() => refreshPuzzle(selectedCategoryState, difficultyState)}
                         title={t('reload_puzzle')}
-                        className="refresh-button control-action-button"
+                        className="control-action-button"
                         disabled={refreshDisabled}
                     >
                         <ResponsiveText desktop={'🔄 ' + t('refresh')} mobile="🔄" />
@@ -135,7 +135,7 @@ const GameControls = ({
                             phrases={phrases}
                             disabled={isLoading || grid.length === 0 || notEnoughPhrases}
                             t={t}
-                            className="refresh-button control-action-button"
+                            className="control-action-button"
                         />
                     )}
                 </Box>
