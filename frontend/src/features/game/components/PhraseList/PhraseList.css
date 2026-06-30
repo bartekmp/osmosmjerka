@@ -3,6 +3,11 @@
 .phrase-list-container {
     width: 100%;
     max-width: 320px;
+    /* Horizontal padding ≥ the blur radius so the blurred phrase list's halo
+       fades inside the container instead of being clipped at the sidebar edge
+       (the sidebar's overflow-y:auto also clips overflow-x). */
+    padding: 0 12px;
+    box-sizing: border-box;
 }
 
 /* Buttons */
