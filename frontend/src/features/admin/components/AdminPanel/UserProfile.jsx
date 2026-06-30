@@ -470,7 +470,7 @@ export default function UserProfile() {
 
                                 <Grid container spacing={2}>
                                     {statistics.language_set_statistics.map((langSet, index) => (
-                                        <Grid size={{ xs: 12, md: 6 }} key={index}>
+                                        <Grid size={{ xs: 12, md: 6 }} key={langSet.language_set?.id ?? langSet.language_set_name ?? index}>
                                             <Card sx={{ p: 2 }}>
                                                 <Typography variant="h6" gutterBottom>
                                                     {langSet.language_set_name}

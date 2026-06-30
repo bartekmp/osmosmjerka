@@ -51,7 +51,7 @@ export default function WhatsNewModal({ open, onClose, entries }) {
         return (
             <List dense sx={{ py: 0 }}>
                 {items.map((item, index) => (
-                    <ListItem key={index} sx={{ py: 0.5, px: 0 }}>
+                    <ListItem key={typeof item === 'string' ? item : index} sx={{ py: 0.5, px: 0 }}>
                         <ListItemIcon sx={{ minWidth: 32, color }}>
                             {icon}
                         </ListItemIcon>

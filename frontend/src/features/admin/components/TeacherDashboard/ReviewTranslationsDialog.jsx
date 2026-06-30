@@ -84,7 +84,7 @@ function ReviewTranslationsDialog({ open, onClose, session }) {
                                 </TableHead>
                                 <TableBody>
                                     {submissions.map((submission, index) => (
-                                        <TableRow key={index} hover>
+                                        <TableRow key={submission.id ?? submission.phrase ?? index} hover>
                                             <TableCell sx={{ fontWeight: 500 }}>{submission.phrase}</TableCell>
                                             <TableCell sx={{ color: 'success.main' }}>{submission.correct}</TableCell>
                                             <TableCell

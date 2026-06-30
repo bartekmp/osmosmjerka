@@ -204,7 +204,7 @@ function PreviewDialog({ open, onClose, phraseSet, token }) {
                             <Box sx={{ flex: 1, overflow: 'auto', minHeight: 0 }}>
                                 {phrases.map((phrase, index) => (
                                     <Box
-                                        key={index}
+                                        key={phrase.id ?? phrase.phrase ?? index}
                                         onClick={() => handlePhraseClick(index)}
                                         sx={{
                                             display: 'flex',

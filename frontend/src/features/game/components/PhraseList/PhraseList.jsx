@@ -246,7 +246,7 @@ export default function PhraseList({
                                     const isFound = isPhraseFound(phraseObj);
                                     return (
                                         <li
-                                            key={`across-${index}`}
+                                            key={`across-${start_number ?? index}`}
                                             className={`crossword-clue-item${isFound ? ' found' : ''}${blinkingPhrase === phrase ? ' blinking' : ''}`}
                                             onClick={() => {
                                                 if (!isFound) {
@@ -297,7 +297,7 @@ export default function PhraseList({
                                     const isFound = isPhraseFound(phraseObj);
                                     return (
                                         <li
-                                            key={`down-${index}`}
+                                            key={`down-${start_number ?? index}`}
                                             className={`crossword-clue-item${isFound ? ' found' : ''}${blinkingPhrase === phrase ? ' blinking' : ''}`}
                                             onClick={() => {
                                                 if (!isFound) {

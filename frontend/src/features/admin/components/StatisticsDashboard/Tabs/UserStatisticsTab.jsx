@@ -114,7 +114,7 @@ const UserStatisticsTab = ({
                         </Typography>
 
                         {(selectedUserDetail.favorite_categories || []).map((langSetData, index) => (
-                            <Accordion key={index}>
+                            <Accordion key={langSetData.language_set_id ?? langSetData.language_set_name ?? index}>
                                 <AccordionSummary expandIcon={<ExpandMoreIcon />}>
                                     <Typography>
                                         {langSetData.language_set_name} - {t('favorite_categories')}
