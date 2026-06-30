@@ -58,6 +58,10 @@ import { STORAGE_KEYS } from "./shared/constants/constants";
 import { RateLimitWarning } from "./shared/components/ui/RateLimitWarning";
 import appVersion from "./version";
 
+// Minimum viewport width (px) at which the grid and sidebar render side by side.
+// Below this the page uses the mobile layout (floating actions + bottom sheet).
+const SIDEBAR_LAYOUT_MIN_WIDTH = 900;
+
 // Lazy load admin components
 const AdminPanel = lazy(() =>
   import("./features").then((module) => ({ default: module.AdminPanel }))
@@ -124,32 +128,29 @@ function AppContent() {
     return false;
   });
 
-  // Calculate if there's enough space for sidebar next to grid
+  // Calculate if there's enough space for the grid + sidebar to sit side by side.
+  // This is purely viewport-width driven so that narrow non-touch windows (a
+  // resized desktop browser) get the same comfortable mobile layout as phones,
+  // instead of being forced into a cramped two-column layout. `isTouchDevice`
+  // still tunes interaction (cell sizing, FABs) downstream — it just no longer
+  // decides the overall layout.
   const [showSidebarLayout, setShowSidebarLayout] = useState(false);
 
   useEffect(() => {
     const calculateLayout = () => {
-      const screenWidth = window.innerWidth;
-
-      // Calculate if sidebar can fit next to grid
-      if (isTouchDevice && grid.length > 0) {
-        // Use a more conservative threshold that accounts for actual rendered grid size
-        // For touch devices, we need at least 900px to comfortably fit grid + sidebar
-        // This prevents the awkward gap between 690-900px
-        const minRequiredWidth = 900;
-        setShowSidebarLayout(screenWidth >= minRequiredWidth);
-      } else {
-        setShowSidebarLayout(screenWidth >= 1200);
-      }
+      // 900px comfortably fits the grid next to the ~280-320px sidebar. This
+      // matches the previous touch threshold, so touch behavior is unchanged.
+      setShowSidebarLayout(window.innerWidth >= SIDEBAR_LAYOUT_MIN_WIDTH);
     };
 
     calculateLayout();
     window.addEventListener('resize', calculateLayout);
     return () => window.removeEventListener('resize', calculateLayout);
-  }, [isTouchDevice, grid.length]);
+  }, []);
 
-  // Use mobile layout only if touch device AND not enough space for sidebar
-  const useMobileLayout = isTouchDevice && !showSidebarLayout;
+  // Mobile layout whenever the viewport is too narrow for a side-by-side sidebar,
+  // regardless of pointer type.
+  const useMobileLayout = !showSidebarLayout;
 
   // Check if grid cells would be too small
   const isGridTooSmall = useGridTooSmall(grid.length, isTouchDevice, useMobileLayout);
