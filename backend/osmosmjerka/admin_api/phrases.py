@@ -11,7 +11,10 @@ from fastapi.responses import JSONResponse, StreamingResponse
 from osmosmjerka.auth import require_admin_access, require_root_admin
 from osmosmjerka.cache import categories_cache, rate_limit
 from osmosmjerka.database import db_manager
+from osmosmjerka.logging_config import get_logger
 from starlette.concurrency import run_in_threadpool
+
+logger = get_logger(__name__)
 
 router = APIRouter()
 
@@ -155,7 +158,7 @@ def _extract_error_details(message: str) -> tuple[Optional[int], Optional[str]]:
     if m:
         try:
             return int(m.group(1)), m.group(2)
-        except Exception:
+        except ValueError:
             return None, m.group(2)
 
     # Pattern like: "Line 5: ..." (without explicit raw line)
@@ -163,7 +166,7 @@ def _extract_error_details(message: str) -> tuple[Optional[int], Optional[str]]:
     if m2:
         try:
             return int(m2.group(1)), None
-        except Exception:
+        except ValueError:
             return None, None
 
     # For invalid format with first line content present in message
@@ -207,6 +210,7 @@ async def add_row(row: dict, language_set_id: int = Query(...), user=Depends(req
         categories_cache.invalidate(f"categories_{language_set_id}")
         return JSONResponse({"message": "Phrase added"}, status_code=status.HTTP_201_CREATED)
     except Exception as e:
+        logger.exception("Failed to add phrase")
         return JSONResponse({"error": f"Failed to add phrase: {str(e)}"}, status_code=status.HTTP_400_BAD_REQUEST)
 
 
@@ -221,6 +225,7 @@ async def update_row(
         await db_manager.record_phrase_operation(user["id"], language_set_id, "edited")
         return JSONResponse({"message": "Phrase updated"}, status_code=status.HTTP_200_OK)
     except Exception as e:
+        logger.exception("Failed to update phrase")
         return JSONResponse({"error": f"Failed to update phrase: {str(e)}"}, status_code=status.HTTP_400_BAD_REQUEST)
 
 
@@ -231,6 +236,7 @@ async def delete_row(id: int, language_set_id: int = Query(...), user=Depends(re
         await db_manager.delete_phrase(id, language_set_id)
         return JSONResponse({"message": "Phrase deleted"}, status_code=status.HTTP_200_OK)
     except Exception as e:
+        logger.exception("Failed to delete phrase")
         return JSONResponse({"error": f"Failed to delete phrase: {str(e)}"}, status_code=status.HTTP_400_BAD_REQUEST)
 
 
@@ -241,6 +247,7 @@ async def clear_db(language_set_id: int = Query(...), user=Depends(require_root_
         await db_manager.clear_all_phrases(language_set_id)
         return JSONResponse({"message": "Language set phrases cleared"}, status_code=status.HTTP_200_OK)
     except Exception as e:
+        logger.exception("Failed to clear phrases")
         return JSONResponse({"error": f"Failed to clear phrases: {str(e)}"}, status_code=status.HTTP_400_BAD_REQUEST)
 
 
@@ -298,6 +305,7 @@ async def upload(
                 {"error": "Upload failed - no valid phrases found"}, status_code=status.HTTP_400_BAD_REQUEST
             )
     except Exception as e:
+        logger.exception("Upload failed")
         # Sanitize error messages in production
         from osmosmjerka.app import DEVELOPMENT_MODE
 
@@ -348,6 +356,7 @@ async def upload_text(
                 {"error": "Upload failed - no valid phrases found"}, status_code=status.HTTP_400_BAD_REQUEST
             )
     except Exception as e:
+        logger.exception("Upload failed")
         # Sanitize error messages in production
         from osmosmjerka.app import DEVELOPMENT_MODE
 
@@ -396,6 +405,7 @@ async def find_duplicates(
             }
         )
     except Exception as e:
+        logger.exception("Failed to find duplicates")
         return JSONResponse({"error": f"Failed to find duplicates: {str(e)}"}, status_code=status.HTTP_400_BAD_REQUEST)
 
 
@@ -460,6 +470,7 @@ async def delete_duplicate_phrases(
             }
         )
     except Exception as e:
+        logger.exception("Failed to delete duplicates")
         return JSONResponse(
             {"error": f"Failed to delete duplicates: {str(e)}"}, status_code=status.HTTP_400_BAD_REQUEST
         )
@@ -578,6 +589,7 @@ async def merge_duplicate_categories(
         )
 
     except Exception as e:
+        logger.exception("Failed to merge categories")
         return JSONResponse({"error": f"Failed to merge categories: {str(e)}"}, status_code=status.HTTP_400_BAD_REQUEST)
 
 
@@ -625,6 +637,7 @@ async def export_data(
             headers={"Content-Disposition": f"attachment; filename={filename}"},
         )
     except Exception as e:
+        logger.exception("Export failed")
         # For errors, we need to return a proper error response but with correct type
         error_content = f"Export failed: {str(e)}"
         return StreamingResponse(io.StringIO(error_content), media_type="text/plain", status_code=400)

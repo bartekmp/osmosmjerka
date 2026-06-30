@@ -4,6 +4,9 @@ from fastapi import APIRouter, Depends, status
 from fastapi.responses import JSONResponse
 from osmosmjerka.auth import require_admin_access
 from osmosmjerka.database import db_manager
+from osmosmjerka.logging_config import get_logger
+
+logger = get_logger(__name__)
 
 router = APIRouter()
 
@@ -22,6 +25,7 @@ async def get_default_ignored_categories(language_set_id: int, user=Depends(requ
         categories = await db_manager.get_default_ignored_categories(language_set_id)
         return JSONResponse(categories)
     except Exception as e:
+        logger.exception("Failed to get default ignored categories")
         return JSONResponse(
             {"error": f"Failed to get default ignored categories: {str(e)}"}, status_code=status.HTTP_400_BAD_REQUEST
         )
@@ -59,6 +63,7 @@ async def create_language_set(language_set: dict, user=Depends(require_admin_acc
             {"message": "Language set created", "id": language_set_id}, status_code=status.HTTP_201_CREATED
         )
     except Exception as e:
+        logger.exception("Failed to create language set")
         return JSONResponse(
             {"error": f"Failed to create language set: {str(e)}"}, status_code=status.HTTP_400_BAD_REQUEST
         )
@@ -91,6 +96,7 @@ async def update_language_set(language_set_id: int, updates: dict, user=Depends(
         await db_manager.update_language_set(language_set_id, **updates)
         return JSONResponse({"message": "Language set updated"})
     except Exception as e:
+        logger.exception("Failed to update language set")
         return JSONResponse(
             {"error": f"Failed to update language set: {str(e)}"}, status_code=status.HTTP_400_BAD_REQUEST
         )
@@ -112,6 +118,7 @@ async def delete_language_set(language_set_id: int, user=Depends(require_admin_a
         await db_manager.delete_language_set(language_set_id)
         return JSONResponse({"message": "Language set deleted"})
     except Exception as e:
+        logger.exception("Failed to delete language set")
         return JSONResponse(
             {"error": f"Failed to delete language set: {str(e)}"}, status_code=status.HTTP_400_BAD_REQUEST
         )
@@ -124,4 +131,5 @@ async def make_default_language_set(language_set_id: int, user=Depends(require_a
         await db_manager.set_default_language_set(language_set_id)
         return JSONResponse({"message": "Default language set updated"})
     except Exception as e:
+        logger.exception("Failed to set default language set")
         return JSONResponse({"error": str(e)}, status_code=400)

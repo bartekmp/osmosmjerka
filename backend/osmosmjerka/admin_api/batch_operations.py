@@ -4,7 +4,10 @@ from fastapi import APIRouter, Depends, Query, status
 from fastapi.responses import JSONResponse
 from osmosmjerka.auth import require_admin_access
 from osmosmjerka.database import db_manager
+from osmosmjerka.logging_config import get_logger
 from pydantic import BaseModel
+
+logger = get_logger(__name__)
 
 router = APIRouter()
 
@@ -33,6 +36,7 @@ async def batch_delete_rows(
             status_code=status.HTTP_200_OK,
         )
     except Exception as e:
+        logger.exception("Failed to batch delete phrases")
         return JSONResponse({"error": f"Failed to delete phrases: {str(e)}"}, status_code=status.HTTP_400_BAD_REQUEST)
 
 
@@ -58,6 +62,7 @@ async def batch_add_category(
             status_code=status.HTTP_200_OK,
         )
     except Exception as e:
+        logger.exception("Failed to batch add category")
         return JSONResponse({"error": f"Failed to add category: {str(e)}"}, status_code=status.HTTP_400_BAD_REQUEST)
 
 
@@ -85,4 +90,5 @@ async def batch_remove_category(
             status_code=status.HTTP_200_OK,
         )
     except Exception as e:
+        logger.exception("Failed to batch remove category")
         return JSONResponse({"error": f"Failed to remove category: {str(e)}"}, status_code=status.HTTP_400_BAD_REQUEST)

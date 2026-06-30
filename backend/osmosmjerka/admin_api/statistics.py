@@ -4,6 +4,9 @@ from fastapi import APIRouter, Depends, Query
 from fastapi.responses import JSONResponse
 from osmosmjerka.auth import get_current_user, require_admin_access
 from osmosmjerka.database import db_manager
+from osmosmjerka.logging_config import get_logger
+
+logger = get_logger(__name__)
 
 router = APIRouter(prefix="/statistics")
 
@@ -15,6 +18,7 @@ async def get_statistics_overview(user=Depends(require_admin_access)) -> JSONRes
         overview = await db_manager.get_admin_statistics_overview()
         return JSONResponse(overview)
     except Exception as e:
+        logger.exception("Failed to get statistics overview")
         return JSONResponse({"error": str(e)}, status_code=500)
 
 
@@ -27,6 +31,7 @@ async def get_statistics_by_language_set(
         stats = await db_manager.get_statistics_by_language_set(language_set_id)
         return JSONResponse(stats)
     except Exception as e:
+        logger.exception("Failed to get statistics by language set")
         return JSONResponse({"error": str(e)}, status_code=500)
 
 
@@ -39,6 +44,7 @@ async def get_user_statistics_list(
         stats = await db_manager.get_user_statistics_list(language_set_id, limit)
         return JSONResponse(stats)
     except Exception as e:
+        logger.exception("Failed to get user statistics list")
         return JSONResponse({"error": str(e)}, status_code=500)
 
 
@@ -80,6 +86,7 @@ async def get_user_statistics_detail(
             }
         )
     except Exception as e:
+        logger.exception("Failed to get user statistics detail")
         return JSONResponse({"error": str(e)}, status_code=500)
 
 
@@ -114,6 +121,7 @@ async def get_current_user_statistics(user=Depends(get_current_user)) -> JSONRes
 
         return JSONResponse({"overall_statistics": overall_stats, "language_set_statistics": language_set_stats})
     except Exception as e:
+        logger.exception("Failed to get current user statistics")
         return JSONResponse({"error": str(e)}, status_code=500)
 
 
@@ -131,4 +139,5 @@ async def get_admin_leaderboard(
         leaderboard = await db_manager.get_leaderboard(language_set_id, category, difficulty, limit, game_type)
         return JSONResponse(leaderboard)
     except Exception as e:
+        logger.exception("Failed to get admin leaderboard")
         return JSONResponse({"error": str(e)}, status_code=500)

@@ -5,6 +5,9 @@ from fastapi.responses import JSONResponse
 from osmosmjerka.auth import get_current_user, get_current_user_optional
 from osmosmjerka.database import db_manager
 from osmosmjerka.game_api.schemas import IgnoredCategoriesUpdate, UserPreferenceUpdate
+from osmosmjerka.logging_config import get_logger
+
+logger = get_logger(__name__)
 
 router = APIRouter()
 
@@ -41,6 +44,7 @@ async def get_user_preferences(user=Depends(get_current_user)) -> JSONResponse:
         preferences = await db_manager.get_user_preferences(user["id"])
         return JSONResponse(preferences)
     except Exception as e:
+        logger.exception("Failed to get user preferences")
         return JSONResponse({"error": str(e)}, status_code=500)
 
 
@@ -51,6 +55,7 @@ async def set_user_preference(body: UserPreferenceUpdate, user=Depends(get_curre
         await db_manager.set_user_preference(user["id"], body.preference_key, body.preference_value)
         return JSONResponse({"message": "Preference updated successfully"})
     except Exception as e:
+        logger.exception("Failed to set user preference")
         return JSONResponse({"error": str(e)}, status_code=500)
 
 
@@ -61,6 +66,7 @@ async def get_user_scoring_enabled(user=Depends(get_current_user)) -> JSONRespon
         enabled = await db_manager.is_scoring_enabled_for_user(user["id"])
         return JSONResponse({"enabled": enabled})
     except Exception as e:
+        logger.exception("Failed to get user scoring-enabled status")
         return JSONResponse({"error": str(e)}, status_code=500)
 
 
@@ -71,4 +77,5 @@ async def get_user_progressive_hints_enabled(user=Depends(get_current_user)) -> 
         enabled = await db_manager.is_progressive_hints_enabled_for_user(user["id"])
         return JSONResponse({"enabled": enabled})
     except Exception as e:
+        logger.exception("Failed to get user progressive-hints status")
         return JSONResponse({"error": str(e)}, status_code=500)

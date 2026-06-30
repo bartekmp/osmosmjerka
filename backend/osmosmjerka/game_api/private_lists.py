@@ -447,6 +447,7 @@ async def batch_add_phrases_to_private_list(
                     added.append({"index": idx, "phrase": phrase, "translation": translation, "id": added_id})
 
             except Exception:
+                logger.exception("Failed to add phrase during batch import at index %s", idx)
                 errors.append({"index": idx, "phrase": phrase_data.get("phrase", ""), "error": "Failed to add phrase"})
 
         return JSONResponse(
