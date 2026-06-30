@@ -1,6 +1,7 @@
 import { Box, Button, FormControl, InputLabel, MenuItem, Select } from '@mui/material';
+import RefreshIcon from '@mui/icons-material/Refresh';
 import { useTranslation } from 'react-i18next';
-import { LanguageSetSelector, PrivateListSelector, ResponsiveText } from '../../../../shared';
+import { LanguageSetSelector, PrivateListSelector } from '../../../../shared';
 import ExportButton from '../../../export/components/ExportButton';
 import CategorySelector from './CategorySelector';
 
@@ -121,10 +122,14 @@ const GameControls = ({
                     <Button
                         onClick={() => refreshPuzzle(selectedCategoryState, difficultyState)}
                         title={t('reload_puzzle')}
+                        aria-label={t('refresh')}
                         className="control-action-button"
                         disabled={refreshDisabled}
                     >
-                        <ResponsiveText desktop={'🔄 ' + t('refresh')} mobile="🔄" />
+                        <RefreshIcon fontSize="small" />
+                        <Box component="span" sx={{ display: { xs: 'none', sm: 'inline' }, ml: 0.5 }}>
+                            {t('refresh')}
+                        </Box>
                     </Button>
 
                     {/* Export button - only for word search */}

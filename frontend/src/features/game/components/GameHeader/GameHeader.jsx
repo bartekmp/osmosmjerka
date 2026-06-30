@@ -4,8 +4,8 @@ import { useTranslation } from 'react-i18next';
 import { LanguageSwitcher, NightModeButton, GameTypeSelector } from '../../../../shared';
 import { Link } from 'react-router-dom';
 import { Button } from '@mui/material';
+import AccountCircleIcon from '@mui/icons-material/AccountCircle';
 import { getAssetUrl } from '../../../../shared/utils/assets';
-import ResponsiveText from '../../../../shared/components/ui/ResponsiveText';
 
 const GameHeader = ({
     logoFilter,
@@ -18,9 +18,7 @@ const GameHeader = ({
 }) => {
     const { t } = useTranslation();
     const username = currentUser?.username?.trim();
-    const baseEmoji = '👤';
-    const profileDesktopLabel = username ? `${baseEmoji} ${username}` : `${baseEmoji} ${t('profile')}`;
-    const profileMobileLabel = baseEmoji;
+    const profileLabel = username || t('profile');
 
     return (
         <Box sx={{
@@ -133,7 +131,8 @@ const GameHeader = ({
                 <Button
                     component={Link}
                     to="/admin"
-                    title={profileDesktopLabel}
+                    title={profileLabel}
+                    aria-label={profileLabel}
                     sx={{
                         display: 'flex', // Show on all screen sizes
                         minWidth: { xs: 44, sm: 44, md: 48 },
@@ -144,7 +143,13 @@ const GameHeader = ({
                         textTransform: 'none'
                     }}
                 >
-                    <ResponsiveText desktop={profileDesktopLabel} mobile={profileMobileLabel} />
+                    <AccountCircleIcon fontSize="small" />
+                    <Box
+                        component="span"
+                        sx={{ display: { xs: 'none', md: 'inline' }, ml: 0.5 }}
+                    >
+                        {profileLabel}
+                    </Box>
                 </Button>
                 <NightModeButton
                     sx={{

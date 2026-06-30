@@ -1,9 +1,10 @@
 import React, { useState } from 'react';
 import axios from 'axios';
+import Box from '@mui/material/Box';
 import Button from '@mui/material/Button';
+import FileDownloadIcon from '@mui/icons-material/FileDownload';
 import ExportModal from './ExportModal';
 import { useTranslation } from 'react-i18next';
-import { ResponsiveText } from '../../../shared';
 
 export default function ExportButton({ category, grid, phrases, disabled, className, sx }) {
     const [modalOpen, setModalOpen] = useState(false);
@@ -57,9 +58,13 @@ export default function ExportButton({ category, grid, phrases, disabled, classN
                 className={`scrabble-btn ${className || ''}`}
                 onClick={handleButtonClick}
                 disabled={disabled}
+                aria-label={t('export')}
                 sx={sx}
             >
-                <ResponsiveText desktop={'📥 ' + t('export')} mobile="📥" />
+                <FileDownloadIcon fontSize="small" />
+                <Box component="span" sx={{ display: { xs: 'none', sm: 'inline' }, ml: 0.5 }}>
+                    {t('export')}
+                </Box>
             </Button>
 
             <ExportModal

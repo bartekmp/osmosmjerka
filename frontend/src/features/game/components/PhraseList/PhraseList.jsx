@@ -1,6 +1,10 @@
 import React, { useState, useRef } from 'react';
 import { useTranslation } from 'react-i18next';
 import { Checkbox, Tooltip, Box, Typography } from '@mui/material';
+import VisibilityIcon from '@mui/icons-material/Visibility';
+import VisibilityOffIcon from '@mui/icons-material/VisibilityOff';
+import KeyboardArrowLeftIcon from '@mui/icons-material/KeyboardArrowLeft';
+import KeyboardArrowRightIcon from '@mui/icons-material/KeyboardArrowRight';
 import AddToLearnLaterButton from '../AddToLearnLaterButton';
 import LoadingOverlay from '../LoadingOverlay';
 import './PhraseList.css';
@@ -133,7 +137,9 @@ export default function PhraseList({
                             padding: compact ? '6px 8px' : undefined
                         }}
                     >
-                        <span style={{ marginRight: compact ? 4 : 6 }}>{hidePhrases ? '👁️' : '🙈'}</span>
+                        <span style={{ marginRight: compact ? 4 : 6, display: 'inline-flex', alignItems: 'center' }}>
+                            {hidePhrases ? <VisibilityIcon fontSize="small" /> : <VisibilityOffIcon fontSize="small" />}
+                        </span>
                         <span className="phrase-list-btn-label">
                             {found.length}/{phrases.length}
                         </span>
@@ -153,7 +159,9 @@ export default function PhraseList({
                                 padding: compact ? '6px 12px' : undefined
                             }}
                         >
-                            <span style={{ marginRight: compact ? 4 : 6 }}>{showTranslations ? '◀' : '▶'}</span>
+                            <span style={{ marginRight: compact ? 4 : 6, display: 'inline-flex', alignItems: 'center' }}>
+                                {showTranslations ? <KeyboardArrowLeftIcon fontSize="small" /> : <KeyboardArrowRightIcon fontSize="small" />}
+                            </span>
                         </button>
                     )}
                 </div>

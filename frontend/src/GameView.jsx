@@ -1,4 +1,5 @@
 import { Box, Button, Stack } from "@mui/material";
+import AutorenewIcon from "@mui/icons-material/Autorenew";
 import {
   AllFoundMessage,
   CrosswordGrid,
@@ -187,9 +188,11 @@ export function GameView({
             <Button
               onClick={() => refreshPuzzle(selectedCategory, difficulty)}
               variant="contained"
-              sx={{ minWidth: "48px", minHeight: "48px", fontSize: "1.5rem" }}
+              aria-label={t("new_game", "New game")}
+              title={t("new_game", "New game")}
+              sx={{ minWidth: "48px", minHeight: "48px" }}
             >
-              🆕
+              <AutorenewIcon />
             </Button>
           )}
         </Box>
