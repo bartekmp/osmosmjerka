@@ -341,33 +341,24 @@ export default function PhraseList({
                         const isFound = found.includes(phrase);
                         const isSelected = selectedPhrases.has(id);
 
+                        // Single activation handler shared by pointer and keyboard.
+                        const activatePhrase = () => {
+                            if (currentUser && isFound && id) {
+                                togglePhraseSelection(id);
+                            } else if (!progressiveHintsEnabled) {
+                                handlePhraseClick(phrase);
+                            }
+                        };
+
                         return (
                             <li className="phrase-list-li" key={`${phrase}-${index}`}>
                                 <span
                                     className={`phrase-list-phrase${isFound ? ' found' : ''}${blinkingPhrase === phrase ? ' blinking' : ''}${isSelected ? ' selected' : ''}`}
-                                    onClick={() => {
-                                        if (currentUser && isFound && id) {
-                                            togglePhraseSelection(id);
-                                        } else if (!progressiveHintsEnabled) {
-                                            handlePhraseClick(phrase);
-                                        }
-                                    }}
+                                    onClick={activatePhrase}
                                     onKeyDown={(e) => {
                                         if (e.key === 'Enter' || e.key === ' ') {
                                             e.preventDefault();
-                                            if (currentUser && isFound && id) {
-                                                togglePhraseSelection(id);
-                                            } else if (!progressiveHintsEnabled) {
-                                                handlePhraseClick(phrase);
-                                            }
-                                        }
-                                    }}
-                                    onTouchEnd={e => {
-                                        e.preventDefault();
-                                        if (currentUser && isFound && id) {
-                                            togglePhraseSelection(id);
-                                        } else if (!progressiveHintsEnabled) {
-                                            handlePhraseClick(phrase);
+                                            activatePhrase();
                                         }
                                     }}
                                     style={{
