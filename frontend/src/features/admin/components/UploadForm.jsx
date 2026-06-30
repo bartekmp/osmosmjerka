@@ -3,6 +3,8 @@ import axios from 'axios';
 import { useRef, useState } from 'react';
 import { Snackbar, Alert, IconButton } from '@mui/material';
 import CloseIcon from '@mui/icons-material/Close';
+import UploadFileIcon from '@mui/icons-material/UploadFile';
+import ContentPasteIcon from '@mui/icons-material/ContentPaste';
 import { useTranslation } from 'react-i18next';
 import PropTypes from 'prop-types';
 import { ResponsiveActionButton, STORAGE_KEYS } from '../../../shared';
@@ -112,7 +114,7 @@ export default function UploadForm({ onUpload, selectedLanguageSetId = null, com
                 fullWidth={false}
                 onClick={handleButtonClick}
                 loading={loading}
-                icon="📁"
+                icon={<UploadFileIcon fontSize="inherit" />}
                 color="info"
                 desktopText={t('upload_phrases', 'Upload phrases (file)')}
                 mobileText={t('upload', 'Upload')}
@@ -127,7 +129,7 @@ export default function UploadForm({ onUpload, selectedLanguageSetId = null, com
                 onClick={() => setPasteDialogOpen(true)}
                 variant="outlined"
                 color="secondary"
-                icon="📝"
+                icon={<ContentPasteIcon fontSize="inherit" />}
                 desktopText={t('paste_phrases', 'Paste phrases')}
                 mobileText={t('paste', 'Paste')}
                 compact={compact}

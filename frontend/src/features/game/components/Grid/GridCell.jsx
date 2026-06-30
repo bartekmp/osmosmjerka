@@ -1,5 +1,6 @@
 import React, { useRef, useCallback } from 'react';
 import Box from '@mui/material/Box';
+import ArrowUpwardIcon from '@mui/icons-material/ArrowUpward';
 
 export default function GridCell({
     r, c, cell,
@@ -21,7 +22,7 @@ export default function GridCell({
             if (hintLevel === 1) classes.push('hint-first-letter');
             else if (hintLevel === 3) classes.push('hint-full-outline');
         }
-        if (directionArrow) classes.push('hint-direction');
+        if (directionArrow != null) classes.push('hint-direction');
         return classes.join(' ');
     };
 
@@ -55,21 +56,25 @@ export default function GridCell({
             }}
         >
             {cell}
-            {directionArrow && (
+            {directionArrow != null && (
                 <Box
                     className="direction-arrow"
                     sx={{
                         position: 'absolute',
                         top: '2px',
                         right: '2px',
-                        fontSize: `${Math.max(cellSize * 0.3, 10)}px`,
+                        display: 'inline-flex',
                         color: '#9c27b0',
-                        fontWeight: 'bold',
-                        textShadow: '1px 1px 2px rgba(0,0,0,0.5)',
                         zIndex: 10
                     }}
                 >
-                    {directionArrow}
+                    <ArrowUpwardIcon
+                        sx={{
+                            fontSize: `${Math.max(cellSize * 0.35, 12)}px`,
+                            transform: `rotate(${directionArrow}deg)`,
+                            filter: 'drop-shadow(1px 1px 2px rgba(0,0,0,0.5))',
+                        }}
+                    />
                 </Box>
             )}
         </Box>

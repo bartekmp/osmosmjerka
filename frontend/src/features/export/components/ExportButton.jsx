@@ -1,9 +1,11 @@
+import logger from '@shared/utils/logger';
 import React, { useState } from 'react';
 import axios from 'axios';
+import Box from '@mui/material/Box';
 import Button from '@mui/material/Button';
+import FileDownloadIcon from '@mui/icons-material/FileDownload';
 import ExportModal from './ExportModal';
 import { useTranslation } from 'react-i18next';
-import { ResponsiveText } from '../../../shared';
 
 export default function ExportButton({ category, grid, phrases, disabled, className, sx }) {
     const [modalOpen, setModalOpen] = useState(false);
@@ -35,7 +37,7 @@ export default function ExportButton({ category, grid, phrases, disabled, classN
             link.remove();
             window.URL.revokeObjectURL(url);
         } catch (err) {
-            console.error(t('export_failed'), err);
+            logger.error(t('export_failed'), err);
         }
     };
 
@@ -57,21 +59,13 @@ export default function ExportButton({ category, grid, phrases, disabled, classN
                 className={`scrabble-btn ${className || ''}`}
                 onClick={handleButtonClick}
                 disabled={disabled}
-                sx={{
-                    height: { xs: 60, sm: 60 },
-                    minWidth: { xs: 60, sm: 'auto' },
-                    fontSize: { xs: '1.2rem', sm: '1rem' },
-                    px: { xs: 1, sm: 2 },
-                    py: { xs: 0, sm: 1 },
-                    display: 'flex',
-                    flexDirection: { xs: 'column', sm: 'row' },
-                    alignItems: 'center',
-                    justifyContent: 'center',
-                    gap: { xs: 0, sm: 1 },
-                    ...(sx || {})
-                }}
+                aria-label={t('export')}
+                sx={sx}
             >
-                <ResponsiveText desktop={'📥 ' + t('export')} mobile="📥" />
+                <FileDownloadIcon fontSize="small" />
+                <Box component="span" sx={{ display: { xs: 'none', sm: 'inline' }, ml: 0.5 }}>
+                    {t('export')}
+                </Box>
             </Button>
 
             <ExportModal

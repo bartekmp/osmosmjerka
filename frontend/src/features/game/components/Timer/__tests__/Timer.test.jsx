@@ -46,13 +46,13 @@ describe('Timer Component', () => {
         it('shows pause icon when paused', () => {
             render(<Timer {...defaultProps} isPaused={true} />);
 
-            expect(screen.getByText(/⏸️/)).toBeInTheDocument();
+            expect(screen.getByTestId('PauseCircleIcon')).toBeInTheDocument();
         });
 
         it('shows timer icon when not paused', () => {
             render(<Timer {...defaultProps} isPaused={false} />);
 
-            expect(screen.getByText(/⏱️/)).toBeInTheDocument();
+            expect(screen.getByTestId('TimerIcon')).toBeInTheDocument();
         });
     });
 
@@ -259,14 +259,14 @@ describe('Timer Component', () => {
         it('shows paused class when isPaused is true', () => {
             render(<Timer {...defaultProps} isPaused={true} />);
 
-            const timerDisplay = screen.getByText(/⏸️/).closest('.timer-display');
+            const timerDisplay = screen.getByTestId('PauseCircleIcon').closest('.timer-display');
             expect(timerDisplay).toHaveClass('paused');
         });
 
         it('shows active class when isActive is true', () => {
             render(<Timer {...defaultProps} isActive={true} />);
 
-            const timerDisplay = screen.getByText(/⏱️/).closest('.timer-display');
+            const timerDisplay = screen.getByTestId('TimerIcon').closest('.timer-display');
             expect(timerDisplay).toHaveClass('active');
         });
     });

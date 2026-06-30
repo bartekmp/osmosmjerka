@@ -1,4 +1,4 @@
-import { Delete, Edit, PersonAdd } from '@mui/icons-material';
+import { Delete, Edit, PersonAdd, VpnKey } from '@mui/icons-material';
 import {
     Alert,
     Box,
@@ -306,7 +306,7 @@ export default function UserManagement({ currentUser }) {
                                         title={t('reset_password')}
                                         disabled={user.id === 0 && currentUser?.role !== 'root_admin'}
                                     >
-                                        🔑
+                                        <VpnKey fontSize="small" />
                                     </IconButton>
                                     <IconButton
                                         size="small"

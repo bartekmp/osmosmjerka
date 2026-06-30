@@ -4,8 +4,8 @@ import { useTranslation } from 'react-i18next';
 import { LanguageSwitcher, NightModeButton, GameTypeSelector } from '../../../../shared';
 import { Link } from 'react-router-dom';
 import { Button } from '@mui/material';
+import AccountCircleIcon from '@mui/icons-material/AccountCircle';
 import { getAssetUrl } from '../../../../shared/utils/assets';
-import ResponsiveText from '../../../../shared/components/ui/ResponsiveText';
 
 const GameHeader = ({
     logoFilter,
@@ -18,77 +18,65 @@ const GameHeader = ({
 }) => {
     const { t } = useTranslation();
     const username = currentUser?.username?.trim();
-    const baseEmoji = '👤';
-    const profileDesktopLabel = username ? `${baseEmoji} ${username}` : `${baseEmoji} ${t('profile')}`;
-    const profileMobileLabel = baseEmoji;
+    const profileLabel = username || t('profile');
 
     return (
         <Box sx={{
-            position: 'relative',
             width: '100%',
-            display: 'flex',
+            display: 'grid',
+            // Mobile: [brand | controls]. Desktop (md+): [spacer | brand | controls]
+            // with equal 1fr side columns so the brand is centered in the viewport.
+            gridTemplateColumns: { xs: 'auto 1fr', md: '1fr auto 1fr' },
             alignItems: 'center',
+            gap: { xs: 1, sm: 2 },
             mt: 2,
             mb: 3, // Add bottom margin to prevent overlap with content below
             px: { xs: 1, sm: 2 },
             minHeight: { xs: 48, sm: 56, md: 64, lg: 72 } // Ensure minimum height
         }}>
-            {/* Logo and title - left aligned on mobile, centered on larger screens */}
-            <Box sx={{
-                position: 'absolute',
-                left: 0,
-                right: { xs: '70px', sm: '140px', md: '170px' }, // Adjusted for smaller logo and controls
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: { xs: 'flex-start', sm: 'center' }, // Left align on mobile, center on larger screens
-                gap: { xs: 1, sm: 2 },
-                cursor: 'pointer',
-                overflow: 'hidden',
-                px: { xs: 1, sm: 2 } // Add padding to prevent edge touching
-            }}
+            {/* Left spacer — present only on desktop to balance the controls column
+                so the brand lands dead-center. */}
+            <Box sx={{ display: { xs: 'none', md: 'block' } }} />
+
+            {/* Brand: logo + wordmark grouped as one clickable unit.
+                Left-aligned on mobile, centered on desktop. The wordmark hides below
+                the sm breakpoint so the brand is logo-only on small screens. */}
+            <Box
+                sx={{
+                    minWidth: 0,
+                    justifySelf: { xs: 'start', md: 'center' },
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: { xs: 1, sm: 1.5 },
+                    cursor: 'pointer',
+                }}
                 onClick={handleLogoClick}
             >
                 <Box
+                    component="img"
+                    src={getAssetUrl("android-chrome-512x512.png")}
+                    alt="Osmosmjerka logo"
                     sx={{
-                        position: 'relative',
+                        flexShrink: 0,
                         height: { xs: 30, sm: 32, md: 36, lg: 44 },
                         width: { xs: 30, sm: 32, md: 36, lg: 44 },
-                        flexShrink: 0,
+                        filter: logoFilter,
+                        transition: 'filter 0.3s ease',
+                        userSelect: 'none',
                     }}
-                >
-                    <Box
-                        component="img"
-                        src={getAssetUrl("android-chrome-512x512.png")}
-                        alt="Osmosmjerka logo"
-                        sx={{
-                            height: '100%',
-                            width: '100%',
-                            filter: logoFilter,
-                            transition: 'filter 0.3s ease',
-                            userSelect: 'none',
-                            position: 'relative',
-                            zIndex: 1,
-                        }}
-                        onError={e => {
-                            e.target.onerror = null;
-                            e.target.src = getAssetUrl("favicon-32x32.png");
-                        }}
-                    />
-                </Box>
+                    onError={e => {
+                        e.target.onerror = null;
+                        e.target.src = getAssetUrl("favicon-32x32.png");
+                    }}
+                />
                 <Typography
                     variant="h1"
                     sx={{
-                        fontSize: { xs: '1.1rem', sm: '1.5rem', md: '2rem', lg: '2.5rem' }, // Reduced mobile font size
-                        textAlign: 'center',
-                        userSelect: 'none',
+                        display: { xs: 'none', sm: 'block' }, // logo-only on small screens
+                        fontSize: { sm: '1.5rem', md: '2rem', lg: '2.5rem' },
+                        lineHeight: 1.1,
                         whiteSpace: 'nowrap',
-                        overflow: 'hidden',
-                        textOverflow: 'ellipsis',
-                        minWidth: 0,
-                        maxWidth: '100%',
-                        '@media (max-width: 349px)': {
-                            display: 'none',
-                        },
+                        userSelect: 'none',
                         // Add wobble animation when celebrating
                         animation: showCelebration ? 'title-wobble 0.5s ease-in-out 6' : 'none',
                         '@keyframes title-wobble': {
@@ -111,23 +99,21 @@ const GameHeader = ({
                 </Typography>
             </Box>
 
-            {/* Controls - positioned absolutely on the right */}
+            {/* Controls (right) — pinned to the end of the row */}
             <Box
                 sx={{
-                    position: 'absolute',
-                    right: 0,
+                    justifySelf: 'end',
                     display: 'flex',
                     flexDirection: 'row',
                     alignItems: 'center',
                     gap: { xs: 1, sm: 1, md: 1 }, // Uniform gaps across all screen sizes
-                    zIndex: 1
                 }}
             >
                 <LanguageSwitcher
                     sx={{
-                        minWidth: { xs: 36, sm: 44, md: 48 },
-                        height: { xs: 36, sm: 44, md: 48 },
-                        minHeight: { xs: 36, sm: 44, md: 48 },
+                        minWidth: { xs: 44, sm: 44, md: 48 },
+                        height: { xs: 44, sm: 44, md: 48 },
+                        minHeight: { xs: 44, sm: 44, md: 48 },
                     }}
                 />
                 {/* Game Type Selector */}
@@ -137,32 +123,40 @@ const GameHeader = ({
                         onChange={onGameTypeChange}
                         disabled={isGridLoading}
                         sx={{
-                            minWidth: { xs: 36, sm: 44, md: 48 },
-                            height: { xs: 36, sm: 44, md: 48 },
+                            minWidth: { xs: 44, sm: 44, md: 48 },
+                            height: { xs: 44, sm: 44, md: 48 },
+                            minHeight: { xs: 44, sm: 44, md: 48 },
                         }}
                     />
                 )}
                 <Button
                     component={Link}
                     to="/admin"
-                    title={profileDesktopLabel}
+                    title={profileLabel}
+                    aria-label={profileLabel}
                     sx={{
                         display: 'flex', // Show on all screen sizes
-                        minWidth: { xs: 36, sm: 44, md: 48 },
-                        height: { xs: 36, sm: 44, md: 48 },
-                        minHeight: { xs: 36, sm: 44, md: 48 },
+                        minWidth: { xs: 44, sm: 44, md: 48 },
+                        height: { xs: 44, sm: 44, md: 48 },
+                        minHeight: { xs: 44, sm: 44, md: 48 },
                         fontSize: { sm: '0.8rem', md: '0.9rem' },
                         px: { xs: 0.5, sm: 0.75, md: 1 },
                         textTransform: 'none'
                     }}
                 >
-                    <ResponsiveText desktop={profileDesktopLabel} mobile={profileMobileLabel} />
+                    <AccountCircleIcon fontSize="small" />
+                    <Box
+                        component="span"
+                        sx={{ display: { xs: 'none', md: 'inline' }, ml: 0.5 }}
+                    >
+                        {profileLabel}
+                    </Box>
                 </Button>
                 <NightModeButton
                     sx={{
-                        minWidth: { xs: 36, sm: 44, md: 48 },
-                        height: { xs: 36, sm: 44, md: 48 },
-                        minHeight: { xs: 36, sm: 44, md: 48 },
+                        minWidth: { xs: 44, sm: 44, md: 48 },
+                        height: { xs: 44, sm: 44, md: 48 },
+                        minHeight: { xs: 44, sm: 44, md: 48 },
                         padding: { xs: 0.5, sm: 0.75, md: 1 },
                     }}
                 />

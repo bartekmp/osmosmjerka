@@ -381,7 +381,7 @@ function CreatePhraseSetDialog({ open, onClose, onCreated, token, languageSets, 
                                 {t('teacher.create.grid_size_help', {
                                     min: Math.floor(config.grid_size * 1.2),
                                     max: Math.floor(config.grid_size * 2),
-                                    defaultValue: '💡 Larger grids fit more phrases. Select {{min}} - {{max}} phrases for best results.'
+                                    defaultValue: 'Larger grids fit more phrases. Select {{min}} - {{max}} phrases for best results.'
                                 })}
                             </Typography>
                         </Box>

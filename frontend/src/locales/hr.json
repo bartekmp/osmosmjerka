@@ -64,9 +64,9 @@
   "root_administrator": "Glavni administrator",
   "confirm_delete_phrase": "Jeste li sigurni da želite obrisati frazu \"{{phrase}}\"?",
   "back_to_game": "Natrag na igru",
-  "game_short": "🎮 Igra",
+  "game_short": "Igra",
   "dashboard": "Nadzorna ploča",
-  "dashboard_short": "🛠️ Admin",
+  "dashboard_short": "Admin",
   "user_management": "Upravljanje korisnicima",
   "language_set": "Jezični set",
   "language_set_loading": "Učitavanje jezičnog seta",
@@ -534,7 +534,7 @@
     "add_selected_to_learn_later": "Dodaj {{count}} odabranih u Nauči ovo kasnije",
     "add_new_phrases_tooltip": "Dodaj {{new}} novih fraza ({{already}} već spremljeno)",
     "add_selected_new_tooltip": "Dodaj {{new}} odabranih ({{already}} već spremljeno)",
-    "all_phrases_already_saved": "Sve fraze već su u Nauči ovo kasnije ✓",
+    "all_phrases_already_saved": "Sve fraze već su u Nauči ovo kasnije",
     "selected_already_saved": "Odabrane fraze već spremljene",
     "added_to_learn_later_count": "Dodano {{count}} fraza u Nauči ovo kasnije!",
     "added_selected_to_learn_later": "Dodano {{count}} odabranih fraza!",
@@ -548,7 +548,7 @@
     "public_categories": "Javne Kategorije",
     "no_lists_yet": "Još nema privatnih lista",
     "loading_failed": "Neuspješno učitavanje vaših lista",
-    "system_list_indicator": "📝",
+    "system_list_indicator": "",
     "shared_with_me": "Podijeljeno sa mnom"
   },
   "privateListManager": {
@@ -689,7 +689,7 @@
       "language_set_label": "Jezični skup",
       "grid_size_label": "Veličina mreže: {{size}}x{{size}}",
       "max_phrases_hint": "Max ~{{count}} fraza",
-      "grid_size_help": "💡 Veće mreže primaju više fraza. Odaberite {{min}} - {{max}} fraza za najbolje rezultate.",
+      "grid_size_help": "Veće mreže primaju više fraza. Odaberite {{min}} - {{max}} fraza za najbolje rezultate.",
       "selected_count": "Odabrano: {{count}}/50 fraza",
       "category_label": "Kategorija",
       "all_categories": "Sve kategorije",
@@ -760,11 +760,11 @@
       "error_generate": "Generiranje pregleda nije uspjelo",
       "click_hint": "Kliknite na frazu za označavanje",
       "settings": "Postavke",
-      "hints_enabled": "Savjeti ✓",
+      "hints_enabled": "Savjeti",
       "hints_disabled": "Bez savjeta",
-      "translations_enabled": "Prijevodi ✓",
+      "translations_enabled": "Prijevodi",
       "translations_disabled": "Skriveno",
-      "timer_enabled": "Štoperica ✓",
+      "timer_enabled": "Štoperica",
       "timer_disabled": "Bez štoperice",
       "phrases_count": "Fraze ({{count}})",
       "exit": "Izađi iz pregleda"
@@ -844,10 +844,6 @@
     "improvements": "Poboljšanja",
     "dismiss": "Razumijem!",
     "empty": "Nema ažuriranja od vašeg zadnjeg posjeta"
-  },
-  "cookies": {
-    "message": "Ova stranica koristi kolačiće za poboljšanje vašeg iskustva.",
-    "accept": "Prihvaćam"
   },
   "gameType": {
     "label": "Vrsta igre",

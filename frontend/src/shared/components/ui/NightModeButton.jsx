@@ -1,5 +1,7 @@
 import React from 'react';
 import { Button } from '@mui/material';
+import DarkModeIcon from '@mui/icons-material/DarkMode';
+import LightModeIcon from '@mui/icons-material/LightMode';
 import { useThemeMode } from '../../../contexts/ThemeContext';
 import { useTranslation } from 'react-i18next';
 import PropTypes from 'prop-types';
@@ -18,16 +20,16 @@ export default function NightModeButton({ sx = {}, className = '', ...rest }) {
         <Button
             onClick={toggleDarkMode}
             sx={{
-                fontSize: { xs: '1rem', sm: '1.1rem', md: '1.2rem' }, // Unified responsive emoji size
                 minWidth: 48,
                 minHeight: 48,
                 ...sx
             }}
             className={className}
             title={isDarkMode ? t('light_mode') : t('dark_mode')}
+            aria-label={isDarkMode ? t('light_mode') : t('dark_mode')}
             {...rest}
         >
-            {isDarkMode ? '☀️' : '🌙'}
+            {isDarkMode ? <LightModeIcon fontSize="small" /> : <DarkModeIcon fontSize="small" />}
         </Button>
     );
 }

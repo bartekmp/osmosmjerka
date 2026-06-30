@@ -1,3 +1,4 @@
+import logger from '@shared/utils/logger';
 import {
   Box,
   CircularProgress,
@@ -6,6 +7,7 @@ import {
   ThemeProvider as MUIThemeProvider,
   Typography,
   IconButton,
+  useMediaQuery,
 } from "@mui/material";
 import GitHubIcon from "@mui/icons-material/GitHub";
 import confetti from "canvas-confetti";
@@ -28,7 +30,7 @@ import "./styles/controls/game-controls.css";
 import "./styles/responsive/app-responsive.css";
 import { ThemeProvider, useThemeMode } from "./contexts/ThemeContext";
 import { AdminControls } from "./features";
-import { SplashScreen, WhatsNewModal, CookieConsentBar } from "./shared";
+import { SplashScreen, WhatsNewModal } from "./shared";
 import { GameView } from "./GameView";
 import "./style.css";
 import createAppTheme from "./theme";
@@ -118,38 +120,26 @@ function AppContent() {
         return !!state.showTranslations;
       } catch (error) {
         // Ignore parsing errors
-        console.warn("Failed to parse stored game state:", error);
+        logger.warn("Failed to parse stored game state:", error);
       }
     }
     return false;
   });
 
-  // Calculate if there's enough space for sidebar next to grid
-  const [showSidebarLayout, setShowSidebarLayout] = useState(false);
+  // Layout is purely viewport-width driven (via theme breakpoints) so that narrow
+  // non-touch windows get the same comfortable mobile layout as phones instead of
+  // a cramped two-column layout. `isTouchDevice` still tunes interaction (cell
+  // sizing, FABs) downstream — it just no longer decides the overall layout.
+  // md (900px) comfortably fits the grid next to the ~280-320px sidebar.
+  // Note: AppContent renders the MUI ThemeProvider in its own return, so it is
+  // not itself inside that provider — the string query form is used here (values
+  // mirror the theme's md/lg breakpoints) instead of the theme-callback form.
+  const showSidebarLayout = useMediaQuery("(min-width:900px)"); // theme md
+  const useMobileLayout = !showSidebarLayout;
 
-  useEffect(() => {
-    const calculateLayout = () => {
-      const screenWidth = window.innerWidth;
-
-      // Calculate if sidebar can fit next to grid
-      if (isTouchDevice && grid.length > 0) {
-        // Use a more conservative threshold that accounts for actual rendered grid size
-        // For touch devices, we need at least 900px to comfortably fit grid + sidebar
-        // This prevents the awkward gap between 690-900px
-        const minRequiredWidth = 900;
-        setShowSidebarLayout(screenWidth >= minRequiredWidth);
-      } else {
-        setShowSidebarLayout(screenWidth >= 1200);
-      }
-    };
-
-    calculateLayout();
-    window.addEventListener('resize', calculateLayout);
-    return () => window.removeEventListener('resize', calculateLayout);
-  }, [isTouchDevice, grid.length]);
-
-  // Use mobile layout only if touch device AND not enough space for sidebar
-  const useMobileLayout = isTouchDevice && !showSidebarLayout;
+  // Reactive compact flag for the sidebar (phrase list / hint button); updates on
+  // resize, unlike the previous render-time window.innerWidth reads.
+  const compactSidebar = useMediaQuery("(max-width:1199.95px)"); // below theme lg
 
   // Check if grid cells would be too small
   const isGridTooSmall = useGridTooSmall(grid.length, isTouchDevice, useMobileLayout);
@@ -699,6 +689,7 @@ function AppContent() {
   const gameView = (
     <GameView
       useMobileLayout={useMobileLayout}
+      compactSidebar={compactSidebar}
       isDarkMode={isDarkMode}
       isTouchDevice={isTouchDevice}
       isScreenTooSmall={isScreenTooSmall}
@@ -914,9 +905,6 @@ function AppContent() {
         onClose={handleWhatsNewClose}
         entries={whatsNewEntries}
       />
-
-      {/* Cookie Consent Bar */}
-      <CookieConsentBar />
     </MUIThemeProvider>
   );
 }

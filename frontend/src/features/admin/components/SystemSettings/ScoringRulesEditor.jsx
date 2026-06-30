@@ -1,3 +1,4 @@
+import logger from '@shared/utils/logger';
 import React, { useState, useEffect } from "react";
 import {
   Box,
@@ -69,7 +70,7 @@ const ScoringRulesEditor = ({ scoringEnabled = true }) => {
 
       setRules(response.data);
     } catch (error) {
-      console.error("Failed to load scoring rules:", error);
+      logger.error("Failed to load scoring rules:", error);
       showNotification(
         t("admin.scoringRules.loadError", "Failed to load scoring rules"),
         "error"
@@ -104,7 +105,7 @@ const ScoringRulesEditor = ({ scoringEnabled = true }) => {
       // Reload to ensure we have the latest values
       await loadScoringRules();
     } catch (error) {
-      console.error("Failed to save scoring rules:", error);
+      logger.error("Failed to save scoring rules:", error);
       showNotification(
         t("admin.scoringRules.saveError", "Failed to save scoring rules"),
         "error"

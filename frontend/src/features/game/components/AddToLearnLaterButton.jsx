@@ -1,3 +1,4 @@
+import logger from '@shared/utils/logger';
 import React, { useState, useEffect, useMemo, useRef } from 'react';
 import { IconButton, Tooltip, Snackbar, Alert } from '@mui/material';
 import AddCircleOutlineIcon from '@mui/icons-material/AddCircleOutlined';
@@ -66,7 +67,7 @@ export default function AddToLearnLaterButton({
         setPhrasesInList(new Set(response.data.in_list || []));
         lastCheckedIdsRef.current = phraseIdsKey; // Mark these IDs as checked
       } catch (error) {
-        console.error('Failed to check phrases in list:', error);
+        logger.error('Failed to check phrases in list:', error);
         setPhrasesInList(new Set());
       } finally {
         setIsCheckingList(false);
@@ -83,7 +84,7 @@ export default function AddToLearnLaterButton({
   
   // Debug logging to help troubleshoot
   if (phrases.length > 0 && phraseIds.length === 0) {
-    console.warn('AddToLearnLaterButton: phrases exist but no IDs found', {
+    logger.warn('AddToLearnLaterButton: phrases exist but no IDs found', {
       phrasesCount: phrases.length,
       firstPhrase: phrases[0],
       type

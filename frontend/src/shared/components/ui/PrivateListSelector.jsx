@@ -1,5 +1,8 @@
+import logger from '@shared/utils/logger';
 import React, { useState, useEffect, useCallback } from 'react';
 import { FormControl, InputLabel, MenuItem, Select, Box, Typography, Divider } from '@mui/material';
+import DescriptionIcon from '@mui/icons-material/Description';
+import PersonIcon from '@mui/icons-material/Person';
 import { useTranslation } from 'react-i18next';
 import axios from 'axios';
 import { STORAGE_KEYS } from '../../constants/constants';
@@ -45,7 +48,7 @@ const PrivateListSelector = ({
                         headers: { Authorization: `Bearer ${token}` }
                     }
                 ).catch((err) => {
-                    console.error('Failed to fetch private lists:', err);
+                    logger.error('Failed to fetch private lists:', err);
                     return { data: { lists: [] } };
                 }),
                 axios.get(
@@ -54,7 +57,7 @@ const PrivateListSelector = ({
                         headers: { Authorization: `Bearer ${token}` }
                     }
                 ).catch((err) => {
-                    console.error('Failed to fetch shared lists:', err);
+                    logger.error('Failed to fetch shared lists:', err);
                     return { data: { lists: [] } };
                 })
             ]);
@@ -64,7 +67,7 @@ const PrivateListSelector = ({
             setPrivateLists(privateListsData);
             setSharedLists(sharedListsData);
         } catch (err) {
-            console.error('Failed to fetch lists:', err);
+            logger.error('Failed to fetch lists:', err);
             setError(t('myLists.loading_failed', 'Failed to load your lists'));
             setPrivateLists([]);
             setSharedLists([]);
@@ -166,11 +169,19 @@ const PrivateListSelector = ({
                     // Find the list and return its name
                     const list = [...privateLists, ...sharedLists].find(l => String(l.id) === selectedValue);
                     if (list) {
-                        const prefix = list.is_system_list ? '📝 ' : '';
-                        const ownerPrefix = sharedLists.some(sl => sl.id === list.id)
-                            ? `👤 ${list.owner_username || 'Unknown'}: `
-                            : '';
-                        return `${prefix}${ownerPrefix}${list.list_name}`;
+                        const isShared = sharedLists.some(sl => sl.id === list.id);
+                        return (
+                            <Box component="span" sx={{ display: 'inline-flex', alignItems: 'center', gap: 0.5 }}>
+                                {list.is_system_list && <DescriptionIcon fontSize="small" />}
+                                {isShared && (
+                                    <>
+                                        <PersonIcon fontSize="small" />
+                                        {`${list.owner_username || 'Unknown'}: `}
+                                    </>
+                                )}
+                                {list.list_name}
+                            </Box>
+                        );
                     }
                     return selectedValue;
                 }}
@@ -208,7 +219,7 @@ const PrivateListSelector = ({
                                 }}
                             >
                                 <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.5 }}>
-                                    {list.is_system_list && '📝 '}
+                                    {list.is_system_list && <DescriptionIcon fontSize="small" />}
                                     {list.list_name}
                                     {list.phrase_count > 0 && (
                                         <Typography
@@ -245,8 +256,8 @@ const PrivateListSelector = ({
                                 }}
                             >
                                 <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.5 }}>
-                                    <Typography variant="body2" color="text.secondary" sx={{ fontSize: '0.75rem' }}>
-                                        👤 {list.owner_username || 'Unknown'}:
+                                    <Typography variant="body2" color="text.secondary" sx={{ fontSize: '0.75rem', display: 'inline-flex', alignItems: 'center', gap: 0.25 }}>
+                                        <PersonIcon sx={{ fontSize: '0.9rem' }} /> {list.owner_username || 'Unknown'}:
                                     </Typography>
                                     {list.list_name}
                                     {list.phrase_count > 0 && (

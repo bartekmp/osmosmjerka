@@ -1,3 +1,4 @@
+import logger from '@shared/utils/logger';
 export function measureTextWidth(text, fontSize = '14px', fontFamily = 'Roboto, sans-serif') {
     const canvas = document.createElement('canvas');
     const context = canvas.getContext('2d');
@@ -74,7 +75,7 @@ export async function copyToClipboard(text, setCopyFeedback, t) {
         }
         setTimeout(() => setCopyFeedback(''), 2000);
     } catch (err) {
-        console.error('Failed to copy text: ', err);
+        logger.error('Failed to copy text: ', err);
         setCopyFeedback(messages.failed);
         setTimeout(() => setCopyFeedback(''), 3000);
     }

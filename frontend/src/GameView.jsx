@@ -1,4 +1,5 @@
 import { Box, Button, Stack } from "@mui/material";
+import AutorenewIcon from "@mui/icons-material/Autorenew";
 import {
   AllFoundMessage,
   CrosswordGrid,
@@ -18,6 +19,7 @@ import { NotEnoughPhrasesOverlay, ScreenTooSmallOverlay } from "./shared";
 export function GameView({
   // layout
   useMobileLayout,
+  compactSidebar,
   isDarkMode,
   isTouchDevice,
   isScreenTooSmall,
@@ -186,9 +188,11 @@ export function GameView({
             <Button
               onClick={() => refreshPuzzle(selectedCategory, difficulty)}
               variant="contained"
-              sx={{ minWidth: "48px", minHeight: "48px", fontSize: "1.5rem" }}
+              aria-label={t("new_game", "New game")}
+              title={t("new_game", "New game")}
+              sx={{ minWidth: "48px", minHeight: "48px" }}
             >
-              🆕
+              <AutorenewIcon />
             </Button>
           )}
         </Box>
@@ -339,7 +343,7 @@ export function GameView({
                   disabled={allFound || phrases.length === 0 || isGridTooSmall || isGridLoading}
                   maxHints={gameType === "crossword" ? phrases.length : 3}
                   showHintButton={true}
-                  compact={window.innerWidth < 1200}
+                  compact={compactSidebar}
                   gameType={gameType}
                 />
               )}
@@ -356,7 +360,7 @@ export function GameView({
               disableShowPhrases={notEnoughPhrases || isGridTooSmall}
               currentUser={currentUser}
               languageSetId={selectedLanguageSetId}
-              compact={window.innerWidth < 1200}
+              compact={compactSidebar}
               isLoading={isGridLoading}
             />
           </Box>

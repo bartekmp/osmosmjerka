@@ -1,3 +1,4 @@
+import logger from '@shared/utils/logger';
 import axios from "axios";
 import { useCallback, useEffect, useState } from "react";
 import { API_ENDPOINTS, STORAGE_KEYS } from "../shared/constants/constants";
@@ -23,7 +24,7 @@ export function useAuth() {
       setCurrentUser(profileResponse.data);
       return profileResponse.data;
     } catch (error) {
-      console.warn("Failed to load authenticated user profile:", error);
+      logger.warn("Failed to load authenticated user profile:", error);
       setCurrentUser(null);
       return null;
     }
@@ -50,7 +51,7 @@ export function useAuth() {
         setStatisticsEnabled(false);
       }
     } catch (_err) {
-      console.warn("Failed to load statistics settings:", _err);
+      logger.warn("Failed to load statistics settings:", _err);
     }
   }, [fetchAuthenticatedUser]);
 

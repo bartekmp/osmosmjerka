@@ -1,3 +1,4 @@
+import logger from '@shared/utils/logger';
 /**
  * Version comparison and tracking utilities for What's New feature
  */
@@ -65,7 +66,7 @@ export function setLastSeenVersion(version) {
     try {
         localStorage.setItem(STORAGE_KEYS.LAST_SEEN_VERSION, version);
     } catch (error) {
-        console.warn('Failed to save last seen version:', error);
+        logger.warn('Failed to save last seen version:', error);
     }
 }
 
@@ -76,7 +77,7 @@ export function clearLastSeenVersion() {
     try {
         localStorage.removeItem(STORAGE_KEYS.LAST_SEEN_VERSION);
     } catch (error) {
-        console.warn('Failed to clear last seen version:', error);
+        logger.warn('Failed to clear last seen version:', error);
     }
 }
 
@@ -102,14 +103,14 @@ export async function fetchWhatsNew(sinceVersion = null, limit = 5) {
         const response = await fetch(url);
 
         if (!response.ok) {
-            console.warn('Failed to fetch changelog:', response.status);
+            logger.warn('Failed to fetch changelog:', response.status);
             return [];
         }
 
         const data = await response.json();
         return data.entries || [];
     } catch (error) {
-        console.error('Error fetching changelog:', error);
+        logger.error('Error fetching changelog:', error);
         return [];
     }
 }
@@ -138,7 +139,7 @@ export async function getCurrentVersion() {
             return data.version;
         }
     } catch (error) {
-        console.warn('Could not fetch current version:', error);
+        logger.warn('Could not fetch current version:', error);
     }
 
     return null;

@@ -1,3 +1,4 @@
+import logger from '@shared/utils/logger';
 import React, { useState, useEffect, useCallback, useRef } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import {
@@ -16,8 +17,10 @@ import {
     TextField,
     Tooltip,
     Typography,
+    useMediaQuery,
 } from '@mui/material';
 import ArrowBackIcon from '@mui/icons-material/ArrowBack';
+import CelebrationIcon from '@mui/icons-material/Celebration';
 import ListIcon from '@mui/icons-material/List';
 import { useTranslation } from 'react-i18next';
 import confetti from 'canvas-confetti';
@@ -73,18 +76,10 @@ function TeacherPuzzlePage() {
 
     const gridRef = useRef(null);
 
-    // Mobile layout detection
+    // Mobile layout detection — touch device on a narrow (< md) viewport.
     const isTouchDevice = useTouchDevice();
-    const [useMobileLayout, setUseMobileLayout] = useState(false);
-
-    useEffect(() => {
-        const checkMobileLayout = () => {
-            setUseMobileLayout(isTouchDevice && window.innerWidth < 900);
-        };
-        checkMobileLayout();
-        window.addEventListener('resize', checkMobileLayout);
-        return () => window.removeEventListener('resize', checkMobileLayout);
-    }, [isTouchDevice]);
+    const isNarrow = useMediaQuery((theme) => theme.breakpoints.down('md'));
+    const useMobileLayout = isTouchDevice && isNarrow;
     const allFound = found.length === phrases.length && phrases.length > 0;
 
     // Clear any existing session on mount - every refresh starts fresh
@@ -115,7 +110,7 @@ function TeacherPuzzlePage() {
                     setNickname(userData.username || userData.display_name || '');
                 }
             } catch (err) {
-                console.error('Failed to check auth:', err);
+                logger.error('Failed to check auth:', err);
             } finally {
                 setCheckingAuth(false);
             }
@@ -134,7 +129,7 @@ function TeacherPuzzlePage() {
         if (loading) {
             const timer = setTimeout(() => {
                 if (loading) {
-                    console.error('Loading timeout - forcing error state');
+                    logger.error('Loading timeout - forcing error state');
                     setLoading(false);
                     if (!puzzleData && !error) {
                         setError(t('teacher.puzzle.error_loading', 'Timeout loading puzzle.'));
@@ -342,7 +337,7 @@ function TeacherPuzzlePage() {
                 }),
             });
         } catch (err) {
-            console.error('Failed to complete session:', err);
+            logger.error('Failed to complete session:', err);
         }
     };
 
@@ -619,8 +614,8 @@ function TeacherPuzzlePage() {
 
                     {/* All found message */}
                     {allFound && (
-                        <Alert severity="success" sx={{ textAlign: 'center' }}>
-                            🎉 {t('all_found', 'All phrases found!')}
+                        <Alert severity="success" sx={{ textAlign: 'center' }} icon={<CelebrationIcon />}>
+                            {t('all_found', 'All phrases found!')}
                             {showTimer && ` Time: ${Math.floor(currentElapsedTime / 60)}:${(currentElapsedTime % 60).toString().padStart(2, '0')}`}
                         </Alert>
                     )}

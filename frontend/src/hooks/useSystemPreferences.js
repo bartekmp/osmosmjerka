@@ -1,3 +1,4 @@
+import logger from '@shared/utils/logger';
 import axios from "axios";
 import { useCallback, useEffect, useState } from "react";
 import { API_ENDPOINTS } from "../shared/constants/constants";
@@ -15,7 +16,7 @@ export function useSystemPreferences() {
       setScoringEnabled(scoringRes.data.enabled);
       setProgressiveHintsEnabled(hintsRes.data.enabled);
     } catch (error) {
-      console.error("Failed to check system preferences:", error);
+      logger.error("Failed to check system preferences:", error);
       setScoringEnabled(true);
       setProgressiveHintsEnabled(false);
     }

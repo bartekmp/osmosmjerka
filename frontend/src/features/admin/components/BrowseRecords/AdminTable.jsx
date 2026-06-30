@@ -18,6 +18,11 @@ import {
 } from '@mui/material';
 import Autocomplete from '@mui/material/Autocomplete';
 import CheckBoxIcon from '@mui/icons-material/CheckBox';
+import CheckCircleIcon from '@mui/icons-material/CheckCircle';
+import BuildIcon from '@mui/icons-material/Build';
+import AddIcon from '@mui/icons-material/Add';
+import CheckIcon from '@mui/icons-material/Check';
+import CloseIcon from '@mui/icons-material/Close';
 import { useTranslation } from 'react-i18next';
 import {
     useReactTable,
@@ -265,9 +270,9 @@ export default function AdminTable({
     }, [selectedRows.length, rows.length]);
 
     const batchModeLabel = batchMode ? t('exit_batch_mode') : t('enter_batch_mode');
-    const batchModeEmoji = batchMode ? '✅' : '🛠️';
+    const batchModeIcon = batchMode ? <CheckCircleIcon fontSize="small" /> : <BuildIcon fontSize="small" />;
     const addRowLabel = t('add_row');
-    const addRowEmoji = '➕';
+    const addRowIcon = <AddIcon fontSize="small" />;
 
     const withCompactTooltip = useCallback((element, title) => {
         if (!compactMode) {
@@ -536,9 +541,7 @@ export default function AdminTable({
                                     aria-label={batchModeLabel}
                                     title={batchModeLabel}
                                 >
-                                    {compactMode ? (
-                                        <span aria-hidden="true">{batchModeEmoji}</span>
-                                    ) : batchModeLabel}
+                                    {compactMode ? batchModeIcon : batchModeLabel}
                                 </Button>,
                                 batchModeLabel
                             )}
@@ -549,7 +552,7 @@ export default function AdminTable({
                                     size="small"
                                     aria-label={addRowLabel}
                                     title={addRowLabel}
-                                    startIcon={compactMode ? undefined : <span aria-hidden="true">{addRowEmoji}</span>}
+                                    startIcon={compactMode ? undefined : addRowIcon}
                                     onClick={() => {
                                         if (!canAddNewRow || Boolean(newRow)) {
                                             return;
@@ -566,9 +569,7 @@ export default function AdminTable({
                                     }}
                                     disabled={!canAddNewRow || Boolean(newRow)}
                                 >
-                                    {compactMode ? (
-                                        <span aria-hidden="true">{addRowEmoji}</span>
-                                    ) : addRowLabel}
+                                    {compactMode ? addRowIcon : addRowLabel}
                                 </Button>,
                                 addRowLabel
                             )}
@@ -915,7 +916,7 @@ export default function AdminTable({
                                                         onClick={handleConfirmClick}
                                                         disabled={!isNewRowValid || isSavingNewRow || !newRow || newRowPhase !== 'editing'}
                                                     >
-                                                        <span aria-hidden="true">✅</span>
+                                                        <CheckIcon fontSize="small" />
                                                     </Button>
                                                     <Button
                                                         size="small"
@@ -937,7 +938,7 @@ export default function AdminTable({
                                                         onClick={handleCancelClick}
                                                         disabled={isSavingNewRow || !newRow}
                                                     >
-                                                        <span aria-hidden="true">❌</span>
+                                                        <CloseIcon fontSize="small" />
                                                     </Button>
                                                 </Stack>
                                             </TableCell>

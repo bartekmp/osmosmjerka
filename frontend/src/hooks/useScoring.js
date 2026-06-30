@@ -1,3 +1,4 @@
+import logger from '@shared/utils/logger';
 import axios from "axios";
 import { useCallback, useEffect, useRef, useState } from "react";
 import { API_ENDPOINTS, STORAGE_KEYS } from "../shared/constants/constants";
@@ -33,7 +34,7 @@ export function useScoring({
         setScoringRules(response.data);
         setScoringRulesStatus("loaded");
       } catch (error) {
-        console.error("Failed to load scoring rules:", error);
+        logger.error("Failed to load scoring rules:", error);
         setScoringRulesStatus("error");
       }
     },
@@ -103,7 +104,7 @@ export function useScoring({
         });
         setCurrentScore(scoringDetails.final_score);
       } catch (error) {
-        console.error("Failed to save game score:", error);
+        logger.error("Failed to save game score:", error);
       }
     },
     [
@@ -144,7 +145,7 @@ export function useScoring({
         });
         return response.data;
       } catch (error) {
-        console.error("Failed to calculate score from API, falling back to client-side:", error);
+        logger.error("Failed to calculate score from API, falling back to client-side:", error);
         return calculateScoreClientSide(
           difficulty,
           phrasesFound,

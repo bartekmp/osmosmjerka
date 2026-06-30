@@ -2,6 +2,8 @@ import React, { useState, useEffect, useRef, useCallback } from 'react';
 import { useTranslation } from 'react-i18next';
 import { Box, Drawer, IconButton, Typography, Divider } from '@mui/material';
 import CloseIcon from '@mui/icons-material/Close';
+import KeyboardArrowLeftIcon from '@mui/icons-material/KeyboardArrowLeft';
+import KeyboardArrowRightIcon from '@mui/icons-material/KeyboardArrowRight';
 import PhraseList from '../PhraseList';
 import AddToLearnLaterButton from '../AddToLearnLaterButton';
 import './MobilePhraseListSheet.css';
@@ -170,7 +172,9 @@ const MobilePhraseListSheet = ({
                 aria-label={showTranslations ? translate('hide_all_translations') : translate('show_all_translations')}
                 style={{ fontSize: '1.1em', display: 'flex', alignItems: 'center', justifyContent: 'center', minWidth: '40px', height: '40px' }}
               >
-                <span>{showTranslations ? '◀' : '▶'}</span>
+                <span style={{ display: 'inline-flex', alignItems: 'center' }}>
+                  {showTranslations ? <KeyboardArrowLeftIcon fontSize="small" /> : <KeyboardArrowRightIcon fontSize="small" />}
+                </span>
               </button>
             )}
             <IconButton

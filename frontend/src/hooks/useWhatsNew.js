@@ -1,3 +1,4 @@
+import logger from '@shared/utils/logger';
 import { useCallback, useEffect, useState } from "react";
 import { STORAGE_KEYS } from "../shared/constants/constants";
 import {
@@ -31,7 +32,7 @@ export function useWhatsNew() {
         setLastSeenVersion(currentVersion);
       }
     } catch (error) {
-      console.warn("Failed to check for updates:", error);
+      logger.warn("Failed to check for updates:", error);
     }
   }, []);
 

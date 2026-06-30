@@ -1,5 +1,5 @@
 import React from 'react';
-import { fireEvent, render, screen } from '@testing-library/react';
+import { fireEvent, render, screen, within } from '@testing-library/react';
 import { ThemeProvider } from '@mui/material/styles';
 import { createTheme } from '@mui/material/styles';
 import GameTypeSelector from '../GameTypeSelector';
@@ -40,7 +40,7 @@ describe('GameTypeSelector', () => {
         renderSelector({ currentType: 'crossword' });
         const button = screen.getByRole('button');
         expect(button).toBeInTheDocument();
-        expect(button).toHaveAttribute('title', 'Crossword');
+        expect(button).toHaveAttribute('title', 'Game mode: Crossword');
     });
 
     test('opens menu on button click', () => {
@@ -49,9 +49,10 @@ describe('GameTypeSelector', () => {
 
         fireEvent.click(button);
 
-        expect(screen.getByRole('menu')).toBeInTheDocument();
-        expect(screen.getByText('Word Search')).toBeInTheDocument();
-        expect(screen.getByText('Crossword')).toBeInTheDocument();
+        const menu = screen.getByRole('menu');
+        expect(menu).toBeInTheDocument();
+        expect(within(menu).getByText('Word Search')).toBeInTheDocument();
+        expect(within(menu).getByText('Crossword')).toBeInTheDocument();
     });
 
     test('calls onChange when selecting different type', () => {
@@ -62,7 +63,7 @@ describe('GameTypeSelector', () => {
         fireEvent.click(screen.getByRole('button'));
 
         // Select crossword
-        fireEvent.click(screen.getByText('Crossword'));
+        fireEvent.click(within(screen.getByRole('menu')).getByText('Crossword'));
 
         expect(onChange).toHaveBeenCalledWith('crossword');
     });
@@ -75,7 +76,7 @@ describe('GameTypeSelector', () => {
         fireEvent.click(screen.getByRole('button'));
 
         // Select same type
-        fireEvent.click(screen.getByText('Word Search'));
+        fireEvent.click(within(screen.getByRole('menu')).getByText('Word Search'));
 
         expect(onChange).not.toHaveBeenCalled();
     });
@@ -95,7 +96,7 @@ describe('GameTypeSelector', () => {
         expect(screen.getByRole('menu')).toBeInTheDocument();
 
         // Select crossword
-        fireEvent.click(screen.getByText('Crossword'));
+        fireEvent.click(within(screen.getByRole('menu')).getByText('Crossword'));
 
         // Menu should be closed (not in document or hidden)
         expect(screen.queryByRole('menu')).not.toBeInTheDocument();

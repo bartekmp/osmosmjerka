@@ -48,7 +48,7 @@ function ReviewTranslationsDialog({ open, onClose, session }) {
                 `${i + 1}. ${s.phrase}` +
                 `\n   Correct: ${s.correct}` +
                 `\n   Answer: ${s.submitted}` +
-                `\n   ${s.is_correct ? '✓ Correct' : '✗ Incorrect'}`
+                `\n   ${s.is_correct ? 'Correct' : 'Incorrect'}`
             ),
         ];
 
@@ -84,7 +84,7 @@ function ReviewTranslationsDialog({ open, onClose, session }) {
                                 </TableHead>
                                 <TableBody>
                                     {submissions.map((submission, index) => (
-                                        <TableRow key={index} hover>
+                                        <TableRow key={submission.id ?? submission.phrase ?? index} hover>
                                             <TableCell sx={{ fontWeight: 500 }}>{submission.phrase}</TableCell>
                                             <TableCell sx={{ color: 'success.main' }}>{submission.correct}</TableCell>
                                             <TableCell

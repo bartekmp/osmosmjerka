@@ -1,6 +1,9 @@
 import { Box, Button, FormControl, InputLabel, MenuItem, Select } from '@mui/material';
+import RefreshIcon from '@mui/icons-material/Refresh';
+import MenuIcon from '@mui/icons-material/Menu';
+import CloseIcon from '@mui/icons-material/Close';
 import { useTranslation } from 'react-i18next';
-import { LanguageSetSelector, PrivateListSelector, ResponsiveText } from '../../../../shared';
+import { LanguageSetSelector, PrivateListSelector } from '../../../../shared';
 import ExportButton from '../../../export/components/ExportButton';
 import CategorySelector from './CategorySelector';
 
@@ -65,7 +68,7 @@ const GameControls = ({
                     }}
                     aria-label={panelOpen ? t('hide_controls') : t('show_controls')}
                 >
-                    {panelOpen ? '✕' : '☰'}
+                    {panelOpen ? <CloseIcon /> : <MenuIcon />}
                 </Button>
             </Box>
 
@@ -121,10 +124,14 @@ const GameControls = ({
                     <Button
                         onClick={() => refreshPuzzle(selectedCategoryState, difficultyState)}
                         title={t('reload_puzzle')}
-                        className="refresh-button control-action-button"
+                        aria-label={t('refresh')}
+                        className="control-action-button"
                         disabled={refreshDisabled}
                     >
-                        <ResponsiveText desktop={'🔄 ' + t('refresh')} mobile="🔄" />
+                        <RefreshIcon fontSize="small" />
+                        <Box component="span" sx={{ display: { xs: 'none', sm: 'inline' }, ml: 0.5 }}>
+                            {t('refresh')}
+                        </Box>
                     </Button>
 
                     {/* Export button - only for word search */}
@@ -135,7 +142,7 @@ const GameControls = ({
                             phrases={phrases}
                             disabled={isLoading || grid.length === 0 || notEnoughPhrases}
                             t={t}
-                            className="refresh-button control-action-button"
+                            className="control-action-button"
                         />
                     )}
                 </Box>

@@ -18,7 +18,6 @@ export { default as NotEnoughPhrasesOverlay } from './components/ui/NotEnoughPhr
 export { default as ScreenTooSmallOverlay } from './components/ui/ScreenTooSmallOverlay';
 export { default as SplashScreen } from './components/ui/SplashScreen';
 export { default as WhatsNewModal } from './components/ui/WhatsNewModal';
-export { default as CookieConsentBar } from './components/ui/CookieConsentBar';
 export { default as GameTypeSelector } from './components/ui/GameTypeSelector';
 
 // Utilities

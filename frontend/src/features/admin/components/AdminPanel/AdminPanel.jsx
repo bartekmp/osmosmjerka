@@ -1,4 +1,6 @@
+import logger from '@shared/utils/logger';
 import SchoolIcon from '@mui/icons-material/School';
+import ArrowBackIcon from '@mui/icons-material/ArrowBack';
 import {
     Box,
     Button,
@@ -183,7 +185,7 @@ export default function AdminPanel({
                     }
                 })
                 .catch(err => {
-                    console.error('Failed to load language sets:', err);
+                    logger.error('Failed to load language sets:', err);
                     setLanguageSetsLoading(false);
                 });
         }
@@ -219,7 +221,7 @@ export default function AdminPanel({
                         setCategoriesLoaded(true);
                     }
                 })
-                .catch(err => console.error('Failed to load categories:', err));
+                .catch(err => logger.error('Failed to load categories:', err));
         }
     }, [isLogged, token, selectedLanguageSetId, activeView, categoriesLoaded, handleAuthError]);
 
@@ -293,8 +295,8 @@ export default function AdminPanel({
                 <Box sx={{ textAlign: 'right', mb: 2 }}>
                     <AdminButton
                         to="/"
-                        desktopText={`⇇ ${t('back_to_game')}`}
-                        mobileText="🏠"
+                        icon={<ArrowBackIcon fontSize="small" />}
+                        desktopText={t('back_to_game')}
                     />
                 </Box>
                 <Paper sx={{ p: 4, borderRadius: 4 }}>
