@@ -24,57 +24,60 @@ const GameHeader = ({
 
     return (
         <Box sx={{
-            position: 'relative',
             width: '100%',
             display: 'flex',
             alignItems: 'center',
+            // Three regions: logo (left), title (flexible center), controls (right).
+            // No absolute positioning or magic offsets — the layout self-corrects
+            // if the control cluster changes size.
+            gap: { xs: 1, sm: 2 },
             mt: 2,
             mb: 3, // Add bottom margin to prevent overlap with content below
             px: { xs: 1, sm: 2 },
             minHeight: { xs: 48, sm: 56, md: 64, lg: 72 } // Ensure minimum height
         }}>
-            {/* Logo and title - left aligned on mobile, centered on larger screens */}
-            <Box sx={{
-                position: 'absolute',
-                left: 0,
-                right: { xs: '70px', sm: '140px', md: '170px' }, // Adjusted for smaller logo and controls
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: { xs: 'flex-start', sm: 'center' }, // Left align on mobile, center on larger screens
-                gap: { xs: 1, sm: 2 },
-                cursor: 'pointer',
-                overflow: 'hidden',
-                px: { xs: 1, sm: 2 } // Add padding to prevent edge touching
-            }}
+            {/* Logo (left region) */}
+            <Box
+                sx={{
+                    flexShrink: 0,
+                    display: 'flex',
+                    alignItems: 'center',
+                    cursor: 'pointer',
+                    height: { xs: 30, sm: 32, md: 36, lg: 44 },
+                    width: { xs: 30, sm: 32, md: 36, lg: 44 },
+                }}
                 onClick={handleLogoClick}
             >
                 <Box
+                    component="img"
+                    src={getAssetUrl("android-chrome-512x512.png")}
+                    alt="Osmosmjerka logo"
                     sx={{
-                        position: 'relative',
-                        height: { xs: 30, sm: 32, md: 36, lg: 44 },
-                        width: { xs: 30, sm: 32, md: 36, lg: 44 },
-                        flexShrink: 0,
+                        height: '100%',
+                        width: '100%',
+                        filter: logoFilter,
+                        transition: 'filter 0.3s ease',
+                        userSelect: 'none',
                     }}
-                >
-                    <Box
-                        component="img"
-                        src={getAssetUrl("android-chrome-512x512.png")}
-                        alt="Osmosmjerka logo"
-                        sx={{
-                            height: '100%',
-                            width: '100%',
-                            filter: logoFilter,
-                            transition: 'filter 0.3s ease',
-                            userSelect: 'none',
-                            position: 'relative',
-                            zIndex: 1,
-                        }}
-                        onError={e => {
-                            e.target.onerror = null;
-                            e.target.src = getAssetUrl("favicon-32x32.png");
-                        }}
-                    />
-                </Box>
+                    onError={e => {
+                        e.target.onerror = null;
+                        e.target.src = getAssetUrl("favicon-32x32.png");
+                    }}
+                />
+            </Box>
+
+            {/* Title (center region) - grows to fill, truncates gracefully */}
+            <Box
+                sx={{
+                    flex: 1,
+                    minWidth: 0,
+                    display: 'flex',
+                    justifyContent: 'center',
+                    overflow: 'hidden',
+                    cursor: 'pointer',
+                }}
+                onClick={handleLogoClick}
+            >
                 <Typography
                     variant="h1"
                     sx={{
@@ -111,16 +114,14 @@ const GameHeader = ({
                 </Typography>
             </Box>
 
-            {/* Controls - positioned absolutely on the right */}
+            {/* Controls (right region) */}
             <Box
                 sx={{
-                    position: 'absolute',
-                    right: 0,
+                    flexShrink: 0,
                     display: 'flex',
                     flexDirection: 'row',
                     alignItems: 'center',
                     gap: { xs: 1, sm: 1, md: 1 }, // Uniform gaps across all screen sizes
-                    zIndex: 1
                 }}
             >
                 <LanguageSwitcher
