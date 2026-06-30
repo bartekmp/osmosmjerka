@@ -146,6 +146,7 @@ async def save_game_score(body: SaveGameScoreRequest, user=Depends(get_current_u
             {"score_id": score_id, "scoring_details": scoring_result, "message": "Score saved successfully"}
         )
     except Exception as e:
+        logger.exception("Failed to save game score")
         return JSONResponse({"error": str(e)}, status_code=500)
 
 
@@ -165,6 +166,7 @@ async def get_user_best_scores(
         )
         return JSONResponse(scores)
     except Exception as e:
+        logger.exception("Failed to get user scores")
         return JSONResponse({"error": str(e)}, status_code=500)
 
 
@@ -181,6 +183,7 @@ async def get_leaderboard(
         leaderboard = await db_manager.get_leaderboard(language_set_id, category, difficulty, limit, game_type)
         return JSONResponse(leaderboard)
     except Exception as e:
+        logger.exception("Failed to get leaderboard")
         return JSONResponse({"error": str(e)}, status_code=500)
 
 
@@ -237,6 +240,7 @@ async def get_system_scoring_enabled() -> JSONResponse:
         enabled = await db_manager.is_scoring_enabled_globally()
         return JSONResponse({"enabled": enabled})
     except Exception as e:
+        logger.exception("Failed to check global scoring status")
         return JSONResponse({"error": str(e)}, status_code=500)
 
 
@@ -247,4 +251,5 @@ async def get_system_progressive_hints_enabled() -> JSONResponse:
         enabled = await db_manager.is_progressive_hints_enabled_globally()
         return JSONResponse({"enabled": enabled})
     except Exception as e:
+        logger.exception("Failed to check progressive hints status")
         return JSONResponse({"error": str(e)}, status_code=500)

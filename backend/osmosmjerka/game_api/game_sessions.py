@@ -61,6 +61,7 @@ async def update_game_progress(body: UpdateGameProgressRequest, user=Depends(get
         await db_manager.update_game_progress(body.session_id, body.phrases_found)
         return JSONResponse({"message": "Game progress updated"})
     except Exception as e:
+        logger.exception("Failed to update game progress")
         return JSONResponse({"error": str(e)}, status_code=500)
 
 

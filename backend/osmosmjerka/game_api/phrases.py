@@ -2,7 +2,7 @@
 
 import random
 
-from fastapi import APIRouter, Query, Request, status
+from fastapi import APIRouter, HTTPException, Query, Request, status
 from fastapi.responses import JSONResponse
 from osmosmjerka.auth import verify_token
 from osmosmjerka.cache import cache_response, categories_cache, language_sets_cache, phrases_cache, rate_limit
@@ -34,7 +34,8 @@ async def get_all_categories(language_set_id: int = Query(None), *, request: Req
         if auth and auth.startswith("Bearer "):
             try:
                 user = verify_token(auth.split(" ", 1)[1])
-            except Exception:
+            except HTTPException:
+                # Invalid/expired token: treat as anonymous
                 user = None
     ignored_override = None
     if user and language_set_id is not None:
@@ -65,7 +66,8 @@ async def get_phrases(
         if auth and auth.startswith("Bearer "):
             try:
                 user = verify_token(auth.split(" ", 1)[1])
-            except Exception:
+            except HTTPException:
+                # Invalid/expired token: treat as anonymous
                 user = None
     ignored_override = None
     if user and language_set_id is not None:
@@ -155,4 +157,5 @@ async def get_default_ignored_categories(language_set_id: int = Query(...)) -> J
         categories = await db_manager.get_default_ignored_categories(language_set_id)
         return JSONResponse(sorted(categories))
     except Exception as e:
+        logger.exception("Failed to get default ignored categories")
         return JSONResponse({"error": str(e)}, status_code=400)
