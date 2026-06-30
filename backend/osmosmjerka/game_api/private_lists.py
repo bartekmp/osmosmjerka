@@ -11,7 +11,13 @@ from osmosmjerka.auth import get_current_user
 from osmosmjerka.cache import rate_limit
 from osmosmjerka.database import db_manager
 from osmosmjerka.game_api.helpers import _generate_grid_with_exact_phrase_count, get_grid_size_and_num_phrases
-from osmosmjerka.game_api.schemas import LearnLaterBulkAddRequest, LearnLaterCheckRequest
+from osmosmjerka.game_api.schemas import (
+    AddPhraseToPrivateListRequest,
+    CreatePrivateListRequest,
+    LearnLaterBulkAddRequest,
+    LearnLaterCheckRequest,
+    UpdatePrivateListRequest,
+)
 from osmosmjerka.logging_config import get_logger
 
 logger = get_logger(__name__)
@@ -227,11 +233,11 @@ async def get_private_list_entries_endpoint(
 
 @router.post("/user/private-lists")
 @rate_limit(max_requests=10, window_seconds=60)
-async def create_private_list(list_data: dict, user=Depends(get_current_user)) -> JSONResponse:
+async def create_private_list(list_data: CreatePrivateListRequest, user=Depends(get_current_user)) -> JSONResponse:
     """Create a new private list for the current user"""
     try:
-        list_name = list_data.get("list_name", "").strip()
-        language_set_id = list_data.get("language_set_id")
+        list_name = list_data.list_name.strip()
+        language_set_id = list_data.language_set_id
 
         if not list_name:
             return JSONResponse({"error": "List name is required"}, status_code=status.HTTP_400_BAD_REQUEST)
@@ -269,10 +275,12 @@ async def create_private_list(list_data: dict, user=Depends(get_current_user)) -
 
 @router.put("/user/private-lists/{list_id}")
 @rate_limit(max_requests=20, window_seconds=60)
-async def update_private_list(list_id: int, list_data: dict, user=Depends(get_current_user)) -> JSONResponse:
+async def update_private_list(
+    list_id: int, list_data: UpdatePrivateListRequest, user=Depends(get_current_user)
+) -> JSONResponse:
     """Update a private list (rename only, cannot modify system lists)"""
     try:
-        new_name = list_data.get("list_name", "").strip()
+        new_name = list_data.list_name.strip()
 
         if not new_name:
             return JSONResponse({"error": "List name is required"}, status_code=status.HTTP_400_BAD_REQUEST)
@@ -329,7 +337,9 @@ async def delete_private_list_endpoint(list_id: int, user=Depends(get_current_us
 
 @router.post("/user/private-lists/{list_id}/phrases")
 @rate_limit(max_requests=30, window_seconds=60)
-async def add_phrase_to_private_list(list_id: int, phrase_data: dict, user=Depends(get_current_user)) -> JSONResponse:
+async def add_phrase_to_private_list(
+    list_id: int, phrase_data: AddPhraseToPrivateListRequest, user=Depends(get_current_user)
+) -> JSONResponse:
     """Add a phrase to a private list (either by ID or as custom phrase)"""
     try:
         # Verify list ownership
@@ -337,10 +347,10 @@ async def add_phrase_to_private_list(list_id: int, phrase_data: dict, user=Depen
         if not list_info:
             return JSONResponse({"error": "List not found"}, status_code=status.HTTP_404_NOT_FOUND)
 
-        phrase_id = phrase_data.get("phrase_id")
-        custom_phrase = phrase_data.get("custom_phrase", "").strip()
-        custom_translation = phrase_data.get("custom_translation", "").strip()
-        custom_categories = phrase_data.get("custom_categories", "").strip()
+        phrase_id = phrase_data.phrase_id
+        custom_phrase = phrase_data.custom_phrase.strip()
+        custom_translation = phrase_data.custom_translation.strip()
+        custom_categories = phrase_data.custom_categories.strip()
 
         # Must provide either phrase_id OR custom phrase data
         if not phrase_id and not custom_phrase:

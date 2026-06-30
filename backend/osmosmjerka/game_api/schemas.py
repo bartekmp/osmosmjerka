@@ -29,6 +29,36 @@ class PhraseImportItem(BaseModel):
     categories: str = Field(default="", max_length=200)
 
 
+class CreatePrivateListRequest(BaseModel):
+    """Request model for creating a private list.
+
+    Fields are lenient so the endpoint can return its existing business-logic
+    error responses (empty name, missing language set) instead of a 422.
+    """
+
+    list_name: str = Field(default="", max_length=200)
+    language_set_id: Optional[int] = None
+
+
+class UpdatePrivateListRequest(BaseModel):
+    """Request model for renaming a private list."""
+
+    list_name: str = Field(default="", max_length=200)
+
+
+class AddPhraseToPrivateListRequest(BaseModel):
+    """Request model for adding a phrase to a private list.
+
+    Accepts either an existing ``phrase_id`` or custom phrase fields; the
+    endpoint enforces the mutual-exclusivity rules and returns its own errors.
+    """
+
+    phrase_id: Optional[int] = None
+    custom_phrase: str = Field(default="", max_length=200)
+    custom_translation: str = Field(default="", max_length=200)
+    custom_categories: str = Field(default="", max_length=200)
+
+
 # ===== Export =====
 
 
