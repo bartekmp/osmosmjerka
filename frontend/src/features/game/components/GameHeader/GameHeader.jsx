@@ -126,9 +126,9 @@ const GameHeader = ({
             >
                 <LanguageSwitcher
                     sx={{
-                        minWidth: { xs: 36, sm: 44, md: 48 },
-                        height: { xs: 36, sm: 44, md: 48 },
-                        minHeight: { xs: 36, sm: 44, md: 48 },
+                        minWidth: { xs: 44, sm: 44, md: 48 },
+                        height: { xs: 44, sm: 44, md: 48 },
+                        minHeight: { xs: 44, sm: 44, md: 48 },
                     }}
                 />
                 {/* Game Type Selector */}
@@ -138,8 +138,8 @@ const GameHeader = ({
                         onChange={onGameTypeChange}
                         disabled={isGridLoading}
                         sx={{
-                            minWidth: { xs: 36, sm: 44, md: 48 },
-                            height: { xs: 36, sm: 44, md: 48 },
+                            minWidth: { xs: 44, sm: 44, md: 48 },
+                            height: { xs: 44, sm: 44, md: 48 },
                         }}
                     />
                 )}
@@ -149,9 +149,9 @@ const GameHeader = ({
                     title={profileDesktopLabel}
                     sx={{
                         display: 'flex', // Show on all screen sizes
-                        minWidth: { xs: 36, sm: 44, md: 48 },
-                        height: { xs: 36, sm: 44, md: 48 },
-                        minHeight: { xs: 36, sm: 44, md: 48 },
+                        minWidth: { xs: 44, sm: 44, md: 48 },
+                        height: { xs: 44, sm: 44, md: 48 },
+                        minHeight: { xs: 44, sm: 44, md: 48 },
                         fontSize: { sm: '0.8rem', md: '0.9rem' },
                         px: { xs: 0.5, sm: 0.75, md: 1 },
                         textTransform: 'none'
@@ -161,9 +161,9 @@ const GameHeader = ({
                 </Button>
                 <NightModeButton
                     sx={{
-                        minWidth: { xs: 36, sm: 44, md: 48 },
-                        height: { xs: 36, sm: 44, md: 48 },
-                        minHeight: { xs: 36, sm: 44, md: 48 },
+                        minWidth: { xs: 44, sm: 44, md: 48 },
+                        height: { xs: 44, sm: 44, md: 48 },
+                        minHeight: { xs: 44, sm: 44, md: 48 },
                         padding: { xs: 0.5, sm: 0.75, md: 1 },
                     }}
                 />
