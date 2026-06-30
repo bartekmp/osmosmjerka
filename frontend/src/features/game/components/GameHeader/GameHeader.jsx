@@ -27,24 +27,22 @@ const GameHeader = ({
             width: '100%',
             display: 'flex',
             alignItems: 'center',
-            // Three regions: logo (left), title (flexible center), controls (right).
-            // No absolute positioning or magic offsets — the layout self-corrects
-            // if the control cluster changes size.
             gap: { xs: 1, sm: 2 },
             mt: 2,
             mb: 3, // Add bottom margin to prevent overlap with content below
             px: { xs: 1, sm: 2 },
             minHeight: { xs: 48, sm: 56, md: 64, lg: 72 } // Ensure minimum height
         }}>
-            {/* Logo (left region) */}
+            {/* Brand: logo + wordmark grouped as one clickable unit (left).
+                The wordmark hides below the sm breakpoint so the brand is logo-only
+                on small screens — never truncated next to the controls. */}
             <Box
                 sx={{
                     flexShrink: 0,
                     display: 'flex',
                     alignItems: 'center',
+                    gap: { xs: 1, sm: 1.5 },
                     cursor: 'pointer',
-                    height: { xs: 30, sm: 32, md: 36, lg: 44 },
-                    width: { xs: 30, sm: 32, md: 36, lg: 44 },
                 }}
                 onClick={handleLogoClick}
             >
@@ -53,8 +51,9 @@ const GameHeader = ({
                     src={getAssetUrl("android-chrome-512x512.png")}
                     alt="Osmosmjerka logo"
                     sx={{
-                        height: '100%',
-                        width: '100%',
+                        flexShrink: 0,
+                        height: { xs: 30, sm: 32, md: 36, lg: 44 },
+                        width: { xs: 30, sm: 32, md: 36, lg: 44 },
                         filter: logoFilter,
                         transition: 'filter 0.3s ease',
                         userSelect: 'none',
@@ -64,34 +63,14 @@ const GameHeader = ({
                         e.target.src = getAssetUrl("favicon-32x32.png");
                     }}
                 />
-            </Box>
-
-            {/* Title (center region) - grows to fill, truncates gracefully */}
-            <Box
-                sx={{
-                    flex: 1,
-                    minWidth: 0,
-                    display: 'flex',
-                    justifyContent: 'center',
-                    overflow: 'hidden',
-                    cursor: 'pointer',
-                }}
-                onClick={handleLogoClick}
-            >
                 <Typography
                     variant="h1"
                     sx={{
-                        fontSize: { xs: '1.1rem', sm: '1.5rem', md: '2rem', lg: '2.5rem' }, // Reduced mobile font size
-                        textAlign: 'center',
-                        userSelect: 'none',
+                        display: { xs: 'none', sm: 'block' }, // logo-only on small screens
+                        fontSize: { sm: '1.5rem', md: '2rem', lg: '2.5rem' },
+                        lineHeight: 1.1,
                         whiteSpace: 'nowrap',
-                        overflow: 'hidden',
-                        textOverflow: 'ellipsis',
-                        minWidth: 0,
-                        maxWidth: '100%',
-                        '@media (max-width: 349px)': {
-                            display: 'none',
-                        },
+                        userSelect: 'none',
                         // Add wobble animation when celebrating
                         animation: showCelebration ? 'title-wobble 0.5s ease-in-out 6' : 'none',
                         '@keyframes title-wobble': {
@@ -114,10 +93,11 @@ const GameHeader = ({
                 </Typography>
             </Box>
 
-            {/* Controls (right region) */}
+            {/* Controls (right) — pushed to the far edge */}
             <Box
                 sx={{
                     flexShrink: 0,
+                    ml: 'auto',
                     display: 'flex',
                     flexDirection: 'row',
                     alignItems: 'center',
