@@ -8,9 +8,9 @@ from typing import Any, Optional
 
 from databases import Database
 from dotenv import load_dotenv
-from osmosmjerka.database.models import create_phrase_table, metadata
+from osmosmjerka.database.models import metadata
 from osmosmjerka.logging_config import get_logger
-from sqlalchemy import Table, create_engine, text
+from sqlalchemy import create_engine
 
 # Load environment variables
 load_dotenv()
@@ -25,7 +25,6 @@ class BaseDatabaseManager:
         self._database_url = database_url
         self.database = None
         self.engine = None
-        self._phrase_tables_cache = {}  # Cache for dynamically created phrase tables
         self._statistics_cache = {}  # Cache for user statistics with TTL
         self._statistics_cache_ttl = 300  # 5 minutes cache TTL
 
@@ -146,44 +145,3 @@ class BaseDatabaseManager:
         except Exception as exc:
             logger.exception("Failed to initialise database schema", extra={"error": str(exc)})
             raise
-
-    def _get_phrase_table_name(self, language_set_name: str) -> str:
-        """Get the table name for a language set's phrases using the set's short name."""
-        # Sanitize the name to ensure it's safe for SQL table names
-        safe_name = language_set_name.replace("-", "_").replace(" ", "_").lower()
-        return f"phrases_{safe_name}"
-
-    def _get_phrase_table(self, language_set_name: str) -> Table:
-        """Get or create a phrase table for a specific language set."""
-        table_name = self._get_phrase_table_name(language_set_name)
-
-        # Check cache first
-        if table_name in self._phrase_tables_cache:
-            return self._phrase_tables_cache[table_name]
-
-        # Create new table object
-        phrase_table = create_phrase_table(table_name)
-        self._phrase_tables_cache[table_name] = phrase_table
-
-        # Create the actual table in database if it doesn't exist
-        if self.engine:
-            phrase_table.create(bind=self.engine, checkfirst=True)
-
-        return phrase_table
-
-    async def _ensure_phrase_table_exists(self, language_set_name: str) -> None:
-        """Ensure phrase table exists for the given language set."""
-        table_name = self._get_phrase_table_name(language_set_name)
-        database = self._ensure_database()
-
-        # Check if table exists
-        result = await database.fetch_one(
-            text("SELECT EXISTS (SELECT FROM information_schema.tables WHERE table_name = :table_name)"),
-            {"table_name": table_name},
-        )
-
-        if not (result and result[0]):
-            # Table doesn't exist, create it
-            phrase_table = self._get_phrase_table(language_set_name)
-            if self.engine:
-                phrase_table.create(bind=self.engine, checkfirst=True)
