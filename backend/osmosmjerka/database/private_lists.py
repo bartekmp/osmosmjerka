@@ -4,6 +4,7 @@ from typing import Any, Dict, List, Optional
 
 from osmosmjerka.database.models import (
     accounts_table,
+    phrases_table,
     user_private_list_phrases_table,
     user_private_lists_table,
 )
@@ -252,7 +253,9 @@ class PrivateListsMixin:
         if not language_set:
             return {"entries": [], "total": 0, "limit": limit, "offset": offset, "has_more": False}
 
-        phrase_table = self._get_phrase_table(language_set["name"])
+        # Phrase ids are globally unique in the single phrases table, so joining on
+        # id alone resolves to the correct language set's row.
+        phrase_table = phrases_table
 
         # Base query for counting
         base_query = (

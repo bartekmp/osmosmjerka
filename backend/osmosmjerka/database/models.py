@@ -36,18 +36,24 @@ language_sets_table = Table(
 )
 
 
-# Dynamic phrase table creation function
-def create_phrase_table(table_name: str) -> Table:
-    """Create a phrases table for a specific language set"""
-    return Table(
-        table_name,
-        metadata,
-        Column("id", Integer, primary_key=True, index=True),
-        Column("categories", String, nullable=False),
-        Column("phrase", String, nullable=False),
-        Column("translation", Text, nullable=False),
-        extend_existing=True,
-    )
+# Single phrases table for all language sets, keyed by language_set_id.
+# (Replaced the previous per-language-set dynamic tables `phrases_<name>`.)
+phrases_table = Table(
+    "phrases",
+    metadata,
+    Column("id", Integer, primary_key=True, index=True),
+    Column(
+        "language_set_id",
+        Integer,
+        ForeignKey("language_sets.id", ondelete="CASCADE"),
+        nullable=False,
+        index=True,
+    ),
+    Column("categories", String, nullable=False),
+    Column("phrase", String, nullable=False),
+    Column("translation", Text, nullable=False),
+    Index("idx_phrases_set_id", "language_set_id", "id"),
+)
 
 
 # Define the accounts table for user management

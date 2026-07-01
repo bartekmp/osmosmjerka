@@ -6,6 +6,7 @@ from typing import Any, Dict, List, Optional
 
 from osmosmjerka.database.models import (
     accounts_table,
+    phrases_table,
     teacher_group_members_table,
     teacher_phrase_set_access_table,
     teacher_phrase_set_groups_table,
@@ -298,12 +299,12 @@ class TeacherSetsAccessMixin:
         if not language_set_id:
             return []
 
-        # Get language set name
         language_set = await self.get_language_set_by_id(language_set_id)
         if not language_set:
             return []
 
-        phrase_table = self._get_phrase_table(language_set["name"])
+        # Phrase ids are globally unique in the single phrases table.
+        phrase_table = phrases_table
 
         # Get phrase IDs from junction table
         junction_query = (

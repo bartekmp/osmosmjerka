@@ -63,9 +63,8 @@ class LanguageSetsMixin:
         )
         language_set_id = await database.execute(query)
 
-        # Create the phrase table for this language set
-        await self._ensure_phrase_table_exists(name)
-
+        # Phrases live in the shared `phrases` table keyed by language_set_id;
+        # no per-set table needs to be created.
         return language_set_id
 
     async def update_language_set(self, language_set_id: int, **updates) -> int:
@@ -97,20 +96,12 @@ class LanguageSetsMixin:
         """Delete a language set and its phrase table."""
         database = self._ensure_database()
 
-        # First get the language set to find its name
         language_set = await self.get_language_set_by_id(language_set_id)
         if not language_set:
             return
 
-        # Drop the phrase table
-        table_name = self._get_phrase_table_name(language_set["name"])
-        await database.execute(f"DROP TABLE IF EXISTS {table_name}")
-
-        # Remove from cache
-        if table_name in self._phrase_tables_cache:
-            del self._phrase_tables_cache[table_name]
-
-        # Delete the language set
+        # Deleting the language set cascades to its phrases (phrases.language_set_id
+        # has ON DELETE CASCADE).
         await database.execute(delete(language_sets_table).where(language_sets_table.c.id == language_set_id))
 
     async def set_default_language_set(self, language_set_id: int):
