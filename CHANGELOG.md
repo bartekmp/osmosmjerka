@@ -2,6 +2,15 @@
 
 <!-- version list -->
 
+## v1.42.1 (2026-07-01)
+
+### Refactoring
+
+- Consolidate per-language-set phrase tables into one table
+  ([#200](https://github.com/bartekmp/osmosmjerka/pull/200),
+  [`2ca7de9`](https://github.com/bartekmp/osmosmjerka/commit/2ca7de948566220e243ac4d01b8bbfd4e4ee0505))
+
+
 ## v1.42.0 (2026-06-30)
 
 ### Bug Fixes
