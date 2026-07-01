@@ -2,6 +2,15 @@
 
 <!-- version list -->
 
+## v1.42.2 (2026-07-01)
+
+### Chores
+
+- Drop legacy per-language-set phrase tables
+  ([#201](https://github.com/bartekmp/osmosmjerka/pull/201),
+  [`67c9b9d`](https://github.com/bartekmp/osmosmjerka/commit/67c9b9d0aff16fa7b894cafb2b7abf576569a24f))
+
+
 ## v1.42.1 (2026-07-01)
 
 ### Refactoring
