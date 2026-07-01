@@ -38,12 +38,16 @@ import {
     Refresh as RefreshIcon
 } from '@mui/icons-material';
 import { useTranslation } from 'react-i18next';
+import { LanguageSetSelector } from '../../../../shared';
 import { API_ENDPOINTS } from '../../../../shared/constants/constants';
 
 export default function DuplicateManagement({ currentUser, selectedLanguageSetId }) {
     const { t } = useTranslation();
     const theme = useTheme();
     const isMobile = useMediaQuery(theme.breakpoints.down('sm'));
+    // Local language-set selection, seeded from the prop. The page shows its own
+    // LanguageSetSelector so the admin can see and change which set is inspected.
+    const [activeLanguageSetId, setActiveLanguageSetId] = useState(selectedLanguageSetId ?? null);
     const [duplicateGroups, setDuplicateGroups] = useState([]);
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState('');
@@ -62,7 +66,7 @@ export default function DuplicateManagement({ currentUser, selectedLanguageSetId
     const [operationResult, setOperationResult] = useState(null);
 
     const loadDuplicates = useCallback(async (page = currentPage, size = pageSize) => {
-        if (!selectedLanguageSetId) {
+        if (!activeLanguageSetId) {
             setDuplicateGroups([]);
             setTotalCount(0);
             setTotalPages(0);
@@ -75,7 +79,7 @@ export default function DuplicateManagement({ currentUser, selectedLanguageSetId
         try {
             const token = localStorage.getItem('adminToken');
             const response = await fetch(
-                `${API_ENDPOINTS.ADMIN_DUPLICATES}?language_set_id=${selectedLanguageSetId}&page=${page}&page_size=${size}`,
+                `${API_ENDPOINTS.ADMIN_DUPLICATES}?language_set_id=${activeLanguageSetId}&page=${page}&page_size=${size}`,
                 {
                     headers: {
                         'Authorization': `Bearer ${token}`
@@ -106,7 +110,7 @@ export default function DuplicateManagement({ currentUser, selectedLanguageSetId
         } finally {
             setLoading(false);
         }
-    }, [selectedLanguageSetId, currentPage, pageSize]);
+    }, [activeLanguageSetId, currentPage, pageSize]);
 
     useEffect(() => {
         loadDuplicates();
@@ -151,7 +155,7 @@ export default function DuplicateManagement({ currentUser, selectedLanguageSetId
             const token = localStorage.getItem('adminToken');
 
             const response = await fetch(
-                `/admin/merge-categories?language_set_id=${selectedLanguageSetId}`,
+                `/admin/merge-categories?language_set_id=${activeLanguageSetId}`,
                 {
                     method: 'POST',
                     headers: {
@@ -192,7 +196,7 @@ export default function DuplicateManagement({ currentUser, selectedLanguageSetId
                 error: err.message
             }));
         }
-    }, [selectedLanguageSetId, loadDuplicates, t]);
+    }, [activeLanguageSetId, loadDuplicates, t]);
 
     const handleDeleteSelected = useCallback(() => {
         if (selectedPhrases.size === 0) return;
@@ -212,7 +216,7 @@ export default function DuplicateManagement({ currentUser, selectedLanguageSetId
             const phraseIds = phrasesToDelete.map(p => p.id);
 
             const response = await fetch(
-                `${API_ENDPOINTS.ADMIN_DUPLICATES}?language_set_id=${selectedLanguageSetId}`,
+                `${API_ENDPOINTS.ADMIN_DUPLICATES}?language_set_id=${activeLanguageSetId}`,
                 {
                     method: 'DELETE',
                     headers: {
@@ -246,7 +250,7 @@ export default function DuplicateManagement({ currentUser, selectedLanguageSetId
         } finally {
             setDeleting(false);
         }
-    }, [phrasesToDelete, selectedLanguageSetId, loadDuplicates]);
+    }, [phrasesToDelete, activeLanguageSetId, loadDuplicates]);
 
     const handlePageChange = useCallback((event, newPage) => {
         setCurrentPage(newPage);
@@ -273,21 +277,18 @@ export default function DuplicateManagement({ currentUser, selectedLanguageSetId
         );
     }
 
-    if (!selectedLanguageSetId) {
-        return (
-            <Alert severity="info">
-                {t('select_language_set_first', 'Please select a language set first.')}
-            </Alert>
-        );
-    }
-
     return (
         <Paper sx={{ p: 3 }}>
-            <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 2 }}>
+            <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 2, flexWrap: 'wrap', gap: 2 }}>
                 <Typography variant="h6">
                     {t('duplicate_management', 'Duplicate Management')}
                 </Typography>
-                <Box sx={{ display: 'flex', gap: 2, alignItems: 'center' }}>
+                <Box sx={{ display: 'flex', gap: 2, alignItems: 'center', flexWrap: 'wrap' }}>
+                    <LanguageSetSelector
+                        selectedLanguageSetId={activeLanguageSetId}
+                        onLanguageSetChange={setActiveLanguageSetId}
+                        size="small"
+                    />
                     <FormControl size="small" sx={{ minWidth: 160 }}>
                         <InputLabel>{t('duplicates_per_page', 'Duplicates per page')}</InputLabel>
                         <Select
@@ -407,7 +408,13 @@ export default function DuplicateManagement({ currentUser, selectedLanguageSetId
                 </Box>
             )}
 
-            {!loading && duplicateGroups.length === 0 && (
+            {!loading && !activeLanguageSetId && (
+                <Alert severity="info">
+                    {t('select_language_set_first', 'Please select a language set first.')}
+                </Alert>
+            )}
+
+            {!loading && activeLanguageSetId && duplicateGroups.length === 0 && (
                 <Alert severity="success">
                     {t('no_duplicates_found', 'No duplicate phrases found in this language set.')}
                 </Alert>
