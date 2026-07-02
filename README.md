@@ -6,8 +6,8 @@
   
   [![License](https://img.shields.io/badge/license-Apache%202.0-blue.svg)](LICENSE)
   [![CI](https://github.com/bartekmp/osmosmjerka/actions/workflows/ci-pipeline.yml/badge.svg)](https://github.com/bartekmp/osmosmjerka/actions/workflows/ci-pipeline.yml)
-  [![React](https://img.shields.io/badge/React-19.1.1-61dafb?logo=react)](https://react.dev/)
-  [![FastAPI](https://img.shields.io/badge/FastAPI-0.127.0-009688?logo=fastapi)](https://fastapi.tiangolo.com/)
+  [![React](https://img.shields.io/badge/React-19.2.7-61dafb?logo=react)](https://react.dev/)
+  [![FastAPI](https://img.shields.io/badge/FastAPI-0.135.2-009688?logo=fastapi)](https://fastapi.tiangolo.com/)
   [![PostgreSQL](https://img.shields.io/badge/PostgreSQL-18-336791?logo=postgresql)](https://www.postgresql.org/)
   [![Docker Image](https://img.shields.io/badge/docker-ghcr.io%2Fbartekmp%2Fosmosmjerka-blue?logo=docker)](https://github.com/bartekmp/osmosmjerka/pkgs/container/osmosmjerka)
   
