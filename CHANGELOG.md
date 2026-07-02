@@ -2,6 +2,15 @@
 
 <!-- version list -->
 
+## v1.42.5 (2026-07-02)
+
+### Refactoring
+
+- Migrate JSON-in-Text columns to native JSONB
+  ([#204](https://github.com/bartekmp/osmosmjerka/pull/204),
+  [`f2eb101`](https://github.com/bartekmp/osmosmjerka/commit/f2eb101b9662217ff8cbf05899e949941daf4a3c))
+
+
 ## v1.42.4 (2026-07-02)
 
 ### Bug Fixes
