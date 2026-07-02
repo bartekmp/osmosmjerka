@@ -99,6 +99,16 @@ Both modes share categories, difficulty levels, hints, and scoring.
       <em>Dark theme for comfortable viewing</em>
     </td>
   </tr>
+  <tr>
+    <td width="50%">
+      <img src="docs/assets/osmosmjerka-crossword.png" alt="Crossword mode"><br>
+      <em>Crossword mode: read the clue, fill the answer</em>
+    </td>
+    <td width="50%">
+      <img src="docs/assets/osmosmjerka-crossword-solving.png" alt="Solving a crossword"><br>
+      <em>Filling in answers with progressive hints</em>
+    </td>
+  </tr>
 </table>
 
 ## 🚀 Quick Start
