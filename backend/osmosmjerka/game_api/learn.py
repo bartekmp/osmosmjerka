@@ -70,6 +70,16 @@ async def get_learn_stats(language_set_id: Optional[int] = Query(None), user=Dep
         return JSONResponse({"error": "Failed to get mastery stats"}, status_code=500)
 
 
+@router.get("/learn/streak")
+async def get_streak(user=Depends(get_current_user)) -> JSONResponse:
+    """Current forgiving daily streak (current / longest / freezes)."""
+    try:
+        return JSONResponse(await db_manager.get_streak(user["id"]))
+    except Exception:
+        logger.exception("Failed to get streak")
+        return JSONResponse({"error": "Failed to get streak"}, status_code=500)
+
+
 @router.get("/learn/due")
 async def get_due(
     language_set_id: Optional[int] = Query(None),

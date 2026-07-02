@@ -24,11 +24,13 @@ export function useReviewSprint() {
   const loadStats = useCallback(async () => {
     const t = token();
     if (!t) return;
+    const headers = { Authorization: `Bearer ${t}` };
     try {
-      const res = await axios.get(`${API_ENDPOINTS.GAME}/learn/stats`, {
-        headers: { Authorization: `Bearer ${t}` },
-      });
-      setStats(res.data);
+      const [statsRes, streakRes] = await Promise.all([
+        axios.get(`${API_ENDPOINTS.GAME}/learn/stats`, { headers }),
+        axios.get(`${API_ENDPOINTS.GAME}/learn/streak`, { headers }),
+      ]);
+      setStats({ ...statsRes.data, streak: streakRes.data?.current ?? 0 });
     } catch (error) {
       logger.error("Failed to load mastery stats:", error);
     }

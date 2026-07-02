@@ -111,6 +111,14 @@ def test_learn_stats(client):
     assert resp.json() == {"total": 10, "due": 3, "mastered": 2}
 
 
+def test_learn_streak(client):
+    with patch("osmosmjerka.game_api.learn.db_manager.get_streak", new_callable=AsyncMock) as m:
+        m.return_value = {"current": 4, "longest": 9, "last_active": "2026-07-02", "freezes": 2}
+        resp = client.get("/api/learn/streak")
+    assert resp.status_code == 200
+    assert resp.json()["current"] == 4 and resp.json()["freezes"] == 2
+
+
 def test_learn_due(client):
     with patch("osmosmjerka.game_api.learn.db_manager.get_due_items", new_callable=AsyncMock) as m:
         m.return_value = [{"id": 1, "phrase_id": 5, "direction": "production"}]

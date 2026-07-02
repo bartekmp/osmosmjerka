@@ -114,7 +114,7 @@ def test_calculate_score_endpoint(client):
         assert data["base_score"] == 500
         assert data["difficulty_bonus"] == 0
         assert data["time_bonus"] == 0  # not all phrases found
-        assert data["streak_bonus"] == 0
+        assert data["completion_bonus"] == 0
         assert data["hint_penalty"] == 0  # hints not penalized by default
     assert data["final_score"] == 500
     assert data["hint_penalty_per_hint"] == 0

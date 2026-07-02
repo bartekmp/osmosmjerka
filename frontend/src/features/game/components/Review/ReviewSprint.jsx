@@ -19,6 +19,7 @@ function StatsRow({ stats, t }) {
   if (!stats) return null;
   return (
     <Stack direction="row" spacing={1} sx={{ justifyContent: "center", flexWrap: "wrap" }}>
+      {stats.streak > 0 && <Chip size="small" color="primary" label={`🔥 ${stats.streak}`} />}
       <Chip size="small" label={`${t("review.tracked", "Tracked")}: ${stats.total ?? 0}`} />
       <Chip size="small" color="warning" label={`${t("review.due", "Due")}: ${stats.due ?? 0}`} />
       <Chip size="small" color="success" label={`${t("review.mastered", "Mastered")}: ${stats.mastered ?? 0}`} />

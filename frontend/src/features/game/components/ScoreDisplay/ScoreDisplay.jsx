@@ -102,7 +102,7 @@ const ScoreDisplay = ({
         const baseScore = scoreBreakdown.base_score ?? 0;
         const difficultyBonus = scoreBreakdown.difficulty_bonus ?? 0;
         const timeBonus = scoreBreakdown.time_bonus ?? 0;
-        const completionBonus = scoreBreakdown.streak_bonus ?? scoreBreakdown.completion_bonus ?? 0;
+        const completionBonus = scoreBreakdown.completion_bonus ?? scoreBreakdown.streak_bonus ?? 0;
         const hintPenalty = scoreBreakdown.hint_penalty ?? 0;
 
         const items = [
@@ -491,11 +491,11 @@ const ScoreDisplay = ({
                                         </Typography>
                                     </Box>
                                 )}
-                                {scoreBreakdown.streak_bonus > 0 && (
+                                {(scoreBreakdown.completion_bonus ?? scoreBreakdown.streak_bonus) > 0 && (
                                     <Box className="breakdown-item">
                                         <Typography variant="caption">{t('completion_bonus')}:</Typography>
                                         <Typography variant="caption" sx={{ fontWeight: 'bold', color: 'success.main' }}>
-                                            +{scoreBreakdown.streak_bonus}
+                                            +{scoreBreakdown.completion_bonus ?? scoreBreakdown.streak_bonus}
                                         </Typography>
                                     </Box>
                                 )}

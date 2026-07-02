@@ -4,6 +4,7 @@ from sqlalchemy import (
     Boolean,
     CheckConstraint,
     Column,
+    Date,
     DateTime,
     Float,
     ForeignKey,
@@ -193,7 +194,7 @@ game_scores_table = Table(
     Column("base_score", Integer, nullable=False, default=0),
     Column("time_bonus", Integer, nullable=False, default=0),
     Column("difficulty_bonus", Integer, nullable=False, default=0),
-    Column("streak_bonus", Integer, nullable=False, default=0),
+    Column("completion_bonus", Integer, nullable=False, default=0),
     Column("hint_penalty", Integer, nullable=False, default=0),
     Column("final_score", Integer, nullable=False, default=0),
     Column("duration_seconds", Integer, nullable=False),
@@ -615,4 +616,16 @@ user_word_mastery_table = Table(
     # the "what's due" query
     Index("idx_word_mastery_due", "user_id", "language_set_id", "due_at"),
     Index("idx_word_mastery_user_due", "user_id", "due_at"),
+)
+
+# Forgiving daily learning streak (one row per user). See osmosmjerka/streak.py.
+user_streaks_table = Table(
+    "user_streaks",
+    metadata,
+    Column("user_id", Integer, ForeignKey("accounts.id", ondelete="CASCADE"), primary_key=True),
+    Column("current_streak", Integer, nullable=False, server_default="0"),
+    Column("longest_streak", Integer, nullable=False, server_default="0"),
+    Column("last_active_date", Date, nullable=True),
+    Column("freezes", Integer, nullable=False, server_default="2"),  # missed-day forgiveness tokens
+    Column("updated_at", DateTime, nullable=False, server_default=func.now()),
 )

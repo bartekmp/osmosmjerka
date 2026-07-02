@@ -97,6 +97,9 @@ class WordMasteryMixin:
                 )
             )
 
+        # A review counts as activity for the forgiving daily streak (idempotent per day).
+        streak = await self.register_review_activity(user_id)
+
         return {
             "id": mastery_id,
             "direction": direction,
@@ -106,6 +109,7 @@ class WordMasteryMixin:
             "lapses": result.lapses,
             "mastery_level": result.mastery_level,
             "due_at": due_at.isoformat(),
+            "streak": streak,
         }
 
     async def get_due_items(

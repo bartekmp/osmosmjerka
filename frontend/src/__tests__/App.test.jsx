@@ -71,7 +71,7 @@ beforeEach(() => {
                     base_score: baseScore,
                     difficulty_bonus: 0,
                     time_bonus: 0,
-                    streak_bonus: 0,
+                    completion_bonus: 0,
                     hint_penalty: hintPenalty,
                     final_score: finalScore,
                     hints_used: hintsUsed,
