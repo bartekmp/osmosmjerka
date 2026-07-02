@@ -32,6 +32,7 @@ import { ThemeProvider, useThemeMode } from "./contexts/ThemeContext";
 import { AdminControls } from "./features";
 import { SplashScreen, WhatsNewModal } from "./shared";
 import { GameView } from "./GameView";
+import TrainingConfidencePrompt from "./features/game/components/Training/TrainingConfidencePrompt";
 import "./style.css";
 import createAppTheme from "./theme";
 
@@ -48,6 +49,7 @@ import { useSystemPreferences } from "./hooks/useSystemPreferences";
 import { useWhatsNew } from "./hooks/useWhatsNew";
 import { useGameSession } from "./hooks/useGameSession";
 import { useScoring } from "./hooks/useScoring";
+import { useTraining } from "./hooks/useTraining";
 import { useCategories } from "./hooks/useCategories";
 import { useSplash } from "./hooks/useSplash";
 
@@ -213,6 +215,21 @@ function AppContent() {
   });
 
   const justRestoredRef = useRef(false);
+
+  // Training mode (spaced-repetition): rate recall after each found/solved word.
+  const {
+    trainingMode,
+    setTrainingMode,
+    enqueueForRating,
+    submitRating,
+    currentRating,
+  } = useTraining({ selectedLanguageSetId, gameType });
+
+  // In word-search training, translations stay hidden during play so each find is a
+  // real recall event (the prompt reveals the translation at rating time). Crossword
+  // already hides the answer, so it keeps its normal behavior.
+  const effectiveShowTranslations =
+    trainingMode && gameType !== "crossword" ? false : showTranslations;
 
   const handleRateLimit = useCallback(() => {
     setShowRateLimit(true);
@@ -514,6 +531,20 @@ function AppContent() {
         setFound(newFoundList);
         confetti();
 
+        // Training mode: queue this word for a confidence rating. Word search stores
+        // phrase strings, so resolve to the full object (id + translation) from `phrases`.
+        if (trainingMode) {
+          const phraseObj =
+            typeof phrase === "string" ? phrases.find((p) => p.phrase === phrase) : phrase;
+          if (phraseObj?.id != null) {
+            enqueueForRating({
+              id: phraseObj.id,
+              phrase: phraseObj.phrase,
+              translation: phraseObj.translation,
+            });
+          }
+        }
+
         // Clear any active hints when phrase is found
         if (gridRef.current) {
           gridRef.current.clearHints();
@@ -532,7 +563,7 @@ function AppContent() {
     },
     [
       found,
-      phrases.length,
+      phrases,
       grid.length,
       selectedCategory,
       gameSessionId,
@@ -544,6 +575,8 @@ function AppContent() {
       gameStartTime,
       updateGameProgress,
       updateScore,
+      trainingMode,
+      enqueueForRating,
     ]
   );
 
@@ -710,8 +743,10 @@ function AppContent() {
       allFound={allFound}
       hidePhrases={hidePhrases}
       setHidePhrases={setHidePhrases}
-      showTranslations={showTranslations}
+      showTranslations={effectiveShowTranslations}
       setShowTranslations={setShowTranslations}
+      trainingMode={trainingMode}
+      onTrainingModeChange={setTrainingMode}
       notEnoughPhrases={notEnoughPhrases}
       notEnoughPhrasesMsg={notEnoughPhrasesMsg}
       isGridLoading={isGridLoading}
@@ -902,6 +937,9 @@ function AppContent() {
         onClose={handleWhatsNewClose}
         entries={whatsNewEntries}
       />
+
+      {/* Training mode: rate recall after each found/solved word */}
+      <TrainingConfidencePrompt item={currentRating} onRate={submitRating} t={t} />
     </MUIThemeProvider>
   );
 }

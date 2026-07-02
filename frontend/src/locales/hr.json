@@ -3,6 +3,14 @@
     "reset": "Poništi",
     "save": "Spremi promjene"
   },
+  "training": {
+    "mode": "Način vježbanja",
+    "tooltip": "Ocijenite koliko ste zapamtili nakon svake riječi za učenje s razmakom",
+    "howWell": "Koliko ste dobro znali?",
+    "didntKnow": "Nisam znao",
+    "shaky": "Nesigurno",
+    "knewIt": "Znao sam"
+  },
   "welcome": "Dobrodošli u Osmosmjerku!",
   "login": "Prijava",
   "logout": "Odjava",

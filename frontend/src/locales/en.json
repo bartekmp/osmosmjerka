@@ -3,6 +3,14 @@
     "reset": "Reset",
     "save": "Save Changes"
   },
+  "training": {
+    "mode": "Training mode",
+    "tooltip": "Rate your recall after each word to build spaced-repetition memory",
+    "howWell": "How well did you know it?",
+    "didntKnow": "Didn’t know",
+    "shaky": "Shaky",
+    "knewIt": "Knew it"
+  },
   "welcome": "Welcome to Osmosmjerka!",
   "login": "Login",
   "logout": "Logout",

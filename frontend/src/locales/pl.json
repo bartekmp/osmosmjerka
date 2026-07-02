@@ -3,6 +3,14 @@
     "reset": "Resetuj",
     "save": "Zapisz zmiany"
   },
+  "training": {
+    "mode": "Tryb treningu",
+    "tooltip": "Oceń, ile pamiętasz po każdym słowie, aby budować pamięć metodą powtórek",
+    "howWell": "Jak dobrze to znałeś?",
+    "didntKnow": "Nie znałem",
+    "shaky": "Niepewnie",
+    "knewIt": "Znałem"
+  },
   "welcome": "Witamy w Osmosmjerce!",
   "login": "Zaloguj się",
   "logout": "Wyloguj się",

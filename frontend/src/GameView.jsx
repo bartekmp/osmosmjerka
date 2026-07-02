@@ -15,6 +15,7 @@ import {
   Timer,
 } from "./features";
 import { NotEnoughPhrasesOverlay, ScreenTooSmallOverlay } from "./shared";
+import TrainingToggle from "./features/game/components/Training/TrainingToggle";
 
 export function GameView({
   // layout
@@ -45,6 +46,8 @@ export function GameView({
   setHidePhrases,
   showTranslations,
   setShowTranslations,
+  trainingMode,
+  onTrainingModeChange,
   notEnoughPhrases,
   notEnoughPhrasesMsg,
   isGridLoading,
@@ -133,6 +136,11 @@ export function GameView({
         onPrivateListChange={(listId) => setSelectedPrivateListId(listId)}
         gameType={gameType}
       />
+
+      {/* Training mode toggle — logged-in users only (reviews are per-account) */}
+      {currentUser && (
+        <TrainingToggle checked={!!trainingMode} onChange={onTrainingModeChange} t={t} />
+      )}
 
       {/* All Found Message — desktop/sidebar layout only */}
       {!useMobileLayout && (
