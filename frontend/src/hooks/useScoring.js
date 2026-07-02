@@ -2,7 +2,7 @@ import logger from '@shared/utils/logger';
 import axios from "axios";
 import { useCallback, useEffect, useRef, useState } from "react";
 import { API_ENDPOINTS, STORAGE_KEYS } from "../shared/constants/constants";
-import { calculateScoreClientSide, DEFAULT_SCORING_RULES } from "../utils/scoringUtils";
+import { estimateScoreOffline, FALLBACK_SCORING_RULES } from "../utils/scoringUtils";
 
 export function useScoring({
   scoringEnabled,
@@ -95,7 +95,7 @@ export function useScoring({
           per_phrase: perPhraseBreakdown,
           hints_used: hintsUsed,
           hint_penalty_per_hint:
-            scoringRules?.hint_penalty_per_hint ?? DEFAULT_SCORING_RULES.hint_penalty_per_hint,
+            scoringRules?.hint_penalty_per_hint ?? FALLBACK_SCORING_RULES.hint_penalty_per_hint,
           duration_seconds: durationSeconds,
           difficulty,
           total_phrases: phrases.length,
@@ -124,17 +124,9 @@ export function useScoring({
 
   const calculateScoreFromApi = useCallback(
     async ({ phrasesFound, totalPhrases, durationSeconds, hintsCount }) => {
-      const token = localStorage.getItem(STORAGE_KEYS.ADMIN_TOKEN);
-      if (!token) {
-        return calculateScoreClientSide(
-          difficulty,
-          phrasesFound,
-          totalPhrases,
-          durationSeconds,
-          hintsCount,
-          scoringRules || DEFAULT_SCORING_RULES
-        );
-      }
+      // Single source of truth: the public /system/calculate-score endpoint, used
+      // for both anonymous and authenticated users. Only fall back to a local
+      // estimate if the API is unreachable.
       try {
         const response = await axios.post(`${API_ENDPOINTS.GAME}/system/calculate-score`, {
           difficulty,
@@ -145,14 +137,13 @@ export function useScoring({
         });
         return response.data;
       } catch (error) {
-        logger.error("Failed to calculate score from API, falling back to client-side:", error);
-        return calculateScoreClientSide(
+        logger.error("Failed to calculate score from API, using offline estimate:", error);
+        return estimateScoreOffline(
           difficulty,
           phrasesFound,
           totalPhrases,
-          durationSeconds,
           hintsCount,
-          scoringRules || DEFAULT_SCORING_RULES
+          scoringRules || FALLBACK_SCORING_RULES
         );
       }
     },
@@ -189,8 +180,8 @@ export function useScoring({
     });
     if (!result) return;
 
-    const basePoints = scoringRules?.base_points_per_phrase ?? DEFAULT_SCORING_RULES.base_points_per_phrase;
-    const multiplierMap = scoringRules?.difficulty_multipliers ?? DEFAULT_SCORING_RULES.difficulty_multipliers;
+    const basePoints = scoringRules?.base_points_per_phrase ?? FALLBACK_SCORING_RULES.base_points_per_phrase;
+    const multiplierMap = scoringRules?.difficulty_multipliers ?? FALLBACK_SCORING_RULES.difficulty_multipliers;
     const multiplier = multiplierMap?.[difficulty] ?? 1;
     const perPhraseEntries = found.map((phraseValue, index) => {
       const phraseObj = phrases.find((item) =>
@@ -208,7 +199,7 @@ export function useScoring({
       hint_penalty_per_hint:
         result.hint_penalty_per_hint ??
         scoringRules?.hint_penalty_per_hint ??
-        DEFAULT_SCORING_RULES.hint_penalty_per_hint,
+        FALLBACK_SCORING_RULES.hint_penalty_per_hint,
       duration_seconds: currentElapsedTimeRef.current,
       difficulty,
       total_phrases: totalPhrases,

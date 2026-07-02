@@ -75,7 +75,7 @@ def test_get_scoring_rules(client):
     assert rules["base_points_per_phrase"] == 100
     assert set(rules["difficulty_multipliers"].keys()) == {"very_easy", "easy", "medium", "hard", "very_hard"}
     assert rules["completion_bonus_points"] == 200
-    assert rules["hint_penalty_per_hint"] == 75
+    assert rules["hint_penalty_per_hint"] == 0  # hints not penalized by default
     assert "time_bonus" in rules and "target_times_seconds" in rules["time_bonus"]
 
 
@@ -115,9 +115,9 @@ def test_calculate_score_endpoint(client):
         assert data["difficulty_bonus"] == 0
         assert data["time_bonus"] == 0  # not all phrases found
         assert data["streak_bonus"] == 0
-        assert data["hint_penalty"] == 75
-    assert data["final_score"] == 425
-    assert data["hint_penalty_per_hint"] == 75
+        assert data["hint_penalty"] == 0  # hints not penalized by default
+    assert data["final_score"] == 500
+    assert data["hint_penalty_per_hint"] == 0
 
 
 def test_get_grid_size_and_num_phrases_very_easy():
