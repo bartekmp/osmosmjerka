@@ -2,6 +2,14 @@
 
 <!-- version list -->
 
+## v1.42.7 (2026-07-02)
+
+### Bug Fixes
+
+- Show app version in footer on mobile ([#206](https://github.com/bartekmp/osmosmjerka/pull/206),
+  [`a6d7d6e`](https://github.com/bartekmp/osmosmjerka/commit/a6d7d6eb9235abecf6eed03b274fe361d8b30130))
+
+
 ## v1.42.6 (2026-07-02)
 
 ### Refactoring
