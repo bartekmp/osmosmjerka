@@ -2,6 +2,19 @@
 
 <!-- version list -->
 
+## v1.42.3 (2026-07-02)
+
+### Bug Fixes
+
+- Add language set selector to Duplicate Management
+  ([#202](https://github.com/bartekmp/osmosmjerka/pull/202),
+  [`54ad443`](https://github.com/bartekmp/osmosmjerka/commit/54ad44352616297a105aa1ea871a1e7c270590a1))
+
+- Add missing i18n keys for System Settings buttons and profile description
+  ([#202](https://github.com/bartekmp/osmosmjerka/pull/202),
+  [`54ad443`](https://github.com/bartekmp/osmosmjerka/commit/54ad44352616297a105aa1ea871a1e7c270590a1))
+
+
 ## v1.42.2 (2026-07-01)
 
 ### Chores
