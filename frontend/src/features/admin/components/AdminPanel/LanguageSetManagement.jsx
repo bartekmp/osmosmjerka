@@ -15,8 +15,12 @@ import {
     DialogActions,
     DialogContent,
     DialogTitle,
+    FormControl,
     IconButton,
+    InputLabel,
+    MenuItem,
     Paper,
+    Select,
     Table,
     TableBody,
     TableCell,
@@ -32,10 +36,9 @@ import { useEffect, useRef, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { ResponsiveText } from '../../../../shared';
 
-export default function LanguageSetManagement({ currentUser, initialLanguageSets = [], initialCategories = [], showAdminActions = true }) {
+export default function LanguageSetManagement({ currentUser, initialLanguageSets = [], showAdminActions = true }) {
     const { t } = useTranslation();
     const [languageSets, setLanguageSets] = useState(initialLanguageSets);
-    const [availableCategories, setAvailableCategories] = useState(initialCategories);
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState('');
     const [dialogOpen, setDialogOpen] = useState(false);
@@ -54,17 +57,18 @@ export default function LanguageSetManagement({ currentUser, initialLanguageSets
     const [allCategoriesForSet, setAllCategoriesForSet] = useState([]);
     const [userIgnoredCategories, setUserIgnoredCategories] = useState([]);
     const [updatingIgnored, setUpdatingIgnored] = useState(false);
+    // Create/edit dialog: typed ignored category + import-from-another-set state
+    const [newIgnoredCategoryInput, setNewIgnoredCategoryInput] = useState('');
+    const [importSourceSetId, setImportSourceSetId] = useState('');
+    const [importSourceCategories, setImportSourceCategories] = useState([]);
+    const [importLoading, setImportLoading] = useState(false);
 
     useEffect(() => {
         // Only load language sets if not provided as initial data
         if (initialLanguageSets.length === 0) {
             loadLanguageSets();
         }
-        // Only load available categories if not provided as initial data
-        if (initialCategories.length === 0) {
-            loadAvailableCategories();
-        }
-    }, [initialLanguageSets.length, initialCategories.length]);
+    }, [initialLanguageSets.length]);
 
     // Update local state when initial props change
     useEffect(() => {
@@ -72,29 +76,6 @@ export default function LanguageSetManagement({ currentUser, initialLanguageSets
             setLanguageSets(initialLanguageSets);
         }
     }, [initialLanguageSets]);
-
-    useEffect(() => {
-        if (initialCategories.length > 0) {
-            setAvailableCategories(initialCategories);
-        }
-    }, [initialCategories]);
-
-    const loadAvailableCategories = async () => {
-        try {
-            const response = await fetch(API_ENDPOINTS.ALL_CATEGORIES, {
-                headers: {
-                    'Authorization': `Bearer ${localStorage.getItem('adminToken')}`
-                }
-            });
-
-            if (response.ok) {
-                const data = await response.json();
-                setAvailableCategories(data);
-            }
-        } catch (err) {
-            logger.error('Failed to load categories:', err);
-        }
-    };
 
     const loadLanguageSets = async () => {
         setLoading(true);
@@ -119,6 +100,12 @@ export default function LanguageSetManagement({ currentUser, initialLanguageSets
         }
     };
 
+    const resetIgnoredCategoryInputs = () => {
+        setNewIgnoredCategoryInput('');
+        setImportSourceSetId('');
+        setImportSourceCategories([]);
+    };
+
     const handleCreate = () => {
         setEditingSet(null);
         setFormData({
@@ -129,6 +116,7 @@ export default function LanguageSetManagement({ currentUser, initialLanguageSets
             default_ignored_categories: []
         });
         setFile(null);
+        resetIgnoredCategoryInputs();
         setDialogOpen(true);
     };
 
@@ -145,6 +133,7 @@ export default function LanguageSetManagement({ currentUser, initialLanguageSets
             default_ignored_categories: defaultIgnored
         });
         setFile(null);
+        resetIgnoredCategoryInputs();
         setDialogOpen(true);
     };
 
@@ -258,6 +247,7 @@ export default function LanguageSetManagement({ currentUser, initialLanguageSets
             default_ignored_categories: []
         });
         setFile(null);
+        resetIgnoredCategoryInputs();
     };
 
     const addDefaultIgnoredCategory = (category) => {
@@ -266,6 +256,29 @@ export default function LanguageSetManagement({ currentUser, initialLanguageSets
                 ...prev,
                 default_ignored_categories: [...prev.default_ignored_categories, category]
             }));
+        }
+    };
+
+    const addTypedIgnoredCategory = () => {
+        const value = newIgnoredCategoryInput.trim();
+        if (!value) return;
+        addDefaultIgnoredCategory(value);
+        setNewIgnoredCategoryInput('');
+    };
+
+    const handleImportSourceChange = async (setId) => {
+        setImportSourceSetId(setId);
+        setImportSourceCategories([]);
+        if (!setId) return;
+        setImportLoading(true);
+        try {
+            const res = await fetch(`/api/categories?language_set_id=${setId}`);
+            const cats = res.ok ? await res.json() : [];
+            setImportSourceCategories([...new Set(cats)].sort());
+        } catch (e) {
+            logger.error('Failed to load categories for import', e);
+        } finally {
+            setImportLoading(false);
         }
     };
 
@@ -547,28 +560,91 @@ export default function LanguageSetManagement({ currentUser, initialLanguageSets
                                 </Box>
                             )}
 
-                            {/* Available categories to select from */}
-                            {availableCategories.length > 0 && (
-                                <Box>
-                                    <Typography variant="caption" sx={{ fontWeight: 600, display: 'block', mb: 0.5 }}>
-                                        {t('available_categories', 'Available Categories')} ({t('click_to_ignore', 'click to ignore')})
-                                    </Typography>
-                                    <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 0.5 }}>
-                                        {availableCategories
-                                            .filter(cat => !formData.default_ignored_categories.includes(cat))
-                                            .map(category => (
-                                                <Chip
-                                                    key={category}
-                                                    label={category}
-                                                    size="small"
-                                                    color="primary"
-                                                    variant="outlined"
-                                                    onClick={() => addDefaultIgnoredCategory(category)}
-                                                    disabled={loading}
-                                                    sx={{ cursor: 'pointer' }}
-                                                />
-                                            ))}
-                                    </Box>
+                            {/* Type a new ignored category */}
+                            <Box sx={{ display: 'flex', gap: 1 }}>
+                                <TextField
+                                    size="small"
+                                    fullWidth
+                                    label={t('add_ignored_category', 'Add ignored category')}
+                                    value={newIgnoredCategoryInput}
+                                    onChange={(e) => setNewIgnoredCategoryInput(e.target.value)}
+                                    onKeyDown={(e) => {
+                                        if (e.key === 'Enter') {
+                                            e.preventDefault();
+                                            addTypedIgnoredCategory();
+                                        }
+                                    }}
+                                    disabled={loading}
+                                />
+                                <Button
+                                    variant="outlined"
+                                    onClick={addTypedIgnoredCategory}
+                                    disabled={loading || !newIgnoredCategoryInput.trim()}
+                                >
+                                    {t('add', 'Add')}
+                                </Button>
+                            </Box>
+
+                            {/* Import categories from another language set */}
+                            {languageSets.filter(s => s.id !== editingSet?.id).length > 0 && (
+                                <Box sx={{ mt: 2 }}>
+                                    <FormControl fullWidth size="small">
+                                        <InputLabel id="import-ignored-categories-label">
+                                            {t('import_categories_from_set', 'Import categories from another set')}
+                                        </InputLabel>
+                                        <Select
+                                            labelId="import-ignored-categories-label"
+                                            label={t('import_categories_from_set', 'Import categories from another set')}
+                                            value={importSourceSetId}
+                                            onChange={(e) => handleImportSourceChange(e.target.value)}
+                                            disabled={loading}
+                                        >
+                                            <MenuItem value="">
+                                                <em>{t('none', 'None')}</em>
+                                            </MenuItem>
+                                            {languageSets
+                                                .filter(s => s.id !== editingSet?.id)
+                                                .map(s => (
+                                                    <MenuItem key={s.id} value={s.id}>{s.display_name}</MenuItem>
+                                                ))}
+                                        </Select>
+                                    </FormControl>
+
+                                    {importLoading && (
+                                        <Box sx={{ display: 'flex', justifyContent: 'center', py: 1 }}>
+                                            <CircularProgress size={20} />
+                                        </Box>
+                                    )}
+
+                                    {!importLoading && importSourceSetId && (
+                                        importSourceCategories.filter(cat => !formData.default_ignored_categories.includes(cat)).length > 0 ? (
+                                            <Box sx={{ mt: 1 }}>
+                                                <Typography variant="caption" sx={{ fontWeight: 600, display: 'block', mb: 0.5 }}>
+                                                    {t('click_to_ignore', 'click to ignore')}
+                                                </Typography>
+                                                <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 0.5 }}>
+                                                    {importSourceCategories
+                                                        .filter(cat => !formData.default_ignored_categories.includes(cat))
+                                                        .map(category => (
+                                                            <Chip
+                                                                key={category}
+                                                                label={category}
+                                                                size="small"
+                                                                color="primary"
+                                                                variant="outlined"
+                                                                onClick={() => addDefaultIgnoredCategory(category)}
+                                                                disabled={loading}
+                                                                sx={{ cursor: 'pointer' }}
+                                                            />
+                                                        ))}
+                                                </Box>
+                                            </Box>
+                                        ) : (
+                                            <Typography variant="caption" color="text.secondary" sx={{ display: 'block', mt: 1 }}>
+                                                {t('no_categories_to_import', 'No categories to import from this set')}
+                                            </Typography>
+                                        )
+                                    )}
                                 </Box>
                             )}
                         </Box>

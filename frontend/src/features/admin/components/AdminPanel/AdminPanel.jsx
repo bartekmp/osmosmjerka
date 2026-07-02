@@ -593,7 +593,6 @@ export default function AdminPanel({
                     <LanguageSetManagement
                         currentUser={currentUser}
                         initialLanguageSets={languageSets}
-                        initialCategories={categories}
                         showAdminActions={currentUser?.role === 'admin' || currentUser?.role === 'root_admin' || currentUser?.role === 'administrative'}
                     />
                 )}
