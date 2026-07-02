@@ -42,8 +42,10 @@ TARGET_TIMES_SECONDS: Dict[str, int] = {
 # Bonus for completing the entire puzzle (finding every phrase).
 COMPLETION_BONUS_POINTS: int = 200
 
-# Points deducted for each hint the player uses.
-HINT_PENALTY_PER_HINT: int = 75
+# Points deducted for each hint the player uses. Defaults to 0: revealing a
+# word/direction is a learning moment, so hints are not penalized by default.
+# Admins can still raise this via the scoring rules editor.
+HINT_PENALTY_PER_HINT: int = 0
 
 # Public representation ------------------------------------------------------
 

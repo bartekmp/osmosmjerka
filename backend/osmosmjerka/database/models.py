@@ -158,7 +158,7 @@ scoring_rules_table = Table(
     Column("max_time_bonus_ratio", String, nullable=False, default="0.3"),  # Stored as string to preserve precision
     Column("target_times_seconds", JSONB, nullable=False),  # {difficulty: seconds}
     Column("completion_bonus_points", Integer, nullable=False, default=200),
-    Column("hint_penalty_per_hint", Integer, nullable=False, default=75),
+    Column("hint_penalty_per_hint", Integer, nullable=False, default=0),  # hints not penalized by default
     Column("updated_at", DateTime, nullable=False, server_default=func.now()),
     Column("updated_by", Integer, nullable=False, default=0),  # User ID of who made the change
     Column("game_type", String(20), nullable=False, default="word_search"),  # word_search, crossword
