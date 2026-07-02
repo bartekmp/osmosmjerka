@@ -2,6 +2,15 @@
 
 <!-- version list -->
 
+## v1.42.4 (2026-07-02)
+
+### Bug Fixes
+
+- Rework create language set ignored-categories picker
+  ([#203](https://github.com/bartekmp/osmosmjerka/pull/203),
+  [`4da7cd1`](https://github.com/bartekmp/osmosmjerka/commit/4da7cd133833b019b25ef273b68c825cccf615ba))
+
+
 ## v1.42.3 (2026-07-02)
 
 ### Bug Fixes
