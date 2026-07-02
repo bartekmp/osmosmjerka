@@ -14,7 +14,9 @@ from sqlalchemy import (
     Text,
     UniqueConstraint,
     func,
+    text,
 )
+from sqlalchemy.dialects.postgresql import JSONB
 
 # Shared metadata for all tables
 metadata = MetaData()
@@ -152,9 +154,9 @@ scoring_rules_table = Table(
     metadata,
     Column("id", Integer, primary_key=True, index=True),
     Column("base_points_per_phrase", Integer, nullable=False, default=100),
-    Column("difficulty_multipliers", Text, nullable=False),  # JSON string of difficulty multipliers
+    Column("difficulty_multipliers", JSONB, nullable=False),  # {difficulty: multiplier}
     Column("max_time_bonus_ratio", String, nullable=False, default="0.3"),  # Stored as string to preserve precision
-    Column("target_times_seconds", Text, nullable=False),  # JSON string of target times
+    Column("target_times_seconds", JSONB, nullable=False),  # {difficulty: seconds}
     Column("completion_bonus_points", Integer, nullable=False, default=200),
     Column("hint_penalty_per_hint", Integer, nullable=False, default=75),
     Column("updated_at", DateTime, nullable=False, server_default=func.now()),
@@ -331,12 +333,18 @@ teacher_phrase_sets_table = Table(
         nullable=False,
         index=True,
     ),
-    # Game configuration stored as JSON string
+    # Game configuration stored as JSONB
     Column(
         "config",
-        Text,
+        JSONB,
         nullable=False,
-        default='{"allow_hints":true,"show_translations":true,"require_translation_input":false,"show_timer":false,"strict_grid_size":false,"grid_size":10,"time_limit_minutes":null,"difficulty":"medium"}',
+        # Spaces after colons are required: SQLAlchemy's text() parser would treat
+        # ":true"/":false"/":null" as bind parameters, but ": true" stays literal.
+        server_default=text(
+            '\'{"allow_hints": true, "show_translations": true, "require_translation_input": false, '
+            '"show_timer": false, "strict_grid_size": false, "grid_size": 10, '
+            '"time_limit_minutes": null, "difficulty": "medium"}\'::jsonb'
+        ),
     ),
     # Link management
     Column("current_hotlink_token", String(16), nullable=False, unique=True, index=True),
@@ -464,7 +472,7 @@ notifications_table = Table(
     Column("is_read", Boolean, nullable=False, default=False),
     Column("created_at", DateTime, nullable=False, server_default=func.now()),
     Column("expires_at", DateTime, nullable=True),  # For auto-cleanup
-    Column("metadata", Text, nullable=True),  # JSON string for extra data
+    Column("metadata", JSONB, nullable=True),  # extra structured data
     # Indexes
     Index("idx_notifications_user_read", "user_id", "is_read"),
     Index("idx_notifications_created_at", "created_at"),
