@@ -55,12 +55,12 @@
 - 📱 **Responsive Design** - Optimized for desktop, tablet, and mobile devices
 
 ### Admin Features
-- 👥 **User Management** - Role-based access control (root admin, admin, user)
+- 👥 **User Management** - Role-based access control (root admin, admin, teacher, regular user)
 - 🗂️ **Language Sets** - Organize phrases into separate language collections
 - 📝 **Phrase Database** - Comprehensive management with import/export and duplicate detection
 - ⚡ **Batch Operations** - Bulk editing, category management, multi-select actions
 - 🔄 **Data Import/Export** - Support for TXT and CSV file formats, plus copy-paste modal for quick additions
-- 🔍 **Duplicate Management** - Automatic detection and prevention of duplicate phrases
+- 🔍 **Duplicate Management** - Automatic detection and merging of duplicate phrases
 
 ### Education Features
 - 🍎 **Teacher Mode** - Create custom puzzles, manage study groups, and assign work to students
@@ -138,7 +138,7 @@ cp .env.example .env
 
 4. **Build and run with Docker**
 ```bash
-docker build -t osmosmjerka --build-arg VERSION=v1.33.0 .
+docker build -t osmosmjerka --build-arg VERSION=v1.42.7 .
 docker run --rm -d -p 8085:8085 --name osmosmjerka osmosmjerka
 ```
 
@@ -267,30 +267,28 @@ The admin panel provides multiple ways to add phrases to your database:
 #### File Upload
 Upload phrases using TXT or CSV files via the admin panel (`/admin`):
 
-**Format:** `phrase;translation;categories`
+**Format:** `categories;phrase;translation` (an optional header line `categories;phrase;translation` is supported; categories are space-separated)
 
 **Example:**
 ```
-PYTHON;Programming language;Technology Programming
-ALGORITHM;Step-by-step procedure;Computer Science
-GRAMMAR;Language rules;Language Learning
+Technology Programming;PYTHON;Programming language
+Computer Science;ALGORITHM;Step-by-step procedure
+Language Learning;GRAMMAR;Language rules
 ```
 
 #### Copy-Paste Modal
 Prefer direct input? Use the copy-paste modal in the admin panel to paste blocks of phrases directly:
 - No need to create files first
 - Paste multiple lines at once
-- Same format as file uploads: `phrase;translation;categories`
+- Same format as file uploads: `categories;phrase;translation`
 - Real-time validation before submission
 - Ideal for quick additions or updates
 
 #### Duplicate Management
-Osmosmjerka automatically handles duplicates intelligently:
-- **Automatic Detection** - Identifies duplicate phrases during import
-- **Smart Prevention** - Prevents duplicate entries in the database (phrase field is the primary key)
-- **Clear Reporting** - Shows which phrases were skipped due to duplication
-- **Safe Imports** - You can re-import the same file without creating duplicates
-- **Merge Support** - Update existing phrases by importing with the same phrase text
+Osmosmjerka provides tools to find and resolve duplicate phrases:
+- **Automatic Detection** - Identifies duplicate phrases within a language set by phrase text (case-insensitive)
+- **Grouped Reporting** - Shows duplicate groups and how many copies of each phrase exist
+- **Merge & Resolve** - Merge a duplicate group's categories into one kept phrase and delete the rest, from the Duplicate Management panel
 
 **Sample Data:** Check the `example/words.txt` file for Croatian-Polish phrases.
 
@@ -337,12 +335,12 @@ Create and organize multiple themed collections:
 
 Import phrases in bulk from external sources (up to 1000 phrases per import):
 
-**CSV Format:**
+**CSV Format:** semicolon-separated with a header row (`categories` optional):
 ```csv
-source,translation,context,category
-hello,hola,greeting,Basic
-goodbye,adiós,farewell,Basic
-thank you,gracias,gratitude,Polite
+phrase;translation;categories
+hello;hola;Greetings
+goodbye;adiós;Greetings
+thank you;gracias;Polite
 ```
 
 **Import Process:**
@@ -353,9 +351,8 @@ thank you,gracias,gratitude,Polite
 
 **Notes:**
 - Maximum 1000 phrases per import
-- Duplicate phrases within the import are automatically removed
-- `source` and `translation` fields are required
-- `context` and `category` fields are optional
+- A header row (`phrase;translation;categories`) defines the columns
+- `phrase` and `translation` are required; `categories` is optional
 
 #### 🤝 List Sharing
 
@@ -408,6 +405,7 @@ Access the admin panel at `/admin` with your configured admin credentials.
 
 - **Root Administrator** - Full system access, user management, system settings
 - **Administrative Users** - Database management, no user creation/deletion
+- **Teachers** - Create puzzles, assignments, and study groups for students (Teacher Tools)
 - **Regular Users** - Game access only
 
 ### Features Overview
@@ -422,7 +420,7 @@ Access the admin panel at `/admin` with your configured admin credentials.
 - **File Import** - Support for TXT and CSV formats for uploading phrases into the database
 - **Copy-Paste Modal** - Quick phrase addition by pasting blocks of text directly (no files needed)
 - **Download** - Download the entire database or just filtered rows as a TXT file
-- **Duplicate Detection** - Automatic identification and prevention of duplicate entries
+- **Duplicate Detection** - Automatic identification and merging of duplicate entries
 - **Data Validation** - Real-time validation with clear error reporting
 
 #### User Management
