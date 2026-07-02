@@ -5,6 +5,7 @@ from sqlalchemy import (
     CheckConstraint,
     Column,
     DateTime,
+    Float,
     ForeignKey,
     Index,
     Integer,
@@ -555,4 +556,63 @@ teacher_phrase_set_groups_table = Table(
     ),
     Column("assigned_at", DateTime, nullable=False, server_default=func.now()),
     UniqueConstraint("phrase_set_id", "group_id", name="uq_phrase_set_group"),
+)
+
+# Per-word spaced-repetition mastery (one row per user, item, and direction).
+# An "item" is polymorphic: a public phrase (phrase_id) OR a custom private-list phrase
+# (list_phrase_id) — exactly one is set, mirroring user_private_list_phrases. See the
+# SM-2-lite scheduler in osmosmjerka/srs.py and the srs-design-decisions notes.
+user_word_mastery_table = Table(
+    "user_word_mastery",
+    metadata,
+    Column("id", Integer, primary_key=True, index=True),
+    Column("user_id", Integer, ForeignKey("accounts.id", ondelete="CASCADE"), nullable=False, index=True),
+    Column("phrase_id", Integer, ForeignKey("phrases.id", ondelete="CASCADE"), nullable=True),  # public phrase
+    Column(
+        "list_phrase_id",
+        Integer,
+        ForeignKey("user_private_list_phrases.id", ondelete="CASCADE"),
+        nullable=True,  # custom private-list phrase
+    ),
+    Column("language_set_id", Integer, ForeignKey("language_sets.id", ondelete="CASCADE"), nullable=False, index=True),
+    # 'production' (clue->word, crossword) or 'recognition' (word->meaning, word search)
+    Column("direction", String(16), nullable=False, server_default="production"),
+    # SM-2-lite scheduling state (Anki-compatible)
+    Column("ease", Float, nullable=False, server_default="2.5"),
+    Column("interval_days", Float, nullable=False, server_default="0"),
+    Column("due_at", DateTime, nullable=False, server_default=func.now()),
+    Column("reps", Integer, nullable=False, server_default="0"),
+    Column("lapses", Integer, nullable=False, server_default="0"),
+    # derived / telemetry
+    Column("mastery_level", Integer, nullable=False, server_default="0"),  # 0..5
+    Column("total_reviews", Integer, nullable=False, server_default="0"),
+    Column("correct_reviews", Integer, nullable=False, server_default="0"),
+    Column("last_reviewed_at", DateTime, nullable=True),
+    Column("created_at", DateTime, nullable=False, server_default=func.now()),
+    # exactly one of phrase_id / list_phrase_id must be set
+    CheckConstraint(
+        "((phrase_id IS NOT NULL)::int + (list_phrase_id IS NOT NULL)::int) = 1",
+        name="ck_word_mastery_one_ref",
+    ),
+    # polymorphic uniqueness via partial indexes (plain UNIQUE would treat NULL refs as
+    # distinct and fail to dedupe public phrases)
+    Index(
+        "uq_word_mastery_public",
+        "user_id",
+        "phrase_id",
+        "direction",
+        unique=True,
+        postgresql_where=text("phrase_id IS NOT NULL"),
+    ),
+    Index(
+        "uq_word_mastery_custom",
+        "user_id",
+        "list_phrase_id",
+        "direction",
+        unique=True,
+        postgresql_where=text("list_phrase_id IS NOT NULL"),
+    ),
+    # the "what's due" query
+    Index("idx_word_mastery_due", "user_id", "language_set_id", "due_at"),
+    Index("idx_word_mastery_user_due", "user_id", "due_at"),
 )
