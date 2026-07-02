@@ -48,6 +48,7 @@ export default function LanguageSetManagement({ currentUser, initialLanguageSets
         display_name: '',
         description: '',
         author: '',
+        target_lang: '',
         default_ignored_categories: []
     });
     const [file, setFile] = useState(null);
@@ -113,6 +114,7 @@ export default function LanguageSetManagement({ currentUser, initialLanguageSets
             display_name: '',
             description: '',
             author: currentUser?.username || '',
+            target_lang: '',
             default_ignored_categories: []
         });
         setFile(null);
@@ -130,6 +132,7 @@ export default function LanguageSetManagement({ currentUser, initialLanguageSets
             display_name: languageSet.display_name,
             description: languageSet.description || '',
             author: languageSet.author || '',
+            target_lang: languageSet.target_lang || '',
             default_ignored_categories: defaultIgnored
         });
         setFile(null);
@@ -244,6 +247,7 @@ export default function LanguageSetManagement({ currentUser, initialLanguageSets
             display_name: '',
             description: '',
             author: '',
+            target_lang: '',
             default_ignored_categories: []
         });
         setFile(null);
@@ -528,6 +532,16 @@ export default function LanguageSetManagement({ currentUser, initialLanguageSets
                             margin="normal"
                             disabled={loading || editingSet} // Disable when editing
                             helperText={editingSet ? t('author_cannot_edit', 'Author cannot be changed when editing') : t('author_auto_set', 'Author is automatically set to current user')}
+                        />
+                        <TextField
+                            fullWidth
+                            label={t('target_lang', 'Target language code (for audio)')}
+                            value={formData.target_lang}
+                            onChange={(e) => setFormData({ ...formData, target_lang: e.target.value })}
+                            margin="normal"
+                            disabled={loading}
+                            placeholder="pl-PL"
+                            helperText={t('target_lang_help', 'BCP-47 code of the target language, e.g. pl-PL or hr-HR. Enables the listen (🔊) button when a matching voice is available.')}
                         />
                         <Box sx={{ mt: 2 }}>
                             <Typography variant="subtitle2" sx={{ mb: 1 }}>

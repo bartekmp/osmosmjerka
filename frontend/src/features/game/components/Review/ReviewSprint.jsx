@@ -14,6 +14,7 @@ import {
 import { useTranslation } from "react-i18next";
 import { useNavigate } from "react-router-dom";
 import { useReviewSprint } from "../../../../hooks/useReviewSprint";
+import ListenButton from "./ListenButton";
 
 function StatsRow({ stats, t }) {
   if (!stats) return null;
@@ -116,13 +117,19 @@ export default function ReviewSprint() {
                 <Typography variant="overline" color="text.secondary">
                   {promptLabel}
                 </Typography>
-                <Typography variant="h4" sx={{ my: 2 }}>
-                  {prompt}
-                </Typography>
+                <Box sx={{ display: "flex", alignItems: "center", justifyContent: "center", gap: 0.5, my: 2 }}>
+                  <Typography variant="h4">{prompt}</Typography>
+                  {/* recognition: the prompt is the target-language word */}
+                  {!isProduction && <ListenButton text={current.phrase} lang={current.target_lang} t={t} />}
+                </Box>
                 {revealed && (
-                  <Typography variant="h5" color="primary" sx={{ mb: 1 }}>
-                    {answer}
-                  </Typography>
+                  <Box sx={{ display: "flex", alignItems: "center", justifyContent: "center", gap: 0.5, mb: 1 }}>
+                    <Typography variant="h5" color="primary">
+                      {answer}
+                    </Typography>
+                    {/* production: the answer is the target-language word */}
+                    {isProduction && <ListenButton text={current.phrase} lang={current.target_lang} t={t} />}
+                  </Box>
                 )}
               </CardContent>
             </Card>

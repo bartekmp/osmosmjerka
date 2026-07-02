@@ -33,6 +33,7 @@ language_sets_table = Table(
     Column("description", Text, nullable=True),
     Column("author", String, nullable=True),
     Column("created_by", Integer, nullable=True),  # User ID of creator, NULL for root admin (id=0)
+    Column("target_lang", String(16), nullable=True),  # BCP-47 code of the target language (for TTS), e.g. "pl-PL"
     Column("default_ignored_categories", Text, nullable=True),  # Comma-separated list of ignored categories
     Column("created_at", DateTime, nullable=False, server_default=func.now()),
     Column("is_active", Boolean, nullable=False, default=True),

@@ -43,6 +43,7 @@ class LanguageSetsMixin:
         author: Optional[str] = None,
         created_by: Optional[int] = None,
         default_ignored_categories: Optional[list[str]] = None,
+        target_lang: Optional[str] = None,
     ) -> int:
         """Create a new language set and its phrase table."""
         database = self._ensure_database()
@@ -57,6 +58,7 @@ class LanguageSetsMixin:
             description=description,
             author=author,
             created_by=created_by,
+            target_lang=target_lang or None,
             default_ignored_categories=default_ignored_str,
             is_active=True,
             is_default=False,

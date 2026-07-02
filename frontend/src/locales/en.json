@@ -13,6 +13,7 @@
   },
   "review": {
     "title": "Review sprint",
+    "listen": "Listen",
     "reveal": "Reveal",
     "recallWord": "Recall the word",
     "recallMeaning": "Recall the meaning",

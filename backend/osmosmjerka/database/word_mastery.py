@@ -10,7 +10,7 @@ import datetime
 from typing import Any, Dict, List, Optional
 
 from osmosmjerka import srs
-from osmosmjerka.database.models import phrases_table, user_word_mastery_table
+from osmosmjerka.database.models import language_sets_table, phrases_table, user_word_mastery_table
 from sqlalchemy import and_, func, insert, select, update
 
 
@@ -123,6 +123,7 @@ class WordMasteryMixin:
         database = self._ensure_database()
         t = user_word_mastery_table
         p = phrases_table
+        ls = language_sets_table
 
         query = (
             select(
@@ -136,8 +137,11 @@ class WordMasteryMixin:
                 t.c.due_at,
                 p.c.phrase.label("phrase"),
                 p.c.translation.label("translation"),
+                ls.c.target_lang.label("target_lang"),
             )
-            .select_from(t.outerjoin(p, t.c.phrase_id == p.c.id))
+            .select_from(
+                t.outerjoin(p, t.c.phrase_id == p.c.id).outerjoin(ls, t.c.language_set_id == ls.c.id)
+            )
             .where(and_(t.c.user_id == user_id, t.c.due_at <= func.now()))
         )
         if language_set_id is not None:
