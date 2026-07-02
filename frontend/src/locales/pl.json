@@ -1,4 +1,8 @@
 {
+  "common": {
+    "reset": "Resetuj",
+    "save": "Zapisz zmiany"
+  },
   "welcome": "Witamy w Osmosmjerce!",
   "login": "Zaloguj się",
   "logout": "Wyloguj się",
@@ -79,6 +83,7 @@
   "back_to_dashboard": "Powrót do panelu",
   "profile": "Profil",
   "your_profile": "Twój Profil",
+  "your_profile_description": "Opis Twojego profilu",
   "manage_my_lists": "Zarządzaj moimi listami",
   "reload_data": "Odśwież dane",
   "reload": "Odśwież",
