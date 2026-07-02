@@ -25,9 +25,11 @@ class NotificationsMixin:
         if notification.get("expires_at") and isinstance(notification["expires_at"], datetime):
             notification["expires_at"] = notification["expires_at"].isoformat()
 
-        if notification.get("metadata"):
+        # metadata is JSONB (returned as dict); tolerate legacy string rows.
+        meta = notification.get("metadata")
+        if isinstance(meta, str):
             try:
-                notification["metadata"] = json.loads(notification["metadata"])
+                notification["metadata"] = json.loads(meta)
             except json.JSONDecodeError:
                 notification["metadata"] = {}
         return notification
@@ -53,7 +55,7 @@ class NotificationsMixin:
             "link": link,
             "is_read": False,
             "expires_at": expires_at,
-            "metadata": json.dumps(metadata) if metadata else None,
+            "metadata": metadata if metadata else None,
         }
 
         query = insert(notifications_table).values(**values)

@@ -1,7 +1,6 @@
 """Scoring rules and game scores database operations."""
 
 import datetime
-import json
 from typing import Any, Dict, List, Optional
 
 from osmosmjerka.database.models import accounts_table, game_scores_table, scoring_rules_table
@@ -24,9 +23,9 @@ class ScoringMixin:
 
         return {
             "base_points_per_phrase": result["base_points_per_phrase"],
-            "difficulty_multipliers": json.loads(result["difficulty_multipliers"]),
+            "difficulty_multipliers": result["difficulty_multipliers"],
             "max_time_bonus_ratio": float(result["max_time_bonus_ratio"]),
-            "target_times_seconds": json.loads(result["target_times_seconds"]),
+            "target_times_seconds": result["target_times_seconds"],
             "completion_bonus_points": result["completion_bonus_points"],
             "hint_penalty_per_hint": result["hint_penalty_per_hint"],
         }
@@ -47,9 +46,9 @@ class ScoringMixin:
 
         query = insert(scoring_rules_table).values(
             base_points_per_phrase=base_points_per_phrase,
-            difficulty_multipliers=json.dumps(difficulty_multipliers),
+            difficulty_multipliers=difficulty_multipliers,
             max_time_bonus_ratio=str(max_time_bonus_ratio),
-            target_times_seconds=json.dumps(target_times_seconds),
+            target_times_seconds=target_times_seconds,
             completion_bonus_points=completion_bonus_points,
             hint_penalty_per_hint=hint_penalty_per_hint,
             updated_by=updated_by,

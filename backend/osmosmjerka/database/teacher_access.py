@@ -35,7 +35,7 @@ class TeacherSetsAccessMixin:
             return None
 
         row_dict = dict(result)
-        if row_dict.get("config"):
+        if isinstance(row_dict.get("config"), str):
             try:
                 row_dict["config"] = json.loads(row_dict["config"])
             except json.JSONDecodeError:
@@ -276,7 +276,7 @@ class TeacherSetsAccessMixin:
         puzzles = []
         for row in result:
             row_dict = dict(row)
-            if row_dict.get("config"):
+            if isinstance(row_dict.get("config"), str):
                 try:
                     row_dict["config"] = json.loads(row_dict["config"])
                 except json.JSONDecodeError:

@@ -107,7 +107,7 @@ class TeacherSetsMixin:
             description=description,
             language_set_id=language_set_id,
             created_by=created_by,
-            config=json.dumps(final_config),
+            config=final_config,
             current_hotlink_token=hotlink_token,
             hotlink_version=1,
             access_type=access_type,
@@ -232,8 +232,8 @@ class TeacherSetsMixin:
         sets = []
         for row in result:
             row_dict = dict(row)
-            # Parse config JSON
-            if row_dict.get("config"):
+            # config is JSONB (returned as dict); tolerate legacy string rows.
+            if isinstance(row_dict.get("config"), str):
                 try:
                     row_dict["config"] = json.loads(row_dict["config"])
                 except json.JSONDecodeError:
@@ -325,7 +325,7 @@ class TeacherSetsMixin:
             return None
 
         row_dict = dict(result)
-        if row_dict.get("config"):
+        if isinstance(row_dict.get("config"), str):
             try:
                 row_dict["config"] = json.loads(row_dict["config"])
             except json.JSONDecodeError:
@@ -410,10 +410,7 @@ class TeacherSetsMixin:
                 # Check if sessions exist
                 if existing.get("session_count", 0) > 0:
                     raise ValueError(f"Cannot update {key}: set has existing sessions")  # noqa: S608
-                if key == "config":
-                    update_values[key] = json.dumps(value)
-                else:
-                    update_values[key] = value
+                update_values[key] = value
 
         if update_values:
             update_values["updated_at"] = datetime.utcnow()
