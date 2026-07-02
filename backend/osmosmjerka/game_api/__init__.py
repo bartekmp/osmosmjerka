@@ -9,6 +9,7 @@ from osmosmjerka.game_api.helpers import (
     _generate_grid_with_exact_phrase_count,
     get_grid_size_and_num_phrases,
 )
+from osmosmjerka.game_api.learn import router as learn_router
 from osmosmjerka.game_api.list_sharing import router as list_sharing_router
 from osmosmjerka.game_api.phrases import router as phrases_router
 from osmosmjerka.game_api.private_lists import router as private_lists_router
@@ -33,6 +34,7 @@ router.include_router(list_sharing_router)
 router.include_router(student_groups_router)
 router.include_router(student_study_router)
 router.include_router(changelog_router)
+router.include_router(learn_router)
 
 # Export functions for backward compatibility with tests and other code
 __all__ = [

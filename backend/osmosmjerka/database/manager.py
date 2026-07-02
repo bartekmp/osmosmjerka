@@ -17,6 +17,7 @@ from osmosmjerka.database.teacher_access import TeacherSetsAccessMixin
 from osmosmjerka.database.teacher_sessions import TeacherSetsSessionsMixin
 from osmosmjerka.database.teacher_sets import TeacherSetsMixin
 from osmosmjerka.database.user_preferences import UserPreferencesMixin
+from osmosmjerka.database.word_mastery import WordMasteryMixin
 
 
 class DatabaseManager(
@@ -35,6 +36,7 @@ class DatabaseManager(
     TeacherSetsSessionsMixin,
     NotificationsMixin,
     TeacherGroupsMixin,
+    WordMasteryMixin,
 ):
     """Database manager class that encapsulates all database operations using hybrid approach.
 
