@@ -1,4 +1,8 @@
 {
+  "common": {
+    "reset": "Reset",
+    "save": "Save Changes"
+  },
   "welcome": "Welcome to Osmosmjerka!",
   "login": "Login",
   "logout": "Logout",
@@ -79,6 +83,7 @@
   "back_to_dashboard": "Back to Dashboard",
   "profile": "Profile",
   "your_profile": "Your Profile",
+  "your_profile_description": "Your Profile Description",
   "manage_my_lists": "Manage My Lists",
   "reload_data": "Reload Data",
   "reload": "Reload",

@@ -1,4 +1,8 @@
 {
+  "common": {
+    "reset": "Poništi",
+    "save": "Spremi promjene"
+  },
   "welcome": "Dobrodošli u Osmosmjerku!",
   "login": "Prijava",
   "logout": "Odjava",
@@ -79,6 +83,7 @@
   "back_to_dashboard": "Povratak na nadzornu ploču",
   "profile": "Profil",
   "your_profile": "Tvoj Profil",
+  "your_profile_description": "Opis vašeg profila",
   "manage_my_lists": "Upravljaj mojim listama",
   "reload_data": "Osvježi podatke",
   "reload": "Osvježi",
