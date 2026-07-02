@@ -10,7 +10,7 @@ import datetime
 from typing import Any, Dict, List, Optional
 
 from osmosmjerka import srs
-from osmosmjerka.database.models import user_word_mastery_table
+from osmosmjerka.database.models import phrases_table, user_word_mastery_table
 from sqlalchemy import and_, func, insert, select, update
 
 
@@ -111,17 +111,38 @@ class WordMasteryMixin:
     async def get_due_items(
         self, user_id: int, language_set_id: Optional[int] = None, limit: int = 50
     ) -> List[Dict[str, Any]]:
-        """Return mastery rows whose review is due (``due_at`` <= now), soonest first."""
+        """Return due items (``due_at`` <= now), soonest first, enriched with the phrase
+        text + translation needed to render a review flashcard.
+
+        Only public-phrase items carry phrase/translation (via the join). Custom
+        private-list items (``list_phrase_id``) have no join here yet and are skipped."""
         database = self._ensure_database()
         t = user_word_mastery_table
+        p = phrases_table
 
-        query = select(t).where(and_(t.c.user_id == user_id, t.c.due_at <= func.now()))
+        query = (
+            select(
+                t.c.id,
+                t.c.phrase_id,
+                t.c.list_phrase_id,
+                t.c.language_set_id,
+                t.c.direction,
+                t.c.mastery_level,
+                t.c.interval_days,
+                t.c.due_at,
+                p.c.phrase.label("phrase"),
+                p.c.translation.label("translation"),
+            )
+            .select_from(t.outerjoin(p, t.c.phrase_id == p.c.id))
+            .where(and_(t.c.user_id == user_id, t.c.due_at <= func.now()))
+        )
         if language_set_id is not None:
             query = query.where(t.c.language_set_id == language_set_id)
         query = query.order_by(t.c.due_at).limit(limit)
 
         rows = await database.fetch_all(query)
-        return [self._serialize_datetimes(dict(row)) for row in rows]
+        # Skip rows we can't render yet (custom list phrases have no phrase text here).
+        return [self._serialize_datetimes(dict(row)) for row in rows if row["phrase"] is not None]
 
     async def get_mastery_stats(self, user_id: int, language_set_id: Optional[int] = None) -> Dict[str, int]:
         """Summary counts for the learning dashboard: tracked / due / mastered."""

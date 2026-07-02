@@ -1,5 +1,6 @@
 import { Box, Button, Stack } from "@mui/material";
 import AutorenewIcon from "@mui/icons-material/Autorenew";
+import PsychologyIcon from "@mui/icons-material/Psychology";
 import {
   AllFoundMessage,
   CrosswordGrid,
@@ -48,6 +49,7 @@ export function GameView({
   setShowTranslations,
   trainingMode,
   onTrainingModeChange,
+  onOpenReview,
   notEnoughPhrases,
   notEnoughPhrasesMsg,
   isGridLoading,
@@ -137,9 +139,14 @@ export function GameView({
         gameType={gameType}
       />
 
-      {/* Training mode toggle — logged-in users only (reviews are per-account) */}
+      {/* Training mode toggle + review entry — logged-in users only */}
       {currentUser && (
-        <TrainingToggle checked={!!trainingMode} onChange={onTrainingModeChange} t={t} />
+        <Box sx={{ display: "flex", alignItems: "center", gap: 2, flexWrap: "wrap", justifyContent: "center" }}>
+          <TrainingToggle checked={!!trainingMode} onChange={onTrainingModeChange} t={t} />
+          <Button size="small" variant="outlined" startIcon={<PsychologyIcon />} onClick={onOpenReview}>
+            {t("review.title", "Review sprint")}
+          </Button>
+        </Box>
       )}
 
       {/* All Found Message — desktop/sidebar layout only */}

@@ -11,6 +11,23 @@
     "shaky": "Shaky",
     "knewIt": "Knew it"
   },
+  "review": {
+    "title": "Review sprint",
+    "reveal": "Reveal",
+    "recallWord": "Recall the word",
+    "recallMeaning": "Recall the meaning",
+    "tracked": "Tracked",
+    "due": "Due",
+    "mastered": "Mastered",
+    "nothingDue": "Nothing due right now — come back later! 🎉",
+    "sprintDone": "Sprint complete!",
+    "reviewedCount": "Reviewed {{count}} words",
+    "reviewAgain": "Review more",
+    "backToGame": "Back to game",
+    "loginRequired": "Log in to review your words and track mastery.",
+    "error": "Could not load your reviews.",
+    "retry": "Try again"
+  },
   "welcome": "Welcome to Osmosmjerka!",
   "login": "Login",
   "logout": "Logout",

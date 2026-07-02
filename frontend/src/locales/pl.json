@@ -11,6 +11,23 @@
     "shaky": "Niepewnie",
     "knewIt": "Znałem"
   },
+  "review": {
+    "title": "Sesja powtórek",
+    "reveal": "Pokaż",
+    "recallWord": "Przypomnij sobie słowo",
+    "recallMeaning": "Przypomnij sobie znaczenie",
+    "tracked": "Śledzone",
+    "due": "Do powtórki",
+    "mastered": "Opanowane",
+    "nothingDue": "Nic do powtórki — wróć później! 🎉",
+    "sprintDone": "Sesja ukończona!",
+    "reviewedCount": "Powtórzono słów: {{count}}",
+    "reviewAgain": "Powtórz więcej",
+    "backToGame": "Powrót do gry",
+    "loginRequired": "Zaloguj się, aby powtarzać słowa i śledzić postępy.",
+    "error": "Nie można załadować powtórek.",
+    "retry": "Spróbuj ponownie"
+  },
   "welcome": "Witamy w Osmosmjerce!",
   "login": "Zaloguj się",
   "logout": "Wyloguj się",

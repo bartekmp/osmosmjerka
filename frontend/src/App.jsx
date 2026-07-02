@@ -75,6 +75,9 @@ const UserProfile = lazy(() =>
 const TeacherPuzzlePage = lazy(() =>
   import("./features/teacher").then((module) => ({ default: module.TeacherPuzzlePage }))
 );
+const ReviewSprint = lazy(() =>
+  import("./features/game/components/Review/ReviewSprint").then((module) => ({ default: module.default }))
+);
 
 function AppContent() {
   const { t } = useTranslation();
@@ -747,6 +750,7 @@ function AppContent() {
       setShowTranslations={setShowTranslations}
       trainingMode={trainingMode}
       onTrainingModeChange={setTrainingMode}
+      onOpenReview={() => navigate("/review")}
       notEnoughPhrases={notEnoughPhrases}
       notEnoughPhrasesMsg={notEnoughPhrasesMsg}
       isGridLoading={isGridLoading}
@@ -851,6 +855,16 @@ function AppContent() {
               </Suspense>
             }
           />
+          {/* Spaced-repetition review sprint */}
+          <Route
+            path="/review"
+            element={
+              <Suspense fallback={<CircularProgress />}>
+                <ReviewSprint />
+              </Suspense>
+            }
+          />
+          <Route path="/learn" element={<Navigate to="/review" replace />} />
           {/* Game Routes */}
           {/* Root now keeps SPA behavior with state-based game type */}
           <Route path="/" element={gameView} />
