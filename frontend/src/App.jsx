@@ -851,29 +851,26 @@ function AppContent() {
             px: 2,
           }}
         >
-          {!useMobileLayout && (
-            <>
-              <Typography
-                variant="body2"
-                color="text.secondary"
-                component="a"
-                href={`https://github.com/bartekmp/osmosmjerka/releases/tag/v${appVersion}`}
-                target="_blank"
-                rel="noopener noreferrer"
-                sx={{
-                  textDecoration: "none",
-                  color: "text.secondary",
-                  "&:hover": {
-                    textDecoration: "underline",
-                    color: "primary.main",
-                  },
-                }}
-              >
-                Osmosmjerka v{appVersion}
-              </Typography>
-              <Box sx={{ height: 20, width: 1, bgcolor: "divider" }} />
-            </>
-          )}
+          <Typography
+            variant="body2"
+            color="text.secondary"
+            component="a"
+            href={`https://github.com/bartekmp/osmosmjerka/releases/tag/v${appVersion}`}
+            target="_blank"
+            rel="noopener noreferrer"
+            sx={{
+              textDecoration: "none",
+              color: "text.secondary",
+              fontSize: useMobileLayout ? "0.75rem" : undefined,
+              "&:hover": {
+                textDecoration: "underline",
+                color: "primary.main",
+              },
+            }}
+          >
+            Osmosmjerka v{appVersion}
+          </Typography>
+          <Box sx={{ height: 20, width: 1, bgcolor: "divider" }} />
           <IconButton
             size="small"
             href="https://github.com/bartekmp/osmosmjerka"
