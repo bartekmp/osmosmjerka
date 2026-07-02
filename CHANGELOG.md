@@ -2,6 +2,15 @@
 
 <!-- version list -->
 
+## v1.42.6 (2026-07-02)
+
+### Refactoring
+
+- Scoring cleanup — single source of truth + stop penalizing hints
+  ([#205](https://github.com/bartekmp/osmosmjerka/pull/205),
+  [`e514a7e`](https://github.com/bartekmp/osmosmjerka/commit/e514a7ed759106e4a12bd4bce88428ea894d28f0))
+
+
 ## v1.42.5 (2026-07-02)
 
 ### Refactoring
