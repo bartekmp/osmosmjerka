@@ -701,7 +701,11 @@ function AppContent() {
   }, [allFound]);
 
   const isTeacherPuzzleRoute = location.pathname.startsWith("/t/");
-  const shouldShowSplash = !isAdminRoute && !isTeacherPuzzleRoute && showSplash;
+  // The review/learn surfaces don't load a puzzle, so the game-load-driven splash would
+  // never dismiss there — skip it (as we do for admin/teacher routes).
+  const isReviewRoute = location.pathname.startsWith("/review") || location.pathname.startsWith("/learn");
+  const shouldShowSplash =
+    !isAdminRoute && !isTeacherPuzzleRoute && !isReviewRoute && showSplash;
 
   // Auto-adjust difficulty if current one becomes unavailable due to screen size
   React.useEffect(() => {

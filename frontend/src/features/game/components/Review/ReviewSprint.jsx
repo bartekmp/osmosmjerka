@@ -2,6 +2,7 @@ import ArrowBackIcon from "@mui/icons-material/ArrowBack";
 import PsychologyIcon from "@mui/icons-material/Psychology";
 import RecordVoiceOverIcon from "@mui/icons-material/RecordVoiceOver";
 import {
+  Alert,
   Box,
   Button,
   Card,
@@ -15,8 +16,10 @@ import {
 import { useState } from "react";
 import { useTranslation } from "react-i18next";
 import { useNavigate } from "react-router-dom";
+import { useAuth } from "../../../../hooks/useAuth";
 import { useReviewSprint } from "../../../../hooks/useReviewSprint";
 import { useSystemPreferences } from "../../../../hooks/useSystemPreferences";
+import GameHeader from "../GameHeader/GameHeader";
 import ListenButton from "./ListenButton";
 import VoiceManager from "./VoiceManager";
 
@@ -35,6 +38,7 @@ function StatsRow({ stats, t }) {
 export default function ReviewSprint() {
   const { t } = useTranslation();
   const navigate = useNavigate();
+  const { currentUser } = useAuth();
   const [voicesOpen, setVoicesOpen] = useState(false);
   const { ttsEnabled } = useSystemPreferences();
   const { status, current, index, total, revealed, reveal, rate, stats, reviewedCount, startSprint } =
@@ -55,23 +59,30 @@ export default function ReviewSprint() {
   );
 
   return (
-    <Container maxWidth="sm" sx={{ py: 3 }}>
-      <Stack spacing={2} sx={{ alignItems: "center" }}>
-        <Box sx={{ display: "flex", alignItems: "center", gap: 1, alignSelf: "center" }}>
-          <PsychologyIcon color="primary" />
-          <Typography variant="h5">{t("review.title", "Review sprint")}</Typography>
-        </Box>
+    <>
+      <GameHeader handleLogoClick={() => navigate("/")} currentUser={currentUser} />
+      <Container maxWidth="sm" sx={{ py: 3 }}>
+        <Stack spacing={2} sx={{ alignItems: "center" }}>
+          <Box sx={{ display: "flex", alignItems: "center", gap: 1, alignSelf: "center" }}>
+            <PsychologyIcon color="primary" />
+            <Typography variant="h5">{t("review.title", "Review sprint")}</Typography>
+          </Box>
 
-        {status === "loading" && <CircularProgress sx={{ my: 4 }} />}
+          {status === "loading" && <CircularProgress sx={{ my: 4 }} />}
 
-        {status === "unauthenticated" && (
-          <>
-            <Typography color="text.secondary">
-              {t("review.loginRequired", "Log in to review your words and track mastery.")}
-            </Typography>
-            {backButton}
-          </>
-        )}
+          {status === "unauthenticated" && (
+            <>
+              <Alert severity="info" sx={{ width: "100%" }}>
+                {t("review.loginRequired", "Log in to review your words and track mastery.")}
+              </Alert>
+              <Stack direction="row" spacing={1}>
+                <Button variant="contained" onClick={() => navigate("/admin")}>
+                  {t("login", "Login")}
+                </Button>
+                <Button onClick={() => navigate("/")}>{t("review.backToGame", "Back to game")}</Button>
+              </Stack>
+            </>
+          )}
 
         {status === "error" && (
           <>
@@ -171,13 +182,14 @@ export default function ReviewSprint() {
         )}
       </Stack>
 
-      <VoiceManager
-        open={voicesOpen}
-        onClose={() => setVoicesOpen(false)}
-        lang={current?.target_lang}
-        sampleText={current?.phrase}
-        t={t}
-      />
-    </Container>
+        <VoiceManager
+          open={voicesOpen}
+          onClose={() => setVoicesOpen(false)}
+          lang={current?.target_lang}
+          sampleText={current?.phrase}
+          t={t}
+        />
+      </Container>
+    </>
   );
 }
