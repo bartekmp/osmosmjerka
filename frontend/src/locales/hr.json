@@ -3,6 +3,31 @@
     "reset": "Poništi",
     "save": "Spremi promjene"
   },
+  "training": {
+    "mode": "Način vježbanja",
+    "tooltip": "Ocijenite koliko ste zapamtili nakon svake riječi za učenje s razmakom",
+    "howWell": "Koliko ste dobro znali?",
+    "didntKnow": "Nisam znao",
+    "shaky": "Nesigurno",
+    "knewIt": "Znao sam"
+  },
+  "review": {
+    "title": "Vježba ponavljanja",
+    "reveal": "Otkrij",
+    "recallWord": "Sjetite se riječi",
+    "recallMeaning": "Sjetite se značenja",
+    "tracked": "Praćeno",
+    "due": "Za ponoviti",
+    "mastered": "Savladano",
+    "nothingDue": "Trenutno ništa za ponoviti — vratite se kasnije! 🎉",
+    "sprintDone": "Vježba završena!",
+    "reviewedCount": "Ponovljeno riječi: {{count}}",
+    "reviewAgain": "Ponovi još",
+    "backToGame": "Natrag na igru",
+    "loginRequired": "Prijavite se za ponavljanje riječi i praćenje napretka.",
+    "error": "Nije moguće učitati vaša ponavljanja.",
+    "retry": "Pokušaj ponovno"
+  },
   "welcome": "Dobrodošli u Osmosmjerku!",
   "login": "Prijava",
   "logout": "Odjava",

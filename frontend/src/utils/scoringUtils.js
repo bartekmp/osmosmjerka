@@ -51,15 +51,15 @@ export function estimateScoreOffline(difficulty, phrasesFound, totalPhrases, hin
     const baseScore = phrasesFound * r.base_points_per_phrase;
     const multiplier = r.difficulty_multipliers[difficulty] ?? r.difficulty_multipliers.easy;
     const difficultyBonus = Math.floor(baseScore * (multiplier - 1.0));
-    const streakBonus = phrasesFound === totalPhrases ? r.completion_bonus_points : 0;
+    const completionBonus = phrasesFound === totalPhrases ? r.completion_bonus_points : 0;
     const hintPenalty = hintsUsed * r.hint_penalty_per_hint;
-    const finalScore = Math.max(0, baseScore + difficultyBonus + streakBonus - hintPenalty);
+    const finalScore = Math.max(0, baseScore + difficultyBonus + completionBonus - hintPenalty);
 
     return {
         base_score: baseScore,
         difficulty_bonus: difficultyBonus,
         time_bonus: 0,
-        streak_bonus: streakBonus,
+        completion_bonus: completionBonus,
         hint_penalty: hintPenalty,
         final_score: finalScore,
         hints_used: hintsUsed,

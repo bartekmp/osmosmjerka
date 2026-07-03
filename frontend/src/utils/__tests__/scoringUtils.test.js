@@ -27,14 +27,14 @@ describe('scoringUtils (offline fallback)', () => {
         it('should award completion bonus when all phrases found', () => {
             const result = estimateScoreOffline('easy', 10, 10, 0);
 
-            expect(result.streak_bonus).toBe(200);
+            expect(result.completion_bonus).toBe(200);
             expect(result.base_score).toBe(1000);
         });
 
         it('should not award completion bonus when not all phrases found', () => {
             const result = estimateScoreOffline('easy', 5, 10, 0);
 
-            expect(result.streak_bonus).toBe(0);
+            expect(result.completion_bonus).toBe(0);
         });
 
         it('should not include a time bonus (degraded offline estimate)', () => {
@@ -84,7 +84,7 @@ describe('scoringUtils (offline fallback)', () => {
             expect(result).toHaveProperty('base_score');
             expect(result).toHaveProperty('difficulty_bonus');
             expect(result).toHaveProperty('time_bonus');
-            expect(result).toHaveProperty('streak_bonus');
+            expect(result).toHaveProperty('completion_bonus');
             expect(result).toHaveProperty('hint_penalty');
             expect(result).toHaveProperty('final_score');
             expect(result).toHaveProperty('hints_used');

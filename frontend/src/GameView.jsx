@@ -1,5 +1,6 @@
 import { Box, Button, Stack } from "@mui/material";
 import AutorenewIcon from "@mui/icons-material/Autorenew";
+import PsychologyIcon from "@mui/icons-material/Psychology";
 import {
   AllFoundMessage,
   CrosswordGrid,
@@ -15,6 +16,7 @@ import {
   Timer,
 } from "./features";
 import { NotEnoughPhrasesOverlay, ScreenTooSmallOverlay } from "./shared";
+import TrainingToggle from "./features/game/components/Training/TrainingToggle";
 
 export function GameView({
   // layout
@@ -45,6 +47,9 @@ export function GameView({
   setHidePhrases,
   showTranslations,
   setShowTranslations,
+  trainingMode,
+  onTrainingModeChange,
+  onOpenReview,
   notEnoughPhrases,
   notEnoughPhrasesMsg,
   isGridLoading,
@@ -133,6 +138,16 @@ export function GameView({
         onPrivateListChange={(listId) => setSelectedPrivateListId(listId)}
         gameType={gameType}
       />
+
+      {/* Training mode toggle + review entry — logged-in users only */}
+      {currentUser && (
+        <Box sx={{ display: "flex", alignItems: "center", gap: 2, flexWrap: "wrap", justifyContent: "center" }}>
+          <TrainingToggle checked={!!trainingMode} onChange={onTrainingModeChange} t={t} />
+          <Button size="small" variant="outlined" startIcon={<PsychologyIcon />} onClick={onOpenReview}>
+            {t("review.title", "Review sprint")}
+          </Button>
+        </Box>
+      )}
 
       {/* All Found Message — desktop/sidebar layout only */}
       {!useMobileLayout && (

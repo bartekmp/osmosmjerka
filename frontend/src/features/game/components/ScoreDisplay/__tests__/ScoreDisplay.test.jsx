@@ -110,7 +110,7 @@ describe('ScoreDisplay Component', () => {
                 base_score: 50,
                 difficulty_bonus: 20,
                 time_bonus: 15,
-                streak_bonus: 10, // Component uses streak_bonus, not completion_bonus
+                completion_bonus: 10,
                 hint_penalty: 5,
                 final_score: 90,
                 difficulty: 'medium',

@@ -13,10 +13,12 @@ from osmosmjerka.database.phrases import PhrasesMixin
 from osmosmjerka.database.private_lists import PrivateListsMixin
 from osmosmjerka.database.scoring import ScoringMixin
 from osmosmjerka.database.statistics import StatisticsMixin
+from osmosmjerka.database.streak_ops import StreakMixin
 from osmosmjerka.database.teacher_access import TeacherSetsAccessMixin
 from osmosmjerka.database.teacher_sessions import TeacherSetsSessionsMixin
 from osmosmjerka.database.teacher_sets import TeacherSetsMixin
 from osmosmjerka.database.user_preferences import UserPreferencesMixin
+from osmosmjerka.database.word_mastery import WordMasteryMixin
 
 
 class DatabaseManager(
@@ -35,6 +37,8 @@ class DatabaseManager(
     TeacherSetsSessionsMixin,
     NotificationsMixin,
     TeacherGroupsMixin,
+    WordMasteryMixin,
+    StreakMixin,
 ):
     """Database manager class that encapsulates all database operations using hybrid approach.
 

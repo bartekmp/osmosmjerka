@@ -58,6 +58,7 @@ async def create_language_set(language_set: dict, user=Depends(require_admin_acc
             author=language_set.get("author"),
             created_by=created_by,
             default_ignored_categories=default_ignored_categories,
+            target_lang=language_set.get("target_lang"),
         )
         return JSONResponse(
             {"message": "Language set created", "id": language_set_id}, status_code=status.HTTP_201_CREATED

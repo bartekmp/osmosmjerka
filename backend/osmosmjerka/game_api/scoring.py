@@ -72,19 +72,19 @@ async def calculate_game_score(
             time_bonus = int(base_score * max_time_bonus_ratio * time_ratio)
 
     # Completion bonus for finding all phrases in the puzzle.
-    streak_bonus = completion_bonus_points if phrases_found == total_phrases else 0
+    completion_bonus = completion_bonus_points if phrases_found == total_phrases else 0
 
     # Hint penalty: fixed deduction per hint used.
     hint_penalty = hints_used * hint_penalty_per_hint
 
     # Calculate final score.
-    final_score = max(0, base_score + difficulty_bonus + time_bonus + streak_bonus - hint_penalty)
+    final_score = max(0, base_score + difficulty_bonus + time_bonus + completion_bonus - hint_penalty)
 
     return {
         "base_score": base_score,
         "difficulty_bonus": difficulty_bonus,
         "time_bonus": time_bonus,
-        "streak_bonus": streak_bonus,
+        "completion_bonus": completion_bonus,
         "hint_penalty": hint_penalty,
         "final_score": final_score,
         "hints_used": hints_used,
@@ -133,7 +133,7 @@ async def save_game_score(body: SaveGameScoreRequest, user=Depends(get_current_u
             base_score=scoring_result["base_score"],
             time_bonus=scoring_result["time_bonus"],
             difficulty_bonus=scoring_result["difficulty_bonus"],
-            streak_bonus=scoring_result["streak_bonus"],
+            completion_bonus=scoring_result["completion_bonus"],
             hint_penalty=scoring_result["hint_penalty"],
             final_score=scoring_result["final_score"],
             duration_seconds=body.duration_seconds,
