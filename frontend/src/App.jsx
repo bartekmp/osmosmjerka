@@ -700,12 +700,12 @@ function AppContent() {
     if (allFound) setHidePhrases(false);
   }, [allFound]);
 
-  const isTeacherPuzzleRoute = location.pathname.startsWith("/t/");
-  // The review/learn surfaces don't load a puzzle, so the game-load-driven splash would
-  // never dismiss there — skip it (as we do for admin/teacher routes).
-  const isReviewRoute = location.pathname.startsWith("/review") || location.pathname.startsWith("/learn");
-  const shouldShowSplash =
-    !isAdminRoute && !isTeacherPuzzleRoute && !isReviewRoute && showSplash;
+  // The splash is driven by puzzle load, so it only belongs on the main game pages.
+  // Everywhere else (admin, teacher puzzle, review/learn, etc.) it would either never
+  // dismiss or just get in the way, so restrict it to the game routes explicitly.
+  const GAME_ROUTES = ["/", "/wordsearch", "/crosswords"];
+  const isGameRoute = GAME_ROUTES.includes(location.pathname);
+  const shouldShowSplash = isGameRoute && showSplash;
 
   // Auto-adjust difficulty if current one becomes unavailable due to screen size
   React.useEffect(() => {
