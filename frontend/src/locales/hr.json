@@ -539,6 +539,10 @@
         "userLimit": "Ograničenje za korisnike",
         "adminLimit": "Ograničenje za administratore",
         "save": "Spremi ograničenja"
+      },
+      "tts": {
+        "title": "Govor (glasovni paketi)",
+        "description": "Dopustite učenicima preuzimanje glasova u pregledniku za slušanje riječi. Kada je isključeno, glasovni modeli se ne preuzimaju."
       }
     },
     "scoringRules": {

@@ -540,6 +540,10 @@
         "userLimit": "Limit użytkownika",
         "adminLimit": "Limit administratora",
         "save": "Zapisz limity"
+      },
+      "tts": {
+        "title": "Synteza mowy (pakiety głosowe)",
+        "description": "Pozwól uczniom pobierać głosy w przeglądarce, aby słyszeć słowa. Gdy wyłączone, modele głosów nie są pobierane."
       }
     },
     "scoringRules": {

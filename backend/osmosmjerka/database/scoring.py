@@ -230,3 +230,11 @@ class ScoringMixin:
             return user_preference.lower() == "true"
 
         return global_enabled
+
+    async def is_tts_enabled_globally(self) -> bool:
+        """Check if in-browser text-to-speech (voice packs) is globally enabled.
+
+        Defaults to enabled; admins can turn it off so no voice models are ever
+        downloaded to clients."""
+        setting = await self.get_global_setting("tts_enabled", "true")
+        return setting is not None and setting.lower() == "true"

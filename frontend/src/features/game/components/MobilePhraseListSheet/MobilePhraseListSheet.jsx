@@ -20,6 +20,7 @@ const MobilePhraseListSheet = ({
   _hidePhrases,
   setHidePhrases,
   allFound,
+  trainingMode = false,
   showTranslations,
   setShowTranslations,
   disableShowPhrases,
@@ -41,7 +42,8 @@ const MobilePhraseListSheet = ({
   // Get found phrases with their full data
   const foundPhrases = phrases.filter(p => found.includes(p.phrase));
   const isCrossword = gameType === "crossword";
-  const canToggleTranslations = found.length > 0 && !isCrossword;
+  // Training mode hides the translations toggle until the game is finished (peek on win).
+  const canToggleTranslations = found.length > 0 && !isCrossword && (!trainingMode || allFound);
 
   // Handle touch start on drag handle
   const handleHandleTouchStart = useCallback((e) => {

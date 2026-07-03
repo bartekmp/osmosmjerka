@@ -16,6 +16,7 @@ import { useState } from "react";
 import { useTranslation } from "react-i18next";
 import { useNavigate } from "react-router-dom";
 import { useReviewSprint } from "../../../../hooks/useReviewSprint";
+import { useSystemPreferences } from "../../../../hooks/useSystemPreferences";
 import ListenButton from "./ListenButton";
 import VoiceManager from "./VoiceManager";
 
@@ -35,6 +36,7 @@ export default function ReviewSprint() {
   const { t } = useTranslation();
   const navigate = useNavigate();
   const [voicesOpen, setVoicesOpen] = useState(false);
+  const { ttsEnabled } = useSystemPreferences();
   const { status, current, index, total, revealed, reveal, rate, stats, reviewedCount, startSprint } =
     useReviewSprint();
 
@@ -124,7 +126,9 @@ export default function ReviewSprint() {
                 <Box sx={{ display: "flex", alignItems: "center", justifyContent: "center", gap: 0.5, my: 2 }}>
                   <Typography variant="h4">{prompt}</Typography>
                   {/* recognition: the prompt is the target-language word */}
-                  {!isProduction && <ListenButton text={current.phrase} lang={current.target_lang} t={t} />}
+                  {ttsEnabled && !isProduction && (
+                    <ListenButton text={current.phrase} lang={current.target_lang} t={t} />
+                  )}
                 </Box>
                 {revealed && (
                   <Box sx={{ display: "flex", alignItems: "center", justifyContent: "center", gap: 0.5, mb: 1 }}>
@@ -132,7 +136,9 @@ export default function ReviewSprint() {
                       {answer}
                     </Typography>
                     {/* production: the answer is the target-language word */}
-                    {isProduction && <ListenButton text={current.phrase} lang={current.target_lang} t={t} />}
+                    {ttsEnabled && isProduction && (
+                      <ListenButton text={current.phrase} lang={current.target_lang} t={t} />
+                    )}
                   </Box>
                 )}
               </CardContent>
@@ -155,7 +161,7 @@ export default function ReviewSprint() {
                 </Button>
               </Stack>
             )}
-            {current.target_lang && (
+            {ttsEnabled && current.target_lang && (
               <Button size="small" startIcon={<RecordVoiceOverIcon />} onClick={() => setVoicesOpen(true)}>
                 {t("review.voices", "Voice packs")}
               </Button>

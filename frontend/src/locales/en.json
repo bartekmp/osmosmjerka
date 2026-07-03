@@ -538,6 +538,10 @@
         "userLimit": "User Limit",
         "adminLimit": "Admin Limit",
         "save": "Save Limits"
+      },
+      "tts": {
+        "title": "Text-to-speech (voice packs)",
+        "description": "Let learners download in-browser voices to hear words. When off, no voice models are downloaded."
       }
     },
     "scoringRules": {
