@@ -2,6 +2,70 @@
 
 <!-- version list -->
 
+## v1.43.0 (2026-07-03)
+
+### Code Style
+
+- Apply ruff format to word_mastery and test_streak
+  ([#209](https://github.com/bartekmp/osmosmjerka/pull/209),
+  [`a5c586d`](https://github.com/bartekmp/osmosmjerka/commit/a5c586d9d1bfff45c2d7fff193e6379fe196ea2f))
+
+### Documentation
+
+- Add crossword mode screenshots to README
+  ([#208](https://github.com/bartekmp/osmosmjerka/pull/208),
+  [`c693be1`](https://github.com/bartekmp/osmosmjerka/commit/c693be1f48a6ebe16886be5fdf80248bc3d14b79))
+
+- Crosswords mode description ([#208](https://github.com/bartekmp/osmosmjerka/pull/208),
+  [`c693be1`](https://github.com/bartekmp/osmosmjerka/commit/c693be1f48a6ebe16886be5fdf80248bc3d14b79))
+
+- Document crossword mode and notifications in README
+  ([#208](https://github.com/bartekmp/osmosmjerka/pull/208),
+  [`c693be1`](https://github.com/bartekmp/osmosmjerka/commit/c693be1f48a6ebe16886be5fdf80248bc3d14b79))
+
+- Fix README inaccuracies (import format, roles, duplicates, version)
+  ([#208](https://github.com/bartekmp/osmosmjerka/pull/208),
+  [`c693be1`](https://github.com/bartekmp/osmosmjerka/commit/c693be1f48a6ebe16886be5fdf80248bc3d14b79))
+
+- Update React and FastAPI version badges ([#208](https://github.com/bartekmp/osmosmjerka/pull/208),
+  [`c693be1`](https://github.com/bartekmp/osmosmjerka/commit/c693be1f48a6ebe16886be5fdf80248bc3d14b79))
+
+### Features
+
+- Add /api/learn SRS endpoints + mastery persistence (phase 1 backend)
+  ([#209](https://github.com/bartekmp/osmosmjerka/pull/209),
+  [`a5c586d`](https://github.com/bartekmp/osmosmjerka/commit/a5c586d9d1bfff45c2d7fff193e6379fe196ea2f))
+
+- Add per-word mastery model + SM-2-lite scheduler (SRS phase 0)
+  ([#209](https://github.com/bartekmp/osmosmjerka/pull/209),
+  [`a5c586d`](https://github.com/bartekmp/osmosmjerka/commit/a5c586d9d1bfff45c2d7fff193e6379fe196ea2f))
+
+- Add review sprint surface (SRS phase 2) ([#209](https://github.com/bartekmp/osmosmjerka/pull/209),
+  [`a5c586d`](https://github.com/bartekmp/osmosmjerka/commit/a5c586d9d1bfff45c2d7fff193e6379fe196ea2f))
+
+- Add Training mode with per-word confidence rating (phase 1 frontend)
+  ([#209](https://github.com/bartekmp/osmosmjerka/pull/209),
+  [`a5c586d`](https://github.com/bartekmp/osmosmjerka/commit/a5c586d9d1bfff45c2d7fff193e6379fe196ea2f))
+
+- Client-side TTS with listen button (SRS phase 4)
+  ([#209](https://github.com/bartekmp/osmosmjerka/pull/209),
+  [`a5c586d`](https://github.com/bartekmp/osmosmjerka/commit/a5c586d9d1bfff45c2d7fff193e6379fe196ea2f))
+
+- Forgiving daily streak + rename streak_bonus->completion_bonus (SRS phase 3)
+  ([#209](https://github.com/bartekmp/osmosmjerka/pull/209),
+  [`a5c586d`](https://github.com/bartekmp/osmosmjerka/commit/a5c586d9d1bfff45c2d7fff193e6379fe196ea2f))
+
+- Spaced-repetition learning modes (per-word mastery, Training, Review, streak, TTS)
+  ([#209](https://github.com/bartekmp/osmosmjerka/pull/209),
+  [`a5c586d`](https://github.com/bartekmp/osmosmjerka/commit/a5c586d9d1bfff45c2d7fff193e6379fe196ea2f))
+
+### Refactoring
+
+- Drop OS Web Speech TTS button (keep target_lang groundwork)
+  ([#209](https://github.com/bartekmp/osmosmjerka/pull/209),
+  [`a5c586d`](https://github.com/bartekmp/osmosmjerka/commit/a5c586d9d1bfff45c2d7fff193e6379fe196ea2f))
+
+
 ## v1.42.7 (2026-07-02)
 
 ### Bug Fixes
