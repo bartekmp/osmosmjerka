@@ -1,5 +1,6 @@
 import ArrowBackIcon from "@mui/icons-material/ArrowBack";
 import PsychologyIcon from "@mui/icons-material/Psychology";
+import RecordVoiceOverIcon from "@mui/icons-material/RecordVoiceOver";
 import {
   Box,
   Button,
@@ -11,9 +12,12 @@ import {
   Stack,
   Typography,
 } from "@mui/material";
+import { useState } from "react";
 import { useTranslation } from "react-i18next";
 import { useNavigate } from "react-router-dom";
 import { useReviewSprint } from "../../../../hooks/useReviewSprint";
+import ListenButton from "./ListenButton";
+import VoiceManager from "./VoiceManager";
 
 function StatsRow({ stats, t }) {
   if (!stats) return null;
@@ -30,6 +34,7 @@ function StatsRow({ stats, t }) {
 export default function ReviewSprint() {
   const { t } = useTranslation();
   const navigate = useNavigate();
+  const [voicesOpen, setVoicesOpen] = useState(false);
   const { status, current, index, total, revealed, reveal, rate, stats, reviewedCount, startSprint } =
     useReviewSprint();
 
@@ -116,13 +121,19 @@ export default function ReviewSprint() {
                 <Typography variant="overline" color="text.secondary">
                   {promptLabel}
                 </Typography>
-                <Typography variant="h4" sx={{ my: 2 }}>
-                  {prompt}
-                </Typography>
+                <Box sx={{ display: "flex", alignItems: "center", justifyContent: "center", gap: 0.5, my: 2 }}>
+                  <Typography variant="h4">{prompt}</Typography>
+                  {/* recognition: the prompt is the target-language word */}
+                  {!isProduction && <ListenButton text={current.phrase} lang={current.target_lang} t={t} />}
+                </Box>
                 {revealed && (
-                  <Typography variant="h5" color="primary" sx={{ mb: 1 }}>
-                    {answer}
-                  </Typography>
+                  <Box sx={{ display: "flex", alignItems: "center", justifyContent: "center", gap: 0.5, mb: 1 }}>
+                    <Typography variant="h5" color="primary">
+                      {answer}
+                    </Typography>
+                    {/* production: the answer is the target-language word */}
+                    {isProduction && <ListenButton text={current.phrase} lang={current.target_lang} t={t} />}
+                  </Box>
                 )}
               </CardContent>
             </Card>
@@ -144,10 +155,23 @@ export default function ReviewSprint() {
                 </Button>
               </Stack>
             )}
+            {current.target_lang && (
+              <Button size="small" startIcon={<RecordVoiceOverIcon />} onClick={() => setVoicesOpen(true)}>
+                {t("review.voices", "Voice packs")}
+              </Button>
+            )}
             {backButton}
           </>
         )}
       </Stack>
+
+      <VoiceManager
+        open={voicesOpen}
+        onClose={() => setVoicesOpen(false)}
+        lang={current?.target_lang}
+        sampleText={current?.phrase}
+        t={t}
+      />
     </Container>
   );
 }
