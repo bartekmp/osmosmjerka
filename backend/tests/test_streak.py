@@ -69,9 +69,7 @@ def test_freeze_regained_at_milestone():
 
 
 def test_freeze_regain_capped_at_max():
-    state = StreakState(
-        current=FREEZE_REGAIN_EVERY - 1, longest=99, last_active=D(2026, 7, 2), freezes=MAX_FREEZES
-    )
+    state = StreakState(current=FREEZE_REGAIN_EVERY - 1, longest=99, last_active=D(2026, 7, 2), freezes=MAX_FREEZES)
     r = register_activity(state, D(2026, 7, 3))
     assert r.freezes == MAX_FREEZES  # not exceeded
 

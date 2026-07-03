@@ -139,9 +139,7 @@ class WordMasteryMixin:
                 p.c.translation.label("translation"),
                 ls.c.target_lang.label("target_lang"),
             )
-            .select_from(
-                t.outerjoin(p, t.c.phrase_id == p.c.id).outerjoin(ls, t.c.language_set_id == ls.c.id)
-            )
+            .select_from(t.outerjoin(p, t.c.phrase_id == p.c.id).outerjoin(ls, t.c.language_set_id == ls.c.id))
             .where(and_(t.c.user_id == user_id, t.c.due_at <= func.now()))
         )
         if language_set_id is not None:
