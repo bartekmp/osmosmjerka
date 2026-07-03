@@ -1,0 +1,91 @@
+// Jenkins pipeline for on-demand, disposable per-branch preview environments.
+//
+// A SEPARATE, manually-triggered pipeline (not part of the CD Jenkinsfile). Configure as a
+// "Pipeline script from SCM" job pointing at this file. It builds the chosen branch's app
+// image, spins it up against a throwaway clone of the PROD DB, and publishes it on a random
+// high port on the Jenkins host. See helpers/preview/README.md.
+//
+// Reuses the same credentials/env as the main Jenkinsfile:
+//   credentials: osmosmjerka-db-user, osmosmjerka-db-password,
+//                osmosmjerka-admin-username, osmosmjerka-admin-password-hash,
+//                osmosmjerka-admin-secret-key
+//   env (global): OSMOSMJERKA_POSTGRES_HOST / _PORT / _DATABASE  (prod DB, the clone source)
+
+pipeline {
+  agent any
+
+  parameters {
+    choice(name: 'ACTION',  choices: ['up', 'down', 'list', 'cleanup'], description: 'What to do')
+    string(name: 'BRANCH',     defaultValue: '',   description: 'Branch to preview (ACTION=up; must not be main)')
+    string(name: 'PREVIEW_ID', defaultValue: '',   description: 'Preview id to destroy (ACTION=down)')
+    string(name: 'MAX_HOURS',  defaultValue: '24', description: 'Age threshold in hours (ACTION=cleanup)')
+    string(name: 'REPO_URL',   defaultValue: 'https://github.com/bartekmp/osmosmjerka.git', description: 'Git repo URL')
+  }
+
+  options {
+    timestamps()
+    disableConcurrentBuilds()
+  }
+
+  environment {
+    // Clone source = prod DB (same creds/env the CD pipeline uses).
+    SOURCE_DB_HOST     = "${env.OSMOSMJERKA_POSTGRES_HOST}"
+    SOURCE_DB_PORT     = "${env.OSMOSMJERKA_POSTGRES_PORT}"
+    SOURCE_DB_NAME     = "${env.OSMOSMJERKA_POSTGRES_DATABASE}"
+    SOURCE_DB_USER     = credentials('osmosmjerka-db-user')
+    SOURCE_DB_PASSWORD = credentials('osmosmjerka-db-password')
+
+    // App admin secrets for the preview (same ids as the CD pipeline).
+    ADMIN_USERNAME      = credentials('osmosmjerka-admin-username')
+    ADMIN_PASSWORD_HASH = credentials('osmosmjerka-admin-password-hash')
+    ADMIN_SECRET_KEY    = credentials('osmosmjerka-admin-secret-key')
+
+    // Host learners will reach the preview on; override in job config if needed.
+    PREVIEW_HOST        = "${env.PREVIEW_HOST ?: 'localhost'}"
+  }
+
+  stages {
+    stage('Validate') {
+      steps {
+        script {
+          if (params.ACTION == 'up' && (!params.BRANCH?.trim() || params.BRANCH == 'main')) {
+            error 'ACTION=up requires a BRANCH that is not "main"'
+          }
+          if (params.ACTION == 'down' && !params.PREVIEW_ID?.trim()) {
+            error 'ACTION=down requires PREVIEW_ID'
+          }
+        }
+      }
+    }
+
+    // Check out the target branch's code into ./app so `docker build` uses it, while the
+    // preview tooling itself stays on the (stable) branch this Jenkinsfile is loaded from.
+    stage('Checkout target branch') {
+      when { expression { params.ACTION == 'up' } }
+      steps {
+        dir('app') {
+          checkout([$class: 'GitSCM',
+            branches: [[name: "*/${params.BRANCH}"]],
+            userRemoteConfigs: [[url: params.REPO_URL]]])
+        }
+      }
+    }
+
+    stage('Run') {
+      steps {
+        sh 'chmod +x helpers/preview/preview-env.sh'
+        script {
+          if (params.ACTION == 'up') {
+            sh "REPO_ROOT='${WORKSPACE}/app' helpers/preview/preview-env.sh up '${params.BRANCH}'"
+          } else if (params.ACTION == 'down') {
+            sh "helpers/preview/preview-env.sh down '${params.PREVIEW_ID}'"
+          } else if (params.ACTION == 'list') {
+            sh 'helpers/preview/preview-env.sh list'
+          } else if (params.ACTION == 'cleanup') {
+            sh "helpers/preview/preview-env.sh cleanup '${params.MAX_HOURS}'"
+          }
+        }
+      }
+    }
+  }
+}
