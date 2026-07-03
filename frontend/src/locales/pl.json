@@ -13,6 +13,14 @@
   },
   "review": {
     "title": "Sesja powtórek",
+    "listen": "Słuchaj",
+    "voices": "Pakiety głosowe",
+    "voicesHelp": "Pobierz głos, aby usłyszeć wymowę słów. Głosy działają w przeglądarce i są przechowywane na tym urządzeniu.",
+    "ttsUnsupported": "Twoja przeglądarka nie obsługuje mowy w przeglądarce.",
+    "noVoices": "Brak głosów do pobrania dla tego języka.",
+    "installed": "Zainstalowano",
+    "download": "Pobierz",
+    "ttsSample": "To jest test.",
     "reveal": "Pokaż",
     "recallWord": "Przypomnij sobie słowo",
     "recallMeaning": "Przypomnij sobie znaczenie",
@@ -532,6 +540,10 @@
         "userLimit": "Limit użytkownika",
         "adminLimit": "Limit administratora",
         "save": "Zapisz limity"
+      },
+      "tts": {
+        "title": "Synteza mowy (pakiety głosowe)",
+        "description": "Pozwól uczniom pobierać głosy w przeglądarce, aby słyszeć słowa. Gdy wyłączone, modele głosów nie są pobierane."
       }
     },
     "scoringRules": {

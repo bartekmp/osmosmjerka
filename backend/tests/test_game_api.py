@@ -120,6 +120,14 @@ def test_calculate_score_endpoint(client):
     assert data["hint_penalty_per_hint"] == 0
 
 
+def test_get_system_tts_enabled(client):
+    with patch("osmosmjerka.game_api.db_manager.is_tts_enabled_globally", new_callable=AsyncMock) as mock_tts:
+        mock_tts.return_value = False
+        response = client.get("/api/system/tts-enabled")
+        assert response.status_code == 200
+        assert response.json() == {"enabled": False}
+
+
 def test_get_grid_size_and_num_phrases_very_easy():
     size, num_phrases = get_grid_size_and_num_phrases([{"phrase": "a"}] * 10, "very_easy")
     assert size == 8 and num_phrases == 5

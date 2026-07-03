@@ -147,6 +147,50 @@ async def update_progressive_hints_setting(body: EnabledToggle, user=Depends(req
     return await set_progressive_hints_enabled(body, user)
 
 
+@router.get("/tts-enabled")
+async def get_tts_enabled(user=Depends(require_root_admin)) -> JSONResponse:
+    """Get current text-to-speech (voice packs) status - root admin only"""
+    try:
+        enabled = await db_manager.is_tts_enabled_globally()
+        return JSONResponse({"enabled": enabled})
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e)) from e
+
+
+@router.post("/tts-enabled")
+async def set_tts_enabled(body: EnabledToggle, user=Depends(require_root_admin)) -> JSONResponse:
+    """Enable or disable in-browser text-to-speech globally - root admin only.
+
+    When disabled, clients hide the voice UI and never download voice models."""
+    try:
+        await db_manager.set_global_setting(
+            "tts_enabled",
+            "true" if body.enabled else "false",
+            "Global flag to enable/disable in-browser text-to-speech (voice packs)",
+            user["id"],
+        )
+        return JSONResponse(
+            {
+                "message": f"Text-to-speech {'enabled' if body.enabled else 'disabled'} successfully",
+                "enabled": body.enabled,
+            }
+        )
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e)) from e
+
+
+@router.get("/tts")
+async def get_tts_setting(user=Depends(require_root_admin)) -> JSONResponse:
+    """Get current text-to-speech status - alternative endpoint"""
+    return await get_tts_enabled(user)
+
+
+@router.put("/tts")
+async def update_tts_setting(body: EnabledToggle, user=Depends(require_root_admin)) -> JSONResponse:
+    """Update text-to-speech status - alternative endpoint"""
+    return await set_tts_enabled(body, user)
+
+
 @router.get("/scoring-rules")
 async def get_scoring_rules_setting(user=Depends(require_root_admin)) -> JSONResponse:
     """Get current scoring rules configuration - root admin only"""

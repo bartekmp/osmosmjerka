@@ -71,7 +71,7 @@ describe('SystemSettings', () => {
 
         await waitFor(() => {
             const switches = screen.getAllByRole('switch');
-            expect(switches).toHaveLength(3);
+            expect(switches).toHaveLength(4);
         });
 
         // Check that axios.get was called for all settings

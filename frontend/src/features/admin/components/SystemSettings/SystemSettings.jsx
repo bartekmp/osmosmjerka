@@ -54,7 +54,7 @@ const SystemSettings = () => {
       setLoading(true);
 
       // Load all settings
-      const [statisticsResponse, scoringResponse, hintsResponse, limitsResponse] =
+      const [statisticsResponse, scoringResponse, hintsResponse, ttsResponse, limitsResponse] =
         await Promise.all([
           axios.get(`${API_ENDPOINTS.ADMIN}/settings/statistics`, {
             headers: { Authorization: `Bearer ${token}` },
@@ -65,6 +65,9 @@ const SystemSettings = () => {
           axios.get(`${API_ENDPOINTS.ADMIN}/settings/progressive-hints`, {
             headers: { Authorization: `Bearer ${token}` },
           }),
+          axios.get(`${API_ENDPOINTS.ADMIN}/settings/tts`, {
+            headers: { Authorization: `Bearer ${token}` },
+          }).catch(() => ({ data: { enabled: true } })),
           axios.get(`${API_ENDPOINTS.ADMIN}/settings/list-limits`, {
             headers: { Authorization: `Bearer ${token}` },
           }).catch(() => ({ data: { user_limit: 50, admin_limit: 500 } })),
@@ -74,6 +77,7 @@ const SystemSettings = () => {
         statisticsEnabled: statisticsResponse.data.enabled,
         scoringEnabled: scoringResponse.data.enabled,
         progressiveHintsEnabled: hintsResponse.data.enabled,
+        ttsEnabled: ttsResponse.data.enabled,
       });
       setListLimits({
         userLimit: limitsResponse.data.user_limit || 50,
@@ -101,6 +105,9 @@ const SystemSettings = () => {
           break;
         case "progressive-hints":
           endpoint = `${API_ENDPOINTS.ADMIN}/settings/progressive-hints`;
+          break;
+        case "tts":
+          endpoint = `${API_ENDPOINTS.ADMIN}/settings/tts`;
           break;
         default:
           throw new Error(`Unknown setting type: ${settingType}`);
@@ -240,6 +247,31 @@ const SystemSettings = () => {
                     </Typography>
                     <Typography variant="body2" color="text.secondary">
                       {t("admin.settings.progressiveHints.description")}
+                    </Typography>
+                  </Box>
+                }
+              />
+
+              <Divider sx={{ my: 2 }} />
+
+              <FormControlLabel
+                control={
+                  <Switch
+                    checked={!!settings.ttsEnabled}
+                    onChange={handleToggle("tts")}
+                    color="primary"
+                  />
+                }
+                label={
+                  <Box>
+                    <Typography variant="body1">
+                      {t("admin.settings.tts.title", "Text-to-speech (voice packs)")}
+                    </Typography>
+                    <Typography variant="body2" color="text.secondary">
+                      {t(
+                        "admin.settings.tts.description",
+                        "Let learners download in-browser voices to hear words. When off, no voice models are downloaded."
+                      )}
                     </Typography>
                   </Box>
                 }

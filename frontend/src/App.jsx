@@ -228,11 +228,14 @@ function AppContent() {
     currentRating,
   } = useTraining({ selectedLanguageSetId, gameType });
 
-  // In word-search training, translations stay hidden during play so each find is a
-  // real recall event (the prompt reveals the translation at rating time). Crossword
-  // already hides the answer, so it keeps its normal behavior.
+  // Winning condition: all phrases found (also gates the training translations peek below).
+  const allFound = phrases.length > 0 && found.length === phrases.length;
+
+  // In word-search training, translations stay hidden DURING play so each find is a real
+  // recall event. Once the game is finished (allFound) the player may peek — the toggle
+  // reappears and its state is honored again. Crossword keeps its normal behavior.
   const effectiveShowTranslations =
-    trainingMode && gameType !== "crossword" ? false : showTranslations;
+    trainingMode && gameType !== "crossword" && !allFound ? false : showTranslations;
 
   const handleRateLimit = useCallback(() => {
     setShowRateLimit(true);
@@ -268,8 +271,6 @@ function AppContent() {
     isAdminRoute,
   });
 
-  // Winning condition: all phrases found
-  const allFound = phrases.length > 0 && found.length === phrases.length;
   const isTimerActive =
     found.length > 0 && !allFound && !isAdminRoute && !isPaused;
 
@@ -699,8 +700,12 @@ function AppContent() {
     if (allFound) setHidePhrases(false);
   }, [allFound]);
 
-  const isTeacherPuzzleRoute = location.pathname.startsWith("/t/");
-  const shouldShowSplash = !isAdminRoute && !isTeacherPuzzleRoute && showSplash;
+  // The splash is driven by puzzle load, so it only belongs on the main game pages.
+  // Everywhere else (admin, teacher puzzle, review/learn, etc.) it would either never
+  // dismiss or just get in the way, so restrict it to the game routes explicitly.
+  const GAME_ROUTES = ["/", "/wordsearch", "/crosswords"];
+  const isGameRoute = GAME_ROUTES.includes(location.pathname);
+  const shouldShowSplash = isGameRoute && showSplash;
 
   // Auto-adjust difficulty if current one becomes unavailable due to screen size
   React.useEffect(() => {

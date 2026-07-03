@@ -253,3 +253,14 @@ async def get_system_progressive_hints_enabled() -> JSONResponse:
     except Exception as e:
         logger.exception("Failed to check progressive hints status")
         return JSONResponse({"error": str(e)}, status_code=500)
+
+
+@router.get("/system/tts-enabled")
+async def get_system_tts_enabled() -> JSONResponse:
+    """Get system-wide text-to-speech enabled status (public endpoint)"""
+    try:
+        enabled = await db_manager.is_tts_enabled_globally()
+        return JSONResponse({"enabled": enabled})
+    except Exception as e:
+        logger.exception("Failed to check TTS status")
+        return JSONResponse({"error": str(e)}, status_code=500)

@@ -13,6 +13,14 @@
   },
   "review": {
     "title": "Vježba ponavljanja",
+    "listen": "Slušaj",
+    "voices": "Glasovni paketi",
+    "voicesHelp": "Preuzmite glas za izgovor riječi. Glasovi rade u vašem pregledniku i pohranjeni su na ovom uređaju.",
+    "ttsUnsupported": "Vaš preglednik ne podržava govor u pregledniku.",
+    "noVoices": "Nema dostupnih glasova za ovaj jezik.",
+    "installed": "Instalirano",
+    "download": "Preuzmi",
+    "ttsSample": "Ovo je test.",
     "reveal": "Otkrij",
     "recallWord": "Sjetite se riječi",
     "recallMeaning": "Sjetite se značenja",
@@ -531,6 +539,10 @@
         "userLimit": "Ograničenje za korisnike",
         "adminLimit": "Ograničenje za administratore",
         "save": "Spremi ograničenja"
+      },
+      "tts": {
+        "title": "Govor (glasovni paketi)",
+        "description": "Dopustite učenicima preuzimanje glasova u pregledniku za slušanje riječi. Kada je isključeno, glasovni modeli se ne preuzimaju."
       }
     },
     "scoringRules": {

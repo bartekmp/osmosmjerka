@@ -100,6 +100,17 @@ export function GameView({
   // i18n
   t,
 }) {
+  // Training toggle + review entry — shown in the sidebar (below timer/score) for
+  // logged-in users. Rendered in both the desktop sidebar and the mobile layout.
+  const trainingControls = currentUser ? (
+    <Box sx={{ display: "flex", alignItems: "center", gap: 1.5, flexWrap: "wrap", justifyContent: "center" }}>
+      <TrainingToggle checked={!!trainingMode} onChange={onTrainingModeChange} t={t} />
+      <Button size="small" variant="outlined" startIcon={<PsychologyIcon />} onClick={onOpenReview}>
+        {t("review.title", "Review sprint")}
+      </Button>
+    </Box>
+  ) : null;
+
   return (
     <Stack spacing={3} sx={{ alignItems: "center" }}>
       <GameHeader
@@ -138,16 +149,6 @@ export function GameView({
         onPrivateListChange={(listId) => setSelectedPrivateListId(listId)}
         gameType={gameType}
       />
-
-      {/* Training mode toggle + review entry — logged-in users only */}
-      {currentUser && (
-        <Box sx={{ display: "flex", alignItems: "center", gap: 2, flexWrap: "wrap", justifyContent: "center" }}>
-          <TrainingToggle checked={!!trainingMode} onChange={onTrainingModeChange} t={t} />
-          <Button size="small" variant="outlined" startIcon={<PsychologyIcon />} onClick={onOpenReview}>
-            {t("review.title", "Review sprint")}
-          </Button>
-        </Box>
-      )}
 
       {/* All Found Message — desktop/sidebar layout only */}
       {!useMobileLayout && (
@@ -212,6 +213,9 @@ export function GameView({
           )}
         </Box>
       )}
+
+      {/* Training controls — mobile, below timer/score */}
+      {useMobileLayout && trainingControls}
 
       {/* Main Game Area */}
       <Box
@@ -348,6 +352,8 @@ export function GameView({
               </Box>
             )}
 
+            {trainingControls}
+
             {progressiveHintsEnabled &&
               phrases.length > 0 &&
               found.length < phrases.length && (
@@ -372,6 +378,8 @@ export function GameView({
               gameType={gameType}
               showTranslations={showTranslations}
               setShowTranslations={setShowTranslations}
+              trainingMode={trainingMode}
+              allFound={allFound}
               disableShowPhrases={notEnoughPhrases || isGridTooSmall}
               currentUser={currentUser}
               languageSetId={selectedLanguageSetId}
@@ -411,6 +419,7 @@ export function GameView({
           hidePhrases={hidePhrases}
           setHidePhrases={setHidePhrases}
           allFound={allFound}
+          trainingMode={trainingMode}
           showTranslations={showTranslations}
           setShowTranslations={setShowTranslations}
           disableShowPhrases={notEnoughPhrases || isGridTooSmall}
