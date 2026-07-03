@@ -2,6 +2,34 @@
 
 <!-- version list -->
 
+## v1.44.0 (2026-07-03)
+
+### Bug Fixes
+
+- Only show the loading splash on the main game pages
+  ([#210](https://github.com/bartekmp/osmosmjerka/pull/210),
+  [`12e29db`](https://github.com/bartekmp/osmosmjerka/commit/12e29db448414acf6517a44a1e3b3b4c5cdde264))
+
+### Feature
+
+- Local TTS support ([#210](https://github.com/bartekmp/osmosmjerka/pull/210),
+  [`12e29db`](https://github.com/bartekmp/osmosmjerka/commit/12e29db448414acf6517a44a1e3b3b4c5cdde264))
+
+### Features
+
+- Admin TTS switch + sidebar training controls + training translations peek
+  ([#210](https://github.com/bartekmp/osmosmjerka/pull/210),
+  [`12e29db`](https://github.com/bartekmp/osmosmjerka/commit/12e29db448414acf6517a44a1e3b3b4c5cdde264))
+
+- In-browser neural TTS with downloadable voice packs (SRS phase 4.5)
+  ([#210](https://github.com/bartekmp/osmosmjerka/pull/210),
+  [`12e29db`](https://github.com/bartekmp/osmosmjerka/commit/12e29db448414acf6517a44a1e3b3b4c5cdde264))
+
+- Polish the review page (app header, clearer logged-out state, no stuck splash)
+  ([#210](https://github.com/bartekmp/osmosmjerka/pull/210),
+  [`12e29db`](https://github.com/bartekmp/osmosmjerka/commit/12e29db448414acf6517a44a1e3b3b4c5cdde264))
+
+
 ## v1.43.0 (2026-07-03)
 
 ### Code Style
