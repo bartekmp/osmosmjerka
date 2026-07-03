@@ -78,6 +78,14 @@ It **reuses the same credentials/env as the CD `Jenkinsfile`** — no new secret
 For `up`, the job checks out the chosen branch into `./app` and builds from there, so the
 preview tooling stays on the branch the Jenkinsfile is loaded from.
 
+### Pinning the agent (`PREVIEW_AGENT`)
+
+By default the job runs on any agent. To pin it to a specific node — the one that has Docker
+and can reach the prod DB — set the global env var **`PREVIEW_AGENT`** (Manage Jenkins →
+System → Global properties → Environment variables) to that node's name or a label it has.
+Leave it unset for "any agent". (Done via env rather than a build parameter because the agent
+is selected before parameters are available.)
+
 ## Notes & caveats
 
 - **Prod reachability**: the clone step uses the host network, so the Jenkins host must be

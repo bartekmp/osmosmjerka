@@ -12,7 +12,10 @@
 //   env (global): OSMOSMJERKA_POSTGRES_HOST / _PORT / _DATABASE  (prod DB, the clone source)
 
 pipeline {
-  agent any
+  // Pin to a node via the global env var PREVIEW_AGENT (Manage Jenkins → System → Global
+  // properties → Environment variables). Empty/unset matches any agent, same as `agent any`.
+  // The chosen node must have Docker + reachability to the prod DB.
+  agent { label "${env.PREVIEW_AGENT ?: ''}" }
 
   parameters {
     choice(name: 'ACTION',  choices: ['up', 'down', 'list', 'cleanup'], description: 'What to do')
