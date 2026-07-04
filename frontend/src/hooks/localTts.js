@@ -1,4 +1,5 @@
 import logger from "@shared/utils/logger";
+import { getAssetUrl } from "@shared/utils/assets";
 
 /**
  * Wrapper around @mintplex-labs/piper-tts-web — Piper VITS neural voices running fully
@@ -18,6 +19,15 @@ function getEngine() {
   if (!enginePromise) enginePromise = import("@mintplex-labs/piper-tts-web");
   return enginePromise;
 }
+
+// Self-hosted runtime paths (see the tts-wasm-assets plugin in vite.config.mjs). Without
+// these, piper-tts-web defaults to CDN URLs that fail on CSP/CORS and a stale onnx path.
+// getAssetUrl resolves against the app base ("/static/" in prod, "/" in dev/test).
+const WASM_PATHS = {
+  onnxWasm: getAssetUrl("wasm/"),
+  piperData: getAssetUrl("wasm/piper_phonemize.data"),
+  piperWasm: getAssetUrl("wasm/piper_phonemize.wasm"),
+};
 
 export function isLocalTtsSupported() {
   return (
@@ -103,7 +113,12 @@ export async function speak(text, voiceId) {
   if (!text || !voiceId) return;
   try {
     const tts = await getEngine();
-    const wav = await tts.predict({ text, voiceId });
+    // Use TtsSession directly (not the module-level predict) so we can inject the
+    // self-hosted wasmPaths. TtsSession is a singleton — first creation sets the paths;
+    // set voiceId each call so voice switches still work.
+    const session = await tts.TtsSession.create({ voiceId, wasmPaths: WASM_PATHS });
+    session.voiceId = voiceId;
+    const wav = await session.predict(text);
     const url = URL.createObjectURL(wav);
     if (currentAudio) currentAudio.pause();
     currentAudio = new window.Audio(url);
