@@ -2,6 +2,19 @@
 
 <!-- version list -->
 
+## v1.45.1 (2026-07-04)
+
+### Bug Fixes
+
+- Make admin play button match the edit/delete buttons
+  ([#219](https://github.com/bartekmp/osmosmjerka/pull/219),
+  [`3dfa95c`](https://github.com/bartekmp/osmosmjerka/commit/3dfa95cc57fdbd9622fb746d51ee8c9627757e16))
+
+- Self-host in-browser TTS runtime (onnx loader + piper phonemizer)
+  ([#220](https://github.com/bartekmp/osmosmjerka/pull/220),
+  [`64d0ab3`](https://github.com/bartekmp/osmosmjerka/commit/64d0ab3357c78ab8be28734ba7718f93a26242d7))
+
+
 ## v1.45.0 (2026-07-04)
 
 ### Features
