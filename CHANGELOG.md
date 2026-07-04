@@ -2,6 +2,15 @@
 
 <!-- version list -->
 
+## v1.45.2 (2026-07-04)
+
+### Bug Fixes
+
+- Always npm install in e2e runner (stale workspace missing new deps)
+  ([#221](https://github.com/bartekmp/osmosmjerka/pull/221),
+  [`0899620`](https://github.com/bartekmp/osmosmjerka/commit/08996207b05c2e7162bdc1175ad2b9e5e3f2a8fe))
+
+
 ## v1.45.1 (2026-07-04)
 
 ### Bug Fixes
