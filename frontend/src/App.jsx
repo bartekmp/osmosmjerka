@@ -106,6 +106,8 @@ function AppContent() {
   const [grid, setGrid] = useState([]);
   const [phrases, setPhrases] = useState([]);
   const [found, setFound] = useState([]);
+  // Crossword forfeit: the player gave up, answers were revealed, game is over-but-not-won.
+  const [forfeited, setForfeited] = useState(false);
   const [difficulty, setDifficulty] = useState("easy");
   const [gameType, setGameType] = useState(() => {
     // Initialize game type from URL
@@ -292,6 +294,7 @@ function AppContent() {
     setGrid([]);
     setPhrases([]);
     setFound([]);
+    setForfeited(false);
     resetSession();
   }, [resetSession]);
 
@@ -471,12 +474,24 @@ function AppContent() {
     setCurrentElapsedTime(0);
     currentElapsedTimeRef.current = 0;
     setFound([]);
+    setForfeited(false);
     setIsPaused(false);
 
     if (gridRef.current) {
       gridRef.current.clearHints();
     }
   }, [resetScoringState, gameType, phrases.length]);
+
+  // Give up on a crossword: reveal every answer and put the game into a finished state
+  // without crediting the unsolved phrases (no score / no mastery updates).
+  const handleForfeit = useCallback(() => {
+    if (gridRef.current?.revealAll) {
+      gridRef.current.revealAll();
+    }
+    setForfeited(true);
+    setHidePhrases(false);
+    setShowTranslations(true);
+  }, []);
 
   // Update hint count when game type changes (without refresh)
   useEffect(() => {
@@ -756,6 +771,8 @@ function AppContent() {
       trainingMode={trainingMode}
       onTrainingModeChange={setTrainingMode}
       onOpenReview={() => navigate("/review")}
+      forfeited={forfeited}
+      onForfeit={handleForfeit}
       notEnoughPhrases={notEnoughPhrases}
       notEnoughPhrasesMsg={notEnoughPhrasesMsg}
       isGridLoading={isGridLoading}

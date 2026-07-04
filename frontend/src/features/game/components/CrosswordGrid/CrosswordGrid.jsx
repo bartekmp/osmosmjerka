@@ -6,6 +6,26 @@ import { useGridSize } from '../Grid/hooks';
 import CrosswordCell from './CrosswordCell';
 import './CrosswordGrid.css';
 
+// Rebuild the grid's internal input/completed state from the list of already-found phrases.
+// Used to repopulate the crossword after it remounts (e.g. navigating to the review sprint
+// and back), where App keeps `found` but the grid's own typed letters were lost.
+const buildSeedFromFound = (foundList, phraseList) => {
+    const inputs = {};
+    const completed = new Set();
+    (foundList || []).forEach((f) => {
+        const text = typeof f === 'string' ? f : f?.phrase;
+        const idx = phraseList.findIndex((p) => p.phrase === text);
+        if (idx === -1) return;
+        const p = phraseList[idx];
+        const clean = p.phrase.replace(/\s/g, '').toUpperCase();
+        p.coords.forEach(([r, c], i) => {
+            inputs[`${r},${c}`] = clean[i];
+        });
+        completed.add(idx);
+    });
+    return { inputs, completed };
+};
+
 /**
  * CrosswordGrid - Main crossword puzzle grid component
  * 
@@ -17,6 +37,7 @@ import './CrosswordGrid.css';
 const CrosswordGrid = forwardRef(({
     grid,                    // 2D array with cell metadata from backend
     phrases,                 // Array of phrase objects with coords, direction, start_number
+    found = [],              // Already-found phrases (to re-seed after remount)
     onPhraseComplete,        // Called when a phrase is correctly completed
     onPhraseWrong,           // Called when a filled phrase is incorrect
     disabled = false,
@@ -58,11 +79,20 @@ const CrosswordGrid = forwardRef(({
     const gridSize = grid.length;
     const cellSize = useGridSize(gridSize, isTouchDevice, useMobileLayout);
 
-    // Reset when grid changes
+    // Wrapper element, used for tap-outside-to-deselect (so mobile keyboards can be dismissed).
+    const containerRef = useRef(null);
+    // Latest `found` without making the reset effect depend on it (which would wipe in-progress
+    // typing every time a word is completed). Read only when the grid/phrases change.
+    const foundRef = useRef(found);
+    foundRef.current = found;
+
+    // Reset when the grid changes (new puzzle) but re-seed any phrases that were already found,
+    // so returning to a game in progress (e.g. from the review sprint) keeps the filled cells.
     useEffect(() => {
-        setUserInputs({});
+        const { inputs, completed } = buildSeedFromFound(foundRef.current, phrases);
+        setUserInputs(inputs);
         setActiveCell(null);
-        setCompletedPhrases(new Set());
+        setCompletedPhrases(completed);
         setWrongPhrases(new Set());
         setCurrentHintPhrase(null);
         setHintLevel(0);
@@ -71,7 +101,23 @@ const CrosswordGrid = forwardRef(({
         setTransientWrongCells(new Set());
         if (transientTimeoutRef.current) clearTimeout(transientTimeoutRef.current);
         if (blinkingTimeoutRef.current) clearTimeout(blinkingTimeoutRef.current);
-    }, [grid]);
+    }, [grid, phrases]);
+
+    // Tapping outside the grid deselects the active cell and blurs the focused input. On mobile
+    // this is the only way to dismiss the on-screen keyboard and scroll the page again.
+    useEffect(() => {
+        const handlePointerDown = (e) => {
+            if (containerRef.current && !containerRef.current.contains(e.target)) {
+                setActiveCell(null);
+                const el = document.activeElement;
+                if (el && typeof el.blur === 'function' && el.classList?.contains('crossword-input')) {
+                    el.blur();
+                }
+            }
+        };
+        document.addEventListener('pointerdown', handlePointerDown);
+        return () => document.removeEventListener('pointerdown', handlePointerDown);
+    }, []);
 
     // Cleanup timeout on unmount
     useEffect(() => {
@@ -457,10 +503,28 @@ const CrosswordGrid = forwardRef(({
         }
     }, [phrases, completedPhrases, activeCell, currentDirection, userInputs, phraseHintLevels, showHint, onHintUsed]);
 
+    // Reveal every answer and lock the board (used when the player forfeits / gives up).
+    const revealAll = useCallback(() => {
+        const inputs = { ...userInputs };
+        const completed = new Set(completedPhrases);
+        phrases.forEach((p, idx) => {
+            const clean = p.phrase.replace(/\s/g, '').toUpperCase();
+            p.coords.forEach(([r, c], i) => {
+                inputs[`${r},${c}`] = clean[i];
+            });
+            completed.add(idx);
+        });
+        setUserInputs(inputs);
+        setCompletedPhrases(completed);
+        setWrongPhrases(new Set());
+        setActiveCell(null);
+    }, [userInputs, completedPhrases, phrases]);
+
     // Expose methods to parent
     useImperativeHandle(ref, () => ({
         showHint,
         showProgressiveHint,
+        revealAll,
         clearHints: () => {
             // Reset hint tracking state
             setCurrentHintPhrase(null);
@@ -491,7 +555,7 @@ const CrosswordGrid = forwardRef(({
         getCompletedCount: () => completedPhrases.size,
         getTotalPhrases: () => phrases.length,
         isAllComplete: () => completedPhrases.size === phrases.length,
-    }), [showHint, showProgressiveHint, completedPhrases, phrases, userInputs]);
+    }), [showHint, showProgressiveHint, revealAll, completedPhrases, phrases, userInputs]);
 
     // Early return for empty grid
     if (gridSize === 0) {
@@ -590,7 +654,7 @@ const CrosswordGrid = forwardRef(({
     const totalGridSize = gridSize * cellSize + (gridSize + 1) * 4;
 
     return (
-        <Box className="grid-wrapper">
+        <Box className="grid-wrapper" ref={containerRef}>
             <Box
                 className={`crossword-grid-container ${isDarkMode ? 'dark-mode' : 'light-mode'}`}
                 sx={{

@@ -916,6 +916,8 @@
     "hint_full_phrase": "Cała fraza odkryta",
     "hint_next_letter": "Następna litera",
     "hint_validate": "Sprawdź litery",
-    "hint_reveal": "Odkryj frazę"
+    "hint_reveal": "Odkryj frazę",
+    "give_up": "Poddaj się",
+    "forfeited": "Odpowiedzi odsłonięte. Powodzenia następnym razem!"
   }
 }
