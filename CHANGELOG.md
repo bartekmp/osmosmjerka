@@ -2,6 +2,21 @@
 
 <!-- version list -->
 
+## v1.44.2 (2026-07-04)
+
+### Bug Fixes
+
+- Add server-side defaults for columns with only ORM defaults
+  ([#216](https://github.com/bartekmp/osmosmjerka/pull/216),
+  [`81dae9f`](https://github.com/bartekmp/osmosmjerka/commit/81dae9fc7a6ad6c31562fa4b1b1e554ea5e3b4dd))
+
+### Continuous Integration
+
+- Add Playwright E2E smoke tests for both game modes
+  ([#215](https://github.com/bartekmp/osmosmjerka/pull/215),
+  [`11ebd1e`](https://github.com/bartekmp/osmosmjerka/commit/11ebd1ebe1d5a1b5994f7920dbbb320feb0d2ac4))
+
+
 ## v1.44.1 (2026-07-04)
 
 ### Bug Fixes
