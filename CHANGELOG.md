@@ -2,6 +2,15 @@
 
 <!-- version list -->
 
+## v1.45.0 (2026-07-04)
+
+### Features
+
+- Add TTS play button to admin browse records
+  ([#217](https://github.com/bartekmp/osmosmjerka/pull/217),
+  [`60fe40b`](https://github.com/bartekmp/osmosmjerka/commit/60fe40b85108b684954fb60a07548c72aff8b39c))
+
+
 ## v1.44.3 (2026-07-04)
 
 ### Bug Fixes
