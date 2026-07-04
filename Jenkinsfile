@@ -222,6 +222,12 @@ pipeline {
                 script {
                     if (!env.GITOPS_REPO?.trim() || env.GITOPS_REPO == 'null') {
                         echo 'Skipping GitOps deployment because GITOPS_REPO is not set.'
+                    } else if (env.IS_NEW_RELEASE != 'true') {
+                        // Only clone prod->staging + bump the staging image on an actual
+                        // release. Non-release main builds have no pushed image (the tag
+                        // would be v999.0.0-dev), so deploying them left staging pointing at
+                        // a phantom image AND reset its DB to prod's schema without migrating.
+                        echo 'Skipping GitOps deployment: not a new release (no image was built for this commit).'
                     } else if (env.TRIGGER_GITOPS_CD == 'true') {
                         withCredentials([sshUserPrivateKey(credentialsId: 'osmosmjerka-gitops-deploy-key', keyFileVariable: 'GITOPS_SSH_KEY')]) {
                         withEnv(["GIT_SSH_COMMAND=ssh -i ${env.GITOPS_SSH_KEY}"]) {
