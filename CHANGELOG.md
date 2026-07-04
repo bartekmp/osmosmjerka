@@ -2,6 +2,15 @@
 
 <!-- version list -->
 
+## v1.44.3 (2026-07-04)
+
+### Bug Fixes
+
+- Use dynamic free ports in e2e runner to avoid clashes
+  ([#218](https://github.com/bartekmp/osmosmjerka/pull/218),
+  [`c55f86b`](https://github.com/bartekmp/osmosmjerka/commit/c55f86be6bae04eb187708e566a8f1ab1c355aa8))
+
+
 ## v1.44.2 (2026-07-04)
 
 ### Bug Fixes
