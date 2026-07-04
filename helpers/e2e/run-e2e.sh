@@ -14,14 +14,15 @@ set -euo pipefail
 ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/../.." && pwd)"
 cd "$ROOT"
 
-APP_PORT="${E2E_APP_PORT:-8099}"
-PG_PORT="${E2E_PG_PORT:-55432}"
+# Ports default to free/random (resolved after preflight) so parallel jobs or leftover
+# containers on a shared agent don't clash; override with E2E_APP_PORT / E2E_PG_PORT.
+APP_PORT="${E2E_APP_PORT:-}"
+PG_PORT="${E2E_PG_PORT:-}"
 PG_IMAGE="${E2E_PG_IMAGE:-postgres:18-alpine}"
 PG_NAME="osm-e2e-pg-$$"
 VENV="$ROOT/backend/.venv"
 ADMIN_USER="e2e-admin"
 ADMIN_PASS="e2e-pass-$$"
-BASE_URL="http://127.0.0.1:${APP_PORT}"
 
 BACKEND_PID=""
 cleanup() {
@@ -32,8 +33,13 @@ cleanup() {
 [ -n "${E2E_KEEP_UP:-}" ] || trap cleanup EXIT
 
 echo "==> Preflight"
-command -v docker >/dev/null || { echo "docker is required"; exit 1; }
-command -v node   >/dev/null || { echo "node is required"; exit 1; }
+command -v docker  >/dev/null || { echo "docker is required"; exit 1; }
+command -v node    >/dev/null || { echo "node is required"; exit 1; }
+command -v python3 >/dev/null || { echo "python3 is required"; exit 1; }
+
+# Resolve a free host port for the app unless pinned (Postgres gets one from docker below).
+[ -n "$APP_PORT" ] || APP_PORT="$(python3 -c 'import socket;s=socket.socket();s.bind(("127.0.0.1",0));print(s.getsockname()[1]);s.close()')"
+BASE_URL="http://127.0.0.1:${APP_PORT}"
 
 # Self-provision the backend venv when missing (the CI E2E stage runs on its own agent with
 # a fresh workspace, so it can't rely on an earlier Install Dependencies stage).
@@ -45,10 +51,18 @@ if [ ! -x "$VENV/bin/python" ]; then
   ( cd "$ROOT" && "$VENV/bin/pip" install --quiet ".[dev]" )
 fi
 
-echo "==> Starting Postgres ($PG_IMAGE) on :$PG_PORT"
+echo "==> Starting Postgres ($PG_IMAGE)"
 docker rm -f "$PG_NAME" >/dev/null 2>&1 || true
-docker run -d --name "$PG_NAME" -e POSTGRES_PASSWORD=postgres -e POSTGRES_DB=osmosmjerka \
-  -p "${PG_PORT}:5432" "$PG_IMAGE" >/dev/null
+if [ -n "$PG_PORT" ]; then
+  docker run -d --name "$PG_NAME" -e POSTGRES_PASSWORD=postgres -e POSTGRES_DB=osmosmjerka \
+    -p "127.0.0.1:${PG_PORT}:5432" "$PG_IMAGE" >/dev/null
+else
+  # Let docker assign a free host port, then read it back — no fixed port to clash on.
+  docker run -d --name "$PG_NAME" -e POSTGRES_PASSWORD=postgres -e POSTGRES_DB=osmosmjerka \
+    -p "127.0.0.1:0:5432" "$PG_IMAGE" >/dev/null
+  PG_PORT="$(docker port "$PG_NAME" 5432/tcp | head -1 | sed 's/.*://')"
+fi
+echo "    Postgres on :$PG_PORT, app will use :$APP_PORT"
 for _ in $(seq 1 60); do docker exec "$PG_NAME" pg_isready -U postgres >/dev/null 2>&1 && break; sleep 1; done
 
 echo "==> Building frontend and serving it from the backend"
