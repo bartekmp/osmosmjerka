@@ -107,7 +107,10 @@ export default function AdminTable({
     isSavingNewRow = false,
     canAddNewRow = true,
     categoryOptions = [],
-    compactMode = false
+    compactMode = false,
+    targetLang = null,
+    ttsEnabled = false,
+    ttsRefreshKey = 0
 }) {
     const { t } = useTranslation();
     const [editDialog, setEditDialog] = useState({ open: false, row: null });
@@ -391,10 +394,12 @@ export default function AdminTable({
                 cell: info => {
                     const row = info.row.original;
                     return (
-                        <TableRowActions 
+                        <TableRowActions
                             row={row}
                             onEdit={handleOpenEditDialog}
                             onDelete={handleDelete}
+                            targetLang={targetLang}
+                            ttsEnabled={ttsEnabled}
                         />
                     );
                 }
@@ -433,8 +438,8 @@ export default function AdminTable({
         }
 
         return baseColumns;
-    }, [t, minColumnWidths, batchMode, isAllSelected, isIndeterminate, handleSelectAll, 
-        selectedRows, handleRowCheckboxChange]);
+    }, [t, minColumnWidths, batchMode, isAllSelected, isIndeterminate, handleSelectAll,
+        selectedRows, handleRowCheckboxChange, targetLang, ttsEnabled, ttsRefreshKey]);
 
     // Create table instance
     const table = useReactTable({
