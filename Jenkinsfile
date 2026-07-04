@@ -213,6 +213,31 @@ pipeline {
             }
         }
 
+        stage('E2E Smoke (Playwright)') {
+            // Only on an actual release merged to main — spins up a throwaway stack and
+            // plays both game modes (word search + crossword) on desktop + mobile. A
+            // failure here blocks the deploy stage below.
+            //
+            // Locked to the main Jenkins agent (needs docker + node): set the global env var
+            // E2E_AGENT to its label. This stage gets its own fresh workspace, so
+            // run-e2e.sh re-provisions the venv/node deps itself.
+            agent { label "${env.E2E_AGENT ?: ''}" }
+            when {
+                beforeAgent true
+                branch 'main'
+                environment name: 'IS_NEW_RELEASE', value: 'true'
+            }
+            steps {
+                sh 'chmod +x helpers/e2e/run-e2e.sh helpers/e2e/seed.py'
+                sh 'helpers/e2e/run-e2e.sh'
+            }
+            post {
+                always {
+                    archiveArtifacts artifacts: 'frontend/e2e/test-results/**', allowEmptyArchive: true
+                }
+            }
+        }
+
         stage('Deploy with GitOps (staging and prod)') {
             when {
                 branch 'main'
