@@ -2,8 +2,9 @@ import React from 'react';
 import { Box, Button } from '@mui/material';
 import EditIcon from '@mui/icons-material/Edit';
 import DeleteIcon from '@mui/icons-material/Delete';
+import VolumeUpIcon from '@mui/icons-material/VolumeUp';
 import { useTranslation } from 'react-i18next';
-import ListenButton from '../../../game/components/Review/ListenButton';
+import { installedVoiceForLang, speak } from '../../../../hooks/localTts';
 
 export default function TableRowActions({
     row,
@@ -14,12 +15,22 @@ export default function TableRowActions({
 }) {
     const { t } = useTranslation();
 
+    // Speak the phrase with the language set's in-browser voice. Shown only when a voice
+    // for the target language is installed (kept in the cheap localStorage mirror).
+    const voiceId = ttsEnabled && targetLang ? installedVoiceForLang(targetLang) : null;
+
     return (
         <Box sx={{ display: 'flex', gap: 0.5, flexWrap: 'wrap', justifyContent: 'center' }}>
-            {/* Speak the phrase with the language set's in-browser voice. Renders only when a
-                voice for the target language is installed (ListenButton self-gates). */}
-            {ttsEnabled && targetLang && (
-                <ListenButton text={row.phrase} lang={targetLang} t={t} size="medium" />
+            {voiceId && (
+                <Button
+                    size="small"
+                    onClick={() => speak(row.phrase, voiceId)}
+                    aria-label={t('review.listen', 'Listen')}
+                    title={t('review.listen', 'Listen')}
+                    sx={{ minWidth: 0, width: 36, height: 36, fontSize: '1.1rem', lineHeight: 1 }}
+                >
+                    <VolumeUpIcon fontSize="small" />
+                </Button>
             )}
             <Button
                 size="small"
