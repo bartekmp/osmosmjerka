@@ -2,6 +2,29 @@
 
 <!-- version list -->
 
+## v1.44.1 (2026-07-04)
+
+### Bug Fixes
+
+- Crossword state loss on navigation, mobile focus trap, and add forfeit
+  ([#214](https://github.com/bartekmp/osmosmjerka/pull/214),
+  [`9734180`](https://github.com/bartekmp/osmosmjerka/commit/9734180fa4cadcb1a996ab5d5cfbb3cbf0e892eb))
+
+### Continuous Integration
+
+- Add disposable per-branch preview environments (Docker + prod DB clone)
+  ([#211](https://github.com/bartekmp/osmosmjerka/pull/211),
+  [`7a0a54b`](https://github.com/bartekmp/osmosmjerka/commit/7a0a54bc73728549b3e6036636b42d1c0d5d137e))
+
+- Make preview pipeline agent configurable via PREVIEW_AGENT env var
+  ([#212](https://github.com/bartekmp/osmosmjerka/pull/212),
+  [`d6382f5`](https://github.com/bartekmp/osmosmjerka/commit/d6382f5efc8634035d98fd6b45cb87ede07de2e1))
+
+- Only clone/deploy staging on an actual release
+  ([#213](https://github.com/bartekmp/osmosmjerka/pull/213),
+  [`2e30c60`](https://github.com/bartekmp/osmosmjerka/commit/2e30c6027429a1089dfea08d0baf93ef331928f8))
+
+
 ## v1.44.0 (2026-07-03)
 
 ### Bug Fixes
