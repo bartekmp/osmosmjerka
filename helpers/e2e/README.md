@@ -27,8 +27,10 @@ cd frontend && npm ci        # installs @playwright/test
 helpers/e2e/run-e2e.sh       # builds, serves, seeds, runs all 4 test executions
 ```
 
-Useful env overrides: `E2E_APP_PORT` (default 8099), `E2E_PG_PORT` (default 55432),
-`E2E_KEEP_UP=1` (leave the stack running for debugging).
+Ports default to free/random (the app port is probed, Postgres gets one from docker) so
+parallel jobs and leftover containers on a shared agent don't clash. Useful env overrides:
+`E2E_APP_PORT`, `E2E_PG_PORT` (pin them), `E2E_KEEP_UP=1` (leave the stack running for
+debugging).
 
 ## CI
 
