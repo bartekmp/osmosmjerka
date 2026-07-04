@@ -28,7 +28,10 @@ import FileDownloadIcon from '@mui/icons-material/FileDownload';
 import DeleteIcon from '@mui/icons-material/Delete';
 import ExpandMoreIcon from '@mui/icons-material/ExpandMore';
 import ChevronRightIcon from '@mui/icons-material/ChevronRight';
+import VolumeUpIcon from '@mui/icons-material/VolumeUp';
 import { useTranslation } from 'react-i18next';
+import { useSystemPreferences } from '../../../../hooks/useSystemPreferences';
+import VoiceManager from '../../../game/components/Review/VoiceManager';
 import AdminTable from './AdminTable';
 import BatchOperationDialog from './BatchOperationDialog';
 import BatchOperationsToolbar from './BatchOperationsToolbar';
@@ -118,6 +121,16 @@ const BrowseRecordsView = ({
     const theme = useTheme();
     const isMobile = useMediaQuery(theme.breakpoints.down('md'));
     const [adminControlsOpen, setAdminControlsOpen] = useState(!isMobile);
+
+    // TTS: the selected language set's target language drives which in-browser voice speaks
+    // the phrases. Bumping ttsRefreshKey after the voice manager closes re-renders the table
+    // so freshly-downloaded voices light up the per-row play buttons.
+    const { ttsEnabled } = useSystemPreferences();
+    const [voiceMgrOpen, setVoiceMgrOpen] = useState(false);
+    const [ttsRefreshKey, setTtsRefreshKey] = useState(0);
+    const selectedSet = languageSets.find((s) => String(s.id) === String(selectedLanguageSetId));
+    const targetLang = selectedSet?.target_lang || null;
+    const showTts = ttsEnabled && !!targetLang;
 
     const handlePageSizeChange = (newLimit) => {
         setLimit(newLimit);
@@ -252,6 +265,21 @@ const BrowseRecordsView = ({
                 </Stack>
             </Collapse>
 
+            {/* TTS voice packs for the selected set's language (download once, then each row
+                gets a play button) */}
+            {showTts && (
+                <Box sx={{ mb: 2 }}>
+                    <Button
+                        size="small"
+                        variant="outlined"
+                        startIcon={<VolumeUpIcon fontSize="inherit" />}
+                        onClick={() => setVoiceMgrOpen(true)}
+                    >
+                        {t('review.voices', 'Voice packs')}
+                    </Button>
+                </Box>
+            )}
+
             {(currentUser && selectedLanguageSetId) || ignoredCategoriesCount > 0 ? (
                 <Collapse in={showIgnoredCategories} timeout="auto">
                     <Box sx={{ mt: 1 }}>
@@ -376,6 +404,9 @@ const BrowseRecordsView = ({
                     canAddNewRow={canAddNewRow}
                     categoryOptions={categories}
                     compactMode={isLayoutCompact}
+                    targetLang={targetLang}
+                    ttsEnabled={ttsEnabled}
+                    ttsRefreshKey={ttsRefreshKey}
                 />
                 <Fade in={loading} unmountOnExit>
                     <Box
@@ -441,6 +472,15 @@ const BrowseRecordsView = ({
                 operation={batchResult.operation}
                 result={batchResult.result}
             />
+
+            {targetLang && (
+                <VoiceManager
+                    open={voiceMgrOpen}
+                    onClose={() => { setVoiceMgrOpen(false); setTtsRefreshKey((k) => k + 1); }}
+                    lang={targetLang}
+                    t={t}
+                />
+            )}
 
             {/* Status Notifications */}
             <Snackbar

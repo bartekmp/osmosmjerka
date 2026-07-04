@@ -9,6 +9,10 @@ jest.mock('../BatchOperationDialog', () => () => <div data-testid="batch-operati
 jest.mock('../BatchResultDialog', () => () => <div data-testid="batch-result-dialog" />);
 jest.mock('../BatchOperationsToolbar', () => () => <div data-testid="batch-toolbar" />);
 jest.mock('../PaginationControls', () => () => <div data-testid="pagination-controls" />);
+jest.mock('../../../../game/components/Review/VoiceManager', () => () => <div data-testid="voice-manager" />);
+jest.mock('../../../../../hooks/useSystemPreferences', () => ({
+    useSystemPreferences: () => ({ ttsEnabled: true, scoringEnabled: true, progressiveHintsEnabled: true }),
+}));
 
 // Mock react-i18next
 jest.mock('react-i18next', () => ({
@@ -93,6 +97,22 @@ describe('BrowseRecordsView', () => {
         // Check language set options are present (in DOM but hidden until clicked for Select)
         // However, MUI Select options are not in DOM usually until clicked.
         // We can check the value of the input.
+    });
+
+    test('shows the Voice packs button only when the selected set has a target language', () => {
+        // Default mock sets have no target_lang -> no button
+        const { rerender } = render(<BrowseRecordsView {...mockProps} />);
+        expect(screen.queryByText('review.voices')).not.toBeInTheDocument();
+
+        // A set with target_lang selected -> button appears
+        rerender(
+            <BrowseRecordsView
+                {...mockProps}
+                languageSets={[{ id: 1, display_name: 'Set 1', target_lang: 'pl' }]}
+                selectedLanguageSetId={1}
+            />
+        );
+        expect(screen.getByText('review.voices')).toBeInTheDocument();
     });
 
     test('renders ignored categories section', () => {
