@@ -3,12 +3,13 @@ import { render, screen, fireEvent } from '@testing-library/react';
 import TableRowActions from '../TableRowActions';
 import { withI18n } from '../../../../../testUtils';
 import { ThemeProvider, createTheme } from '@mui/material/styles';
-import { installedVoiceForLang, speak } from '../../../../../hooks/localTts';
+import { installedVoiceForLang, speak, warmup } from '../../../../../hooks/localTts';
 
-// ListenButton (used for the play action) reads installed voices + speaks through localTts.
+// The play action reads installed voices + speaks/warms through localTts.
 jest.mock('../../../../../hooks/localTts', () => ({
     installedVoiceForLang: jest.fn(() => 'pl_PL-gosia-medium'),
     speak: jest.fn(),
+    warmup: jest.fn(),
 }));
 
 // Create a test theme
@@ -90,6 +91,15 @@ describe('TableRowActions', () => {
             const play = screen.getByRole('button', { name: /listen/i });
             fireEvent.click(play);
             expect(speak).toHaveBeenCalledWith('kot', 'pl_PL-gosia-medium');
+        });
+
+        test('warms up the engine on hover', () => {
+            warmup.mockClear();
+            renderWithTheme(
+                <TableRowActions row={phraseRow} onEdit={() => {}} onDelete={() => {}} ttsEnabled targetLang="pl" />
+            );
+            fireEvent.pointerEnter(screen.getByRole('button', { name: /listen/i }));
+            expect(warmup).toHaveBeenCalledWith('pl_PL-gosia-medium');
         });
 
         test('hidden when no voice for the language is installed', () => {

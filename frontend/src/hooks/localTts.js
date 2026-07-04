@@ -29,6 +29,24 @@ const WASM_PATHS = {
   piperWasm: getAssetUrl("wasm/piper_phonemize.wasm"),
 };
 
+// Preload the engine + WASM runtime ahead of the first speak (e.g. on hover/focus of a
+// play button) so the first click isn't stuck loading ~45MB of onnx/piper WASM. Idempotent:
+// the heavy work runs once and the TtsSession singleton it creates is reused by speak().
+let warmupPromise = null;
+export function warmup(voiceId) {
+  if (warmupPromise) return warmupPromise;
+  warmupPromise = (async () => {
+    try {
+      const tts = await getEngine();
+      if (voiceId) await tts.TtsSession.create({ voiceId, wasmPaths: WASM_PATHS });
+    } catch (error) {
+      warmupPromise = null; // allow a later attempt to retry
+      logger.warn("TTS warmup failed:", error);
+    }
+  })();
+  return warmupPromise;
+}
+
 export function isLocalTtsSupported() {
   return (
     typeof window !== "undefined" &&
