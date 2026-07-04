@@ -36,8 +36,8 @@ language_sets_table = Table(
     Column("target_lang", String(16), nullable=True),  # BCP-47 code of the target language (for TTS), e.g. "pl-PL"
     Column("default_ignored_categories", Text, nullable=True),  # Comma-separated list of ignored categories
     Column("created_at", DateTime, nullable=False, server_default=func.now()),
-    Column("is_active", Boolean, nullable=False, default=True),
-    Column("is_default", Boolean, nullable=False, default=False),
+    Column("is_active", Boolean, nullable=False, default=True, server_default=text("true")),
+    Column("is_default", Boolean, nullable=False, default=False, server_default=text("false")),
 )
 
 
@@ -68,12 +68,16 @@ accounts_table = Table(
     Column("id", Integer, primary_key=True, index=True),
     Column("username", String, nullable=False, unique=True),
     Column("password_hash", String, nullable=False),
-    Column("role", String, nullable=False, default="regular"),  # root_admin, administrative, teacher, regular
-    Column("account_tier", String(20), nullable=False, default="tier1"),  # tier1 (default), tier2 (premium)
+    Column(
+        "role", String, nullable=False, default="regular", server_default="regular"
+    ),  # root_admin, administrative, teacher, regular
+    Column(
+        "account_tier", String(20), nullable=False, default="tier1", server_default="tier1"
+    ),  # tier1 (default), tier2 (premium)
     Column("self_description", Text),
     Column("created_at", DateTime, nullable=False, server_default=func.now()),
     Column("updated_at", DateTime, nullable=False, server_default=func.now()),
-    Column("is_active", Boolean, nullable=False, default=True),
+    Column("is_active", Boolean, nullable=False, default=True, server_default=text("true")),
     Column("last_login", DateTime),
 )
 
@@ -94,13 +98,13 @@ user_statistics_table = Table(
     Column("id", Integer, primary_key=True, index=True),
     Column("user_id", Integer, nullable=False, index=True),
     Column("language_set_id", Integer, nullable=False, index=True),
-    Column("games_started", Integer, nullable=False, default=0),
-    Column("games_completed", Integer, nullable=False, default=0),
-    Column("puzzles_solved", Integer, nullable=False, default=0),
-    Column("total_phrases_found", Integer, nullable=False, default=0),
-    Column("total_time_played_seconds", Integer, nullable=False, default=0),
-    Column("phrases_added", Integer, nullable=False, default=0),
-    Column("phrases_edited", Integer, nullable=False, default=0),
+    Column("games_started", Integer, nullable=False, default=0, server_default="0"),
+    Column("games_completed", Integer, nullable=False, default=0, server_default="0"),
+    Column("puzzles_solved", Integer, nullable=False, default=0, server_default="0"),
+    Column("total_phrases_found", Integer, nullable=False, default=0, server_default="0"),
+    Column("total_time_played_seconds", Integer, nullable=False, default=0, server_default="0"),
+    Column("phrases_added", Integer, nullable=False, default=0, server_default="0"),
+    Column("phrases_edited", Integer, nullable=False, default=0, server_default="0"),
     Column("last_played", DateTime, nullable=True),
     Column("created_at", DateTime, nullable=False, server_default=func.now()),
     Column("updated_at", DateTime, nullable=False, server_default=func.now()),
@@ -114,9 +118,9 @@ user_category_plays_table = Table(
     Column("user_id", Integer, nullable=False, index=True),
     Column("language_set_id", Integer, nullable=False, index=True),
     Column("category", String, nullable=False, index=True),
-    Column("plays_count", Integer, nullable=False, default=1),
-    Column("phrases_found", Integer, nullable=False, default=0),
-    Column("total_time_seconds", Integer, nullable=False, default=0),
+    Column("plays_count", Integer, nullable=False, default=1, server_default="1"),
+    Column("phrases_found", Integer, nullable=False, default=0, server_default="0"),
+    Column("total_time_seconds", Integer, nullable=False, default=0, server_default="0"),
     Column("last_played", DateTime, nullable=False, server_default=func.now()),
 )
 
@@ -131,12 +135,14 @@ game_sessions_table = Table(
     Column("difficulty", String, nullable=False),
     Column("grid_size", Integer, nullable=False),
     Column("total_phrases", Integer, nullable=False),
-    Column("phrases_found", Integer, nullable=False, default=0),
-    Column("is_completed", Boolean, nullable=False, default=False),
+    Column("phrases_found", Integer, nullable=False, default=0, server_default="0"),
+    Column("is_completed", Boolean, nullable=False, default=False, server_default=text("false")),
     Column("start_time", DateTime, nullable=False, server_default=func.now()),
     Column("end_time", DateTime, nullable=True),
     Column("duration_seconds", Integer, nullable=True),
-    Column("game_type", String(20), nullable=False, default="word_search"),  # word_search, crossword
+    Column(
+        "game_type", String(20), nullable=False, default="word_search", server_default="word_search"
+    ),  # word_search, crossword
 )
 
 # Define the global_settings table for application-wide settings
@@ -156,15 +162,21 @@ scoring_rules_table = Table(
     "scoring_rules",
     metadata,
     Column("id", Integer, primary_key=True, index=True),
-    Column("base_points_per_phrase", Integer, nullable=False, default=100),
+    Column("base_points_per_phrase", Integer, nullable=False, default=100, server_default="100"),
     Column("difficulty_multipliers", JSONB, nullable=False),  # {difficulty: multiplier}
-    Column("max_time_bonus_ratio", String, nullable=False, default="0.3"),  # Stored as string to preserve precision
+    Column(
+        "max_time_bonus_ratio", String, nullable=False, default="0.3", server_default="0.3"
+    ),  # Stored as string to preserve precision
     Column("target_times_seconds", JSONB, nullable=False),  # {difficulty: seconds}
-    Column("completion_bonus_points", Integer, nullable=False, default=200),
-    Column("hint_penalty_per_hint", Integer, nullable=False, default=0),  # hints not penalized by default
+    Column("completion_bonus_points", Integer, nullable=False, default=200, server_default="200"),
+    Column(
+        "hint_penalty_per_hint", Integer, nullable=False, default=0, server_default="0"
+    ),  # hints not penalized by default
     Column("updated_at", DateTime, nullable=False, server_default=func.now()),
-    Column("updated_by", Integer, nullable=False, default=0),  # User ID of who made the change
-    Column("game_type", String(20), nullable=False, default="word_search"),  # word_search, crossword
+    Column("updated_by", Integer, nullable=False, default=0, server_default="0"),  # User ID of who made the change
+    Column(
+        "game_type", String(20), nullable=False, default="word_search", server_default="word_search"
+    ),  # word_search, crossword
 )
 
 # Define the user_preferences table for user-specific settings
@@ -191,18 +203,20 @@ game_scores_table = Table(
     Column("grid_size", Integer, nullable=False),
     Column("total_phrases", Integer, nullable=False),
     Column("phrases_found", Integer, nullable=False),
-    Column("hints_used", Integer, nullable=False, default=0),
-    Column("base_score", Integer, nullable=False, default=0),
-    Column("time_bonus", Integer, nullable=False, default=0),
-    Column("difficulty_bonus", Integer, nullable=False, default=0),
-    Column("completion_bonus", Integer, nullable=False, default=0),
-    Column("hint_penalty", Integer, nullable=False, default=0),
-    Column("final_score", Integer, nullable=False, default=0),
+    Column("hints_used", Integer, nullable=False, default=0, server_default="0"),
+    Column("base_score", Integer, nullable=False, default=0, server_default="0"),
+    Column("time_bonus", Integer, nullable=False, default=0, server_default="0"),
+    Column("difficulty_bonus", Integer, nullable=False, default=0, server_default="0"),
+    Column("completion_bonus", Integer, nullable=False, default=0, server_default="0"),
+    Column("hint_penalty", Integer, nullable=False, default=0, server_default="0"),
+    Column("final_score", Integer, nullable=False, default=0, server_default="0"),
     Column("duration_seconds", Integer, nullable=False),
     Column("first_phrase_time", DateTime, nullable=True),
     Column("completion_time", DateTime, nullable=True),
     Column("created_at", DateTime, nullable=False, server_default=func.now()),
-    Column("game_type", String(20), nullable=False, default="word_search"),  # word_search, crossword
+    Column(
+        "game_type", String(20), nullable=False, default="word_search", server_default="word_search"
+    ),  # word_search, crossword
 )
 
 # Define the user_private_lists table for user-created phrase lists
@@ -226,7 +240,9 @@ user_private_lists_table = Table(
     ),
     Column("list_name", String(255), nullable=False),
     Column("description", Text, nullable=True),
-    Column("is_system_list", Boolean, nullable=False, default=False),  # TRUE for "Learn This Later"
+    Column(
+        "is_system_list", Boolean, nullable=False, default=False, server_default=text("false")
+    ),  # TRUE for "Learn This Later"
     Column("created_at", DateTime, nullable=False, server_default=func.now()),
     Column(
         "updated_at",
@@ -300,7 +316,7 @@ user_list_shares_table = Table(
         nullable=False,
         index=True,
     ),  # User receiving access
-    Column("permission", String(20), nullable=False, default="read"),  # 'read' or 'write'
+    Column("permission", String(20), nullable=False, default="read", server_default="read"),  # 'read' or 'write'
     Column("shared_at", DateTime, nullable=False, server_default=func.now()),
     # Unique constraint: prevent duplicate shares
     UniqueConstraint("list_id", "shared_with_user_id", name="uq_list_shared_with"),
@@ -351,12 +367,12 @@ teacher_phrase_sets_table = Table(
     ),
     # Link management
     Column("current_hotlink_token", String(16), nullable=False, unique=True, index=True),
-    Column("hotlink_version", Integer, nullable=False, default=1),
+    Column("hotlink_version", Integer, nullable=False, default=1, server_default="1"),
     # Access control
-    Column("access_type", String(20), nullable=False, default="public"),  # public, private
+    Column("access_type", String(20), nullable=False, default="public", server_default="public"),  # public, private
     Column("max_plays", Integer, nullable=True),  # NULL = unlimited, 1 = one-time, N = N plays
     # Lifecycle
-    Column("is_active", Boolean, nullable=False, default=True),
+    Column("is_active", Boolean, nullable=False, default=True, server_default=text("true")),
     Column("expires_at", DateTime, nullable=True),
     Column("auto_delete_at", DateTime, nullable=True),  # NULL for admins, NOW()+14d for teachers
     # Timestamps
@@ -381,7 +397,7 @@ teacher_phrase_set_phrases_table = Table(
     ),
     Column("phrase_id", Integer, nullable=False),
     Column("language_set_id", Integer, nullable=False),
-    Column("position", Integer, nullable=False, default=0),
+    Column("position", Integer, nullable=False, default=0, server_default="0"),
     # Unique constraint: prevent duplicate phrases in same set
     UniqueConstraint("phrase_set_id", "phrase_id", "language_set_id", name="uq_set_phrase"),
     # Composite index for common query
@@ -443,14 +459,14 @@ teacher_phrase_set_sessions_table = Table(
     Column("difficulty", String(20), nullable=False),
     Column("total_phrases", Integer, nullable=False),
     # Progress
-    Column("phrases_found", Integer, nullable=False, default=0),
+    Column("phrases_found", Integer, nullable=False, default=0, server_default="0"),
     Column("translation_submissions", Text, nullable=True),  # JSON array: [{"phrase_id": 1, "answer": "..."}]
     # Timing
     Column("started_at", DateTime, nullable=False, server_default=func.now()),
     Column("completed_at", DateTime, nullable=True),
     Column("duration_seconds", Integer, nullable=True),
     # Status
-    Column("is_completed", Boolean, nullable=False, default=False),
+    Column("is_completed", Boolean, nullable=False, default=False, server_default=text("false")),
     # Composite indexes for common queries
     Index("idx_session_phrase_set", "phrase_set_id", "is_completed"),
     Index("idx_session_user", "user_id", "phrase_set_id"),
@@ -472,7 +488,7 @@ notifications_table = Table(
     Column("title", String(255), nullable=False),
     Column("message", Text, nullable=False),
     Column("link", String(512), nullable=True),  # Optional navigation link
-    Column("is_read", Boolean, nullable=False, default=False),
+    Column("is_read", Boolean, nullable=False, default=False, server_default=text("false")),
     Column("created_at", DateTime, nullable=False, server_default=func.now()),
     Column("expires_at", DateTime, nullable=True),  # For auto-cleanup
     Column("metadata", JSONB, nullable=True),  # extra structured data
@@ -518,7 +534,9 @@ teacher_group_members_table = Table(
         nullable=False,
         index=True,
     ),
-    Column("status", String(20), nullable=False, default="pending"),  # pending, accepted, declined
+    Column(
+        "status", String(20), nullable=False, default="pending", server_default="pending"
+    ),  # pending, accepted, declined
     Column("invited_at", DateTime, nullable=False, server_default=func.now()),
     Column("responded_at", DateTime, nullable=True),  # When accepted/declined
     Column("expires_at", DateTime, nullable=True),  # Invitation expiry (7 days)
