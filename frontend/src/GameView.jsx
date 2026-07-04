@@ -1,6 +1,7 @@
 import { Box, Button, Stack } from "@mui/material";
 import AutorenewIcon from "@mui/icons-material/Autorenew";
 import PsychologyIcon from "@mui/icons-material/Psychology";
+import FlagOutlinedIcon from "@mui/icons-material/FlagOutlined";
 import {
   AllFoundMessage,
   CrosswordGrid,
@@ -50,6 +51,8 @@ export function GameView({
   trainingMode,
   onTrainingModeChange,
   onOpenReview,
+  forfeited,
+  onForfeit,
   notEnoughPhrases,
   notEnoughPhrasesMsg,
   isGridLoading,
@@ -254,6 +257,7 @@ export function GameView({
                 ref={gridRef}
                 grid={grid}
                 phrases={phrases}
+                found={found}
                 onPhraseComplete={onFound}
                 onPhraseWrong={() => {}}
                 disabled={allFound || isScreenTooSmall || isGridTooSmall}
@@ -356,6 +360,7 @@ export function GameView({
 
             {progressiveHintsEnabled &&
               phrases.length > 0 &&
+              !forfeited &&
               found.length < phrases.length && (
                 <HintButton
                   onHintRequest={onHintRequest}
@@ -390,6 +395,38 @@ export function GameView({
         )}
       </Box>
 
+      {/* Crossword: give up / forfeit — reveal the answers and end an unfinishable game */}
+      {gameType === "crossword" &&
+        phrases.length > 0 &&
+        !allFound &&
+        !forfeited &&
+        found.length < phrases.length && (
+          <Button
+            variant="outlined"
+            color="warning"
+            startIcon={<FlagOutlinedIcon />}
+            onClick={onForfeit}
+            disabled={isGridLoading || isGridTooSmall}
+          >
+            {t("crossword.give_up", "Give up")}
+          </Button>
+        )}
+
+      {gameType === "crossword" && forfeited && !allFound && (
+        <Stack spacing={1} sx={{ alignItems: "center" }}>
+          <Box sx={{ opacity: 0.8, textAlign: "center" }}>
+            {t("crossword.forfeited", "Answers revealed. Better luck next time!")}
+          </Box>
+          <Button
+            variant="contained"
+            startIcon={<AutorenewIcon />}
+            onClick={() => refreshPuzzle(selectedCategory, difficulty)}
+          >
+            {t("new_game")}
+          </Button>
+        </Stack>
+      )}
+
       {/* Mobile: Floating Actions */}
       {useMobileLayout && (
         <MobileFloatingActions
@@ -400,6 +437,7 @@ export function GameView({
           showHintButton={
             progressiveHintsEnabled &&
             phrases.length > 0 &&
+            !forfeited &&
             found.length < phrases.length
           }
           disabled={allFound || isGridTooSmall}

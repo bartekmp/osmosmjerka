@@ -1,5 +1,5 @@
 import React from 'react';
-import { render, screen, fireEvent } from '@testing-library/react';
+import { render, screen, fireEvent, act } from '@testing-library/react';
 import { ThemeProvider } from '@mui/material/styles';
 import { createTheme } from '@mui/material/styles';
 import CrosswordGrid from '../CrosswordGrid';
@@ -140,6 +140,82 @@ describe('CrosswordGrid', () => {
             // Note: Full toggle test requires checking direction state, 
             // which is internal. This verifies the cell is interactive.
             expect(cells).toBeTruthy();
+        });
+    });
+
+    describe('Re-seeding from found', () => {
+        // Non-blank inputs render row-major: [0]=B(0,2), [1]=C(1,1), [2]=A(1,2), [3]=T(1,3), [4]=T(2,2)
+        test('pre-fills and locks cells for already-found phrases', () => {
+            const { container } = renderGrid({ found: [samplePhrases[0]] }); // CAT already found
+            const inputs = container.querySelectorAll('.crossword-cell:not(.blank) input');
+            expect(inputs[1].value).toBe('C');
+            expect(inputs[2].value).toBe('A');
+            expect(inputs[3].value).toBe('T');
+            // Completed phrase cells are locked (disabled)
+            expect(inputs[1].disabled).toBe(true);
+            expect(inputs[3].disabled).toBe(true);
+            // The unrelated BAT-only cell (row2) stays empty and editable
+            expect(inputs[4].value).toBe('');
+            expect(inputs[4].disabled).toBe(false);
+        });
+
+        test('empty found leaves the board blank', () => {
+            const { container } = renderGrid({ found: [] });
+            const inputs = container.querySelectorAll('.crossword-cell:not(.blank) input');
+            inputs.forEach((i) => expect(i.value).toBe(''));
+        });
+    });
+
+    describe('Tap-outside to deselect (mobile scroll)', () => {
+        test('pointerdown outside the grid blurs the focused cell input', () => {
+            const { container } = renderGrid();
+            const input = container.querySelector('.crossword-cell:not(.blank) input');
+            act(() => input.focus());
+            expect(document.activeElement).toBe(input);
+
+            // Tap somewhere outside the grid (e.g. the page body)
+            act(() => {
+                document.dispatchEvent(new window.Event('pointerdown', { bubbles: true }));
+            });
+            expect(document.activeElement).not.toBe(input);
+        });
+
+        test('pointerdown inside the grid does not blur', () => {
+            const { container } = renderGrid();
+            const input = container.querySelector('.crossword-cell:not(.blank) input');
+            act(() => input.focus());
+
+            act(() => {
+                input.dispatchEvent(new window.Event('pointerdown', { bubbles: true }));
+            });
+            expect(document.activeElement).toBe(input);
+        });
+    });
+
+    describe('revealAll (forfeit)', () => {
+        test('fills and locks every cell when called via ref', () => {
+            const ref = React.createRef();
+            const { container } = render(
+                <ThemeProvider theme={theme}>
+                    <CrosswordGrid
+                        ref={ref}
+                        grid={createSampleGrid()}
+                        phrases={samplePhrases}
+                        onPhraseComplete={jest.fn()}
+                        onPhraseWrong={jest.fn()}
+                    />
+                </ThemeProvider>
+            );
+            const inputs = container.querySelectorAll('.crossword-cell:not(.blank) input');
+            inputs.forEach((i) => expect(i.value).toBe(''));
+
+            fireEvent.click(document.body); // no-op sanity
+            act(() => ref.current.revealAll());
+
+            inputs.forEach((i) => {
+                expect(i.value).not.toBe('');
+                expect(i.disabled).toBe(true);
+            });
         });
     });
 

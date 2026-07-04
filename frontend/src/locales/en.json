@@ -910,6 +910,8 @@
     "hint_full_phrase": "Full phrase revealed",
     "hint_next_letter": "Next letter",
     "hint_validate": "Check letters",
-    "hint_reveal": "Reveal phrase"
+    "hint_reveal": "Reveal phrase",
+    "give_up": "Give up",
+    "forfeited": "Answers revealed. Better luck next time!"
   }
 }

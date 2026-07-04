@@ -911,6 +911,8 @@
     "hint_full_phrase": "Cijela fraza otkrivena",
     "hint_next_letter": "Sljedeće slovo",
     "hint_validate": "Provjeri slova",
-    "hint_reveal": "Otkrij frazu"
+    "hint_reveal": "Otkrij frazu",
+    "give_up": "Predaj se",
+    "forfeited": "Odgovori otkriveni. Više sreće drugi put!"
   }
 }
