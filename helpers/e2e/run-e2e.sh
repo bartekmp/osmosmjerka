@@ -66,8 +66,11 @@ echo "    Postgres on :$PG_PORT, app will use :$APP_PORT"
 for _ in $(seq 1 60); do docker exec "$PG_NAME" pg_isready -U postgres >/dev/null 2>&1 && break; sleep 1; done
 
 echo "==> Building frontend and serving it from the backend"
-# npm install (not ci): package-lock.json is git-ignored in this repo.
-( cd "$ROOT/frontend" && [ -d node_modules ] || npm install )
+# Always install (not conditional on node_modules existing): the E2E agent reuses its
+# workspace between builds, so a cached node_modules can be stale and miss deps added since
+# (e.g. the TTS build assets). npm install is a fast no-op when already up to date.
+# Not `npm ci` — package-lock.json is git-ignored in this repo.
+( cd "$ROOT/frontend" && npm install )
 ( cd "$ROOT/frontend" && VITE_BASE_PATH=/static/ npm run build )
 rm -rf "$ROOT/backend/static"
 cp -r "$ROOT/frontend/build" "$ROOT/backend/static"
