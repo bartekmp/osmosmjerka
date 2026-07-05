@@ -2,6 +2,25 @@
 
 <!-- version list -->
 
+## v1.46.0 (2026-07-05)
+
+### Bug Fixes
+
+- Export all phrases including ignored categories
+  ([#223](https://github.com/bartekmp/osmosmjerka/pull/223),
+  [`51ac5e9`](https://github.com/bartekmp/osmosmjerka/commit/51ac5e9de18cd47218b6e8f72c0b2391b6b3353f))
+
+### Features
+
+- 'Keep & edit' action for resolving duplicates
+  ([#223](https://github.com/bartekmp/osmosmjerka/pull/223),
+  [`51ac5e9`](https://github.com/bartekmp/osmosmjerka/commit/51ac5e9de18cd47218b6e8f72c0b2391b6b3353f))
+
+- Keep & edit for duplicates + export all phrases (incl. ignored)
+  ([#223](https://github.com/bartekmp/osmosmjerka/pull/223),
+  [`51ac5e9`](https://github.com/bartekmp/osmosmjerka/commit/51ac5e9de18cd47218b6e8f72c0b2391b6b3353f))
+
+
 ## v1.45.2 (2026-07-04)
 
 ### Bug Fixes
