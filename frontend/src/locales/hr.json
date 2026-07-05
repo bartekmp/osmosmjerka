@@ -914,5 +914,15 @@
     "hint_reveal": "Otkrij frazu",
     "give_up": "Predaj se",
     "forfeited": "Odgovori otkriveni. Više sreće drugi put!"
-  }
+  },
+  "keep_and_edit": "Zadrži i uredi",
+  "keep_and_edit_tooltip": "Uredi ovu frazu (spoji prijevode), zatim izbriši ostale",
+  "keep_edit_title": "Zadrži i uredi ovu frazu",
+  "keep_edit_success": "Zadržano „{{phrase}}” i izbrisano {{count}} duplikat(a).",
+  "keep_edit_failed": "Nije uspjelo zadržavanje i uređivanje: {{error}}",
+  "other_duplicates_deleted": "Ostali duplikati (bit će izbrisani)",
+  "append_translation": "+ prijevod",
+  "append_all_translations": "Dodaj sve prijevode",
+  "save_and_keep": "Spremi i zadrži",
+  "categories_space_separated": "Odvojeno razmakom"
 }

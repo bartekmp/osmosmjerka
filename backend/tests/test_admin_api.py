@@ -309,9 +309,10 @@ def test_upload_text_with_tab_separator_auto_detect(
 
 
 # Test export functionality
-@patch("osmosmjerka.database.db_manager.get_phrases")
+@patch("osmosmjerka.database.db_manager.get_phrases_for_admin")
 def test_export_data(mock_get_phrases, client, mock_admin_user):
-    """Test exporting data as CSV"""
+    """Test exporting data as CSV — uses the admin (unfiltered) fetch so ignored categories
+    are still exported."""
     # Override the dependency
     app.dependency_overrides[require_admin_access] = lambda: mock_admin_user
     mock_get_phrases.return_value = [
@@ -332,7 +333,7 @@ def test_export_data(mock_get_phrases, client, mock_admin_user):
     mock_get_phrases.assert_called_once_with(None, "Spanish")
 
 
-@patch("osmosmjerka.database.db_manager.get_phrases")
+@patch("osmosmjerka.database.db_manager.get_phrases_for_admin")
 def test_export_data_all_categories(mock_get_phrases, client, mock_admin_user):
     """Test exporting all categories"""
     # Override the dependency

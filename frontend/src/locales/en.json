@@ -913,5 +913,15 @@
     "hint_reveal": "Reveal phrase",
     "give_up": "Give up",
     "forfeited": "Answers revealed. Better luck next time!"
-  }
+  },
+  "keep_and_edit": "Keep & edit",
+  "keep_and_edit_tooltip": "Edit this phrase (combine translations), then delete the others",
+  "keep_edit_title": "Keep & edit this phrase",
+  "keep_edit_success": "Kept \"{{phrase}}\" and deleted {{count}} duplicate(s).",
+  "keep_edit_failed": "Failed to keep & edit: {{error}}",
+  "other_duplicates_deleted": "Other duplicates (will be deleted)",
+  "append_translation": "+ translation",
+  "append_all_translations": "Append all translations",
+  "save_and_keep": "Save & keep this",
+  "categories_space_separated": "Space-separated"
 }

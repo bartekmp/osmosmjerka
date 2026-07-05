@@ -919,5 +919,15 @@
     "hint_reveal": "Odkryj frazę",
     "give_up": "Poddaj się",
     "forfeited": "Odpowiedzi odsłonięte. Powodzenia następnym razem!"
-  }
+  },
+  "keep_and_edit": "Zachowaj i edytuj",
+  "keep_and_edit_tooltip": "Edytuj tę frazę (połącz tłumaczenia), a następnie usuń pozostałe",
+  "keep_edit_title": "Zachowaj i edytuj tę frazę",
+  "keep_edit_success": "Zachowano „{{phrase}}” i usunięto {{count}} duplikat(ów).",
+  "keep_edit_failed": "Nie udało się zachować i edytować: {{error}}",
+  "other_duplicates_deleted": "Pozostałe duplikaty (zostaną usunięte)",
+  "append_translation": "+ tłumaczenie",
+  "append_all_translations": "Dodaj wszystkie tłumaczenia",
+  "save_and_keep": "Zapisz i zachowaj",
+  "categories_space_separated": "Oddzielone spacją"
 }
