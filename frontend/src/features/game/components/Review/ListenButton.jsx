@@ -1,6 +1,6 @@
 import VolumeUpIcon from "@mui/icons-material/VolumeUp";
 import { IconButton, Tooltip } from "@mui/material";
-import { installedVoiceForLang, speak } from "../../../../hooks/localTts";
+import { installedVoiceForLang, speak, warmup } from "../../../../hooks/localTts";
 
 /**
  * Speaker button using an in-browser Piper voice. Shows only when a voice for `lang`
@@ -13,7 +13,13 @@ export default function ListenButton({ text, lang, t, size = "small" }) {
   const label = t("review.listen", "Listen");
   return (
     <Tooltip title={label} arrow>
-      <IconButton size={size} onClick={() => speak(text, voiceId)} aria-label={label}>
+      <IconButton
+        size={size}
+        onClick={() => speak(text, voiceId)}
+        onPointerEnter={() => warmup(voiceId)}
+        onFocus={() => warmup(voiceId)}
+        aria-label={label}
+      >
         <VolumeUpIcon fontSize="inherit" />
       </IconButton>
     </Tooltip>

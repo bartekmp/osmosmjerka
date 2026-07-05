@@ -4,7 +4,7 @@ import EditIcon from '@mui/icons-material/Edit';
 import DeleteIcon from '@mui/icons-material/Delete';
 import VolumeUpIcon from '@mui/icons-material/VolumeUp';
 import { useTranslation } from 'react-i18next';
-import { installedVoiceForLang, speak } from '../../../../hooks/localTts';
+import { installedVoiceForLang, speak, warmup } from '../../../../hooks/localTts';
 
 export default function TableRowActions({
     row,
@@ -25,6 +25,8 @@ export default function TableRowActions({
                 <Button
                     size="small"
                     onClick={() => speak(row.phrase, voiceId)}
+                    onPointerEnter={() => warmup(voiceId)}
+                    onFocus={() => warmup(voiceId)}
                     aria-label={t('review.listen', 'Listen')}
                     title={t('review.listen', 'Listen')}
                     sx={{ minWidth: 0, width: 36, height: 36, fontSize: '1.1rem', lineHeight: 1 }}
