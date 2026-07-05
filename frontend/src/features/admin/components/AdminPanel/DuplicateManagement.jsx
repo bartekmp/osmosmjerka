@@ -40,6 +40,7 @@ import {
 import { useTranslation } from 'react-i18next';
 import { LanguageSetSelector } from '../../../../shared';
 import { API_ENDPOINTS } from '../../../../shared/constants/constants';
+import KeepAndEditDialog from './KeepAndEditDialog';
 
 export default function DuplicateManagement({ currentUser, selectedLanguageSetId }) {
     const { t } = useTranslation();
@@ -55,6 +56,9 @@ export default function DuplicateManagement({ currentUser, selectedLanguageSetId
     const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
     const [phrasesToDelete, setPhrasesToDelete] = useState([]);
     const [deleting, setDeleting] = useState(false);
+    // Keep & edit: resolve a group by keeping one (edited) phrase and deleting the rest.
+    const [keepEditState, setKeepEditState] = useState({ open: false, keepPhrase: null, otherPhrases: [] });
+    const [keepEditSaving, setKeepEditSaving] = useState(false);
 
     // Pagination state
     const [currentPage, setCurrentPage] = useState(1);
@@ -147,6 +151,52 @@ export default function DuplicateManagement({ currentUser, selectedLanguageSetId
         setPhrasesToDelete(toDelete);
         setDeleteDialogOpen(true);
     }, []);
+
+    const handleKeepAndEdit = useCallback((phrases, keepPhraseId) => {
+        setKeepEditState({
+            open: true,
+            keepPhrase: phrases.find(p => p.id === keepPhraseId) || null,
+            otherPhrases: phrases.filter(p => p.id !== keepPhraseId),
+        });
+    }, []);
+
+    const confirmKeepAndEdit = useCallback(async (fields) => {
+        const { keepPhrase, otherPhrases } = keepEditState;
+        if (!keepPhrase) return;
+        setKeepEditSaving(true);
+        try {
+            const token = localStorage.getItem('adminToken');
+            const auth = { 'Authorization': `Bearer ${token}`, 'Content-Type': 'application/json' };
+
+            // 1) update the kept phrase with the edited fields
+            const updateRes = await fetch(
+                `/admin/row/${keepPhrase.id}?language_set_id=${activeLanguageSetId}`,
+                { method: 'PUT', headers: auth, body: JSON.stringify(fields) }
+            );
+            if (!updateRes.ok) throw new Error(`HTTP ${updateRes.status}: ${updateRes.statusText}`);
+
+            // 2) delete the other duplicates
+            const otherIds = otherPhrases.map(p => p.id);
+            if (otherIds.length) {
+                const deleteRes = await fetch(
+                    `${API_ENDPOINTS.ADMIN_DUPLICATES}?language_set_id=${activeLanguageSetId}`,
+                    { method: 'DELETE', headers: auth, body: JSON.stringify(otherIds) }
+                );
+                if (!deleteRes.ok) throw new Error(`HTTP ${deleteRes.status}: ${deleteRes.statusText}`);
+            }
+
+            setOperationResult({ type: 'keepEdit', data: { phrase: fields.phrase, deleted_count: otherIds.length } });
+            setError('');
+            setKeepEditState({ open: false, keepPhrase: null, otherPhrases: [] });
+            setSelectedPhrases(new Set());
+            await loadDuplicates();
+        } catch (err) {
+            logger.error('Error in keep & edit:', err);
+            setError(t('keep_edit_failed', 'Failed to keep & edit: {{error}}', { error: err.message }));
+        } finally {
+            setKeepEditSaving(false);
+        }
+    }, [keepEditState, activeLanguageSetId, loadDuplicates, t]);
 
     const handleMergeCategories = useCallback(async (phrases, keepPhraseId) => {
         const duplicateIds = phrases.filter(p => p.id !== keepPhraseId).map(p => p.id);
@@ -398,6 +448,13 @@ export default function DuplicateManagement({ currentUser, selectedLanguageSetId
                                 </Box>
                             )}
                         </Box>
+                    ) : operationResult.type === 'keepEdit' ? (
+                        <Typography variant="body2" sx={{ fontWeight: 'bold' }}>
+                            {t('keep_edit_success', 'Kept "{{phrase}}" and deleted {{count}} duplicate(s).', {
+                                phrase: operationResult.data.phrase,
+                                count: operationResult.data.deleted_count,
+                            })}
+                        </Typography>
                     ) : null}
                 </Alert>
             )}
@@ -530,6 +587,15 @@ export default function DuplicateManagement({ currentUser, selectedLanguageSetId
                                                                         {t('merge_categories', 'Merge Categories')}
                                                                     </Button>
                                                                 </Tooltip>
+                                                                <Tooltip title={t('keep_and_edit_tooltip', 'Edit this phrase (combine translations), then delete the others')}>
+                                                                    <Button
+                                                                        size="small"
+                                                                        variant="outlined"
+                                                                        onClick={() => handleKeepAndEdit(group.duplicates, phrase.id)}
+                                                                    >
+                                                                        {t('keep_and_edit', 'Keep & edit')}
+                                                                    </Button>
+                                                                </Tooltip>
                                                             </Box>
                                                         </TableCell>
                                                     </TableRow>
@@ -590,6 +656,15 @@ export default function DuplicateManagement({ currentUser, selectedLanguageSetId
                     </Button>
                 </DialogActions>
             </Dialog>
+
+            <KeepAndEditDialog
+                open={keepEditState.open}
+                keepPhrase={keepEditState.keepPhrase}
+                otherPhrases={keepEditState.otherPhrases}
+                onClose={() => setKeepEditState({ open: false, keepPhrase: null, otherPhrases: [] })}
+                onSave={confirmKeepAndEdit}
+                saving={keepEditSaving}
+            />
         </Paper>
     );
 }
