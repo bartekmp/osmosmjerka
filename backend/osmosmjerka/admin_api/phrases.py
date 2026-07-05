@@ -600,7 +600,9 @@ async def export_data(
 ) -> StreamingResponse:
     """Export phrases as CSV from specified language set"""
     try:
-        rows = await db_manager.get_phrases(language_set_id, category)
+        # Export every phrase (including ignored categories), matching what the admin browse
+        # table shows — get_phrases() would strip the set's default-ignored categories.
+        rows = await db_manager.get_phrases_for_admin(language_set_id, category)
         output = io.StringIO()
 
         # Use CSV writer to properly handle semicolon delimiter and escape special characters
