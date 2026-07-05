@@ -2,6 +2,15 @@
 
 <!-- version list -->
 
+## v1.47.0 (2026-07-05)
+
+### Features
+
+- Warm up the TTS engine on play-button hover
+  ([#222](https://github.com/bartekmp/osmosmjerka/pull/222),
+  [`264485d`](https://github.com/bartekmp/osmosmjerka/commit/264485d3503491a26942fa4e873306b367b911e5))
+
+
 ## v1.46.0 (2026-07-05)
 
 ### Bug Fixes
