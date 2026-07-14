@@ -2,6 +2,19 @@
 
 <!-- version list -->
 
+## v1.47.1 (2026-07-14)
+
+### Chores
+
+- **deps**: Update actions/setup-python digest to ece7cb0
+  ([#224](https://github.com/bartekmp/osmosmjerka/pull/224),
+  [`531d28e`](https://github.com/bartekmp/osmosmjerka/commit/531d28e0b8d79d918cfdbb4bc2f79a608b9804b0))
+
+- **deps**: Update docker/build-push-action digest to 53b7df9
+  ([#225](https://github.com/bartekmp/osmosmjerka/pull/225),
+  [`0503c1b`](https://github.com/bartekmp/osmosmjerka/commit/0503c1b232b13dce019cbd5dc2ed8b96be147dac))
+
+
 ## v1.47.0 (2026-07-05)
 
 ### Features
