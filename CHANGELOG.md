@@ -2,6 +2,23 @@
 
 <!-- version list -->
 
+## v1.47.2 (2026-07-14)
+
+### Bug Fixes
+
+- Babel deps update, renovate grouping ([#226](https://github.com/bartekmp/osmosmjerka/pull/226),
+  [`c19fb65`](https://github.com/bartekmp/osmosmjerka/commit/c19fb65173fc6ec14502b667f90929ccf6cca0cf))
+
+- Babel update ([#226](https://github.com/bartekmp/osmosmjerka/pull/226),
+  [`c19fb65`](https://github.com/bartekmp/osmosmjerka/commit/c19fb65173fc6ec14502b667f90929ccf6cca0cf))
+
+### Chores
+
+- **deps**: Update dependency @babel/core to v8
+  ([#226](https://github.com/bartekmp/osmosmjerka/pull/226),
+  [`c19fb65`](https://github.com/bartekmp/osmosmjerka/commit/c19fb65173fc6ec14502b667f90929ccf6cca0cf))
+
+
 ## v1.47.1 (2026-07-14)
 
 ### Chores
