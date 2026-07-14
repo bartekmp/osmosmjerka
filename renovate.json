@@ -121,12 +121,6 @@
       ]
     },
     {
-      "groupName": "Babel packages",
-      "matchPackageNames": [
-        "/^@babel//"
-      ]
-    },
-    {
       "groupName": "Testing packages",
       "matchPackageNames": [
         "/jest/",
@@ -167,6 +161,13 @@
       "prPriority": 10,
       "automerge": false,
       "groupName": null
+    },
+    {
+      "groupName": "Babel packages",
+      "matchPackageNames": [
+        "/^@babel//",
+        "babel-plugin-transform-import-meta"
+      ]
     }
   ]
 }
