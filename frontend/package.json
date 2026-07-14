@@ -33,7 +33,7 @@
         "react-router-dom": "^7.9.1"
     },
     "devDependencies": {
-        "@babel/core": "^7.28.4",
+        "@babel/core": "^8.0.0",
         "@babel/preset-env": "^7.28.3",
         "@babel/preset-react": "^7.27.1",
         "@diffusionstudio/piper-wasm": "^1.0.0",
