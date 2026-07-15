@@ -11,7 +11,7 @@ jest.mock('../BatchOperationsToolbar', () => () => <div data-testid="batch-toolb
 jest.mock('../PaginationControls', () => () => <div data-testid="pagination-controls" />);
 jest.mock('../../../../game/components/Review/VoiceManager', () => () => <div data-testid="voice-manager" />);
 jest.mock('../../../../../hooks/useSystemPreferences', () => ({
-    useSystemPreferences: () => ({ ttsEnabled: true, scoringEnabled: true, progressiveHintsEnabled: true }),
+    useSystemPreferences: () => ({ ttsEnabled: true, progressiveHintsEnabled: true }),
 }));
 
 // Mock react-i18next

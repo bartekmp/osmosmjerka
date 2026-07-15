@@ -51,7 +51,6 @@ export function useGameSession({ selectedLanguageSetId, statisticsEnabled }) {
     [gameSessionId, statisticsEnabled]
   );
 
-  // Returns durationSeconds so the caller can invoke scoring after session completion.
   const completeGameSession = useCallback(
     async (phrasesFound, _isCompleted) => {
       const token = localStorage.getItem(STORAGE_KEYS.ADMIN_TOKEN);

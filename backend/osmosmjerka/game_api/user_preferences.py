@@ -59,17 +59,6 @@ async def set_user_preference(body: UserPreferenceUpdate, user=Depends(get_curre
         return JSONResponse({"error": str(e)}, status_code=500)
 
 
-@router.get("/user/scoring-enabled")
-async def get_user_scoring_enabled(user=Depends(get_current_user)) -> JSONResponse:
-    """Get scoring enabled status for current user"""
-    try:
-        enabled = await db_manager.is_scoring_enabled_for_user(user["id"])
-        return JSONResponse({"enabled": enabled})
-    except Exception as e:
-        logger.exception("Failed to get user scoring-enabled status")
-        return JSONResponse({"error": str(e)}, status_code=500)
-
-
 @router.get("/user/progressive-hints-enabled")
 async def get_user_progressive_hints_enabled(user=Depends(get_current_user)) -> JSONResponse:
     """Get progressive hints enabled status for current user"""

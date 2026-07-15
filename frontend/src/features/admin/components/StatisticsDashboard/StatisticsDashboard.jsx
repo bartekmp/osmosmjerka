@@ -33,7 +33,7 @@ import axios from 'axios';
 import OverviewTab from './Tabs/OverviewTab';
 import LanguageSetsTab from './Tabs/LanguageSetsTab';
 import UserStatisticsTab from './Tabs/UserStatisticsTab';
-import HighScoresTab from './Tabs/HighScoresTab';
+import MasteryLeaderboardTab from './Tabs/MasteryLeaderboardTab';
 
 const StatisticsDashboard = ({ token, setError: onError, currentUser }) => {
   const { t } = useTranslation();
@@ -61,14 +61,11 @@ const StatisticsDashboard = ({ token, setError: onError, currentUser }) => {
   const [languageSetStats, setLanguageSetStats] = useState([]);
   const [userStatistics, setUserStatistics] = useState([]);
   const [selectedUserDetail, setSelectedUserDetail] = useState(null);
-  const [highScores, setHighScores] = useState([]);
+  const [leaderboard, setLeaderboard] = useState([]);
 
-  // High scores filters
-  const [highScoresLanguageSet, setHighScoresLanguageSet] = useState('');
-  const [highScoresCategory, setHighScoresCategory] = useState('');
-  const [highScoresDifficulty, setHighScoresDifficulty] = useState('');
-  const [highScoresGameType, setHighScoresGameType] = useState('');
-  const [highScoresLimit, setHighScoresLimit] = useState(50);
+  // Mastery leaderboard filters
+  const [leaderboardLanguageSet, setLeaderboardLanguageSet] = useState('');
+  const [leaderboardLimit, setLeaderboardLimit] = useState(50);
 
   // Root admin settings states
   const [statisticsEnabled, setStatisticsEnabled] = useState(true);
@@ -115,18 +112,15 @@ const StatisticsDashboard = ({ token, setError: onError, currentUser }) => {
     }
   };
 
-  const loadHighScores = async (langSetId = null, category = null, difficulty = null, limit = 50, gameType = null) => {
+  const loadLeaderboard = async (langSetId = null, limit = 50) => {
     try {
       const params = new URLSearchParams();
       if (langSetId) params.append('language_set_id', langSetId);
-      if (category) params.append('category', category);
-      if (difficulty) params.append('difficulty', difficulty);
-      if (gameType) params.append('game_type', gameType);
       if (limit) params.append('limit', limit);
 
       const queryString = params.toString();
       const data = await getWithAuth(`/admin/statistics/leaderboard${queryString ? `?${queryString}` : ''}`);
-      setHighScores(data);
+      setLeaderboard(data);
     } catch (err) {
       setError(err.message);
     }
@@ -150,60 +144,30 @@ const StatisticsDashboard = ({ token, setError: onError, currentUser }) => {
 
   const handleTabChange = (event, newValue) => {
     setActiveTab(newValue);
-    // Load high scores when switching to high scores tab
+    // Load the leaderboard when switching to that tab
     if (newValue === 3) {
-      loadHighScores(
-        highScoresLanguageSet || null,
-        highScoresCategory || null,
-        highScoresDifficulty || null,
-        highScoresLimit,
-        highScoresGameType || null
-      );
+      loadLeaderboard(leaderboardLanguageSet || null, leaderboardLimit);
     }
   };
 
-  const handleHighScoresFilterChange = async (filterName, value) => {
-    // Update local state based on filter name
-    let newLangSet = highScoresLanguageSet;
-    let newCategory = highScoresCategory;
-    let newDifficulty = highScoresDifficulty;
-    let newLimit = highScoresLimit;
-    let newGameType = highScoresGameType;
+  const handleLeaderboardFilterChange = async (filterName, value) => {
+    let newLangSet = leaderboardLanguageSet;
+    let newLimit = leaderboardLimit;
 
     switch (filterName) {
       case 'languageSet':
-        setHighScoresLanguageSet(value);
+        setLeaderboardLanguageSet(value);
         newLangSet = value;
         break;
-      case 'category':
-        setHighScoresCategory(value);
-        newCategory = value;
-        break;
-      case 'difficulty':
-        setHighScoresDifficulty(value);
-        newDifficulty = value;
-        break;
-      case 'gameType':
-        setHighScoresGameType(value);
-        newGameType = value;
-        break;
       case 'limit':
-        setHighScoresLimit(value);
+        setLeaderboardLimit(value);
         newLimit = value;
         break;
       default:
         break;
     }
 
-    // Debounce/Delay slightly if needed, or just load immediately
-    // For dropdowns, immediate load is usually fine
-    await loadHighScores(
-      newLangSet || null,
-      newCategory || null,
-      newDifficulty || null,
-      newLimit,
-      newGameType || null
-    );
+    await loadLeaderboard(newLangSet || null, newLimit);
   };
 
   const formatTime = (seconds) => {
@@ -356,7 +320,7 @@ const StatisticsDashboard = ({ token, setError: onError, currentUser }) => {
         <Tab label={t('overview')} />
         <Tab label={t('by_language_set')} />
         <Tab label={t('user_statistics')} />
-        <Tab label={t('high_scores')} />
+        <Tab label={t('mastery_leaderboard', 'Mastery leaderboard')} />
       </Tabs>
 
       {/* Overview Tab */}
@@ -383,20 +347,16 @@ const StatisticsDashboard = ({ token, setError: onError, currentUser }) => {
         />
       )}
 
-      {/* High Scores Tab */}
+      {/* Mastery Leaderboard Tab */}
       {activeTab === 3 && (
-        <HighScoresTab
-          highScores={highScores}
+        <MasteryLeaderboardTab
+          leaderboard={leaderboard}
           languageSets={languageSets}
           filters={{
-            languageSet: highScoresLanguageSet,
-            category: highScoresCategory,
-            difficulty: highScoresDifficulty,
-            gameType: highScoresGameType,
-            limit: highScoresLimit
+            languageSet: leaderboardLanguageSet,
+            limit: leaderboardLimit
           }}
-          onFilterChange={handleHighScoresFilterChange}
-          formatTime={formatTime}
+          onFilterChange={handleLeaderboardFilterChange}
         />
       )}
 

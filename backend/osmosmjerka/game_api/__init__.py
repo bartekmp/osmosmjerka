@@ -13,9 +13,9 @@ from osmosmjerka.game_api.learn import router as learn_router
 from osmosmjerka.game_api.list_sharing import router as list_sharing_router
 from osmosmjerka.game_api.phrases import router as phrases_router
 from osmosmjerka.game_api.private_lists import router as private_lists_router
-from osmosmjerka.game_api.scoring import router as scoring_router
 from osmosmjerka.game_api.student_groups import router as student_groups_router
 from osmosmjerka.game_api.student_study import router as student_study_router
+from osmosmjerka.game_api.system_flags import router as system_flags_router
 from osmosmjerka.game_api.user_preferences import router as user_preferences_router
 from osmosmjerka.grid_generator.word_search import generate_grid
 from osmosmjerka.utils import export_to_docx, export_to_png
@@ -28,7 +28,7 @@ router.include_router(phrases_router)
 router.include_router(export_router)
 router.include_router(user_preferences_router)
 router.include_router(game_sessions_router)
-router.include_router(scoring_router)
+router.include_router(system_flags_router)
 router.include_router(private_lists_router)
 router.include_router(list_sharing_router)
 router.include_router(student_groups_router)

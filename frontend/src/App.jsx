@@ -48,7 +48,7 @@ import { useAuth } from "./hooks/useAuth";
 import { useSystemPreferences } from "./hooks/useSystemPreferences";
 import { useWhatsNew } from "./hooks/useWhatsNew";
 import { useGameSession } from "./hooks/useGameSession";
-import { useScoring } from "./hooks/useScoring";
+import { useMasteryStats } from "./hooks/useMasteryStats";
 import { useTraining } from "./hooks/useTraining";
 import { useCategories } from "./hooks/useCategories";
 import { useSplash } from "./hooks/useSplash";
@@ -93,7 +93,7 @@ function AppContent() {
   const isTouchDevice = useTouchDevice();
   const isScreenTooSmall = useScreenTooSmall();
   const { currentUser, statisticsEnabled } = useAuth();
-  const { scoringEnabled, progressiveHintsEnabled } = useSystemPreferences();
+  const { progressiveHintsEnabled } = useSystemPreferences();
   const { showWhatsNew, whatsNewEntries, handleWhatsNewClose } = useWhatsNew();
 
   const [selectedCategory, setSelectedCategory] = useState("");
@@ -163,7 +163,8 @@ function AppContent() {
   const [gridStatus, setGridStatus] = useState("pending");
 
   const [currentElapsedTime, setCurrentElapsedTime] = useState(0);
-  const currentElapsedTimeRef = useRef(0);
+  // Bumped on every new game so the Timer resets even though it isn't remounted.
+  const [timerResetTrigger, setTimerResetTrigger] = useState(0);
 
   // Progressive hint system state
   const [hintsUsed, setHintsUsed] = useState(0);
@@ -191,53 +192,39 @@ function AppContent() {
     resetSession,
   } = useGameSession({ selectedLanguageSetId, statisticsEnabled });
 
-  // Scoring hook
-  const {
-    currentScore,
-    scoreBreakdown,
-    scoringRules,
-    scoringRulesStatus,
-    setFirstPhraseTime,
-    timerResetTrigger,
-    loadScoringRules,
-    saveGameScore,
-    updateScore,
-    ensureScoreBreakdownFromApi,
-    registerScoreDialogOpener,
-    openScoreBreakdownDialog,
-    resetScoringState,
-  } = useScoring({
-    scoringEnabled,
-    difficulty,
-    phrases,
-    found,
-    hintsUsed,
-    gameSessionId,
-    selectedLanguageSetId,
-    selectedCategory,
-    grid,
-    currentElapsedTimeRef,
-  });
-
   const justRestoredRef = useRef(false);
 
-  // Training mode (spaced-repetition): rate recall after each found/solved word.
-  const {
-    trainingMode,
-    setTrainingMode,
-    enqueueForRating,
-    submitRating,
-    currentRating,
-  } = useTraining({ selectedLanguageSetId, gameType });
+  // Recall/rating (spaced-repetition): rate recall after each found/solved word.
+  // Always active for logged-in users; guests keep the casual, untracked experience.
+  const { enqueueForRating, submitRating, currentRating } = useTraining({
+    selectedLanguageSetId,
+    gameType,
+  });
 
-  // Winning condition: all phrases found (also gates the training translations peek below).
+  // Mastery/streak summary chip on the main game screen (logged-in users only).
+  const { stats: masteryStats, refreshStats: refreshMasteryStats } = useMasteryStats({
+    currentUser,
+    languageSetId: selectedLanguageSetId,
+  });
+  const handleSubmitRating = useCallback(
+    (grade) => {
+      submitRating(grade);
+      // The review POST is fire-and-forget; give it a moment before refetching.
+      setTimeout(refreshMasteryStats, 400);
+    },
+    [submitRating, refreshMasteryStats]
+  );
+
+  // Winning condition: all phrases found (also gates the recall-hiding peek below).
   const allFound = phrases.length > 0 && found.length === phrases.length;
 
-  // In word-search training, translations stay hidden DURING play so each find is a real
-  // recall event. Once the game is finished (allFound) the player may peek — the toggle
-  // reappears and its state is honored again. Crossword keeps its normal behavior.
+  // For logged-in users in word-search, translations stay hidden DURING play so each
+  // find is a real recall event. Once the game is finished (allFound) the player may
+  // peek — the toggle reappears and its state is honored again. Crossword keeps its
+  // normal behavior. Guests never get this hiding (they have no account to track
+  // mastery/streak against, so casual play stays as-is).
   const effectiveShowTranslations =
-    trainingMode && gameType !== "crossword" && !allFound ? false : showTranslations;
+    !!currentUser && gameType !== "crossword" && !allFound ? false : showTranslations;
 
   const handleRateLimit = useCallback(() => {
     setShowRateLimit(true);
@@ -380,10 +367,6 @@ function AppContent() {
   ]);
 
   useEffect(() => {
-    currentElapsedTimeRef.current = currentElapsedTime;
-  }, [currentElapsedTime]);
-
-  useEffect(() => {
     if (!restored) return;
 
     // If we just restored a valid game state, don't reload the puzzle
@@ -467,12 +450,11 @@ function AppContent() {
   }, [remainingHints, progressiveHintsEnabled]);
 
   const resetGameState = useCallback(() => {
-    resetScoringState();
     setHintsUsed(0);
     setRemainingHints(gameType === "crossword" ? phrases.length : 3);
     setCurrentHintLevel(0);
     setCurrentElapsedTime(0);
-    currentElapsedTimeRef.current = 0;
+    setTimerResetTrigger((prev) => prev + 1);
     setFound([]);
     setForfeited(false);
     setIsPaused(false);
@@ -480,7 +462,7 @@ function AppContent() {
     if (gridRef.current) {
       gridRef.current.clearHints();
     }
-  }, [resetScoringState, gameType, phrases.length]);
+  }, [gameType, phrases.length]);
 
   // Give up on a crossword: reveal every answer and put the game into a finished state
   // without crediting the unsolved phrases (no score / no mastery updates).
@@ -522,12 +504,6 @@ function AppContent() {
         const newFoundList = [...found, phrase];
         const newFoundCount = newFoundList.length;
 
-        // Start timer on first found phrase
-        if (found.length === 0 && scoringEnabled) {
-          const now = new Date().toISOString();
-          setFirstPhraseTime(now);
-        }
-
         // Start game session on first found phrase (only if statistics are enabled)
         if (
           found.length === 0 &&
@@ -550,9 +526,11 @@ function AppContent() {
         setFound(newFoundList);
         confetti();
 
-        // Training mode: queue this word for a confidence rating. Word search stores
-        // phrase strings, so resolve to the full object (id + translation) from `phrases`.
-        if (trainingMode) {
+        // Logged-in users: queue this word for a confidence rating, feeding mastery
+        // and the daily streak. Word search stores phrase strings, so resolve to the
+        // full object (id + translation) from `phrases`. Guests have no account to
+        // track this against, so they skip the rating queue entirely.
+        if (currentUser) {
           const phraseObj =
             typeof phrase === "string" ? phrases.find((p) => p.phrase === phrase) : phrase;
           if (phraseObj?.id != null) {
@@ -572,12 +550,6 @@ function AppContent() {
 
         // Update progress tracking
         updateGameProgress(newFoundCount);
-
-        // Update score if scoring is enabled
-        if (scoringEnabled && gameStartTime) {
-          const timePlayed = Math.floor((Date.now() - gameStartTime) / 1000);
-          updateScore(newFoundCount, timePlayed, hintsUsed);
-        }
       }
     },
     [
@@ -590,11 +562,8 @@ function AppContent() {
       difficulty,
       startGameSession,
       statisticsEnabled,
-      scoringEnabled,
-      gameStartTime,
       updateGameProgress,
-      updateScore,
-      trainingMode,
+      currentUser,
       enqueueForRating,
     ]
   );
@@ -612,15 +581,9 @@ function AppContent() {
   };
 
   // Timer update callback
-  const handleTimerUpdate = useCallback(
-    (elapsedSeconds) => {
-      setCurrentElapsedTime(elapsedSeconds); // Track current elapsed time for saving
-      if (scoringEnabled && found.length > 0 && allFound) {
-        updateScore(found.length, elapsedSeconds, hintsUsed);
-      }
-    },
-    [scoringEnabled, found.length, allFound, updateScore, hintsUsed]
-  );
+  const handleTimerUpdate = useCallback((elapsedSeconds) => {
+    setCurrentElapsedTime(elapsedSeconds); // Track current elapsed time for saving
+  }, []);
 
   const handlePauseToggle = useCallback(() => {
     if (found.length === 0 || allFound) {
@@ -641,26 +604,6 @@ function AppContent() {
     }
   }, [allFound]);
 
-  useEffect(() => {
-    if (!scoringEnabled || found.length === 0) {
-      return;
-    }
-
-    updateScore(found.length, currentElapsedTimeRef.current, hintsUsed);
-  }, [hintsUsed, scoringEnabled, found.length, updateScore]);
-
-  useEffect(() => {
-    if (!scoringEnabled || !allFound) {
-      return;
-    }
-
-    if (scoreBreakdown) {
-      return;
-    }
-
-    ensureScoreBreakdownFromApi();
-  }, [scoringEnabled, allFound, ensureScoreBreakdownFromApi, scoreBreakdown]);
-
   // Game session tracking effects
   // Note: Game session now starts when first phrase is found (see markFound function)
 
@@ -674,24 +617,9 @@ function AppContent() {
 
   useEffect(() => {
     if (allFound && gameSessionId && gameStartTime && !sessionCompleted) {
-      const finish = async () => {
-        const durationSeconds = await completeGameSession(found.length, true);
-        if (scoringEnabled && durationSeconds != null) {
-          await saveGameScore(found.length, durationSeconds, true);
-        }
-      };
-      finish();
+      completeGameSession(found.length, true);
     }
-  }, [
-    allFound,
-    gameSessionId,
-    gameStartTime,
-    sessionCompleted,
-    completeGameSession,
-    scoringEnabled,
-    saveGameScore,
-    found.length,
-  ]);
+  }, [allFound, gameSessionId, gameStartTime, sessionCompleted, completeGameSession, found.length]);
 
   useEffect(() => {
     // Complete session when starting a new game (if there was a previous incomplete session)
@@ -768,9 +696,8 @@ function AppContent() {
       setHidePhrases={setHidePhrases}
       showTranslations={effectiveShowTranslations}
       setShowTranslations={setShowTranslations}
-      trainingMode={trainingMode}
-      onTrainingModeChange={setTrainingMode}
       onOpenReview={() => navigate("/review")}
+      masteryStats={masteryStats}
       forfeited={forfeited}
       onForfeit={handleForfeit}
       notEnoughPhrases={notEnoughPhrases}
@@ -784,14 +711,6 @@ function AppContent() {
       onLanguageSetStatusChange={handleLanguageSetStatusChange}
       selectedPrivateListId={selectedPrivateListId}
       setSelectedPrivateListId={setSelectedPrivateListId}
-      scoringEnabled={scoringEnabled}
-      currentScore={currentScore}
-      scoreBreakdown={scoreBreakdown}
-      scoringRules={scoringRules}
-      scoringRulesStatus={scoringRulesStatus}
-      loadScoringRules={loadScoringRules}
-      openScoreBreakdownDialog={openScoreBreakdownDialog}
-      registerScoreDialogOpener={registerScoreDialogOpener}
       isTimerActive={isTimerActive}
       isPaused={isPaused}
       onPauseToggle={handlePauseToggle}
@@ -800,7 +719,6 @@ function AppContent() {
       timerResetTrigger={timerResetTrigger}
       gameStartTime={gameStartTime}
       progressiveHintsEnabled={progressiveHintsEnabled}
-      hintsUsed={hintsUsed}
       remainingHints={remainingHints}
       currentHintLevel={currentHintLevel}
       onHintRequest={handleHintRequest}
@@ -975,7 +893,7 @@ function AppContent() {
       />
 
       {/* Training mode: rate recall after each found/solved word */}
-      <TrainingConfidencePrompt item={currentRating} onRate={submitRating} t={t} />
+      <TrainingConfidencePrompt item={currentRating} onRate={handleSubmitRating} t={t} />
     </MUIThemeProvider>
   );
 }

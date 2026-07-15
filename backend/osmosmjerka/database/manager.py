@@ -11,7 +11,6 @@ from osmosmjerka.database.list_sharing import ListSharingMixin
 from osmosmjerka.database.notifications import NotificationsMixin
 from osmosmjerka.database.phrases import PhrasesMixin
 from osmosmjerka.database.private_lists import PrivateListsMixin
-from osmosmjerka.database.scoring import ScoringMixin
 from osmosmjerka.database.statistics import StatisticsMixin
 from osmosmjerka.database.streak_ops import StreakMixin
 from osmosmjerka.database.teacher_access import TeacherSetsAccessMixin
@@ -29,7 +28,6 @@ class DatabaseManager(
     UserPreferencesMixin,
     GameSessionsMixin,
     StatisticsMixin,
-    ScoringMixin,
     PrivateListsMixin,
     ListSharingMixin,
     TeacherSetsMixin,

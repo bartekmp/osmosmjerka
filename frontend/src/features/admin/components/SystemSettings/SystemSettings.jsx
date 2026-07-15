@@ -17,13 +17,11 @@ import {
 import { useTranslation } from "react-i18next";
 import axios from "axios";
 import { API_ENDPOINTS, STORAGE_KEYS } from "../../../../shared";
-import ScoringRulesEditor from "./ScoringRulesEditor";
 
 const SystemSettings = () => {
   const { t } = useTranslation();
   const [settings, setSettings] = useState({
     statisticsEnabled: false,
-    scoringEnabled: false,
     progressiveHintsEnabled: false,
   });
   const [listLimits, setListLimits] = useState({
@@ -54,12 +52,9 @@ const SystemSettings = () => {
       setLoading(true);
 
       // Load all settings
-      const [statisticsResponse, scoringResponse, hintsResponse, ttsResponse, limitsResponse] =
+      const [statisticsResponse, hintsResponse, ttsResponse, limitsResponse] =
         await Promise.all([
           axios.get(`${API_ENDPOINTS.ADMIN}/settings/statistics`, {
-            headers: { Authorization: `Bearer ${token}` },
-          }),
-          axios.get(`${API_ENDPOINTS.ADMIN}/settings/scoring`, {
             headers: { Authorization: `Bearer ${token}` },
           }),
           axios.get(`${API_ENDPOINTS.ADMIN}/settings/progressive-hints`, {
@@ -75,7 +70,6 @@ const SystemSettings = () => {
 
       setSettings({
         statisticsEnabled: statisticsResponse.data.enabled,
-        scoringEnabled: scoringResponse.data.enabled,
         progressiveHintsEnabled: hintsResponse.data.enabled,
         ttsEnabled: ttsResponse.data.enabled,
       });
@@ -99,9 +93,6 @@ const SystemSettings = () => {
       switch (settingType) {
         case "statistics":
           endpoint = `${API_ENDPOINTS.ADMIN}/settings/statistics`;
-          break;
-        case "scoring":
-          endpoint = `${API_ENDPOINTS.ADMIN}/settings/scoring`;
           break;
         case "progressive-hints":
           endpoint = `${API_ENDPOINTS.ADMIN}/settings/progressive-hints`;
@@ -210,28 +201,6 @@ const SystemSettings = () => {
             </Typography>
 
             <FormGroup>
-              <FormControlLabel
-                control={
-                  <Switch
-                    checked={settings.scoringEnabled}
-                    onChange={handleToggle("scoring")}
-                    color="primary"
-                  />
-                }
-                label={
-                  <Box>
-                    <Typography variant="body1">
-                      {t("admin.settings.scoring.title")}
-                    </Typography>
-                    <Typography variant="body2" color="text.secondary">
-                      {t("admin.settings.scoring.description")}
-                    </Typography>
-                  </Box>
-                }
-              />
-
-              <Divider sx={{ my: 2 }} />
-
               <FormControlLabel
                 control={
                   <Switch
@@ -357,11 +326,6 @@ const SystemSettings = () => {
           </Paper>
         </Grid>
       </Grid>
-
-      {/* Scoring Rules Configuration */}
-      <Box sx={{ mt: 3 }}>
-        <ScoringRulesEditor scoringEnabled={settings.scoringEnabled} />
-      </Box>
 
       <Box sx={{ mt: 3 }}>
         <Alert severity="info">{t("admin.settings.notice")}</Alert>

@@ -340,6 +340,29 @@ class StatisticsMixin:
         setting = await self.get_global_setting("statistics_enabled", "true")
         return setting is not None and setting.lower() == "true"
 
+    async def is_progressive_hints_enabled_globally(self) -> bool:
+        """Check if progressive hints are globally enabled."""
+        setting = await self.get_global_setting("progressive_hints_enabled", "false")
+        return setting is not None and setting.lower() == "true"
+
+    async def is_progressive_hints_enabled_for_user(self, user_id: int) -> bool:
+        """Check if progressive hints are enabled for a specific user."""
+        global_enabled = await self.is_progressive_hints_enabled_globally()
+        user_preference = await self.get_user_preference(user_id, "progressive_hints_enabled")
+
+        if user_preference is not None:
+            return user_preference.lower() == "true"
+
+        return global_enabled
+
+    async def is_tts_enabled_globally(self) -> bool:
+        """Check if in-browser text-to-speech (voice packs) is globally enabled.
+
+        Defaults to enabled; admins can turn it off so no voice models are ever
+        downloaded to clients."""
+        setting = await self.get_global_setting("tts_enabled", "true")
+        return setting is not None and setting.lower() == "true"
+
     async def clear_all_statistics(self) -> None:
         """Clear all statistics data from all tables."""
         database = self._ensure_database()

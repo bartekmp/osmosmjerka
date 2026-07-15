@@ -15,7 +15,7 @@ export default function PhraseList({
     hidePhrases,
     setHidePhrases,
     allFound,
-    trainingMode = false,
+    recallHidingActive = false,
     showTranslations,
     setShowTranslations,
     disableShowPhrases,
@@ -39,10 +39,11 @@ export default function PhraseList({
 
     // Don't show translation toggle in crossword mode (translations are always shown as clues)
     const isCrossword = gameType === "crossword";
-    // In training mode the translations toggle is hidden during play; it reappears only
-    // once the game is finished (allFound) so the player can peek at the answers.
+    // While recall-hiding is active (logged-in play, before allFound) the translations
+    // toggle is hidden so each find stays a real recall event; it reappears once the
+    // game is finished so the player can peek at the answers.
     const canToggleTranslations =
-        setShowTranslations && found.length > 0 && !hidePhrases && !isCrossword && (!trainingMode || allFound);
+        setShowTranslations && found.length > 0 && !hidePhrases && !isCrossword && (!recallHidingActive || allFound);
 
     // For consistent button width
     const buttonWidth = compact ? "5em" : "7.2em";

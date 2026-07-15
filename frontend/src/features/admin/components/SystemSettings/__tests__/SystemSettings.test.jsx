@@ -37,9 +37,6 @@ describe('SystemSettings', () => {
         
         // Default successful responses
         axios.get.mockImplementation((url) => {
-            if (url.includes('scoring')) {
-                return Promise.resolve({ data: { enabled: true } });
-            }
             if (url.includes('progressive-hints')) {
                 return Promise.resolve({ data: { enabled: false } });
             }
@@ -71,13 +68,10 @@ describe('SystemSettings', () => {
 
         await waitFor(() => {
             const switches = screen.getAllByRole('switch');
-            expect(switches).toHaveLength(4);
+            expect(switches).toHaveLength(3);
         });
 
         // Check that axios.get was called for all settings
-        expect(axios.get).toHaveBeenCalledWith('/admin/settings/scoring', {
-            headers: { 'Authorization': 'Bearer mock-token' }
-        });
         expect(axios.get).toHaveBeenCalledWith('/admin/settings/progressive-hints', {
             headers: { 'Authorization': 'Bearer mock-token' }
         });

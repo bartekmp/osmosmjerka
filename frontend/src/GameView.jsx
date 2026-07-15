@@ -13,11 +13,10 @@ import {
   MobilePhraseListSheet,
   PhraseList,
   ScrabbleGrid,
-  ScoreDisplay,
   Timer,
 } from "./features";
 import { NotEnoughPhrasesOverlay, ScreenTooSmallOverlay } from "./shared";
-import TrainingToggle from "./features/game/components/Training/TrainingToggle";
+import MasteryStreakChip from "./features/game/components/MasteryStreakChip";
 
 export function GameView({
   // layout
@@ -48,9 +47,8 @@ export function GameView({
   setHidePhrases,
   showTranslations,
   setShowTranslations,
-  trainingMode,
-  onTrainingModeChange,
   onOpenReview,
+  masteryStats,
   forfeited,
   onForfeit,
   notEnoughPhrases,
@@ -65,15 +63,6 @@ export function GameView({
   onLanguageSetStatusChange,
   selectedPrivateListId,
   setSelectedPrivateListId,
-  // scoring
-  scoringEnabled,
-  currentScore,
-  scoreBreakdown,
-  scoringRules,
-  scoringRulesStatus,
-  loadScoringRules,
-  openScoreBreakdownDialog,
-  registerScoreDialogOpener,
   // timer & pause
   isTimerActive,
   isPaused,
@@ -84,7 +73,6 @@ export function GameView({
   gameStartTime,
   // hints
   progressiveHintsEnabled,
-  hintsUsed,
   remainingHints,
   currentHintLevel,
   onHintRequest,
@@ -103,15 +91,18 @@ export function GameView({
   // i18n
   t,
 }) {
-  // Training toggle + review entry — shown in the sidebar (below timer/score) for
-  // logged-in users. Rendered in both the desktop sidebar and the mobile layout.
+  // Mastery/streak chip + review sprint entry — shown in the sidebar for logged-in
+  // users (recall/rating is always-on for them; guests keep the casual, untracked
+  // experience). Rendered in both the desktop sidebar and the mobile layout.
   const trainingControls = currentUser ? (
-    <Box sx={{ display: "flex", alignItems: "center", gap: 1.5, flexWrap: "wrap", justifyContent: "center" }}>
-      <TrainingToggle checked={!!trainingMode} onChange={onTrainingModeChange} t={t} />
-      <Button size="small" variant="outlined" startIcon={<PsychologyIcon />} onClick={onOpenReview}>
-        {t("review.title", "Review sprint")}
-      </Button>
-    </Box>
+    <Stack spacing={1} sx={{ alignItems: "center" }}>
+      <MasteryStreakChip stats={masteryStats} t={t} />
+      <Box sx={{ display: "flex", alignItems: "center", gap: 1.5, flexWrap: "wrap", justifyContent: "center" }}>
+        <Button size="small" variant="outlined" startIcon={<PsychologyIcon />} onClick={onOpenReview}>
+          {t("review.title", "Review sprint")}
+        </Button>
+      </Box>
+    </Stack>
   ) : null;
 
   return (
@@ -161,13 +152,11 @@ export function GameView({
           refreshPuzzle={refreshPuzzle}
           selectedCategory={selectedCategory}
           difficulty={difficulty}
-          canShowBreakdown={scoringEnabled && !!scoreBreakdown}
-          onShowBreakdown={openScoreBreakdownDialog}
         />
       )}
 
-      {/* Timer and Score — mobile layout only */}
-      {useMobileLayout && scoringEnabled && (
+      {/* Timer — mobile layout only */}
+      {useMobileLayout && (
         <Box
           sx={{
             display: "flex",
@@ -185,23 +174,10 @@ export function GameView({
             onTimeUpdate={onTimerUpdate}
             startTime={gameStartTime}
             resetTrigger={timerResetTrigger}
-            showTimer={scoringEnabled}
+            showTimer={true}
             currentElapsedTime={currentElapsedTime}
             onTogglePause={onPauseToggle}
             canPause={found.length > 0 && !allFound}
-          />
-          <ScoreDisplay
-            currentScore={currentScore}
-            scoreBreakdown={scoreBreakdown}
-            phrasesFound={found.length}
-            totalPhrases={phrases.length}
-            hintsUsed={hintsUsed}
-            showScore={scoringEnabled}
-            compact={true}
-            scoringRules={scoringRules}
-            scoringRulesStatus={scoringRulesStatus}
-            onReloadScoringRules={() => loadScoringRules({ force: true })}
-            registerDialogOpener={registerScoreDialogOpener}
           />
           {allFound && (
             <Button
@@ -317,44 +293,29 @@ export function GameView({
               pr: 1,
             }}
           >
-            {scoringEnabled && (
-              <Box
-                sx={{
-                  display: "flex",
-                  flexDirection: { xs: "row", sm: "row" },
-                  alignItems: "center",
-                  justifyContent: "flex-start",
-                  gap: 2,
-                  mb: 2,
-                  flexWrap: "wrap",
-                }}
-              >
-                <Timer
-                  isActive={isTimerActive}
-                  isPaused={isPaused}
-                  onTimeUpdate={onTimerUpdate}
-                  startTime={gameStartTime}
-                  resetTrigger={timerResetTrigger}
-                  showTimer={scoringEnabled}
-                  currentElapsedTime={currentElapsedTime}
-                  onTogglePause={onPauseToggle}
-                  canPause={found.length > 0 && !allFound}
-                />
-                <ScoreDisplay
-                  currentScore={currentScore}
-                  scoreBreakdown={scoreBreakdown}
-                  phrasesFound={found.length}
-                  totalPhrases={phrases.length}
-                  hintsUsed={hintsUsed}
-                  showScore={scoringEnabled}
-                  compact={true}
-                  scoringRules={scoringRules}
-                  scoringRulesStatus={scoringRulesStatus}
-                  onReloadScoringRules={() => loadScoringRules({ force: true })}
-                  registerDialogOpener={registerScoreDialogOpener}
-                />
-              </Box>
-            )}
+            <Box
+              sx={{
+                display: "flex",
+                flexDirection: { xs: "row", sm: "row" },
+                alignItems: "center",
+                justifyContent: "flex-start",
+                gap: 2,
+                mb: 2,
+                flexWrap: "wrap",
+              }}
+            >
+              <Timer
+                isActive={isTimerActive}
+                isPaused={isPaused}
+                onTimeUpdate={onTimerUpdate}
+                startTime={gameStartTime}
+                resetTrigger={timerResetTrigger}
+                showTimer={true}
+                currentElapsedTime={currentElapsedTime}
+                onTogglePause={onPauseToggle}
+                canPause={found.length > 0 && !allFound}
+              />
+            </Box>
 
             {trainingControls}
 
@@ -383,7 +344,7 @@ export function GameView({
               gameType={gameType}
               showTranslations={showTranslations}
               setShowTranslations={setShowTranslations}
-              trainingMode={trainingMode}
+              recallHidingActive={!!currentUser}
               allFound={allFound}
               disableShowPhrases={notEnoughPhrases || isGridTooSmall}
               currentUser={currentUser}
@@ -457,7 +418,7 @@ export function GameView({
           hidePhrases={hidePhrases}
           setHidePhrases={setHidePhrases}
           allFound={allFound}
-          trainingMode={trainingMode}
+          recallHidingActive={!!currentUser}
           showTranslations={showTranslations}
           setShowTranslations={setShowTranslations}
           disableShowPhrases={notEnoughPhrases || isGridTooSmall}

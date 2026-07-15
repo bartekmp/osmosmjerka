@@ -12,21 +12,6 @@ describe('useTraining', () => {
         axios.post.mockResolvedValue({ data: {} });
     });
 
-    test('toggles training mode and persists to localStorage', () => {
-        const { result } = renderHook(() => useTraining({ selectedLanguageSetId: 1, gameType: 'word_search' }));
-        expect(result.current.trainingMode).toBe(false);
-
-        act(() => result.current.setTrainingMode(true));
-        expect(result.current.trainingMode).toBe(true);
-        expect(localStorage.getItem('osmosmjerkaTrainingMode')).toBe('true');
-    });
-
-    test('reads persisted training mode on init', () => {
-        localStorage.setItem('osmosmjerkaTrainingMode', 'true');
-        const { result } = renderHook(() => useTraining({ selectedLanguageSetId: 1, gameType: 'word_search' }));
-        expect(result.current.trainingMode).toBe(true);
-    });
-
     test('enqueues items and exposes the first as currentRating', () => {
         const { result } = renderHook(() => useTraining({ selectedLanguageSetId: 1, gameType: 'word_search' }));
         act(() => {
@@ -74,12 +59,5 @@ describe('useTraining', () => {
         act(() => result.current.submitRating('again'));
         expect(axios.post).not.toHaveBeenCalled();
         expect(result.current.currentRating).toBeNull(); // still advances the queue
-    });
-
-    test('turning training off clears the queue', () => {
-        const { result } = renderHook(() => useTraining({ selectedLanguageSetId: 1, gameType: 'word_search' }));
-        act(() => result.current.enqueueForRating({ id: 5, phrase: 'x' }));
-        act(() => result.current.setTrainingMode(false));
-        expect(result.current.pendingCount).toBe(0);
     });
 });
