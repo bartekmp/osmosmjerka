@@ -2,6 +2,33 @@
 
 <!-- version list -->
 
+## v1.48.0 (2026-07-16)
+
+### Bug Fixes
+
+- Cap phrase-list word width instead of unbounded growth
+  ([#227](https://github.com/bartekmp/osmosmjerka/pull/227),
+  [`6259c52`](https://github.com/bartekmp/osmosmjerka/commit/6259c52486bfbf5cc25202e933f1fc9b11f49a72))
+
+- Pin overflow-x on the mobile phrase-list sheet too
+  ([#227](https://github.com/bartekmp/osmosmjerka/pull/227),
+  [`6259c52`](https://github.com/bartekmp/osmosmjerka/commit/6259c52486bfbf5cc25202e933f1fc9b11f49a72))
+
+- Pin sidebar overflow-x explicitly, stopping its own scrollbar
+  ([#227](https://github.com/bartekmp/osmosmjerka/pull/227),
+  [`6259c52`](https://github.com/bartekmp/osmosmjerka/commit/6259c52486bfbf5cc25202e933f1fc9b11f49a72))
+
+- Training opt-out toggle, sidebar alignment, and phrase-list overflow
+  ([#227](https://github.com/bartekmp/osmosmjerka/pull/227),
+  [`6259c52`](https://github.com/bartekmp/osmosmjerka/commit/6259c52486bfbf5cc25202e933f1fc9b11f49a72))
+
+### Features
+
+- Remove arcade scoring, mastery/streak becomes sole progression
+  ([#227](https://github.com/bartekmp/osmosmjerka/pull/227),
+  [`6259c52`](https://github.com/bartekmp/osmosmjerka/commit/6259c52486bfbf5cc25202e933f1fc9b11f49a72))
+
+
 ## v1.47.2 (2026-07-14)
 
 ### Bug Fixes
