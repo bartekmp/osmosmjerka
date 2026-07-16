@@ -309,6 +309,13 @@ export function GameView({
               top: 24,
               maxHeight: "calc(100vh - 48px)",
               overflowY: "auto",
+              // Explicit, not left to default: with overflowY set to anything but
+              // "visible", the CSS Overflow spec silently promotes overflow-x from
+              // "visible" to "auto" too — so this sidebar was getting its own
+              // horizontal scrollbar (typically from the vertical scrollbar's own
+              // width shrinking the content box below what its 320px-wide children
+              // assumed) regardless of how narrow the phrase-list content actually was.
+              overflowX: "hidden",
               pr: 1,
             }}
           >
