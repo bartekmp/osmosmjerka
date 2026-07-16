@@ -4,6 +4,10 @@
     width: 100%;
     max-width: 320px;
     box-sizing: border-box;
+    /* Defensive backstop: this column must never scroll horizontally, regardless of
+       font metrics or content edge cases. Any row content that doesn't fit should wrap
+       (see .phrase-list-phrase's max-width), not force a scrollbar. */
+    overflow-x: hidden;
 }
 
 /* Buttons */
@@ -88,6 +92,13 @@
     font-weight: bold;
     text-transform: uppercase;
     min-width: 120px;
+    /* Was min-width with no ceiling and flex-shrink:0 (can't shrink) — on a device/font
+       where a long word renders wider than the space left in the row, this had nowhere
+       to go but push the whole row past the sidebar's max-width, producing a horizontal
+       scrollbar. Cap growth and let long words wrap onto a second line instead. */
+    max-width: 140px;
+    overflow-wrap: break-word;
+    word-break: break-word;
     flex-shrink: 0;
     font-family: 'Clear Sans', 'Trebuchet MS', 'Arial', sans-serif;
 }
