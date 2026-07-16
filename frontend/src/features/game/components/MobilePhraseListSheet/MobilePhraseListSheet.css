@@ -57,6 +57,10 @@
 .mobile-phrase-sheet-body {
   flex: 1;
   overflow-y: auto;
+  /* Explicit, not left to default: per the CSS Overflow spec, setting only overflow-y
+     silently promotes overflow-x from "visible" to "auto" too — the same footgun that
+     caused an unwanted horizontal scrollbar on the desktop sidebar. */
+  overflow-x: hidden;
   padding: 0 16px;
   -webkit-overflow-scrolling: touch;
 }
