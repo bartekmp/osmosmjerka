@@ -6,8 +6,11 @@ import { API_ENDPOINTS, STORAGE_KEYS } from "../shared/constants/constants";
 const STORAGE_KEY = "osmosmjerkaTrainingMode";
 
 /**
- * Training mode: after each found/solved word the player self-rates their recall
- * (3-button confidence), which feeds the spaced-repetition model via /api/learn/review.
+ * After each found/solved word a logged-in player self-rates their recall (3-button
+ * confidence), which feeds the spaced-repetition model via /api/learn/review.
+ * Opt-out for logged-in users — on by default (persisted to localStorage), so a
+ * player has to deliberately turn it off to get plain, untracked play. Callers gate
+ * `enqueueForRating` on both `currentUser` and `trainingMode`.
  *
  * Direction is derived from the game type: crossword = production (clue -> word),
  * word search = recognition (word -> meaning). Requires a logged-in user (reviews are
@@ -16,9 +19,10 @@ const STORAGE_KEY = "osmosmjerkaTrainingMode";
 export function useTraining({ selectedLanguageSetId, gameType }) {
   const [trainingMode, setTrainingModeState] = useState(() => {
     try {
-      return localStorage.getItem(STORAGE_KEY) === "true";
+      const saved = localStorage.getItem(STORAGE_KEY);
+      return saved === null ? true : saved === "true";
     } catch {
-      return false;
+      return true;
     }
   });
   // words awaiting a confidence rating: [{ id, phrase, translation }]
@@ -41,25 +45,26 @@ export function useTraining({ selectedLanguageSetId, gameType }) {
 
   const submitRating = useCallback(
     (grade) => {
-      setRatingQueue((q) => {
-        const [current, ...rest] = q;
-        if (current) {
-          const token = localStorage.getItem(STORAGE_KEYS.ADMIN_TOKEN);
-          if (token && selectedLanguageSetId != null) {
-            const direction = gameType === "crossword" ? "production" : "recognition";
-            axios
-              .post(
-                `${API_ENDPOINTS.GAME}/learn/review`,
-                { language_set_id: selectedLanguageSetId, direction, grade, phrase_id: current.id },
-                { headers: { Authorization: `Bearer ${token}` } }
-              )
-              .catch((error) => logger.error("Failed to record review:", error));
-          }
+      // The POST is a side effect and must NOT live inside the setRatingQueue updater —
+      // React (StrictMode, and concurrent rendering in general) may invoke updaters more
+      // than once, which would fire the request twice for one rating.
+      const current = ratingQueue[0];
+      if (current) {
+        const token = localStorage.getItem(STORAGE_KEYS.ADMIN_TOKEN);
+        if (token && selectedLanguageSetId != null) {
+          const direction = gameType === "crossword" ? "production" : "recognition";
+          axios
+            .post(
+              `${API_ENDPOINTS.GAME}/learn/review`,
+              { language_set_id: selectedLanguageSetId, direction, grade, phrase_id: current.id },
+              { headers: { Authorization: `Bearer ${token}` } }
+            )
+            .catch((error) => logger.error("Failed to record review:", error));
         }
-        return rest;
-      });
+      }
+      setRatingQueue((q) => q.slice(1));
     },
-    [gameType, selectedLanguageSetId]
+    [gameType, selectedLanguageSetId, ratingQueue]
   );
 
   const skipRating = useCallback(() => setRatingQueue((q) => q.slice(1)), []);

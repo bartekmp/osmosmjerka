@@ -1,6 +1,6 @@
 from fastapi import APIRouter, Depends, HTTPException
 from fastapi.responses import JSONResponse
-from osmosmjerka.admin_api.schemas import EnabledToggle, ListLimitsUpdate, ScoringRulesUpdate
+from osmosmjerka.admin_api.schemas import EnabledToggle, ListLimitsUpdate
 from osmosmjerka.auth import require_root_admin
 from osmosmjerka.database import db_manager
 
@@ -48,37 +48,6 @@ async def clear_all_statistics(user=Depends(require_root_admin)) -> JSONResponse
         raise HTTPException(status_code=500, detail=str(e)) from e
 
 
-@router.get("/scoring-enabled")
-async def get_scoring_enabled(user=Depends(require_root_admin)) -> JSONResponse:
-    """Get current scoring system status - root admin only"""
-    try:
-        enabled = await db_manager.is_scoring_enabled_globally()
-        return JSONResponse({"enabled": enabled})
-    except Exception as e:
-        raise HTTPException(status_code=500, detail=str(e)) from e
-
-
-@router.post("/scoring-enabled")
-async def set_scoring_enabled(body: EnabledToggle, user=Depends(require_root_admin)) -> JSONResponse:
-    """Enable or disable scoring system globally - root admin only"""
-    try:
-        await db_manager.set_global_setting(
-            "scoring_enabled",
-            "true" if body.enabled else "false",
-            "Global flag to enable/disable scoring system",
-            user["id"],
-        )
-
-        return JSONResponse(
-            {
-                "message": f"Scoring system {'enabled' if body.enabled else 'disabled'} successfully",
-                "enabled": body.enabled,
-            }
-        )
-    except Exception as e:
-        raise HTTPException(status_code=500, detail=str(e)) from e
-
-
 @router.get("/progressive-hints-enabled")
 async def get_progressive_hints_enabled(user=Depends(require_root_admin)) -> JSONResponse:
     """Get current progressive hints status - root admin only"""
@@ -121,18 +90,6 @@ async def get_statistics_setting(user=Depends(require_root_admin)) -> JSONRespon
 async def update_statistics_setting(body: EnabledToggle, user=Depends(require_root_admin)) -> JSONResponse:
     """Update statistics tracking status - alternative endpoint"""
     return await set_statistics_enabled(body, user)
-
-
-@router.get("/scoring")
-async def get_scoring_setting(user=Depends(require_root_admin)) -> JSONResponse:
-    """Get current scoring system status - alternative endpoint"""
-    return await get_scoring_enabled(user)
-
-
-@router.put("/scoring")
-async def update_scoring_setting(body: EnabledToggle, user=Depends(require_root_admin)) -> JSONResponse:
-    """Update scoring system status - alternative endpoint"""
-    return await set_scoring_enabled(body, user)
 
 
 @router.get("/progressive-hints")
@@ -189,68 +146,6 @@ async def get_tts_setting(user=Depends(require_root_admin)) -> JSONResponse:
 async def update_tts_setting(body: EnabledToggle, user=Depends(require_root_admin)) -> JSONResponse:
     """Update text-to-speech status - alternative endpoint"""
     return await set_tts_enabled(body, user)
-
-
-@router.get("/scoring-rules")
-async def get_scoring_rules_setting(user=Depends(require_root_admin)) -> JSONResponse:
-    """Get current scoring rules configuration - root admin only"""
-    try:
-        from osmosmjerka.scoring_rules import DIFFICULTY_ORDER
-
-        rules = await db_manager.get_scoring_rules()
-        if not rules:
-            # If no rules in DB, initialize with defaults
-            await db_manager.initialize_default_scoring_rules()
-            rules = await db_manager.get_scoring_rules()
-
-        # At this point, rules should exist
-        if rules:
-            # Format the response to match the expected structure
-            response = {
-                "base_points_per_phrase": rules["base_points_per_phrase"],
-                "difficulty_multipliers": rules["difficulty_multipliers"],
-                "difficulty_order": DIFFICULTY_ORDER,
-                "time_bonus": {
-                    "max_ratio": rules["max_time_bonus_ratio"],
-                    "target_times_seconds": rules["target_times_seconds"],
-                },
-                "completion_bonus_points": rules["completion_bonus_points"],
-                "hint_penalty_per_hint": rules["hint_penalty_per_hint"],
-            }
-            return JSONResponse(response)
-        else:
-            raise HTTPException(status_code=500, detail="Failed to initialize scoring rules")
-    except HTTPException:
-        raise
-    except Exception as e:
-        raise HTTPException(status_code=500, detail=str(e)) from e
-
-
-@router.put("/scoring-rules")
-async def update_scoring_rules_setting(body: ScoringRulesUpdate, user=Depends(require_root_admin)) -> JSONResponse:
-    """Update scoring rules configuration - root admin only"""
-    try:
-        # Extract time bonus settings (Pydantic model handles validation)
-        max_time_bonus_ratio, target_times_seconds = body.get_time_bonus_settings()
-
-        # Update scoring rules
-        await db_manager.update_scoring_rules(
-            base_points_per_phrase=body.base_points_per_phrase,
-            difficulty_multipliers=body.difficulty_multipliers,
-            max_time_bonus_ratio=max_time_bonus_ratio,
-            target_times_seconds=target_times_seconds,
-            completion_bonus_points=body.completion_bonus_points,
-            hint_penalty_per_hint=body.hint_penalty_per_hint,
-            updated_by=user["id"],
-        )
-
-        return JSONResponse({"message": "Scoring rules updated successfully"})
-    except ValueError as e:
-        raise HTTPException(status_code=400, detail=str(e)) from e
-    except HTTPException:
-        raise
-    except Exception as e:
-        raise HTTPException(status_code=500, detail=str(e)) from e
 
 
 # ===== Private List Limits =====

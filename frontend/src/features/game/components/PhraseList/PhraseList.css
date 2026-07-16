@@ -3,11 +3,11 @@
 .phrase-list-container {
     width: 100%;
     max-width: 320px;
-    /* Horizontal padding ≥ the blur radius so the blurred phrase list's halo
-       fades inside the container instead of being clipped at the sidebar edge
-       (the sidebar's overflow-y:auto also clips overflow-x). */
-    padding: 0 12px;
     box-sizing: border-box;
+    /* Defensive backstop: this column must never scroll horizontally, regardless of
+       font metrics or content edge cases. Any row content that doesn't fit should wrap
+       (see .phrase-list-phrase's max-width), not force a scrollbar. */
+    overflow-x: hidden;
 }
 
 /* Buttons */
@@ -18,6 +18,15 @@
     min-width: 7.2em;
     max-width: 7.2em;
     text-align: center;
+}
+
+/* .scrabble-btn sets margin: 0.2em on every side; zero just the left margin so this
+   leftmost button in the sidebar column aligns flush with the Timer/toggle/chip/
+   Review-sprint controls above it instead of sitting ~3.5px to their right. Chained
+   selector (not just .phrase-list-hide-btn) so specificity reliably beats .scrabble-btn
+   regardless of CSS source order. */
+.scrabble-btn.phrase-list-hide-btn {
+    margin-left: 0;
 }
 
 .phrase-list-toggle-translations {
@@ -52,10 +61,15 @@
 /* Phrase List */
 .phrase-list-ul {
     list-style: none;
-    padding: 0;
+    /* Horizontal padding ≥ the blur radius so the blurred list's halo fades inside
+       the container instead of being clipped at the sidebar edge (the sidebar's
+       overflow-y:auto also clips overflow-x). Kept off the container itself so the
+       button row above stays flush with the Timer/controls above it. */
+    padding: 0 12px;
     margin: 2rem 0 0 0;
     text-align: left;
     width: 100%;
+    box-sizing: border-box;
     transition: filter 0.2s;
 }
 
@@ -78,6 +92,13 @@
     font-weight: bold;
     text-transform: uppercase;
     min-width: 120px;
+    /* Was min-width with no ceiling and flex-shrink:0 (can't shrink) — on a device/font
+       where a long word renders wider than the space left in the row, this had nowhere
+       to go but push the whole row past the sidebar's max-width, producing a horizontal
+       scrollbar. Cap growth and let long words wrap onto a second line instead. */
+    max-width: 140px;
+    overflow-wrap: break-word;
+    word-break: break-word;
     flex-shrink: 0;
     font-family: 'Clear Sans', 'Trebuchet MS', 'Arial', sans-serif;
 }
@@ -160,6 +181,8 @@
 /* Crossword Clue Styles */
 .phrase-list-crossword {
     width: 100%;
+    padding: 0 12px;
+    box-sizing: border-box;
     transition: filter 0.2s;
 }
 

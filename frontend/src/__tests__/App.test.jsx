@@ -26,17 +26,6 @@ jest.mock('../features/game/components/Timer', () => {
     };
 });
 
-jest.mock('../features/game/components/ScoreDisplay', () => {
-    const React = require('react');
-    return {
-        ScoreDisplay: ({ currentScore = 0 }) => React.createElement(
-            'div',
-            { 'data-testid': 'mock-score' },
-            `Score:${currentScore}`
-        )
-    };
-});
-
 const originalWarn = console.warn;
 
 beforeAll(() => {
@@ -58,30 +47,7 @@ afterEach(() => {
 });
 
 beforeEach(() => {
-    axios.post.mockImplementation((url, body) => {
-        if (typeof url === 'string' && url.includes('/system/calculate-score')) {
-            const phrasesFound = body?.phrases_found ?? 0;
-            const hintsUsed = body?.hints_used ?? 0;
-            const baseScore = phrasesFound * 100;
-            const hintPenalty = hintsUsed * 75;
-            const finalScore = Math.max(0, baseScore - hintPenalty);
-
-            return Promise.resolve({
-                data: {
-                    base_score: baseScore,
-                    difficulty_bonus: 0,
-                    time_bonus: 0,
-                    completion_bonus: 0,
-                    hint_penalty: hintPenalty,
-                    final_score: finalScore,
-                    hints_used: hintsUsed,
-                    hint_penalty_per_hint: 75,
-                },
-            });
-        }
-
-        return Promise.resolve({ data: {} });
-    });
+    axios.post.mockImplementation(() => Promise.resolve({ data: {} }));
 });
 
 test('renders profile link', async () => {
@@ -201,7 +167,7 @@ test('renders reload button', async () => {
     });
 });
 
-test('resets timer and score when refreshing the puzzle', async () => {
+test('resets timer when refreshing the puzzle', async () => {
     localStorage.setItem('osmosmjerkaGameState', JSON.stringify({
         grid: [['A']],
         phrases: ['ONE', 'TWO'],
@@ -215,37 +181,8 @@ test('resets timer and score when refreshing the puzzle', async () => {
     }));
 
     axios.get.mockImplementation((url) => {
-        if (typeof url === 'string' && url.includes('/system/scoring-enabled')) {
-            return Promise.resolve({ data: { enabled: true } });
-        }
         if (typeof url === 'string' && url.includes('/system/progressive-hints-enabled')) {
             return Promise.resolve({ data: { enabled: false } });
-        }
-        if (typeof url === 'string' && url.includes('/system/scoring-rules')) {
-            return Promise.resolve({
-                data: {
-                    base_points_per_phrase: 100,
-                    completion_bonus_points: 200,
-                    difficulty_multipliers: {
-                        very_easy: 0.9,
-                        easy: 1.0,
-                        medium: 1.2,
-                        hard: 1.5,
-                        very_hard: 2.0,
-                    },
-                    hint_penalty_per_hint: 75,
-                    time_bonus: {
-                        max_ratio: 0.3,
-                        target_times_seconds: {
-                            very_easy: 240,
-                            easy: 300,
-                            medium: 600,
-                            hard: 900,
-                            very_hard: 1200,
-                        },
-                    },
-                },
-            });
         }
         if (typeof url === 'string' && url.startsWith('/api/language-sets')) {
             return Promise.resolve({ data: [{ id: 1, display_name: 'Default', description: '' }] });
@@ -262,11 +199,9 @@ test('resets timer and score when refreshing the puzzle', async () => {
     render(withI18n(<BrowserRouter><App /></BrowserRouter>));
 
     const timer = await screen.findByTestId('mock-timer');
-    const score = await screen.findByTestId('mock-score');
 
     await waitFor(() => {
         expect(timer).toHaveTextContent('Timer:5');
-        expect(score).toHaveTextContent('Score:100');
     });
 
     const refreshButton = await screen.findByTitle(/reload puzzle/i);
@@ -279,10 +214,8 @@ test('resets timer and score when refreshing the puzzle', async () => {
 
     await waitFor(() => {
         const timers = screen.getAllByTestId('mock-timer');
-        const scores = screen.getAllByTestId('mock-score');
-        // Check the first timer/score (there may be multiple due to responsive layouts)
+        // Check the first timer (there may be multiple due to responsive layouts)
         expect(timers[0]).toHaveTextContent('Timer:0');
         expect(timers[0]).toHaveTextContent('Reset:1');
-        expect(scores[0]).toHaveTextContent('Score:0');
     });
 });

@@ -13,10 +13,10 @@ import {
   MobilePhraseListSheet,
   PhraseList,
   ScrabbleGrid,
-  ScoreDisplay,
   Timer,
 } from "./features";
 import { NotEnoughPhrasesOverlay, ScreenTooSmallOverlay } from "./shared";
+import MasteryStreakChip from "./features/game/components/MasteryStreakChip";
 import TrainingToggle from "./features/game/components/Training/TrainingToggle";
 
 export function GameView({
@@ -51,6 +51,7 @@ export function GameView({
   trainingMode,
   onTrainingModeChange,
   onOpenReview,
+  masteryStats,
   forfeited,
   onForfeit,
   notEnoughPhrases,
@@ -65,15 +66,6 @@ export function GameView({
   onLanguageSetStatusChange,
   selectedPrivateListId,
   setSelectedPrivateListId,
-  // scoring
-  scoringEnabled,
-  currentScore,
-  scoreBreakdown,
-  scoringRules,
-  scoringRulesStatus,
-  loadScoringRules,
-  openScoreBreakdownDialog,
-  registerScoreDialogOpener,
   // timer & pause
   isTimerActive,
   isPaused,
@@ -84,7 +76,6 @@ export function GameView({
   gameStartTime,
   // hints
   progressiveHintsEnabled,
-  hintsUsed,
   remainingHints,
   currentHintLevel,
   onHintRequest,
@@ -103,15 +94,34 @@ export function GameView({
   // i18n
   t,
 }) {
-  // Training toggle + review entry — shown in the sidebar (below timer/score) for
-  // logged-in users. Rendered in both the desktop sidebar and the mobile layout.
+  // Training toggle + mastery/streak chip + review sprint entry — shown in the
+  // sidebar for logged-in users (guests keep the casual, untracked experience).
+  // Rendered in both the desktop sidebar and the mobile layout; on desktop it
+  // left-aligns to match the Timer above and the Hint button below.
   const trainingControls = currentUser ? (
-    <Box sx={{ display: "flex", alignItems: "center", gap: 1.5, flexWrap: "wrap", justifyContent: "center" }}>
+    <Stack spacing={1} sx={{ alignItems: useMobileLayout ? "center" : "flex-start" }}>
       <TrainingToggle checked={!!trainingMode} onChange={onTrainingModeChange} t={t} />
-      <Button size="small" variant="outlined" startIcon={<PsychologyIcon />} onClick={onOpenReview}>
-        {t("review.title", "Review sprint")}
-      </Button>
-    </Box>
+      <MasteryStreakChip stats={masteryStats} t={t} />
+      <Box
+        sx={{
+          display: "flex",
+          alignItems: "center",
+          gap: 1.5,
+          flexWrap: "wrap",
+          justifyContent: useMobileLayout ? "center" : "flex-start",
+        }}
+      >
+        <Button
+          size="small"
+          variant="outlined"
+          startIcon={<PsychologyIcon />}
+          onClick={onOpenReview}
+          sx={{ m: useMobileLayout ? undefined : 0 }}
+        >
+          {t("review.title", "Review sprint")}
+        </Button>
+      </Box>
+    </Stack>
   ) : null;
 
   return (
@@ -161,13 +171,11 @@ export function GameView({
           refreshPuzzle={refreshPuzzle}
           selectedCategory={selectedCategory}
           difficulty={difficulty}
-          canShowBreakdown={scoringEnabled && !!scoreBreakdown}
-          onShowBreakdown={openScoreBreakdownDialog}
         />
       )}
 
-      {/* Timer and Score — mobile layout only */}
-      {useMobileLayout && scoringEnabled && (
+      {/* Timer — mobile layout only */}
+      {useMobileLayout && (
         <Box
           sx={{
             display: "flex",
@@ -185,23 +193,10 @@ export function GameView({
             onTimeUpdate={onTimerUpdate}
             startTime={gameStartTime}
             resetTrigger={timerResetTrigger}
-            showTimer={scoringEnabled}
+            showTimer={true}
             currentElapsedTime={currentElapsedTime}
             onTogglePause={onPauseToggle}
             canPause={found.length > 0 && !allFound}
-          />
-          <ScoreDisplay
-            currentScore={currentScore}
-            scoreBreakdown={scoreBreakdown}
-            phrasesFound={found.length}
-            totalPhrases={phrases.length}
-            hintsUsed={hintsUsed}
-            showScore={scoringEnabled}
-            compact={true}
-            scoringRules={scoringRules}
-            scoringRulesStatus={scoringRulesStatus}
-            onReloadScoringRules={() => loadScoringRules({ force: true })}
-            registerDialogOpener={registerScoreDialogOpener}
           />
           {allFound && (
             <Button
@@ -314,47 +309,39 @@ export function GameView({
               top: 24,
               maxHeight: "calc(100vh - 48px)",
               overflowY: "auto",
+              // Explicit, not left to default: with overflowY set to anything but
+              // "visible", the CSS Overflow spec silently promotes overflow-x from
+              // "visible" to "auto" too — so this sidebar was getting its own
+              // horizontal scrollbar (typically from the vertical scrollbar's own
+              // width shrinking the content box below what its 320px-wide children
+              // assumed) regardless of how narrow the phrase-list content actually was.
+              overflowX: "hidden",
               pr: 1,
             }}
           >
-            {scoringEnabled && (
-              <Box
-                sx={{
-                  display: "flex",
-                  flexDirection: { xs: "row", sm: "row" },
-                  alignItems: "center",
-                  justifyContent: "flex-start",
-                  gap: 2,
-                  mb: 2,
-                  flexWrap: "wrap",
-                }}
-              >
-                <Timer
-                  isActive={isTimerActive}
-                  isPaused={isPaused}
-                  onTimeUpdate={onTimerUpdate}
-                  startTime={gameStartTime}
-                  resetTrigger={timerResetTrigger}
-                  showTimer={scoringEnabled}
-                  currentElapsedTime={currentElapsedTime}
-                  onTogglePause={onPauseToggle}
-                  canPause={found.length > 0 && !allFound}
-                />
-                <ScoreDisplay
-                  currentScore={currentScore}
-                  scoreBreakdown={scoreBreakdown}
-                  phrasesFound={found.length}
-                  totalPhrases={phrases.length}
-                  hintsUsed={hintsUsed}
-                  showScore={scoringEnabled}
-                  compact={true}
-                  scoringRules={scoringRules}
-                  scoringRulesStatus={scoringRulesStatus}
-                  onReloadScoringRules={() => loadScoringRules({ force: true })}
-                  registerDialogOpener={registerScoreDialogOpener}
-                />
-              </Box>
-            )}
+            <Box
+              sx={{
+                display: "flex",
+                flexDirection: { xs: "row", sm: "row" },
+                alignItems: "center",
+                justifyContent: "flex-start",
+                gap: 2,
+                mb: 2,
+                flexWrap: "wrap",
+              }}
+            >
+              <Timer
+                isActive={isTimerActive}
+                isPaused={isPaused}
+                onTimeUpdate={onTimerUpdate}
+                startTime={gameStartTime}
+                resetTrigger={timerResetTrigger}
+                showTimer={true}
+                currentElapsedTime={currentElapsedTime}
+                onTogglePause={onPauseToggle}
+                canPause={found.length > 0 && !allFound}
+              />
+            </Box>
 
             {trainingControls}
 
@@ -383,7 +370,7 @@ export function GameView({
               gameType={gameType}
               showTranslations={showTranslations}
               setShowTranslations={setShowTranslations}
-              trainingMode={trainingMode}
+              recallHidingActive={!!currentUser && !!trainingMode}
               allFound={allFound}
               disableShowPhrases={notEnoughPhrases || isGridTooSmall}
               currentUser={currentUser}
@@ -457,7 +444,7 @@ export function GameView({
           hidePhrases={hidePhrases}
           setHidePhrases={setHidePhrases}
           allFound={allFound}
-          trainingMode={trainingMode}
+          recallHidingActive={!!currentUser && !!trainingMode}
           showTranslations={showTranslations}
           setShowTranslations={setShowTranslations}
           disableShowPhrases={notEnoughPhrases || isGridTooSmall}

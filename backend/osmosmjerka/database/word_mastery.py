@@ -9,9 +9,16 @@ SM-2-lite schedule. An item is polymorphic: a public ``phrase_id`` or a custom
 import datetime
 from typing import Any, Dict, List, Optional
 
+from asyncpg.exceptions import UniqueViolationError
 from osmosmjerka import srs
-from osmosmjerka.database.models import language_sets_table, phrases_table, user_word_mastery_table
-from sqlalchemy import and_, func, insert, select, update
+from osmosmjerka.database.models import (
+    accounts_table,
+    language_sets_table,
+    phrases_table,
+    user_streaks_table,
+    user_word_mastery_table,
+)
+from sqlalchemy import and_, desc, func, insert, select, update
 
 
 class WordMasteryMixin:
@@ -77,25 +84,46 @@ class WordMasteryMixin:
             )
             mastery_id = existing["id"]
         else:
-            mastery_id = await database.execute(
-                insert(t).values(
-                    user_id=user_id,
-                    phrase_id=phrase_id,
-                    list_phrase_id=list_phrase_id,
-                    language_set_id=language_set_id,
-                    direction=direction,
-                    ease=result.ease,
-                    interval_days=result.interval_days,
-                    due_at=due_at,
-                    reps=result.reps,
-                    lapses=result.lapses,
-                    mastery_level=result.mastery_level,
-                    total_reviews=1,
-                    correct_reviews=passed,
-                    last_reviewed_at=now,
-                    created_at=now,
+            try:
+                mastery_id = await database.execute(
+                    insert(t).values(
+                        user_id=user_id,
+                        phrase_id=phrase_id,
+                        list_phrase_id=list_phrase_id,
+                        language_set_id=language_set_id,
+                        direction=direction,
+                        ease=result.ease,
+                        interval_days=result.interval_days,
+                        due_at=due_at,
+                        reps=result.reps,
+                        lapses=result.lapses,
+                        mastery_level=result.mastery_level,
+                        total_reviews=1,
+                        correct_reviews=passed,
+                        last_reviewed_at=now,
+                        created_at=now,
+                    )
                 )
-            )
+            except UniqueViolationError:
+                # A concurrent duplicate submission (e.g. a double-fired request) won the
+                # race and inserted first — fall back to updating that row instead of 500ing.
+                existing = await database.fetch_one(select(t).where(cond))
+                await database.execute(
+                    update(t)
+                    .where(t.c.id == existing["id"])
+                    .values(
+                        ease=result.ease,
+                        interval_days=result.interval_days,
+                        due_at=due_at,
+                        reps=result.reps,
+                        lapses=result.lapses,
+                        mastery_level=result.mastery_level,
+                        total_reviews=t.c.total_reviews + 1,
+                        correct_reviews=t.c.correct_reviews + passed,
+                        last_reviewed_at=now,
+                    )
+                )
+                mastery_id = existing["id"]
 
         # A review counts as activity for the forgiving daily streak (idempotent per day).
         streak = await self.register_review_activity(user_id)
@@ -167,3 +195,38 @@ class WordMasteryMixin:
             select(func.count()).select_from(t).where(and_(where, t.c.mastery_level >= 4))
         )
         return {"total": int(total or 0), "due": int(due or 0), "mastered": int(mastered or 0)}
+
+    async def get_mastery_leaderboard(
+        self, language_set_id: Optional[int] = None, limit: int = 50
+    ) -> List[Dict[str, Any]]:
+        """Rank active accounts by words mastered (mastery_level >= 4), tiebroken by
+        current streak. Replaces the old points-based leaderboard."""
+        database = self._ensure_database()
+        t = user_word_mastery_table
+
+        mastered_count = func.count().filter(t.c.mastery_level >= 4).label("mastered")
+        conds = [accounts_table.c.is_active]
+        if language_set_id is not None:
+            conds.append(t.c.language_set_id == language_set_id)
+
+        query = (
+            select(
+                accounts_table.c.id.label("user_id"),
+                accounts_table.c.username,
+                mastered_count,
+                func.coalesce(user_streaks_table.c.current_streak, 0).label("current_streak"),
+            )
+            .select_from(
+                t.join(accounts_table, t.c.user_id == accounts_table.c.id).outerjoin(
+                    user_streaks_table, t.c.user_id == user_streaks_table.c.user_id
+                )
+            )
+            .where(and_(*conds))
+            .group_by(accounts_table.c.id, accounts_table.c.username, user_streaks_table.c.current_streak)
+            .having(mastered_count > 0)
+            .order_by(desc("mastered"), desc("current_streak"))
+            .limit(limit)
+        )
+
+        rows = await database.fetch_all(query)
+        return [dict(row) for row in rows]

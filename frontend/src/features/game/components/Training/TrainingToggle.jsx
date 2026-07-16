@@ -2,13 +2,17 @@ import PsychologyIcon from "@mui/icons-material/Psychology";
 import { Box, FormControlLabel, Switch, Tooltip, Typography } from "@mui/material";
 
 /**
- * Toggle for Training mode. Shown only to logged-in users (reviews are per-account).
- * When on, the player rates recall after each word to build spaced-repetition memory.
+ * Opt-out toggle for recall tracking. On by default for logged-in users (rates recall
+ * after each word to build spaced-repetition mastery/streak); turning it off restores
+ * plain, untracked play — translations visible, no rating prompts.
  */
 export default function TrainingToggle({ checked, onChange, t }) {
   return (
     <Tooltip
-      title={t("training.tooltip", "Rate your recall after each word to build spaced-repetition memory")}
+      title={t(
+        "training.tooltip",
+        "Rate your recall after each word to build spaced-repetition memory. Turn off for casual play."
+      )}
       arrow
     >
       <FormControlLabel
@@ -17,7 +21,7 @@ export default function TrainingToggle({ checked, onChange, t }) {
         label={
           <Box sx={{ display: "flex", alignItems: "center", gap: 0.5 }}>
             <PsychologyIcon fontSize="small" />
-            <Typography variant="body2">{t("training.mode", "Training mode")}</Typography>
+            <Typography variant="body2">{t("training.mode", "Track my learning progress")}</Typography>
           </Box>
         }
       />

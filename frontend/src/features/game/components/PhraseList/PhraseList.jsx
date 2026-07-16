@@ -15,7 +15,7 @@ export default function PhraseList({
     hidePhrases,
     setHidePhrases,
     allFound,
-    trainingMode = false,
+    recallHidingActive = false,
     showTranslations,
     setShowTranslations,
     disableShowPhrases,
@@ -39,10 +39,11 @@ export default function PhraseList({
 
     // Don't show translation toggle in crossword mode (translations are always shown as clues)
     const isCrossword = gameType === "crossword";
-    // In training mode the translations toggle is hidden during play; it reappears only
-    // once the game is finished (allFound) so the player can peek at the answers.
+    // While recall-hiding is active (logged-in play, before allFound) the translations
+    // toggle is hidden so each find stays a real recall event; it reappears once the
+    // game is finished so the player can peek at the answers.
     const canToggleTranslations =
-        setShowTranslations && found.length > 0 && !hidePhrases && !isCrossword && (!trainingMode || allFound);
+        setShowTranslations && found.length > 0 && !hidePhrases && !isCrossword && (!recallHidingActive || allFound);
 
     // For consistent button width
     const buttonWidth = compact ? "5em" : "7.2em";
@@ -171,16 +172,17 @@ export default function PhraseList({
                 </div>
             )}
 
-            {/* Selection controls frame - only for logged-in users with found phrases */}
-            {currentUser && foundPhrases.length > 0 && (
+            {/* Selection controls frame - only once the puzzle is finished, for
+                logged-in users with found phrases */}
+            {currentUser && allFound && foundPhrases.length > 0 && (
                 <Box
                     sx={{
-                        border: '1px solid',
-                        borderColor: 'divider',
-                        borderRadius: 1,
+                        border: '2px solid var(--btn-border)',
+                        borderRadius: 'var(--radius-scrabble)',
+                        boxShadow: 'var(--shadow-scrabble)',
                         p: 1.5,
                         mb: 2,
-                        bgcolor: 'background.paper',
+                        bgcolor: 'var(--btn-bg)',
                         display: 'flex',
                         alignItems: 'center',
                         gap: 2,
@@ -198,10 +200,14 @@ export default function PhraseList({
                                 checked={allSelectedInFound}
                                 indeterminate={hasSelection && !allSelectedInFound}
                                 onChange={toggleSelectAll}
-                                sx={{ p: 0.5 }}
+                                sx={{
+                                    p: 0.5,
+                                    color: 'var(--btn-border)',
+                                    '&.Mui-checked, &.MuiCheckbox-indeterminate': { color: 'var(--primary-gold)' },
+                                }}
                             />
                         </Tooltip>
-                        <Typography variant="body2" color="text.secondary">
+                        <Typography variant="body2" sx={{ color: 'var(--text-primary)' }}>
                             {allSelectedInFound ? t('learnLater.deselect_all') : t('learnLater.select_all_found')}
                         </Typography>
                     </Box>
@@ -378,7 +384,11 @@ export default function PhraseList({
                                 <span
                                     className={`phrase-list-translation${isFound ? ' found' : ''}`}
                                     style={{
-                                        minWidth: translationMinWidth,
+                                        // Only reserve the stability width while translations are actually
+                                        // shown — otherwise this empty span forces the row (phrase min-width
+                                        // + gap + this) past the sidebar's max-width, causing a pointless
+                                        // horizontal scrollbar while translations are hidden (e.g. Training).
+                                        minWidth: showTranslations ? translationMinWidth : 0,
                                         whiteSpace: 'pre-wrap',
                                         wordBreak: 'break-word'
                                     }}

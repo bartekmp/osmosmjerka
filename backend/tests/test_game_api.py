@@ -66,60 +66,6 @@ def test_get_user_ignored_categories_no_auth(client):
     assert ignored == []
 
 
-def test_get_scoring_rules(client):
-    """Scoring rules should be exposed through a public endpoint."""
-    response = client.get("/api/system/scoring-rules")
-    assert response.status_code == 200
-
-    rules = response.json()
-    assert rules["base_points_per_phrase"] == 100
-    assert set(rules["difficulty_multipliers"].keys()) == {"very_easy", "easy", "medium", "hard", "very_hard"}
-    assert rules["completion_bonus_points"] == 200
-    assert rules["hint_penalty_per_hint"] == 0  # hints not penalized by default
-    assert "time_bonus" in rules and "target_times_seconds" in rules["time_bonus"]
-
-
-def test_get_scoring_rules_with_game_type(client):
-    """Scoring rules should accept game_type parameter."""
-    # Test with word_search game type
-    response = client.get("/api/system/scoring-rules?game_type=word_search")
-    assert response.status_code == 200
-    rules = response.json()
-    assert rules["base_points_per_phrase"] == 100
-
-    # Test with crossword game type - should also return valid rules
-    response = client.get("/api/system/scoring-rules?game_type=crossword")
-    assert response.status_code == 200
-    rules = response.json()
-    assert "base_points_per_phrase" in rules
-
-
-def test_calculate_score_endpoint(client):
-    payload = {
-        "difficulty": "easy",
-        "phrases_found": 5,
-        "total_phrases": 7,
-        "duration_seconds": 120,
-        "hints_used": 1,
-    }
-
-    # Mock get_scoring_rules to return None so it falls back to hardcoded constants
-    with patch("osmosmjerka.game_api.db_manager.get_scoring_rules", new_callable=AsyncMock) as mock_get_scoring:
-        mock_get_scoring.return_value = None
-
-        response = client.post("/api/system/calculate-score", json=payload)
-        assert response.status_code == 200
-
-        data = response.json()
-        assert data["base_score"] == 500
-        assert data["difficulty_bonus"] == 0
-        assert data["time_bonus"] == 0  # not all phrases found
-        assert data["completion_bonus"] == 0
-        assert data["hint_penalty"] == 0  # hints not penalized by default
-    assert data["final_score"] == 500
-    assert data["hint_penalty_per_hint"] == 0
-
-
 def test_get_system_tts_enabled(client):
     with patch("osmosmjerka.game_api.db_manager.is_tts_enabled_globally", new_callable=AsyncMock) as mock_tts:
         mock_tts.return_value = False

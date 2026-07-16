@@ -157,28 +157,6 @@ global_settings_table = Table(
     Column("updated_by", Integer, nullable=False),  # User ID of who made the change
 )
 
-# Define the scoring_rules table for dynamic scoring configuration
-scoring_rules_table = Table(
-    "scoring_rules",
-    metadata,
-    Column("id", Integer, primary_key=True, index=True),
-    Column("base_points_per_phrase", Integer, nullable=False, default=100, server_default="100"),
-    Column("difficulty_multipliers", JSONB, nullable=False),  # {difficulty: multiplier}
-    Column(
-        "max_time_bonus_ratio", String, nullable=False, default="0.3", server_default="0.3"
-    ),  # Stored as string to preserve precision
-    Column("target_times_seconds", JSONB, nullable=False),  # {difficulty: seconds}
-    Column("completion_bonus_points", Integer, nullable=False, default=200, server_default="200"),
-    Column(
-        "hint_penalty_per_hint", Integer, nullable=False, default=0, server_default="0"
-    ),  # hints not penalized by default
-    Column("updated_at", DateTime, nullable=False, server_default=func.now()),
-    Column("updated_by", Integer, nullable=False, default=0, server_default="0"),  # User ID of who made the change
-    Column(
-        "game_type", String(20), nullable=False, default="word_search", server_default="word_search"
-    ),  # word_search, crossword
-)
-
 # Define the user_preferences table for user-specific settings
 user_preferences_table = Table(
     "user_preferences",
@@ -188,35 +166,6 @@ user_preferences_table = Table(
     Column("preference_key", String, nullable=False),
     Column("preference_value", String, nullable=False),
     Column("updated_at", DateTime, nullable=False, server_default=func.now()),
-)
-
-# Define the game_scores table for storing individual game scores
-game_scores_table = Table(
-    "game_scores",
-    metadata,
-    Column("id", Integer, primary_key=True, index=True),
-    Column("session_id", Integer, nullable=False, index=True),
-    Column("user_id", Integer, nullable=False, index=True),
-    Column("language_set_id", Integer, nullable=False, index=True),
-    Column("category", String, nullable=False),
-    Column("difficulty", String, nullable=False),
-    Column("grid_size", Integer, nullable=False),
-    Column("total_phrases", Integer, nullable=False),
-    Column("phrases_found", Integer, nullable=False),
-    Column("hints_used", Integer, nullable=False, default=0, server_default="0"),
-    Column("base_score", Integer, nullable=False, default=0, server_default="0"),
-    Column("time_bonus", Integer, nullable=False, default=0, server_default="0"),
-    Column("difficulty_bonus", Integer, nullable=False, default=0, server_default="0"),
-    Column("completion_bonus", Integer, nullable=False, default=0, server_default="0"),
-    Column("hint_penalty", Integer, nullable=False, default=0, server_default="0"),
-    Column("final_score", Integer, nullable=False, default=0, server_default="0"),
-    Column("duration_seconds", Integer, nullable=False),
-    Column("first_phrase_time", DateTime, nullable=True),
-    Column("completion_time", DateTime, nullable=True),
-    Column("created_at", DateTime, nullable=False, server_default=func.now()),
-    Column(
-        "game_type", String(20), nullable=False, default="word_search", server_default="word_search"
-    ),  # word_search, crossword
 )
 
 # Define the user_private_lists table for user-created phrase lists

@@ -71,26 +71,6 @@ class ExportPuzzleRequest(BaseModel):
     format: str = Field(default="docx", pattern="^(docx|png)$")
 
 
-# ===== Scoring =====
-
-
-class SaveGameScoreRequest(BaseModel):
-    """Request model for saving game score."""
-
-    session_id: int
-    language_set_id: int
-    category: str
-    difficulty: str
-    grid_size: int = Field(..., ge=1)
-    total_phrases: int = Field(..., ge=0)
-    phrases_found: int = Field(..., ge=0)
-    hints_used: int = Field(default=0, ge=0)
-    duration_seconds: int = Field(..., ge=0)
-    first_phrase_time: Optional[str] = None
-    completion_time: Optional[str] = None
-    game_type: str = Field(default="word_search", pattern="^(word_search|crossword)$")
-
-
 # ===== Game Sessions =====
 
 
