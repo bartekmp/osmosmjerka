@@ -14,6 +14,16 @@
     box-shadow: var(--shadow-sm);
 }
 
+/* The global MuiButton override (theme.js) sets margin: 0.2em on every MUI Button root
+   (for inline button-to-button spacing elsewhere); zero the left margin here so this
+   button, as the leftmost control in the sidebar column, aligns flush with its
+   siblings (Timer, mastery chip, Training toggle) instead of sitting ~3.5px right of
+   them. Element+class selector (not just .hint-button) so specificity reliably beats
+   the theme's .MuiButton-root rule regardless of CSS source order. */
+button.hint-button {
+    margin-left: 0;
+}
+
 .hint-button:hover:not(:disabled) {
     transform: translateY(-1px);
     box-shadow: var(--shadow-md);

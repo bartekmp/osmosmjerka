@@ -4,8 +4,8 @@
     "save": "Zapisz zmiany"
   },
   "training": {
-    "mode": "Tryb treningu",
-    "tooltip": "Oceń, ile pamiętasz po każdym słowie, aby budować pamięć metodą powtórek",
+    "mode": "Śledź mój postęp w nauce",
+    "tooltip": "Oceń, ile pamiętasz po każdym słowie, aby budować pamięć metodą powtórek. Wyłącz dla swobodnej gry.",
     "howWell": "Jak dobrze to znałeś?",
     "didntKnow": "Nie znałem",
     "shaky": "Niepewnie",

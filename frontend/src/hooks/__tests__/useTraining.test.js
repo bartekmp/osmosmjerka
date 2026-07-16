@@ -12,6 +12,28 @@ describe('useTraining', () => {
         axios.post.mockResolvedValue({ data: {} });
     });
 
+    test('defaults training mode on', () => {
+        const { result } = renderHook(() => useTraining({ selectedLanguageSetId: 1, gameType: 'word_search' }));
+        expect(result.current.trainingMode).toBe(true);
+    });
+
+    test('opting out persists to localStorage and clears the queue', () => {
+        const { result } = renderHook(() => useTraining({ selectedLanguageSetId: 1, gameType: 'word_search' }));
+        act(() => result.current.enqueueForRating({ id: 5, phrase: 'x' }));
+        expect(result.current.pendingCount).toBe(1);
+
+        act(() => result.current.setTrainingMode(false));
+        expect(result.current.trainingMode).toBe(false);
+        expect(localStorage.getItem('osmosmjerkaTrainingMode')).toBe('false');
+        expect(result.current.pendingCount).toBe(0);
+    });
+
+    test('reads a persisted opt-out on init', () => {
+        localStorage.setItem('osmosmjerkaTrainingMode', 'false');
+        const { result } = renderHook(() => useTraining({ selectedLanguageSetId: 1, gameType: 'word_search' }));
+        expect(result.current.trainingMode).toBe(false);
+    });
+
     test('enqueues items and exposes the first as currentRating', () => {
         const { result } = renderHook(() => useTraining({ selectedLanguageSetId: 1, gameType: 'word_search' }));
         act(() => {

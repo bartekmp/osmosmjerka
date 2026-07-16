@@ -195,8 +195,9 @@ function AppContent() {
   const justRestoredRef = useRef(false);
 
   // Recall/rating (spaced-repetition): rate recall after each found/solved word.
-  // Always active for logged-in users; guests keep the casual, untracked experience.
-  const { enqueueForRating, submitRating, currentRating } = useTraining({
+  // On by default for logged-in users, opt-out via the Training toggle; guests
+  // always keep the casual, untracked experience.
+  const { trainingMode, setTrainingMode, enqueueForRating, submitRating, currentRating } = useTraining({
     selectedLanguageSetId,
     gameType,
   });
@@ -218,13 +219,13 @@ function AppContent() {
   // Winning condition: all phrases found (also gates the recall-hiding peek below).
   const allFound = phrases.length > 0 && found.length === phrases.length;
 
-  // For logged-in users in word-search, translations stay hidden DURING play so each
-  // find is a real recall event. Once the game is finished (allFound) the player may
+  // With Training on, word-search translations stay hidden DURING play so each find
+  // is a real recall event. Once the game is finished (allFound) the player may
   // peek — the toggle reappears and its state is honored again. Crossword keeps its
-  // normal behavior. Guests never get this hiding (they have no account to track
-  // mastery/streak against, so casual play stays as-is).
+  // normal behavior. Guests never get this hiding (no account to track mastery/streak
+  // against), and turning Training off restores plain, untracked play for anyone.
   const effectiveShowTranslations =
-    !!currentUser && gameType !== "crossword" && !allFound ? false : showTranslations;
+    !!currentUser && trainingMode && gameType !== "crossword" && !allFound ? false : showTranslations;
 
   const handleRateLimit = useCallback(() => {
     setShowRateLimit(true);
@@ -526,11 +527,11 @@ function AppContent() {
         setFound(newFoundList);
         confetti();
 
-        // Logged-in users: queue this word for a confidence rating, feeding mastery
-        // and the daily streak. Word search stores phrase strings, so resolve to the
-        // full object (id + translation) from `phrases`. Guests have no account to
-        // track this against, so they skip the rating queue entirely.
-        if (currentUser) {
+        // Logged-in users with Training on: queue this word for a confidence rating,
+        // feeding mastery and the daily streak. Word search stores phrase strings, so
+        // resolve to the full object (id + translation) from `phrases`. Guests, and
+        // anyone who has opted out via the Training toggle, skip the rating queue.
+        if (currentUser && trainingMode) {
           const phraseObj =
             typeof phrase === "string" ? phrases.find((p) => p.phrase === phrase) : phrase;
           if (phraseObj?.id != null) {
@@ -564,6 +565,7 @@ function AppContent() {
       statisticsEnabled,
       updateGameProgress,
       currentUser,
+      trainingMode,
       enqueueForRating,
     ]
   );
@@ -696,6 +698,8 @@ function AppContent() {
       setHidePhrases={setHidePhrases}
       showTranslations={effectiveShowTranslations}
       setShowTranslations={setShowTranslations}
+      trainingMode={trainingMode}
+      onTrainingModeChange={setTrainingMode}
       onOpenReview={() => navigate("/review")}
       masteryStats={masteryStats}
       forfeited={forfeited}

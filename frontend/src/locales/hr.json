@@ -4,8 +4,8 @@
     "save": "Spremi promjene"
   },
   "training": {
-    "mode": "Način vježbanja",
-    "tooltip": "Ocijenite koliko ste zapamtili nakon svake riječi za učenje s razmakom",
+    "mode": "Prati moj napredak u učenju",
+    "tooltip": "Ocijenite koliko ste zapamtili nakon svake riječi za učenje s razmakom. Isključite za opušteno igranje.",
     "howWell": "Koliko ste dobro znali?",
     "didntKnow": "Nisam znao",
     "shaky": "Nesigurno",

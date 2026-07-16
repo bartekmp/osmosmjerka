@@ -4,8 +4,8 @@
     "save": "Save Changes"
   },
   "training": {
-    "mode": "Training mode",
-    "tooltip": "Rate your recall after each word to build spaced-repetition memory",
+    "mode": "Track my learning progress",
+    "tooltip": "Rate your recall after each word to build spaced-repetition memory. Turn off for casual play.",
     "howWell": "How well did you know it?",
     "didntKnow": "Didn’t know",
     "shaky": "Shaky",

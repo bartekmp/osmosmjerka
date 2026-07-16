@@ -17,6 +17,7 @@ import {
 } from "./features";
 import { NotEnoughPhrasesOverlay, ScreenTooSmallOverlay } from "./shared";
 import MasteryStreakChip from "./features/game/components/MasteryStreakChip";
+import TrainingToggle from "./features/game/components/Training/TrainingToggle";
 
 export function GameView({
   // layout
@@ -47,6 +48,8 @@ export function GameView({
   setHidePhrases,
   showTranslations,
   setShowTranslations,
+  trainingMode,
+  onTrainingModeChange,
   onOpenReview,
   masteryStats,
   forfeited,
@@ -91,14 +94,30 @@ export function GameView({
   // i18n
   t,
 }) {
-  // Mastery/streak chip + review sprint entry — shown in the sidebar for logged-in
-  // users (recall/rating is always-on for them; guests keep the casual, untracked
-  // experience). Rendered in both the desktop sidebar and the mobile layout.
+  // Training toggle + mastery/streak chip + review sprint entry — shown in the
+  // sidebar for logged-in users (guests keep the casual, untracked experience).
+  // Rendered in both the desktop sidebar and the mobile layout; on desktop it
+  // left-aligns to match the Timer above and the Hint button below.
   const trainingControls = currentUser ? (
-    <Stack spacing={1} sx={{ alignItems: "center" }}>
+    <Stack spacing={1} sx={{ alignItems: useMobileLayout ? "center" : "flex-start" }}>
+      <TrainingToggle checked={!!trainingMode} onChange={onTrainingModeChange} t={t} />
       <MasteryStreakChip stats={masteryStats} t={t} />
-      <Box sx={{ display: "flex", alignItems: "center", gap: 1.5, flexWrap: "wrap", justifyContent: "center" }}>
-        <Button size="small" variant="outlined" startIcon={<PsychologyIcon />} onClick={onOpenReview}>
+      <Box
+        sx={{
+          display: "flex",
+          alignItems: "center",
+          gap: 1.5,
+          flexWrap: "wrap",
+          justifyContent: useMobileLayout ? "center" : "flex-start",
+        }}
+      >
+        <Button
+          size="small"
+          variant="outlined"
+          startIcon={<PsychologyIcon />}
+          onClick={onOpenReview}
+          sx={{ m: useMobileLayout ? undefined : 0 }}
+        >
           {t("review.title", "Review sprint")}
         </Button>
       </Box>
@@ -344,7 +363,7 @@ export function GameView({
               gameType={gameType}
               showTranslations={showTranslations}
               setShowTranslations={setShowTranslations}
-              recallHidingActive={!!currentUser}
+              recallHidingActive={!!currentUser && !!trainingMode}
               allFound={allFound}
               disableShowPhrases={notEnoughPhrases || isGridTooSmall}
               currentUser={currentUser}
@@ -418,7 +437,7 @@ export function GameView({
           hidePhrases={hidePhrases}
           setHidePhrases={setHidePhrases}
           allFound={allFound}
-          recallHidingActive={!!currentUser}
+          recallHidingActive={!!currentUser && !!trainingMode}
           showTranslations={showTranslations}
           setShowTranslations={setShowTranslations}
           disableShowPhrases={notEnoughPhrases || isGridTooSmall}

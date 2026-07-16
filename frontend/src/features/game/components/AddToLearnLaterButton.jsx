@@ -183,15 +183,13 @@ export default function AddToLearnLaterButton({
     return t(key, { count: phrases.length });
   };
 
-  // Determine button color
+  // Determine button color — matches the app's warm scrabble-tile palette rather
+  // than MUI's default blue/purple, since this sits among gold-bordered buttons.
   const getButtonColor = () => {
-    if (allAlreadyAdded) {
-      return 'success.main'; // Green when all are already added
+    if (allAlreadyAdded || showSuccess) {
+      return 'success.main'; // universal, keeps meaning "done" across the app
     }
-    if (showSuccess) {
-      return 'success.main'; // Green after successful add
-    }
-    return type === 'selected' ? 'secondary.main' : 'primary.main';
+    return type === 'selected' ? 'var(--primary-gold-dark)' : 'var(--primary-gold)';
   };
 
   // Choose icon based on type
@@ -220,16 +218,8 @@ export default function AddToLearnLaterButton({
               color: getButtonColor(),
               transition: 'all 0.3s ease',
               '&:hover:not(.Mui-disabled)': {
-                backgroundColor: allAlreadyAdded 
-                  ? 'success.light' 
-                  : type === 'selected' 
-                    ? 'secondary.light' 
-                    : 'primary.light',
-                color: allAlreadyAdded 
-                  ? 'success.dark' 
-                  : type === 'selected' 
-                    ? 'secondary.dark' 
-                    : 'primary.dark',
+                backgroundColor: allAlreadyAdded ? 'success.light' : 'var(--btn-bg-hover)',
+                color: allAlreadyAdded ? 'success.dark' : 'var(--primary-gold-dark)',
                 transform: 'scale(1.1)',
               },
               '&.Mui-disabled': {

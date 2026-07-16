@@ -215,8 +215,8 @@ const MobilePhraseListSheet = ({
           />
         </Box>
 
-        {/* Learn This Later Section */}
-        {currentUser && foundPhrases.length > 0 && (
+        {/* Learn This Later Section - only once the puzzle is finished */}
+        {currentUser && allFound && foundPhrases.length > 0 && (
           <Box className="mobile-phrase-sheet-footer">
             <Divider sx={{ mb: 2 }} />
             <Box sx={{ display: 'flex', gap: 1, justifyContent: 'center', flexWrap: 'wrap' }}>
