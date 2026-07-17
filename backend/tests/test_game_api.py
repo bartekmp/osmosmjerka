@@ -255,6 +255,26 @@ def test_export_puzzle_png(mock_export_png, client):
     assert "attachment; filename=wordsearch-test.png" in response.headers["content-disposition"]
 
 
+@patch("osmosmjerka.game_api.export.export_to_docx")
+def test_export_puzzle_crossword_docx(mock_export_docx, client):
+    """Test exporting a crossword puzzle uses the crossword filename prefix"""
+    mock_export_docx.return_value = b"docx_content"
+
+    data = {
+        "category": "Test",
+        "grid": [["A", None]],
+        "phrases": [{"phrase": "A", "translation": "A"}],
+        "format": "docx",
+        "game_type": "crossword",
+        "across_label": "Vodoravno",
+        "down_label": "Okomito",
+    }
+    response = client.post("/api/export", json=data)
+    assert response.status_code == 200
+    assert "attachment; filename=crossword-test.docx" in response.headers["content-disposition"]
+    mock_export_docx.assert_called_once_with("Test", [["A", None]], data["phrases"], "crossword", "Vodoravno", "Okomito")
+
+
 def test_export_puzzle_default_format(client):
     """Test exporting puzzle with default DOCX format"""
     with patch("osmosmjerka.game_api.export.export_to_docx") as mock_export:

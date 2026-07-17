@@ -51,7 +51,42 @@ test('handles export with format selection', async () => {
     await waitFor(() => {
         expect(axios.post).toHaveBeenCalledWith(
             "/api/export",
-            { category: "TestCat", grid: [['A']], phrases: [{ phrase: 'test' }], format: 'docx' },
+            {
+                category: "TestCat",
+                grid: [['A']],
+                phrases: [{ phrase: 'test' }],
+                format: 'docx',
+                game_type: 'word_search',
+                across_label: 'Across',
+                down_label: 'Down',
+            },
+            { responseType: 'blob' }
+        );
+    });
+});
+
+test('sends crossword game_type and across/down labels when exporting a crossword puzzle', async () => {
+    const mockBlob = new Blob(['test data']);
+    axios.post.mockResolvedValue({ data: mockBlob });
+    render(withI18n(
+        <ExportButton category="TestCat" grid={[['A', null]]} phrases={[{ phrase: 'test' }]} gameType="crossword" />
+    ));
+    const btn = screen.getByRole('button', { name: /export/i });
+    fireEvent.click(btn);
+    const docxButton = screen.getByText(/word document/i);
+    fireEvent.click(docxButton);
+    await waitFor(() => {
+        expect(axios.post).toHaveBeenCalledWith(
+            "/api/export",
+            {
+                category: "TestCat",
+                grid: [['A', null]],
+                phrases: [{ phrase: 'test' }],
+                format: 'docx',
+                game_type: 'crossword',
+                across_label: 'Across',
+                down_label: 'Down',
+            },
             { responseType: 'blob' }
         );
     });

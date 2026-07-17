@@ -91,10 +91,10 @@ describe('GameControls disabled states', () => {
         expect(refreshButton).not.toBeDisabled();
     });
 
-    test('hides export button when gameType is crossword', () => {
+    test('shows export button when gameType is crossword', () => {
         renderControls({ gameType: 'crossword' });
-        const exportButton = screen.queryByTestId('export-button');
-        expect(exportButton).not.toBeInTheDocument();
+        const exportButton = screen.getByTestId('export-button');
+        expect(exportButton).toBeInTheDocument();
     });
 
     test('shows export button when gameType is word_search', () => {

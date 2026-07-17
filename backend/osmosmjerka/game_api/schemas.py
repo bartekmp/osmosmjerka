@@ -66,9 +66,12 @@ class ExportPuzzleRequest(BaseModel):
     """Request model for exporting a puzzle."""
 
     category: str
-    grid: list[Any]  # 2D grid of characters
+    grid: list[Any]  # 2D grid of characters (crossword cells may be null)
     phrases: list[Any]  # Can be strings or dicts with phrase/translation
     format: str = Field(default="docx", pattern="^(docx|png)$")
+    game_type: str = Field(default="word_search", pattern="^(word_search|crossword)$")
+    across_label: str = Field(default="Across", max_length=50)
+    down_label: str = Field(default="Down", max_length=50)
 
 
 # ===== Game Sessions =====
