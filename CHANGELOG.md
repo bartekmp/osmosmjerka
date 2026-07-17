@@ -2,6 +2,15 @@
 
 <!-- version list -->
 
+## v1.48.1 (2026-07-17)
+
+### Bug Fixes
+
+- Opt e2e smoke sessions out of Training so it stops eating clicks
+  ([#228](https://github.com/bartekmp/osmosmjerka/pull/228),
+  [`55bce31`](https://github.com/bartekmp/osmosmjerka/commit/55bce3156f9129de6254616d675e64a7087ec8d3))
+
+
 ## v1.48.0 (2026-07-16)
 
 ### Bug Fixes
