@@ -11,7 +11,7 @@
   [![PostgreSQL](https://img.shields.io/badge/PostgreSQL-18-336791?logo=postgresql)](https://www.postgresql.org/)
   [![Docker Image](https://img.shields.io/badge/docker-ghcr.io%2Fbartekmp%2Fosmosmjerka-blue?logo=docker)](https://github.com/bartekmp/osmosmjerka/pkgs/container/osmosmjerka)
   
-  **[🎮 Live Demo](https://osmosmjerka.app/)** • Use `demo` / `demo` to login
+  **[🎮 Live Demo](https://osmosmjerka.lel.lu/)** • Use `demo` / `demo` to login
   
 </div>
 
