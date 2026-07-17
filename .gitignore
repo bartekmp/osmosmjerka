@@ -23,7 +23,6 @@ backend/db/
 frontend/node_modules/
 frontend/dist/
 frontend/build/
-package-lock.json
 
 osmosmjerka-deployment.yaml
 

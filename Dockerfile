@@ -12,7 +12,7 @@ WORKDIR /app
 COPY frontend/ frontend/
 WORKDIR /app/frontend
 COPY frontend/public public/
-RUN npm install
+RUN npm ci
 
 # Accept VERSION build arg and expose it to Vite
 ARG VERSION
