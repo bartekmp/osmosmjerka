@@ -13,6 +13,12 @@ export async function seedBrowser(page) {
       // Suppress the "What's New" modal — it auto-opens for logged-in users on a new
       // version and would otherwise intercept clicks on the grid.
       localStorage.setItem('lastSeenVersion', '999.0.0');
+      // Training defaults on for logged-in users and opens a "How well did you know
+      // it?" rating dialog after every find/solve — a real feature, but it's a modal
+      // that blocks further grid clicks, and these specs are testing the underlying
+      // find/solve mechanic, not the rating flow. Opt this session out so the smoke
+      // path stays uninterrupted (the rating dialog itself deserves its own test).
+      localStorage.setItem('osmosmjerkaTrainingMode', 'false');
     },
     { token: TOKEN, lang: LANG }
   );
