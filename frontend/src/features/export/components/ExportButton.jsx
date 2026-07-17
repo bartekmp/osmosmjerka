@@ -7,7 +7,7 @@ import FileDownloadIcon from '@mui/icons-material/FileDownload';
 import ExportModal from './ExportModal';
 import { useTranslation } from 'react-i18next';
 
-export default function ExportButton({ category, grid, phrases, disabled, className, sx }) {
+export default function ExportButton({ category, grid, phrases, gameType = 'word_search', disabled, className, sx }) {
     const [modalOpen, setModalOpen] = useState(false);
     const { t } = useTranslation();
 
@@ -15,12 +15,21 @@ export default function ExportButton({ category, grid, phrases, disabled, classN
         try {
             const response = await axios.post(
                 "/api/export",
-                { category, grid, phrases, format },
+                {
+                    category,
+                    grid,
+                    phrases,
+                    format,
+                    game_type: gameType,
+                    across_label: t('crossword.across'),
+                    down_label: t('crossword.down'),
+                },
                 { responseType: 'blob' }
             );
 
             const url = window.URL.createObjectURL(new Blob([response.data]));
-            const safeCategory = (category || t('wordsearch')).replace(/[^a-z0-9]+/gi, "_").toLowerCase();
+            const puzzleLabel = t(gameType === 'crossword' ? 'gameType.crossword' : 'wordsearch');
+            const safeCategory = (category || puzzleLabel).replace(/[^a-z0-9]+/gi, "_").toLowerCase();
 
             // Determine file extension based on format
             const extensions = {
@@ -31,7 +40,7 @@ export default function ExportButton({ category, grid, phrases, disabled, classN
 
             const link = document.createElement('a');
             link.href = url;
-            link.setAttribute('download', `${t('wordsearch')}-${safeCategory}.${extension}`);
+            link.setAttribute('download', `${puzzleLabel}-${safeCategory}.${extension}`);
             document.body.appendChild(link);
             link.click();
             link.remove();

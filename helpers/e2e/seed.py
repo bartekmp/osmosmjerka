@@ -15,14 +15,14 @@ import urllib.request
 # with; also fine for the word-search grid. category;phrase;translation
 WORDS = [
     ("cat", "kot"), ("dog", "pies"), ("rat", "szczur"), ("bat", "nietoperz"),
-    ("owl", "sowa"), ("cow", "krowa"), ("ant", "mrowka"), ("bee", "pszczola"),
-    ("fox", "lis"), ("hen", "kura"), ("pig", "swinia"), ("ram", "baran"),
-    ("ape", "malpa"), ("elk", "los"), ("eel", "wegorz"), ("emu", "ptak"),
-    ("asp", "zmija"), ("sow", "maciora"), ("tan", "opalenizna"), ("tar", "smola"),
-    ("net", "siec"), ("ten", "dziesiec"), ("nap", "drzemka"), ("pan", "patelnia"),
+    ("owl", "sowa"), ("cow", "krowa"), ("ant", "mrówka"), ("bee", "pszczoła"),
+    ("fox", "lis"), ("hen", "kura"), ("pig", "świnia"), ("ram", "baran"),
+    ("ape", "małpa"), ("elk", "łoś"), ("eel", "węgorz"), ("emu", "ptak"),
+    ("asp", "żmija"), ("sow", "maciora"), ("tan", "opalenizna"), ("tar", "smoła"),
+    ("net", "sieć"), ("ten", "dziesięć"), ("nap", "drzemka"), ("pan", "patelnia"),
     ("ear", "ucho"), ("era", "epoka"), ("oat", "owies"), ("toe", "palec"),
-    ("eat", "jesc"), ("tea", "herbata"), ("ore", "ruda"), ("roe", "ikra"),
-    ("arc", "luk"), ("oar", "wioslo"), ("rot", "gnicie"),
+    ("eat", "jeść"), ("tea", "herbata"), ("ore", "ruda"), ("roe", "ikra"),
+    ("arc", "łuk"), ("oar", "wiosło"), ("rot", "gnicie"),
 ]
 
 

@@ -134,17 +134,16 @@ const GameControls = ({
                         </Box>
                     </Button>
 
-                    {/* Export button - only for word search */}
-                    {gameType === 'word_search' && (
-                        <ExportButton
-                            category={selectedCategoryState}
-                            grid={grid}
-                            phrases={phrases}
-                            disabled={isLoading || grid.length === 0 || notEnoughPhrases}
-                            t={t}
-                            className="control-action-button"
-                        />
-                    )}
+                    {/* Export button */}
+                    <ExportButton
+                        category={selectedCategoryState}
+                        grid={grid}
+                        phrases={phrases}
+                        gameType={gameType}
+                        disabled={isLoading || grid.length === 0 || notEnoughPhrases}
+                        t={t}
+                        className="control-action-button"
+                    />
                 </Box>
             </Box>
         </>

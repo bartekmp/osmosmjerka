@@ -18,18 +18,23 @@ async def export_puzzle(body: ExportPuzzleRequest) -> StreamingResponse:
     """Export puzzle in specified format (docx or png)"""
     try:
         if body.format == "docx":
-            content = export_to_docx(body.category, body.grid, body.phrases)
+            content = export_to_docx(
+                body.category, body.grid, body.phrases, body.game_type, body.across_label, body.down_label
+            )
             media_type = "application/vnd.openxmlformats-officedocument.wordprocessingml.document"
             extension = "docx"
         elif body.format == "png":
-            content = export_to_png(body.category, body.grid, body.phrases)
+            content = export_to_png(
+                body.category, body.grid, body.phrases, body.game_type, body.across_label, body.down_label
+            )
             media_type = "image/png"
             extension = "png"
         else:
             raise HTTPException(status_code=400, detail="Unsupported export format")
 
-        safe_category = re.sub(r"[^a-z0-9]+", "_", (body.category or "wordsearch").lower())
-        filename = f"wordsearch-{safe_category}.{extension}"
+        prefix = "crossword" if body.game_type == "crossword" else "wordsearch"
+        safe_category = re.sub(r"[^a-z0-9]+", "_", (body.category or prefix).lower())
+        filename = f"{prefix}-{safe_category}.{extension}"
 
         return StreamingResponse(
             io.BytesIO(content),
