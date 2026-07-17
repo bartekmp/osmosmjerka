@@ -48,9 +48,9 @@
 - 🌍 **Multi-language Support** - Full i18n with English, Croatian, and Polish (easily extensible)
 - 🎨 **Dark/Light Themes** - Comfortable viewing in any lighting condition
 - 💾 **Auto-save Progress** - Resume your game exactly where you left off
-- 📤 **Export Puzzles** - Download word search puzzles as DOCX or PNG for offline use
+- 📤 **Export Puzzles** - Download word search or crossword puzzles as DOCX or PNG for offline use
 - 💡 **Progressive Hints** - Multi-level assistance system when you're stuck
-- 📊 **Statistics & Scoring** - Track your performance and improvement over time
+- 📊 **Mastery & Streak Tracking** - Per-word mastery levels and a daily streak track your learning over time
 - 🔔 **Notifications** - In-app notifications for assignments and other events
 - 📱 **Responsive Design** - Optimized for desktop, tablet, and mobile devices
 
@@ -74,7 +74,7 @@ Osmosmjerka offers two complementary game modes:
 - **🔤 Word Search** *(default)* - Find all phrases hidden in the grid! Phrases can appear in eight directions: horizontal, vertical, diagonal, and reversed. Click or swipe to select words, and watch as translations appear when you find them.
 - **🧩 Crossword** *(at `/crossword`)* - A production-based mode for deeper learning: instead of spotting words, you read each translation clue and fill in the answer letter by letter, with progressive hints available when you're stuck.
 
-Both modes share categories, difficulty levels, hints, and scoring.
+Both modes share categories, difficulty levels, hints, and progress tracking.
 
 ### Screenshots
 
@@ -454,7 +454,7 @@ Organize phrases into separate collections for different language pairs or theme
 
 Global configuration for game features:
 - **Progressive Hints** - Enable/disable multi-level hint system
-- **Scoring System** - Toggle statistics tracking and performance metrics
+- **Statistics Collection** - Toggle gameplay statistics and game session data collection
 - **User Overrides** - Allow individual users to override global settings
 
 ### Game Features
@@ -469,11 +469,12 @@ A multi-level assistance system that helps players solve challenging puzzles:
 - Configurable globally or per-user
 - Visual feedback in the grid
 
-#### Scoring & Statistics
+#### Mastery & Streak Leaderboard
 
 ![Statistics Dashboard](docs/assets/osmosmjerka-stats-dashboard.gif)
 
-Track and analyze player performance:
+Track and analyze player learning progress:
+- Per-word mastery leaderboard, ranked by phrases mastered and current streak
 - Completion time and accuracy metrics
 - Hint usage patterns
 - Category-specific performance
@@ -507,7 +508,7 @@ _Manage your puzzles, assignments, and class groups in one place_
 
 *   **Progress Tracking**:
     ![Teacher Progress View](docs/assets/osmosmjerka-teacher-mode-review-results.gif)
-    *   **Session Monitoring**: View detailed reports on who played your puzzles, their scores, found phrases, and completion times.
+    *   **Session Monitoring**: View detailed reports on who played your puzzles, found phrases, and completion times.
     *   **Review Translations**: Teachers can check student translation inputs if manual entry was required.
     *   **Data Export**: Download session data as CSV files for grading and analysis.
 
@@ -565,7 +566,7 @@ Contributions are welcome! Please check out:
 
 ## 🗺️ Roadmap
 
-- [ ] Spaced-repetition learning modes with per-word mastery tracking ([design RFC](docs/learning-modes-design.md))
+- [x] Spaced-repetition learning modes with per-word mastery tracking
 - [ ] Integration with [Anki](https://apps.ankiweb.net/) for spaced repetition learning
 - [ ] Learning curve tracking
 - [x] Crossword puzzles - clue-based production mode
