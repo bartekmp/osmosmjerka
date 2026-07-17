@@ -123,7 +123,7 @@ pipeline {
         stage('Install Dependencies') {
             steps {
                 dir("${FRONTEND_DIR}") {
-                    sh 'npm i'
+                    sh 'npm ci'
                 }
                 dir("${WORKSPACE}") {
                     sh '''
