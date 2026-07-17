@@ -2,6 +2,24 @@
 
 <!-- version list -->
 
+## v1.49.0 (2026-07-17)
+
+### Bug Fixes
+
+- Wrap long test lines flagged by ruff E501
+  ([#230](https://github.com/bartekmp/osmosmjerka/pull/230),
+  [`d7c542f`](https://github.com/bartekmp/osmosmjerka/commit/d7c542f554aad55aa17252e6b75b200915c11366))
+
+### Features
+
+- Add crossword export (PNG/DOCX) ([#230](https://github.com/bartekmp/osmosmjerka/pull/230),
+  [`d7c542f`](https://github.com/bartekmp/osmosmjerka/commit/d7c542f554aad55aa17252e6b75b200915c11366))
+
+- Add crossword export (PNG/DOCX), matching word search
+  ([#230](https://github.com/bartekmp/osmosmjerka/pull/230),
+  [`d7c542f`](https://github.com/bartekmp/osmosmjerka/commit/d7c542f554aad55aa17252e6b75b200915c11366))
+
+
 ## v1.48.2 (2026-07-17)
 
 ### Bug Fixes
