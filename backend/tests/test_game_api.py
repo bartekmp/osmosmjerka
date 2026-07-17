@@ -272,7 +272,9 @@ def test_export_puzzle_crossword_docx(mock_export_docx, client):
     response = client.post("/api/export", json=data)
     assert response.status_code == 200
     assert "attachment; filename=crossword-test.docx" in response.headers["content-disposition"]
-    mock_export_docx.assert_called_once_with("Test", [["A", None]], data["phrases"], "crossword", "Vodoravno", "Okomito")
+    mock_export_docx.assert_called_once_with(
+        "Test", [["A", None]], data["phrases"], "crossword", "Vodoravno", "Okomito"
+    )
 
 
 def test_export_puzzle_default_format(client):

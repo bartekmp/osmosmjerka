@@ -105,8 +105,20 @@ def test_export_to_png_empty_phrases():
 
 CROSSWORD_GRID = [["C", "A", "T"], [None, None, "O"], [None, None, "X"]]
 CROSSWORD_PHRASES = [
-    {"phrase": "cat", "translation": "kot", "coords": [[0, 0], [0, 1], [0, 2]], "direction": "across", "start_number": 1},
-    {"phrase": "tox", "translation": "tox", "coords": [[0, 2], [1, 2], [2, 2]], "direction": "down", "start_number": 2},
+    {
+        "phrase": "cat",
+        "translation": "kot",
+        "coords": [[0, 0], [0, 1], [0, 2]],
+        "direction": "across",
+        "start_number": 1,
+    },
+    {
+        "phrase": "tox",
+        "translation": "tox",
+        "coords": [[0, 2], [1, 2], [2, 2]],
+        "direction": "down",
+        "start_number": 2,
+    },
 ]
 
 
@@ -116,7 +128,15 @@ def test_export_to_docx_crossword_crops_oversized_allocation(tmp_path):
     size = 10
     grid = [[None for _ in range(size)] for _ in range(size)]
     grid[4][4], grid[4][5], grid[4][6] = "C", "A", "T"
-    phrases = [{"phrase": "cat", "translation": "kot", "coords": [[4, 4], [4, 5], [4, 6]], "direction": "across", "start_number": 1}]
+    phrases = [
+        {
+            "phrase": "cat",
+            "translation": "kot",
+            "coords": [[4, 4], [4, 5], [4, 6]],
+            "direction": "across",
+            "start_number": 1,
+        }
+    ]
 
     docx_bytes = export_to_docx("Small", grid, phrases, game_type="crossword")
     docx_file = tmp_path / "small_crossword.docx"
