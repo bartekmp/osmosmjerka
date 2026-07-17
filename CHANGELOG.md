@@ -2,6 +2,21 @@
 
 <!-- version list -->
 
+## v1.48.2 (2026-07-17)
+
+### Bug Fixes
+
+- Regenerate lockfile with npm 11 to fix npm ci in Docker/CI
+  ([#229](https://github.com/bartekmp/osmosmjerka/pull/229),
+  [`73603b2`](https://github.com/bartekmp/osmosmjerka/commit/73603b2a0be776131873187234cd43b8ee6259cc))
+
+### Chores
+
+- Track package-lock.json, switch installs to npm ci
+  ([#229](https://github.com/bartekmp/osmosmjerka/pull/229),
+  [`73603b2`](https://github.com/bartekmp/osmosmjerka/commit/73603b2a0be776131873187234cd43b8ee6259cc))
+
+
 ## v1.48.1 (2026-07-17)
 
 ### Bug Fixes
