@@ -2,6 +2,15 @@
 
 <!-- version list -->
 
+## v1.50.0 (2026-07-20)
+
+### Features
+
+- Embed Review Sprint in My Study, self-provision a staging demo account
+  ([#234](https://github.com/bartekmp/osmosmjerka/pull/234),
+  [`fb0ded8`](https://github.com/bartekmp/osmosmjerka/commit/fb0ded820ea9f99588b71a81034da65c1908dcfb))
+
+
 ## v1.49.1 (2026-07-20)
 
 ### Chores
