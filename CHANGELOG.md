@@ -2,6 +2,21 @@
 
 <!-- version list -->
 
+## v1.49.1 (2026-07-20)
+
+### Chores
+
+- **deps**: Update actions/setup-node action to v7
+  ([#232](https://github.com/bartekmp/osmosmjerka/pull/232),
+  [`5b01f6a`](https://github.com/bartekmp/osmosmjerka/commit/5b01f6acbc3eee55df4a8817386c2a71f0e686a5))
+
+### Documentation
+
+- Update README and demo GIFs for mastery/streak progression
+  ([#231](https://github.com/bartekmp/osmosmjerka/pull/231),
+  [`899c217`](https://github.com/bartekmp/osmosmjerka/commit/899c217d24d23308460c5f551123285d2f18a30e))
+
+
 ## v1.49.0 (2026-07-17)
 
 ### Bug Fixes
