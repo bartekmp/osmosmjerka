@@ -23,10 +23,12 @@ import {
     ExitToApp as LeaveIcon,
     Extension as PuzzleIcon,
     PlayArrow as PlayIcon,
+    Psychology as PsychologyIcon,
     School as SchoolIcon,
 } from '@mui/icons-material';
 import { useTranslation } from 'react-i18next';
 import { useNavigate } from 'react-router-dom';
+import ReviewSprintPanel from '../../../game/components/Review/ReviewSprintPanel';
 import { useStudentStudy } from './useStudentStudy';
 
 /**
@@ -137,6 +139,11 @@ export default function MyStudy({ token }) {
                         icon={<SchoolIcon />}
                         iconPosition="start"
                         label={t('student.study.groups_title', 'My Study Groups')}
+                    />
+                    <Tab
+                        icon={<PsychologyIcon />}
+                        iconPosition="start"
+                        label={t('review.title', 'Review sprint')}
                     />
                 </Tabs>
             </Box>
@@ -388,6 +395,15 @@ export default function MyStudy({ token }) {
                     </Box>
                 )
                 }
+            </div>
+
+            {/* Tab Panel: Review Sprint */}
+            <div role="tabpanel" hidden={tabValue !== 2}>
+                {tabValue === 2 && (
+                    <Box sx={{ py: 1 }}>
+                        <ReviewSprintPanel />
+                    </Box>
+                )}
             </div>
         </Paper>
     );

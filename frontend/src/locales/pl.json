@@ -28,6 +28,7 @@
     "due": "Do powtórki",
     "mastered": "Opanowane",
     "nothingDue": "Nic do powtórki — wróć później! 🎉",
+    "nothingDueExplainer": "Słowa, które dobrze oceniłeś, są zaplanowane na później, aby pojawiły się dokładnie wtedy, gdy zaczniesz je zapominać — nic nie ginie.",
     "sprintDone": "Sesja ukończona!",
     "reviewedCount": "Powtórzono słów: {{count}}",
     "reviewAgain": "Powtórz więcej",
