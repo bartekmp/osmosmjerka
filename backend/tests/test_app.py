@@ -1,10 +1,13 @@
 # isort: skip_file
 import sys
+from unittest.mock import AsyncMock
+
 import pytest
 
 import starlette.staticfiles
 
-from osmosmjerka.app import app
+import osmosmjerka.app as app_module
+from osmosmjerka.app import app, ensure_demo_account
 from fastapi.testclient import TestClient
 
 
@@ -80,3 +83,64 @@ def test_get_grid_size_and_num_phrases_function():
     # Test unknown difficulty defaults to easy
     size, num_phrases = get_grid_size_and_num_phrases([{"phrase": "a"}] * 10, "unknown")
     assert size == 10 and num_phrases == 7
+
+
+@pytest.mark.asyncio
+async def test_ensure_demo_account_noop_when_unconfigured(monkeypatch):
+    """Prod (and any env that just doesn't set these two vars) must never get a demo account."""
+    monkeypatch.setattr(app_module, "DEMO_USERNAME", "")
+    monkeypatch.setattr(app_module, "DEMO_PASSWORD_HASH", "")
+    mock_db = AsyncMock()
+    monkeypatch.setattr(app_module, "db_manager", mock_db)
+
+    await ensure_demo_account()()
+
+    mock_db.get_account_by_username.assert_not_called()
+    mock_db.create_account.assert_not_called()
+
+
+@pytest.mark.asyncio
+async def test_ensure_demo_account_creates_when_missing(monkeypatch):
+    monkeypatch.setattr(app_module, "DEMO_USERNAME", "demo")
+    monkeypatch.setattr(app_module, "DEMO_PASSWORD_HASH", "hashed-demo-pw")
+    mock_db = AsyncMock()
+    mock_db.get_account_by_username.return_value = None
+    monkeypatch.setattr(app_module, "db_manager", mock_db)
+
+    await ensure_demo_account()()
+
+    mock_db.create_account.assert_called_once_with(
+        username="demo",
+        password_hash="hashed-demo-pw",
+        role="regular",
+        self_description="Demo account",
+    )
+    mock_db.update_account.assert_not_called()
+
+
+@pytest.mark.asyncio
+async def test_ensure_demo_account_refreshes_stale_password_hash(monkeypatch):
+    monkeypatch.setattr(app_module, "DEMO_USERNAME", "demo")
+    monkeypatch.setattr(app_module, "DEMO_PASSWORD_HASH", "new-hash")
+    mock_db = AsyncMock()
+    mock_db.get_account_by_username.return_value = {"id": 7, "password_hash": "old-hash"}
+    monkeypatch.setattr(app_module, "db_manager", mock_db)
+
+    await ensure_demo_account()()
+
+    mock_db.create_account.assert_not_called()
+    mock_db.update_account.assert_called_once_with(7, password_hash="new-hash")
+
+
+@pytest.mark.asyncio
+async def test_ensure_demo_account_leaves_matching_account_untouched(monkeypatch):
+    monkeypatch.setattr(app_module, "DEMO_USERNAME", "demo")
+    monkeypatch.setattr(app_module, "DEMO_PASSWORD_HASH", "same-hash")
+    mock_db = AsyncMock()
+    mock_db.get_account_by_username.return_value = {"id": 7, "password_hash": "same-hash"}
+    monkeypatch.setattr(app_module, "db_manager", mock_db)
+
+    await ensure_demo_account()()
+
+    mock_db.create_account.assert_not_called()
+    mock_db.update_account.assert_not_called()

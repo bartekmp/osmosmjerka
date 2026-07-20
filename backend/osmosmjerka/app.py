@@ -48,6 +48,11 @@ STATIC_FILE_EXTENSIONS = [
 DEVELOPMENT_MODE = os.getenv("DEVELOPMENT_MODE", "false").lower() == "true"
 FRONTEND_DEV_URL = "http://localhost:3210"
 
+# Optional demo account, meant for the staging environment only. Unset in prod (and by
+# default everywhere), so this is a no-op there. See ensure_demo_account() below.
+DEMO_USERNAME = os.getenv("DEMO_USERNAME", "")
+DEMO_PASSWORD_HASH = os.getenv("DEMO_PASSWORD_HASH", "")
+
 # Request size limits (in bytes)
 MAX_REQUEST_SIZE = int(os.getenv("MAX_REQUEST_SIZE", str(2 * 1024 * 1024)))  # 2MB default
 
@@ -122,6 +127,37 @@ def ensure_root_admin_account():
     return _ensure
 
 
+def ensure_demo_account():
+    """Create/refresh an optional demo account from DEMO_USERNAME/DEMO_PASSWORD_HASH.
+
+    Meant for the staging environment, whose DB is periodically overwritten with a
+    fresh clone of prod's (see the GitOps deploy pipeline) — running this on every
+    startup makes the demo account self-healing across those clones instead of a
+    one-off manual insert that the next deploy would silently wipe out. Prod (and any
+    environment that simply doesn't set these two env vars) never gets a demo account,
+    so this never puts one in front of real users.
+    """
+
+    async def _ensure():
+        if not (DEMO_USERNAME and DEMO_PASSWORD_HASH):
+            return
+
+        existing = await db_manager.get_account_by_username(DEMO_USERNAME)
+        if not existing:
+            await db_manager.create_account(
+                username=DEMO_USERNAME,
+                password_hash=DEMO_PASSWORD_HASH,
+                role="regular",
+                self_description="Demo account",
+            )
+            return
+
+        if existing.get("password_hash") != DEMO_PASSWORD_HASH:
+            await db_manager.update_account(existing["id"], password_hash=DEMO_PASSWORD_HASH)
+
+    return _ensure
+
+
 @asynccontextmanager
 async def lifespan(_: FastAPI):
     logger.info("Application startup initiated")
@@ -131,6 +167,12 @@ async def lifespan(_: FastAPI):
 
         await ensure_root_admin_account()()
         logger.info("Root admin account verified")
+
+        await ensure_demo_account()()
+        if DEMO_USERNAME and DEMO_PASSWORD_HASH:
+            logger.info("Demo account verified")
+        else:
+            logger.info("Demo account not configured (skipped)")
 
         logger.info("Application ready to accept requests")
     except Exception as e:

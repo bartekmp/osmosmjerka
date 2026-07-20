@@ -216,6 +216,13 @@ ADMIN_USERNAME=admin
 ADMIN_PASSWORD_HASH=<bcrypt_hash>  # See below for generation
 ADMIN_SECRET_KEY=<your_secret_key>  # Secret key for JWT token signing
 
+# Demo Account (optional)
+# Creates/refreshes a regular-user demo account on every startup — intended for a
+# staging/demo deployment only. Leave both unset (the default) to skip this entirely,
+# which is how a production deployment should be configured.
+DEMO_USERNAME=demo
+DEMO_PASSWORD_HASH=<bcrypt_hash>  # See below for generation
+
 # Database (required)
 POSTGRES_USER=osmosmjerka
 POSTGRES_PASSWORD=<db_password>
@@ -234,9 +241,9 @@ LOG_LEVEL=INFO              # Logging level: DEBUG, INFO, WARNING, ERROR, CRITIC
 LOG_COLORS=true             # Enable colored output in development mode (default: true)
 ```
 
-### Generate Admin Password Hash
+### Generate a Password Hash
 
-Use this command to create a bcrypt password hash:
+Use this command to create a bcrypt password hash (for `ADMIN_PASSWORD_HASH` or `DEMO_PASSWORD_HASH`):
 
 ```bash
 python3 -c "import bcrypt; import getpass; pwd=getpass.getpass('Password: ').encode(); print(bcrypt.hashpw(pwd, bcrypt.gensalt()).decode())"

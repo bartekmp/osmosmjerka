@@ -23,6 +23,8 @@ PG_NAME="osm-e2e-pg-$$"
 VENV="$ROOT/backend/.venv"
 ADMIN_USER="e2e-admin"
 ADMIN_PASS="e2e-pass-$$"
+DEMO_USER="e2e-demo"
+DEMO_PASS="e2e-demo-pass-$$"
 
 BACKEND_PID=""
 cleanup() {
@@ -75,8 +77,11 @@ echo "==> Building frontend and serving it from the backend"
 rm -rf "$ROOT/backend/static"
 cp -r "$ROOT/frontend/build" "$ROOT/backend/static"
 
-# Throwaway admin creds for this run (independent of any real credentials).
+# Throwaway admin + demo creds for this run (independent of any real credentials). The
+# demo account exercises the same self-provisioning path staging uses (DEMO_USERNAME /
+# DEMO_PASSWORD_HASH), so the e2e suite covers a regular-user login through the real form.
 ADMIN_HASH="$("$VENV/bin/python" -c "import bcrypt,sys; print(bcrypt.hashpw(sys.argv[1].encode(), bcrypt.gensalt()).decode())" "$ADMIN_PASS")"
+DEMO_HASH="$("$VENV/bin/python" -c "import bcrypt,sys; print(bcrypt.hashpw(sys.argv[1].encode(), bcrypt.gensalt()).decode())" "$DEMO_PASS")"
 
 echo "==> Starting backend on :$APP_PORT"
 (
@@ -84,6 +89,7 @@ echo "==> Starting backend on :$APP_PORT"
   POSTGRES_HOST=127.0.0.1 POSTGRES_PORT="$PG_PORT" POSTGRES_USER=postgres \
   POSTGRES_PASSWORD=postgres POSTGRES_DATABASE=osmosmjerka \
   ADMIN_USERNAME="$ADMIN_USER" ADMIN_PASSWORD_HASH="$ADMIN_HASH" ADMIN_SECRET_KEY="e2e-secret-$$" \
+  DEMO_USERNAME="$DEMO_USER" DEMO_PASSWORD_HASH="$DEMO_HASH" \
   DEVELOPMENT_MODE=false \
   exec "$VENV/bin/python" -m uvicorn osmosmjerka.app:app --host 127.0.0.1 --port "$APP_PORT"
 ) &
@@ -103,6 +109,7 @@ echo "==> Installing Playwright browser (firefox)"
 echo "==> Running Playwright specs (word search + crossword, desktop + mobile)"
 cd "$ROOT/frontend"
 E2E_BASE_URL="$BASE_URL" E2E_ADMIN_TOKEN="$E2E_ADMIN_TOKEN" E2E_LANG_SET_ID="$E2E_LANG_SET_ID" \
+  E2E_DEMO_USERNAME="$DEMO_USER" E2E_DEMO_PASSWORD="$DEMO_PASS" \
   npx playwright test --config e2e/playwright.config.js
 
 echo "==> E2E passed"

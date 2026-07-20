@@ -1,7 +1,8 @@
 # End-to-end smoke tests
 
 Playwright smoke tests that play the **regular path of both game modes** (word search +
-crossword) on **desktop and mobile** viewports, against a fully throwaway stack.
+crossword) on **desktop and mobile** viewports, against a fully throwaway stack. Also
+covers the demo-account login flow and the embedded Review Sprint tab in My Study.
 
 ## What runs
 
@@ -9,7 +10,9 @@ crossword) on **desktop and mobile** viewports, against a fully throwaway stack.
 
 1. A throwaway **Postgres** container (`docker`).
 2. The **backend** (from `backend/.venv`) serving the freshly-built frontend from
-   `backend/static` in production mode (`DEVELOPMENT_MODE=false`).
+   `backend/static` in production mode (`DEVELOPMENT_MODE=false`), with both an admin
+   account and a self-provisioned demo account (`DEMO_USERNAME`/`DEMO_PASSWORD_HASH` —
+   the same mechanism staging uses).
 3. **Seeds** one language set of overlapping short words via the admin API
    (`helpers/e2e/seed.py`) — enough for the crossword generator to find intersections and
    for the word-search grid.

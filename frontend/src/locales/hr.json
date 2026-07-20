@@ -28,6 +28,7 @@
     "due": "Za ponoviti",
     "mastered": "Savladano",
     "nothingDue": "Trenutno ništa za ponoviti — vratite se kasnije! 🎉",
+    "nothingDueExplainer": "Riječi koje ste dobro ocijenili planirane su za kasnije, kako bi se pojavile točno kad ih počnete zaboravljati — ništa nije izgubljeno.",
     "sprintDone": "Vježba završena!",
     "reviewedCount": "Ponovljeno riječi: {{count}}",
     "reviewAgain": "Ponovi još",
