@@ -1,8 +1,4 @@
 {
-  "common": {
-    "reset": "Resetuj",
-    "save": "Zapisz zmiany"
-  },
   "training": {
     "mode": "Śledź mój postęp w nauce",
     "tooltip": "Oceń, ile pamiętasz po każdym słowie, aby budować pamięć metodą powtórek. Wyłącz dla swobodnej gry.",
@@ -415,10 +411,6 @@
         "system": "Analizy i ustawienia"
       }
     },
-    "records": {
-      "title": "Przegląd rekordów",
-      "filters": "Filtry"
-    },
     "settings": {
       "title": "Ustawienia systemowe",
       "description": "Skonfiguruj globalne funkcje systemu i ustawienia zbierania danych. Te ustawienia wpływają na wszystkich użytkowników.",
@@ -449,7 +441,6 @@
       }
     },
     "notifications": {
-      "title": "Powiadomienia",
       "empty": "Brak powiadomień",
       "mark_all_read": "Oznacz wszystkie jako przeczytane",
       "review": "Do przeglądu"
@@ -468,8 +459,7 @@
     "added_selected_to_learn_later": "Dodano {{count}} wybranych fraz!",
     "failed_to_add": "Nie udało się dodać fraz",
     "select_all_found": "Zaznacz wszystkie znalezione",
-    "deselect_all": "Odznacz wszystkie",
-    "hint": "Wybrane frazy zostaną dodane do listy \"Naucz się później\", do której możesz uzyskać dostęp z \"Zarządzaj moimi listami\" w swoim profilu."
+    "deselect_all": "Odznacz wszystkie"
   },
   "myLists": {
     "title": "Moje Listy",
@@ -487,7 +477,6 @@
     "buttons": {
       "create": "Utwórz",
       "cancel": "Anuluj",
-      "save": "Zapisz",
       "delete": "Usuń",
       "add": "Dodaj",
       "close": "Zamknij",
@@ -547,7 +536,6 @@
     "validation": {
       "listNameRequired": "Nazwa listy jest wymagana",
       "listNameTooLong": "Nazwa listy jest za długa (max 100 znaków)",
-      "maxLength": "Maks. {{max}} znaków",
       "phraseRequired": "Tekst frazy jest wymagany",
       "translationRequired": "Tłumaczenie jest wymagane",
       "selectPhrasesToRemove": "Wybierz co najmniej jedną frazę",
@@ -738,7 +726,6 @@
       "groups_title": "Moje Grupy",
       "start_puzzle": "Start",
       "no_puzzles": "Brak przypisanych puzzli.",
-      "completed": "Ukończono",
       "pending_invitations": "Oczekujące Zaproszenia",
       "invited_by": "Zaproszony przez {{teacher}}",
       "expires": "Wygasa: {{date}}",
@@ -762,7 +749,6 @@
   },
   "whatsNew": {
     "title": "Co nowego",
-    "version": "Wersja {{version}}",
     "features": "Nowe funkcje",
     "bugfixes": "Poprawki błędów",
     "improvements": "Ulepszenia",
@@ -776,7 +762,6 @@
     "select": "Wybierz typ gry"
   },
   "crossword": {
-    "title": "Krzyżówka",
     "across": "Poziomo",
     "down": "Pionowo",
     "hint_next_letter": "Następna litera",

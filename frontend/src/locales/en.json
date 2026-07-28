@@ -1,8 +1,4 @@
 {
-  "common": {
-    "reset": "Reset",
-    "save": "Save Changes"
-  },
   "training": {
     "mode": "Track my learning progress",
     "tooltip": "Rate your recall after each word to build spaced-repetition memory. Turn off for casual play.",
@@ -415,10 +411,6 @@
         "system": "Insights & Settings"
       }
     },
-    "records": {
-      "title": "Browse Records",
-      "filters": "Filters"
-    },
     "settings": {
       "title": "System Settings",
       "description": "Configure global system features and data collection settings. These settings affect all users.",
@@ -449,7 +441,6 @@
       }
     },
     "notifications": {
-      "title": "Notifications",
       "empty": "No notifications",
       "mark_all_read": "Mark all as read",
       "review": "Review"
@@ -468,8 +459,7 @@
     "added_selected_to_learn_later": "Added {{count}} selected phrases!",
     "failed_to_add": "Failed to add phrases",
     "select_all_found": "Select all found",
-    "deselect_all": "Deselect all",
-    "hint": "Selected phrases will be added to your \"Learn This Later\" list, which you can access from \"Manage My Lists\" in your profile."
+    "deselect_all": "Deselect all"
   },
   "myLists": {
     "title": "My Lists",
@@ -487,7 +477,6 @@
     "buttons": {
       "create": "Create",
       "cancel": "Cancel",
-      "save": "Save",
       "delete": "Delete",
       "add": "Add",
       "close": "Close",
@@ -547,7 +536,6 @@
     "validation": {
       "listNameRequired": "List name is required",
       "listNameTooLong": "List name is too long (max 100 characters)",
-      "maxLength": "Max {{max}} characters",
       "phraseRequired": "Phrase text is required",
       "translationRequired": "Translation is required",
       "selectPhrasesToRemove": "Select at least one phrase",
@@ -738,7 +726,6 @@
       "groups_title": "My Study Groups",
       "start_puzzle": "Start",
       "no_puzzles": "No puzzles assigned yet.",
-      "completed": "Completed",
       "pending_invitations": "Pending Invitations",
       "invited_by": "Invited by {{teacher}}",
       "expires": "Expires: {{date}}",
@@ -762,7 +749,6 @@
   },
   "whatsNew": {
     "title": "What's New",
-    "version": "Version {{version}}",
     "features": "New Features",
     "bugfixes": "Bug Fixes",
     "improvements": "Improvements",
@@ -776,7 +762,6 @@
     "select": "Select game type"
   },
   "crossword": {
-    "title": "Crossword Puzzle",
     "across": "Across",
     "down": "Down",
     "hint_next_letter": "Next letter",

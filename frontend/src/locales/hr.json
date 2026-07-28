@@ -1,8 +1,4 @@
 {
-  "common": {
-    "reset": "Poništi",
-    "save": "Spremi promjene"
-  },
   "training": {
     "mode": "Prati moj napredak u učenju",
     "tooltip": "Ocijenite koliko ste zapamtili nakon svake riječi za učenje s razmakom. Isključite za opušteno igranje.",
@@ -415,10 +411,6 @@
         "system": "Uvidi i postavke"
       }
     },
-    "records": {
-      "title": "Pregled zapisa",
-      "filters": "Filteri"
-    },
     "settings": {
       "title": "Sistemske postavke",
       "description": "Konfiguriraj globalne sistemske značajke i postavke prikupljanja podataka. Ove postavke utječu na sve korisnike.",
@@ -449,7 +441,6 @@
       }
     },
     "notifications": {
-      "title": "Obavijesti",
       "empty": "Nema obavijesti",
       "mark_all_read": "Označi sve kao pročitano",
       "review": "Za pregled"
@@ -468,8 +459,7 @@
     "added_selected_to_learn_later": "Dodano {{count}} odabranih fraza!",
     "failed_to_add": "Neuspješno dodavanje fraza",
     "select_all_found": "Odaberi sve pronađene",
-    "deselect_all": "Poništi odabir",
-    "hint": "Odabrane fraze će biti dodane u vašu listu \"Nauči ovo kasnije\", kojoj možete pristupiti iz \"Upravljaj mojim listama\" u vašem profilu."
+    "deselect_all": "Poništi odabir"
   },
   "myLists": {
     "title": "Moje Liste",
@@ -487,7 +477,6 @@
     "buttons": {
       "create": "Kreiraj",
       "cancel": "Odustani",
-      "save": "Spremi",
       "delete": "Izbriši",
       "add": "Dodaj",
       "close": "Zatvori",
@@ -547,7 +536,6 @@
     "validation": {
       "listNameRequired": "Naziv liste je obavezan",
       "listNameTooLong": "Naziv liste je predug (max 100 znakova)",
-      "maxLength": "Najviše {{max}} znakova",
       "phraseRequired": "Tekst fraze je obavezan",
       "translationRequired": "Prijevod je obavezan",
       "selectPhrasesToRemove": "Odaberite barem jednu frazu",
@@ -738,7 +726,6 @@
       "groups_title": "Moje grupe",
       "start_puzzle": "Start",
       "no_puzzles": "Još nema dodijeljenih zagonetki.",
-      "completed": "Završeno",
       "pending_invitations": "Pozivnice na čekanju",
       "invited_by": "Pozvao {{teacher}}",
       "expires": "Ističe: {{date}}",
@@ -762,7 +749,6 @@
   },
   "whatsNew": {
     "title": "Što je novo",
-    "version": "Verzija {{version}}",
     "features": "Nove značajke",
     "bugfixes": "Ispravci grešaka",
     "improvements": "Poboljšanja",
@@ -776,7 +762,6 @@
     "select": "Odaberite vrstu igre"
   },
   "crossword": {
-    "title": "Križaljka",
     "across": "Vodoravno",
     "down": "Okomito",
     "hint_next_letter": "Sljedeće slovo",
