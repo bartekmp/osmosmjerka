@@ -1,6 +1,7 @@
+import apiClient from '@shared/utils/apiClient';
 import logger from '@shared/utils/logger';
 import axios from "axios";
-import { useCallback, useMemo } from "react";
+import { useCallback } from "react";
 import { API_ENDPOINTS } from '../../../../shared/constants/constants';
 import { useDebouncedApiCall } from '../../../../hooks/useDebounce';
 
@@ -9,16 +10,12 @@ let categoriesCache = null;
 let cacheTimestamp = null;
 const CACHE_DURATION = 5 * 60 * 1000; // 5 minutes
 
-export function useAdminApi({ token, setRows, setTotalRows, setDashboard, setError, setToken, setIsLogged }) {
-    // Memoize so all downstream useCallbacks only recreate when token actually changes
-    const authHeader = useMemo(() => token
-        ? { Authorization: 'Bearer ' + token, 'Content-Type': 'application/json' }
-        : {}, [token]);
-
-    // Helper function to handle authentication errors
+export function useAdminApi({ setRows, setTotalRows, setDashboard, setError, setToken, setIsLogged }) {
+    // Helper function to handle authentication errors. Accepts anything carrying a
+    // numeric `status`, so both a fetch Response and an axios error.response fit.
     const handleAuthError = useCallback((response) => {
         // Check if it's an authentication error (400 or 401)
-        if (response.status === 401 || response.status === 400) {
+        if (response?.status === 401 || response?.status === 400) {
             // Clear token and logout
             setToken('');
             localStorage.removeItem('adminToken');
@@ -36,18 +33,19 @@ export function useAdminApi({ token, setRows, setTotalRows, setDashboard, setErr
         if (searchTerm && searchTerm.trim()) url += `&search=${encodeURIComponent(searchTerm.trim())}`;
         if (languageSetId) url += `&language_set_id=${languageSetId}`;
 
-        const response = await fetch(url, { headers: authHeader });
-        if (!response.ok) {
-            if (handleAuthError(response)) {
+        try {
+            const response = await apiClient.get(url);
+            return response.data;
+        } catch (error) {
+            if (handleAuthError(error.response)) {
                 throw new Error("Session expired, please log in again.");
             }
-            if (response.status === 429) {
+            if (error.response?.status === 429) {
                 throw new Error("Too many requests. Please wait before trying again.");
             }
             throw new Error("Unauthorized or server error");
         }
-        return response.json();
-    }, [authHeader, handleAuthError]);
+    }, [handleAuthError]);
 
     // Stable callbacks — memoized so useDebouncedApiCall doesn't recreate on every render
     const onFetchSuccess = useCallback((data) => {
@@ -74,12 +72,10 @@ export function useAdminApi({ token, setRows, setTotalRows, setDashboard, setErr
     }, [debouncedFetchRows]);
 
     const handleLogin = useCallback((auth, setError, setCurrentUser) => {
-        fetch(`/admin/login`, {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ username: auth.user, password: auth.pass })
-        })
-            .then(res => res.json())
+        // Deliberately the bare client: there is no token yet, and a stale one must not
+        // be attached to the login request.
+        axios.post('/admin/login', { username: auth.user, password: auth.pass })
+            .then(res => res.data)
             .then(data => {
                 if (data.access_token) {
                     setToken(data.access_token);
@@ -105,27 +101,15 @@ export function useAdminApi({ token, setRows, setTotalRows, setDashboard, setErr
             ? `/admin/row/${row.id}?language_set_id=${languageSetId}`
             : `/admin/row?language_set_id=${languageSetId}`;
 
-        const response = await fetch(url, {
-            method,
-            headers: authHeader,
-            body: JSON.stringify(row)
-        });
-
-        if (!response.ok) {
-            if (handleAuthError(response)) {
+        let response;
+        try {
+            response = await apiClient.request({ url, method, data: row });
+        } catch (error) {
+            if (handleAuthError(error.response)) {
                 throw new Error("Session expired, please log in again.");
             }
-            let message = 'Failed to save row';
-            try {
-                const errorBody = await response.json();
-                message = errorBody?.message || errorBody?.detail || message;
-            } catch (error) {
-                if (process.env.NODE_ENV !== 'test') {
-                    logger.debug('Failed to parse error response', error);
-                }
-                // Ignore JSON parsing errors and fall back to default message
-            }
-            throw new Error(message);
+            const body = error.response?.data;
+            throw new Error(body?.message || body?.detail || 'Failed to save row');
         }
 
         if (typeof refresh === 'function') {
@@ -137,14 +121,13 @@ export function useAdminApi({ token, setRows, setTotalRows, setDashboard, setErr
         }
 
         return response;
-    }, [authHeader, handleAuthError]);
+    }, [handleAuthError]);
 
     const handleExportTxt = useCallback((filterCategory) => {
         const params = new URLSearchParams();
         if (filterCategory) params.append('category', filterCategory);
 
-        axios.get(`/admin/export?${params.toString()}`, {
-            headers: authHeader,
+        apiClient.get(`/admin/export?${params.toString()}`, {
             responseType: 'blob'
         }).then(res => {
             const url = window.URL.createObjectURL(new Blob([res.data]));
@@ -159,24 +142,20 @@ export function useAdminApi({ token, setRows, setTotalRows, setDashboard, setErr
                 handleAuthError({ status: err.response.status });
             }
         });
-    }, [authHeader, handleAuthError]);
+    }, [handleAuthError]);
 
     const clearDb = useCallback((fetchRows) => {
         if (!window.confirm("Are you sure you want to delete all data?")) return;
-        fetch("/admin/clear", { method: "DELETE", headers: authHeader })
-            .then(() => fetchRows());
-    }, [authHeader]);
+        apiClient.delete("/admin/clear").then(() => fetchRows());
+    }, []);
 
     const handleDelete = useCallback((id, fetchRows, languageSetId) => {
-        fetch(`/admin/row/${id}?language_set_id=${languageSetId}`, {
-            method: 'DELETE',
-            headers: authHeader
-        }).then(() => {
+        apiClient.delete(`/admin/row/${id}?language_set_id=${languageSetId}`).then(() => {
             fetchRows();
         }).catch(err => {
             logger.error('Error deleting row:', err);
         });
-    }, [authHeader]);
+    }, []);
 
     const fetchCategories = useCallback(async () => {
         // Check if we have valid cached data
@@ -205,21 +184,20 @@ export function useAdminApi({ token, setRows, setTotalRows, setDashboard, setErr
 
     const handleBatchDelete = useCallback(async (rowIds, languageSetId) => {
         try {
-            const response = await fetch(`${API_ENDPOINTS.ADMIN_BATCH_DELETE}?language_set_id=${languageSetId}`, {
-                method: 'POST',
-                headers: authHeader,
-                body: JSON.stringify({ row_ids: rowIds })
-            });
-
-            if (!response.ok) {
-                if (handleAuthError(response)) {
+            let data;
+            try {
+                const response = await apiClient.post(
+                    `${API_ENDPOINTS.ADMIN_BATCH_DELETE}?language_set_id=${languageSetId}`,
+                    { row_ids: rowIds }
+                );
+                data = response.data;
+            } catch (error) {
+                if (handleAuthError(error.response)) {
                     throw new Error("Session expired, please log in again.");
                 }
-                const data = await response.json();
-                throw new Error(data.error || data.detail || 'Failed to delete records');
+                const body = error.response?.data;
+                throw new Error(body?.error || body?.detail || 'Failed to delete records');
             }
-
-            const data = await response.json();
 
             return {
                 success: true,
@@ -233,28 +211,27 @@ export function useAdminApi({ token, setRows, setTotalRows, setDashboard, setErr
                 error: error.message
             };
         }
-    }, [authHeader, handleAuthError]);
+    }, [handleAuthError]);
 
     const handleBatchAddCategory = useCallback(async (rowIds, category, languageSetId) => {
         try {
-            const response = await fetch(`${API_ENDPOINTS.ADMIN_BATCH_ADD_CATEGORY}?language_set_id=${languageSetId}`, {
-                method: 'POST',
-                headers: authHeader,
-                body: JSON.stringify({
+            let data;
+            try {
+                const response = await apiClient.post(
+                    `${API_ENDPOINTS.ADMIN_BATCH_ADD_CATEGORY}?language_set_id=${languageSetId}`,
+                    {
                     row_ids: rowIds,
                     category: category.trim()
-                })
-            });
-
-            if (!response.ok) {
-                if (handleAuthError(response)) {
+                }
+                );
+                data = response.data;
+            } catch (error) {
+                if (handleAuthError(error.response)) {
                     throw new Error("Session expired, please log in again.");
                 }
-                const data = await response.json();
-                throw new Error(data.error || data.detail || 'Failed to add category');
+                const body = error.response?.data;
+                throw new Error(body?.error || body?.detail || 'Failed to add category');
             }
-
-            const data = await response.json();
 
             return {
                 success: true,
@@ -269,28 +246,27 @@ export function useAdminApi({ token, setRows, setTotalRows, setDashboard, setErr
                 error: error.message
             };
         }
-    }, [authHeader, handleAuthError]);
+    }, [handleAuthError]);
 
     const handleBatchRemoveCategory = useCallback(async (rowIds, category, languageSetId) => {
         try {
-            const response = await fetch(`${API_ENDPOINTS.ADMIN_BATCH_REMOVE_CATEGORY}?language_set_id=${languageSetId}`, {
-                method: 'POST',
-                headers: authHeader,
-                body: JSON.stringify({
+            let data;
+            try {
+                const response = await apiClient.post(
+                    `${API_ENDPOINTS.ADMIN_BATCH_REMOVE_CATEGORY}?language_set_id=${languageSetId}`,
+                    {
                     row_ids: rowIds,
                     category: category.trim()
-                })
-            });
-
-            if (!response.ok) {
-                if (handleAuthError(response)) {
+                }
+                );
+                data = response.data;
+            } catch (error) {
+                if (handleAuthError(error.response)) {
                     throw new Error("Session expired, please log in again.");
                 }
-                const data = await response.json();
-                throw new Error(data.error || data.detail || 'Failed to remove category');
+                const body = error.response?.data;
+                throw new Error(body?.error || body?.detail || 'Failed to remove category');
             }
-
-            const data = await response.json();
 
             return {
                 success: true,
@@ -305,18 +281,19 @@ export function useAdminApi({ token, setRows, setTotalRows, setDashboard, setErr
                 error: error.message
             };
         }
-    }, [authHeader, handleAuthError]);
+    }, [handleAuthError]);
 
     const getWithAuth = useCallback(async (url) => {
-        const response = await fetch(url, { headers: authHeader });
-        if (!response.ok) {
-            if (handleAuthError(response)) {
+        try {
+            const response = await apiClient.get(url);
+            return response.data;
+        } catch (error) {
+            if (handleAuthError(error.response)) {
                 throw new Error("Session expired, please log in again.");
             }
-            throw new Error(`HTTP error! status: ${response.status}`);
+            throw new Error(`HTTP error! status: ${error.response?.status}`);
         }
-        return response.json();
-    }, [authHeader, handleAuthError]);
+    }, [handleAuthError]);
 
     return {
         fetchRows,
