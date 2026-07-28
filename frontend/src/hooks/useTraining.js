@@ -1,7 +1,7 @@
+import apiClient, { getAuthToken } from "@shared/utils/apiClient";
 import logger from "@shared/utils/logger";
-import axios from "axios";
 import { useCallback, useState } from "react";
-import { API_ENDPOINTS, STORAGE_KEYS } from "../shared/constants/constants";
+import { API_ENDPOINTS } from "../shared/constants/constants";
 
 const STORAGE_KEY = "osmosmjerkaTrainingMode";
 
@@ -50,15 +50,15 @@ export function useTraining({ selectedLanguageSetId, gameType }) {
       // than once, which would fire the request twice for one rating.
       const current = ratingQueue[0];
       if (current) {
-        const token = localStorage.getItem(STORAGE_KEYS.ADMIN_TOKEN);
-        if (token && selectedLanguageSetId != null) {
+        if (getAuthToken() && selectedLanguageSetId != null) {
           const direction = gameType === "crossword" ? "production" : "recognition";
-          axios
-            .post(
-              `${API_ENDPOINTS.GAME}/learn/review`,
-              { language_set_id: selectedLanguageSetId, direction, grade, phrase_id: current.id },
-              { headers: { Authorization: `Bearer ${token}` } }
-            )
+          apiClient
+            .post(`${API_ENDPOINTS.GAME}/learn/review`, {
+              language_set_id: selectedLanguageSetId,
+              direction,
+              grade,
+              phrase_id: current.id,
+            })
             .catch((error) => logger.error("Failed to record review:", error));
         }
       }

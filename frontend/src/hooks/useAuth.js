@@ -1,22 +1,19 @@
+import apiClient, { getAuthToken } from '@shared/utils/apiClient';
 import logger from '@shared/utils/logger';
-import axios from "axios";
 import { useCallback, useEffect, useState } from "react";
-import { API_ENDPOINTS, STORAGE_KEYS } from "../shared/constants/constants";
+import { API_ENDPOINTS } from "../shared/constants/constants";
 
 export function useAuth() {
   const [currentUser, setCurrentUser] = useState(null);
   const [statisticsEnabled, setStatisticsEnabled] = useState(true);
 
   const fetchAuthenticatedUser = useCallback(async () => {
-    const token = localStorage.getItem(STORAGE_KEYS.ADMIN_TOKEN);
-    if (!token) {
+    if (!getAuthToken()) {
       setCurrentUser(null);
       return null;
     }
     try {
-      const profileResponse = await axios.get(API_ENDPOINTS.USER_PROFILE, {
-        headers: { Authorization: `Bearer ${token}`, "Content-Type": "application/json" },
-      });
+      const profileResponse = await apiClient.get(API_ENDPOINTS.USER_PROFILE);
       if (!profileResponse.data) {
         setCurrentUser(null);
         return null;
@@ -40,13 +37,9 @@ export function useAuth() {
 
     if (userProfile.role !== "root_admin") return;
 
-    const token = localStorage.getItem(STORAGE_KEYS.ADMIN_TOKEN);
-    if (!token) return;
+    if (!getAuthToken()) return;
     try {
-      const response = await axios.get(
-        `${API_ENDPOINTS.ADMIN}/settings/statistics-enabled`,
-        { headers: { Authorization: `Bearer ${token}`, "Content-Type": "application/json" } }
-      );
+      const response = await apiClient.get(`${API_ENDPOINTS.ADMIN}/settings/statistics-enabled`);
       if (response.data.enabled === false) {
         setStatisticsEnabled(false);
       }

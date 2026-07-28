@@ -1,6 +1,6 @@
+import { getAuthToken } from '@shared/utils/apiClient';
 import logger from '@shared/utils/logger';
 import { useCallback, useEffect, useState } from "react";
-import { STORAGE_KEYS } from "../shared/constants/constants";
 import {
   fetchWhatsNew,
   getCurrentVersion,
@@ -14,8 +14,7 @@ export function useWhatsNew() {
   const [whatsNewEntries, setWhatsNewEntries] = useState([]);
 
   const checkWhatsNew = useCallback(async () => {
-    const token = localStorage.getItem(STORAGE_KEYS.ADMIN_TOKEN);
-    if (!token) return;
+    if (!getAuthToken()) return;
 
     try {
       const currentVersion = await getCurrentVersion();
