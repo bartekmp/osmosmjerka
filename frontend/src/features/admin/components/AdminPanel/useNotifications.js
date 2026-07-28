@@ -1,3 +1,4 @@
+import apiClient from '@shared/utils/apiClient';
 import logger from '@shared/utils/logger';
 import { useState, useCallback, useEffect } from 'react';
 import { API_ENDPOINTS } from '@shared';
@@ -12,28 +13,12 @@ export const useNotifications = (token, isLogged) => {
 
         try {
             setLoading(true);
-            const response = await fetch(`${API_ENDPOINTS.ADMIN}/notifications?limit=20`, {
-                headers: {
-                    'Authorization': `Bearer ${token}`
-                }
-            });
+            const response = await apiClient.get(`${API_ENDPOINTS.ADMIN}/notifications?limit=20`);
+            setNotifications(response.data);
 
-            if (response.ok) {
-                const data = await response.json();
-                setNotifications(data);
-
-                // Calculate unread count from list or fetch separately if list is partial?
-                // For accurate count, better to fetch count or trust the list if small.
-                // But let's fetch count too or rely on list if we assume 20 covers most.
-                // Let's use the explicit endpoint for count.
-                const countRes = await fetch(`${API_ENDPOINTS.ADMIN}/notifications/unread-count`, {
-                    headers: { 'Authorization': `Bearer ${token}` }
-                });
-                if (countRes.ok) {
-                    const countData = await countRes.json();
-                    setUnreadCount(countData.count);
-                }
-            }
+            // The list is capped at 20, so the unread count comes from its own endpoint.
+            const countRes = await apiClient.get(`${API_ENDPOINTS.ADMIN}/notifications/unread-count`);
+            setUnreadCount(countRes.data.count);
         } catch (error) {
             logger.error('Failed to fetch notifications:', error);
         } finally {
@@ -43,48 +28,40 @@ export const useNotifications = (token, isLogged) => {
 
     const markAsRead = useCallback(async (id) => {
         try {
-            await fetch(`${API_ENDPOINTS.ADMIN}/notifications/${id}/read`, {
-                method: 'PUT',
-                headers: { 'Authorization': `Bearer ${token}` }
-            });
+            await apiClient.put(`${API_ENDPOINTS.ADMIN}/notifications/${id}/read`);
             // Optimistic update
             setNotifications(prev => prev.map(n => n.id === id ? { ...n, is_read: true } : n));
             setUnreadCount(prev => Math.max(0, prev - 1));
         } catch (error) {
             logger.error('Failed to mark notification as read:', error);
         }
-    }, [token]);
+    }, []);
 
     const markAllAsRead = useCallback(async () => {
         try {
-            await fetch(`${API_ENDPOINTS.ADMIN}/notifications/read-all`, {
-                method: 'PUT',
-                headers: { 'Authorization': `Bearer ${token}` }
-            });
+            await apiClient.put(`${API_ENDPOINTS.ADMIN}/notifications/read-all`);
             setNotifications(prev => prev.map(n => ({ ...n, is_read: true })));
             setUnreadCount(0);
         } catch (error) {
             logger.error('Failed to mark all as read:', error);
         }
-    }, [token]);
+    }, []);
 
     const deleteNotification = useCallback(async (id) => {
         try {
-            await fetch(`${API_ENDPOINTS.ADMIN}/notifications/${id}`, {
-                method: 'DELETE',
-                headers: { 'Authorization': `Bearer ${token}` }
-            });
-            setNotifications(prev => {
-                const target = prev.find(n => n.id === id);
-                if (target && !target.is_read) {
-                    setUnreadCount(c => Math.max(0, c - 1));
-                }
-                return prev.filter(n => n.id !== id);
-            });
+            await apiClient.delete(`${API_ENDPOINTS.ADMIN}/notifications/${id}`);
+            // Read the target from current state rather than from inside the
+            // setNotifications updater: React may invoke updaters more than once
+            // (StrictMode does so deliberately), which double-decremented the count.
+            const target = notifications.find(n => n.id === id);
+            setNotifications(prev => prev.filter(n => n.id !== id));
+            if (target && !target.is_read) {
+                setUnreadCount(c => Math.max(0, c - 1));
+            }
         } catch (error) {
             logger.error('Failed to delete notification:', error);
         }
-    }, [token]);
+    }, [notifications]);
 
     // Initial fetch
     useEffect(() => {

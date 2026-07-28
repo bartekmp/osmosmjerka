@@ -1,10 +1,15 @@
 
 import { renderHook, act, waitFor } from '@testing-library/react';
+import apiClient from '@shared/utils/apiClient';
 import { useNotifications } from '../useNotifications';
 import { API_ENDPOINTS } from '@shared';
 
-// Mock fetch
-global.fetch = jest.fn();
+// The hook uses the shared API client; its interceptor supplies the Authorization
+// header, so these tests assert on URLs and verbs only.
+jest.mock('@shared/utils/apiClient', () => ({
+    __esModule: true,
+    default: { get: jest.fn(), put: jest.fn(), delete: jest.fn() },
+}));
 
 describe('useNotifications', () => {
     const mockToken = 'test-token';
@@ -15,10 +20,9 @@ describe('useNotifications', () => {
 
     beforeEach(() => {
         jest.clearAllMocks();
-        fetch.mockResolvedValue({
-            ok: true,
-            json: async () => mockNotifications
-        });
+        apiClient.get.mockResolvedValue({ data: mockNotifications });
+        apiClient.put.mockResolvedValue({ data: {} });
+        apiClient.delete.mockResolvedValue({ data: {} });
     });
 
     test('should fetch notifications on mount', async () => {
@@ -33,25 +37,19 @@ describe('useNotifications', () => {
         });
 
         expect(result.current.notifications).toEqual(mockNotifications);
-        expect(fetch).toHaveBeenCalledWith(`${API_ENDPOINTS.ADMIN}/notifications?limit=20`, expect.any(Object));
+        expect(apiClient.get).toHaveBeenCalledWith(`${API_ENDPOINTS.ADMIN}/notifications?limit=20`);
     });
 
     test('should not fetch if not logged in', () => {
         renderHook(() => useNotifications(mockToken, false));
-        expect(fetch).not.toHaveBeenCalled();
+        expect(apiClient.get).not.toHaveBeenCalled();
     });
 
     test('should fetch unread count', async () => {
         // Mock first call (notifications)
-        fetch.mockImplementationOnce(() => Promise.resolve({
-            ok: true,
-            json: () => Promise.resolve(mockNotifications)
-        }));
-        // Mock second call (count)
-        fetch.mockImplementationOnce(() => Promise.resolve({
-            ok: true,
-            json: () => Promise.resolve({ count: 5 })
-        }));
+        apiClient.get
+            .mockResolvedValueOnce({ data: mockNotifications })
+            .mockResolvedValueOnce({ data: { count: 5 } });
 
         const { result } = renderHook(() => useNotifications(mockToken, true));
 
@@ -63,12 +61,9 @@ describe('useNotifications', () => {
     });
 
     test('markAsRead should update state optimistically', async () => {
-        // Initial fetch notifications
-        fetch.mockResolvedValueOnce({ ok: true, json: async () => mockNotifications });
-        // Initial fetch count
-        fetch.mockResolvedValueOnce({ ok: true, json: async () => ({ count: 5 }) });
-        // subsequent markRead call
-        fetch.mockResolvedValueOnce({ ok: true, json: async () => ({}) });
+        apiClient.get
+            .mockResolvedValueOnce({ data: mockNotifications })
+            .mockResolvedValueOnce({ data: { count: 5 } });
 
         const { result } = renderHook(() => useNotifications(mockToken, true));
 
@@ -84,10 +79,7 @@ describe('useNotifications', () => {
         });
 
         // Verify API call
-        expect(fetch).toHaveBeenCalledWith(
-            `${API_ENDPOINTS.ADMIN}/notifications/1/read`,
-            expect.objectContaining({ method: 'PUT' })
-        );
+        expect(apiClient.put).toHaveBeenCalledWith(`${API_ENDPOINTS.ADMIN}/notifications/1/read`);
 
         // Verify state update
         const updatedNotif = result.current.notifications.find(n => n.id === 1);
@@ -95,9 +87,9 @@ describe('useNotifications', () => {
     });
 
     test('markAllAsRead should update all to read', async () => {
-        fetch.mockResolvedValueOnce({ ok: true, json: async () => mockNotifications });
-        fetch.mockResolvedValueOnce({ ok: true, json: async () => ({ count: 5 }) });
-        fetch.mockResolvedValueOnce({ ok: true, json: async () => ({}) });
+        apiClient.get
+            .mockResolvedValueOnce({ data: mockNotifications })
+            .mockResolvedValueOnce({ data: { count: 5 } });
 
         const { result } = renderHook(() => useNotifications(mockToken, true));
 
@@ -109,19 +101,16 @@ describe('useNotifications', () => {
             await result.current.markAllAsRead();
         });
 
-        expect(fetch).toHaveBeenCalledWith(
-            `${API_ENDPOINTS.ADMIN}/notifications/read-all`,
-            expect.objectContaining({ method: 'PUT' })
-        );
+        expect(apiClient.put).toHaveBeenCalledWith(`${API_ENDPOINTS.ADMIN}/notifications/read-all`);
 
         expect(result.current.notifications.every(n => n.is_read)).toBe(true);
         expect(result.current.unreadCount).toBe(0);
     });
 
     test('deleteNotification should remove from list', async () => {
-        fetch.mockResolvedValueOnce({ ok: true, json: async () => mockNotifications });
-        fetch.mockResolvedValueOnce({ ok: true, json: async () => ({ count: 5 }) });
-        fetch.mockResolvedValueOnce({ ok: true, json: async () => ({}) });
+        apiClient.get
+            .mockResolvedValueOnce({ data: mockNotifications })
+            .mockResolvedValueOnce({ data: { count: 5 } });
 
         const { result } = renderHook(() => useNotifications(mockToken, true));
 
@@ -133,10 +122,7 @@ describe('useNotifications', () => {
             await result.current.deleteNotification(1);
         });
 
-        expect(fetch).toHaveBeenCalledWith(
-            `${API_ENDPOINTS.ADMIN}/notifications/1`,
-            expect.objectContaining({ method: 'DELETE' })
-        );
+        expect(apiClient.delete).toHaveBeenCalledWith(`${API_ENDPOINTS.ADMIN}/notifications/1`);
 
         expect(result.current.notifications.find(n => n.id === 1)).toBeUndefined();
     });
