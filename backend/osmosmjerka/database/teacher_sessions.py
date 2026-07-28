@@ -297,12 +297,17 @@ class TeacherSetsSessionsMixin:
     async def cleanup_expired_sets(self) -> int:
         """Delete phrase sets that have passed their auto_delete_at date.
 
+        The timestamp must be naive: ``teacher_phrase_sets.auto_delete_at`` is declared
+        without ``timezone=True`` (as is every DateTime column in models.py), and passing
+        an aware datetime makes asyncpg raise ``can't subtract offset-naive and
+        offset-aware datetimes``.
+
         Returns:
             Number of sets deleted
         """
         database = self._ensure_database()
 
-        now = datetime.now(timezone.utc)
+        now = datetime.now(timezone.utc).replace(tzinfo=None)
 
         # Get sets to delete for logging
         select_query = select(
@@ -325,7 +330,9 @@ class TeacherSetsSessionsMixin:
                 "Auto-deleting expired phrase set",
                 extra={
                     "phrase_set_id": row["id"],
-                    "name": row["name"],
+                    # Not "name": logging reserves that attribute on LogRecord and
+                    # raises KeyError when `extra` tries to overwrite it.
+                    "phrase_set_name": row["name"],
                     "created_by": row["created_by"],
                 },
             )

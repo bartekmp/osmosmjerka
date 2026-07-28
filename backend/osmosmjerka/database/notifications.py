@@ -1,7 +1,7 @@
 """Notifications database operations."""
 
 import json
-from datetime import datetime, timedelta
+from datetime import datetime, timedelta, timezone
 from typing import Any, Dict, List, Optional
 
 from osmosmjerka.database.models import notifications_table
@@ -162,30 +162,26 @@ class NotificationsMixin:
         return True  # Simplified access check assumption - execute returns None/ID/Count
 
     async def cleanup_expired_notifications(self) -> int:
-        """Delete expired notifications and old read notifications."""
+        """Delete notifications that have expired, plus read ones older than 30 days.
+
+        Note the naive UTC timestamp: every DateTime column in models.py is declared
+        without ``timezone=True``, so comparing against an aware datetime makes asyncpg
+        raise ``can't subtract offset-naive and offset-aware datetimes``.
+        """
         database = self._ensure_database()
 
-        now = datetime.utcnow()
-
-        # Delete explicitly expired
-        conditions = [notifications_table.c.expires_at < now]
-
-        # Also delete read notifications older than 30 days
+        now = datetime.now(timezone.utc).replace(tzinfo=None)
         thirty_days_ago = now - timedelta(days=30)
-        conditions.append(
+
+        condition = (notifications_table.c.expires_at < now) | (
             and_(notifications_table.c.is_read.is_(True), notifications_table.c.created_at < thirty_days_ago)
         )
 
-        query = delete(notifications_table).where(and_(*conditions))  # Logic error here, should be OR?
-        # Wait, delete where (expired) OR (read AND old)
+        # Count first: `databases.execute()` returns None for a DELETE, so counting is the
+        # only way to honour the declared int return (and log a useful number).
+        doomed = await database.fetch_val(select(func.count()).select_from(notifications_table).where(condition))
+        if not doomed:
+            return 0
 
-        query = delete(notifications_table).where(
-            (notifications_table.c.expires_at < now)
-            | (and_(notifications_table.c.is_read.is_(True), notifications_table.c.created_at < thirty_days_ago))
-        )
-
-        # databases doesn't support OR with pipe syntax in all contexts? SQLAlchemy expression language does.
-        # Let's be safe and make 2 queries or use verify syntax.
-        # | operator works for SQLAlchemy conditions.
-
-        return await database.execute(query)
+        await database.execute(delete(notifications_table).where(condition))
+        return int(doomed)
