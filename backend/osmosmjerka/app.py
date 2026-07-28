@@ -12,7 +12,7 @@ from osmosmjerka.logging_config import get_logger
 
 # isort: on
 from osmosmjerka.admin_api import router as admin_router
-from osmosmjerka.auth import ROOT_ADMIN_PASSWORD_HASH, ROOT_ADMIN_USERNAME
+from osmosmjerka.auth import ROOT_ADMIN_PASSWORD_HASH, ROOT_ADMIN_USERNAME, SECRET_KEY
 from osmosmjerka.database import db_manager
 from osmosmjerka.game_api import router as game_router
 from osmosmjerka.maintenance import start_maintenance, stop_maintenance
@@ -164,6 +164,12 @@ async def lifespan(_: FastAPI):
     logger.info("Application startup initiated")
     maintenance_task = None
     try:
+        # Fail fast and loudly: without this, a missing key only surfaces at the first
+        # login attempt (create_access_token), and jwt.decode silently fails with "" for
+        # every request until then.
+        if not SECRET_KEY:
+            raise RuntimeError("ADMIN_SECRET_KEY is not set - refusing to start")
+
         await db_manager.connect()
         logger.info("Database connection established")
 

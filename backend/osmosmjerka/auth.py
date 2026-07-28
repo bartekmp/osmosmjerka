@@ -111,9 +111,49 @@ async def authenticate_user(username: str, password: str) -> UserInfo | None:
     return None
 
 
+def _decode_token(token: str) -> dict[str, Any]:
+    """Decode a JWT and return its raw payload. Raises JWTError if it doesn't verify."""
+    return jwt.decode(token, SECRET_KEY, algorithms=[ALGORITHM])
+
+
+def _bearer_token(request: Request) -> str | None:
+    """Pull the bearer token out of the Authorization header, or None if absent/malformed."""
+    header = request.headers.get("Authorization")
+    if not header or not header.startswith("Bearer "):
+        return None
+    return header.split(" ", 1)[1]
+
+
+async def _resolve_account(payload: dict[str, Any]) -> UserInfo:
+    """Resolve a decoded payload to an active account.
+
+    The root admin short-circuits without touching the database. Raises HTTPException
+    401 on a malformed payload or a missing/inactive account; callers that want the
+    optional behaviour catch it and return None.
+    """
+    username = payload.get("sub")
+    role = payload.get("role")
+    user_id = payload.get("user_id")
+    if not isinstance(username, str) or not isinstance(role, str) or user_id is None:
+        raise HTTPException(status_code=401, detail="Invalid token")
+    if username == ROOT_ADMIN_USERNAME and role == "root_admin" and user_id == 0:
+        return {"username": username, "role": "root_admin", "id": 0}
+    # Otherwise, look up in DB
+    account = await db_manager.get_account_by_username(username)
+    if not account or not account.get("is_active", False):
+        raise HTTPException(status_code=401, detail="Inactive or invalid user")
+    return {"username": account["username"], "role": account["role"], "id": account["id"]}
+
+
 def verify_token(token: str) -> UserInfo:
+    """Validate a token and return the user it claims to be, trusting the payload.
+
+    Unlike get_current_user this performs no database lookup, which is why the hot
+    /api/phrases and /api/categories paths use it for optional auth. Any failure —
+    including a non-JWT one — surfaces as HTTPException 401, which those callers rely on.
+    """
     try:
-        payload = jwt.decode(token, SECRET_KEY, algorithms=[ALGORITHM])
+        payload = _decode_token(token)
         username = payload.get("sub")
         role = payload.get("role")
         user_id = payload.get("user_id")
@@ -128,6 +168,9 @@ def verify_token(token: str) -> UserInfo:
         logger.warning("Token verification failed: JWT error", exc_info=True)
         raise HTTPException(status_code=401, detail="Invalid token") from exc
     except Exception as exc:
+        # Also catches the HTTPExceptions raised just above, collapsing their specific
+        # details into a plain "Invalid token". Preserved deliberately: it is the
+        # long-standing observable behaviour of this function.
         logger.error("Token verification failed: unexpected error", exc_info=True)
         raise HTTPException(status_code=401, detail="Invalid token") from exc
 
@@ -140,26 +183,14 @@ async def get_current_user(request: Request) -> UserInfo:
     Returns:
         dict: The user info (username, role, id)
     """
-    token = request.headers.get("Authorization")
-    if not token or not token.startswith("Bearer "):
+    token = _bearer_token(request)
+    if token is None:
         raise HTTPException(status_code=401, detail="Not authenticated")
-    token = token.split(" ", 1)[1]
     try:
-        payload = jwt.decode(token, SECRET_KEY, algorithms=[ALGORITHM])
-        username = payload.get("sub")
-        role = payload.get("role")
-        user_id = payload.get("user_id")
-        if not isinstance(username, str) or not isinstance(role, str) or user_id is None:
-            raise HTTPException(status_code=401, detail="Invalid token")
-        if username == ROOT_ADMIN_USERNAME and role == "root_admin" and user_id == 0:
-            return {"username": username, "role": "root_admin", "id": 0}
-        # Otherwise, look up in DB
-        account = await db_manager.get_account_by_username(username)
-        if not account or not account.get("is_active", False):
-            raise HTTPException(status_code=401, detail="Inactive or invalid user")
-        return {"username": account["username"], "role": account["role"], "id": account["id"]}
+        payload = _decode_token(token)
     except JWTError as e:
         raise HTTPException(status_code=401, detail="Could not validate credentials") from e
+    return await _resolve_account(payload)
 
 
 async def get_current_user_optional(request: Request) -> UserInfo | None:
@@ -170,25 +201,13 @@ async def get_current_user_optional(request: Request) -> UserInfo | None:
     Returns:
         dict | None: The user info (username, role, id) or None if not authenticated
     """
-    token = request.headers.get("Authorization")
-    if not token or not token.startswith("Bearer "):
+    token = _bearer_token(request)
+    if token is None:
         return None
-    token = token.split(" ", 1)[1]
     try:
-        payload = jwt.decode(token, SECRET_KEY, algorithms=[ALGORITHM])
-        username = payload.get("sub")
-        role = payload.get("role")
-        user_id = payload.get("user_id")
-        if not isinstance(username, str) or not isinstance(role, str) or user_id is None:
-            return None
-        if username == ROOT_ADMIN_USERNAME and role == "root_admin" and user_id == 0:
-            return {"username": username, "role": "root_admin", "id": 0}
-        # Otherwise, look up in DB
-        account = await db_manager.get_account_by_username(username)
-        if not account or not account.get("is_active", False):
-            return None
-        return {"username": account["username"], "role": account["role"], "id": account["id"]}
-    except JWTError:
+        payload = _decode_token(token)
+        return await _resolve_account(payload)
+    except (JWTError, HTTPException):
         return None
 
 
