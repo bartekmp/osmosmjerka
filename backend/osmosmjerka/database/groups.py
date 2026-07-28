@@ -9,7 +9,6 @@ from osmosmjerka.database.models import (
     admin_settings_table,
     teacher_group_members_table,
     teacher_groups_table,
-    teacher_phrase_set_groups_table,
 )
 from sqlalchemy import and_, func, or_
 from sqlalchemy.sql import delete, insert, select, update
@@ -481,52 +480,3 @@ class TeacherGroupsMixin:
             "teacher_id": membership["teacher_id"],
             "group_name": membership["group_name"],
         }
-
-    # =========================================================================
-    # Phrase Set Group Assignment
-    # =========================================================================
-
-    async def assign_groups_to_phrase_set(self, phrase_set_id: int, group_ids: List[int]) -> None:
-        """Assign groups to a phrase set for dynamic access."""
-        database = self._ensure_database()
-        # Clear existing
-        await database.execute(
-            delete(teacher_phrase_set_groups_table).where(
-                teacher_phrase_set_groups_table.c.phrase_set_id == phrase_set_id
-            )
-        )
-        # Insert new
-        for gid in group_ids:
-            await database.execute(
-                insert(teacher_phrase_set_groups_table).values(phrase_set_id=phrase_set_id, group_id=gid)
-            )
-
-    async def get_phrase_set_groups(self, phrase_set_id: int) -> List[int]:
-        """Get group IDs assigned to a phrase set."""
-        database = self._ensure_database()
-        query = select(teacher_phrase_set_groups_table.c.group_id).where(
-            teacher_phrase_set_groups_table.c.phrase_set_id == phrase_set_id
-        )
-        result = await database.fetch_all(query)
-        return [row["group_id"] for row in result]
-
-    async def check_user_phrase_set_access(self, phrase_set_id: int, user_id: int) -> bool:
-        """Check if a user has access to a phrase set via group membership."""
-        database = self._ensure_database()
-        query = (
-            select(teacher_group_members_table.c.id)
-            .select_from(
-                teacher_phrase_set_groups_table.join(
-                    teacher_group_members_table,
-                    teacher_phrase_set_groups_table.c.group_id == teacher_group_members_table.c.group_id,
-                )
-            )
-            .where(
-                teacher_phrase_set_groups_table.c.phrase_set_id == phrase_set_id,
-                teacher_group_members_table.c.user_id == user_id,
-                teacher_group_members_table.c.status == "accepted",
-            )
-            .limit(1)
-        )
-        result = await database.fetch_one(query)
-        return result is not None
