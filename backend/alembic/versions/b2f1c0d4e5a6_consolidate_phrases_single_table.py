@@ -12,15 +12,15 @@ Revision ID: b2f1c0d4e5a6
 Revises: fae66ffa8bec
 """
 
-from typing import Sequence, Union
+from collections.abc import Sequence
 
 import sqlalchemy as sa
 from alembic import op
 
 revision: str = "b2f1c0d4e5a6"
-down_revision: Union[str, Sequence[str], None] = "fae66ffa8bec"
-branch_labels: Union[str, Sequence[str], None] = None
-depends_on: Union[str, Sequence[str], None] = None
+down_revision: str | Sequence[str] | None = "fae66ffa8bec"
+branch_labels: str | Sequence[str] | None = None
+depends_on: str | Sequence[str] | None = None
 
 
 def _legacy_table_name(language_set_name: str) -> str:

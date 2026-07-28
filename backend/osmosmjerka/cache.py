@@ -3,8 +3,9 @@
 import os
 import time
 from collections import defaultdict
+from collections.abc import Callable
 from functools import wraps
-from typing import Any, Callable, Dict, Optional, TypeVar
+from typing import Any, TypeVar
 
 from fastapi import HTTPException, Request
 from osmosmjerka.logging_config import get_logger
@@ -18,11 +19,11 @@ class AsyncLRUCache:
     """Simple async-compatible LRU cache with TTL support."""
 
     def __init__(self, maxsize: int = 128, ttl: int = 300) -> None:
-        self.cache: Dict[str, tuple[Any, float]] = {}
+        self.cache: dict[str, tuple[Any, float]] = {}
         self.maxsize = maxsize
         self.ttl = ttl
 
-    def get(self, key: str) -> Optional[Any]:
+    def get(self, key: str) -> Any | None:
         """Get cached value if it exists and hasn't expired."""
         if key in self.cache:
             value, timestamp = self.cache[key]
@@ -54,7 +55,7 @@ class RateLimiter:
     """Simple in-memory rate limiter."""
 
     def __init__(self) -> None:
-        self.requests: Dict[str, list[float]] = defaultdict(list)
+        self.requests: dict[str, list[float]] = defaultdict(list)
 
     def is_allowed(self, identifier: str, max_requests: int, window_seconds: int) -> bool:
         """Check if request is allowed within rate limits."""

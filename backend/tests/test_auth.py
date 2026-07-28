@@ -1,4 +1,4 @@
-from datetime import datetime, timedelta, timezone
+from datetime import UTC, datetime, timedelta
 from unittest.mock import MagicMock
 
 import pytest
@@ -63,7 +63,7 @@ def test_verify_token_wrong_user(monkeypatch):
     importlib.reload(auth_mod)
     # Create token with wrong username and explicit role/user_id
     token = jwt.encode(
-        {"sub": "notadmin", "role": "user", "user_id": 123, "exp": datetime.now(timezone.utc) + timedelta(minutes=5)},
+        {"sub": "notadmin", "role": "user", "user_id": 123, "exp": datetime.now(UTC) + timedelta(minutes=5)},
         "testsecret",
         algorithm="HS256",
     )

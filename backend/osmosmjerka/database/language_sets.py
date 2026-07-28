@@ -1,7 +1,5 @@
 """Language set management database operations."""
 
-from typing import Optional
-
 from osmosmjerka.database.models import language_sets_table
 from sqlalchemy.sql import delete, insert, select, update
 
@@ -28,7 +26,7 @@ class LanguageSetsMixin:
 
         return language_sets
 
-    async def get_language_set_by_id(self, language_set_id: int) -> Optional[dict]:
+    async def get_language_set_by_id(self, language_set_id: int) -> dict | None:
         """Get a specific language set by ID."""
         database = self._ensure_database()
         query = select(language_sets_table).where(language_sets_table.c.id == language_set_id)
@@ -39,11 +37,11 @@ class LanguageSetsMixin:
         self,
         name: str,
         display_name: str,
-        description: Optional[str] = None,
-        author: Optional[str] = None,
-        created_by: Optional[int] = None,
-        default_ignored_categories: Optional[list[str]] = None,
-        target_lang: Optional[str] = None,
+        description: str | None = None,
+        author: str | None = None,
+        created_by: int | None = None,
+        default_ignored_categories: list[str] | None = None,
+        target_lang: str | None = None,
     ) -> int:
         """Create a new language set and its phrase table."""
         database = self._ensure_database()

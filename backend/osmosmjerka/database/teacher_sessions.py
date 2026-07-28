@@ -2,8 +2,8 @@
 
 import json
 import uuid
-from datetime import datetime, timezone
-from typing import Any, Dict, List, Optional
+from datetime import UTC, datetime
+from typing import Any
 
 from osmosmjerka.database.models import (
     accounts_table,
@@ -28,8 +28,8 @@ class TeacherSetsSessionsMixin:
         difficulty: str,
         total_phrases: int,
         hotlink_version: int,
-        user_id: Optional[int] = None,
-    ) -> Dict[str, Any]:
+        user_id: int | None = None,
+    ) -> dict[str, Any]:
         """Create a new game session for a phrase set."""
         database = self._ensure_database()
 
@@ -76,8 +76,8 @@ class TeacherSetsSessionsMixin:
         session_token: str,
         phrases_found: int,
         duration_seconds: int,
-        translation_submissions: Optional[List[Dict]] = None,
-    ) -> Optional[Dict[str, Any]]:
+        translation_submissions: list[dict] | None = None,
+    ) -> dict[str, Any] | None:
         """Complete a game session with results."""
         database = self._ensure_database()
 
@@ -182,7 +182,7 @@ class TeacherSetsSessionsMixin:
             "is_completed": True,
         }
 
-    async def get_session_by_token(self, session_token: str) -> Optional[Dict[str, Any]]:
+    async def get_session_by_token(self, session_token: str) -> dict[str, Any] | None:
         """Get a session by its token."""
         database = self._ensure_database()
 
@@ -209,7 +209,7 @@ class TeacherSetsSessionsMixin:
         limit: int = 50,
         offset: int = 0,
         completed_only: bool = False,
-    ) -> Dict[str, Any]:
+    ) -> dict[str, Any]:
         """Get paginated sessions for a phrase set."""
         database = self._ensure_database()
 
@@ -307,7 +307,7 @@ class TeacherSetsSessionsMixin:
         """
         database = self._ensure_database()
 
-        now = datetime.now(timezone.utc).replace(tzinfo=None)
+        now = datetime.now(UTC).replace(tzinfo=None)
 
         # Get sets to delete for logging
         select_query = select(

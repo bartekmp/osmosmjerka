@@ -1,8 +1,8 @@
 """Notifications database operations."""
 
 import json
-from datetime import datetime, timedelta, timezone
-from typing import Any, Dict, List, Optional
+from datetime import UTC, datetime, timedelta
+from typing import Any
 
 from osmosmjerka.database.models import notifications_table
 from osmosmjerka.logging_config import get_logger
@@ -15,7 +15,7 @@ logger = get_logger(__name__)
 class NotificationsMixin:
     """Mixin for notifications management."""
 
-    def _serialize_notification(self, row: Any) -> Dict[str, Any]:
+    def _serialize_notification(self, row: Any) -> dict[str, Any]:
         """Convert database row to dictionary with proper types."""
         notification = dict(row)
 
@@ -40,9 +40,9 @@ class NotificationsMixin:
         type: str,
         title: str,
         message: str,
-        link: Optional[str] = None,
-        expires_at: Optional[datetime] = None,
-        metadata: Optional[Dict[str, Any]] = None,
+        link: str | None = None,
+        expires_at: datetime | None = None,
+        metadata: dict[str, Any] | None = None,
     ) -> int:
         """Create a new notification."""
         database = self._ensure_database()
@@ -69,7 +69,7 @@ class NotificationsMixin:
 
     async def get_user_notifications(
         self, user_id: int, limit: int = 50, unread_only: bool = False
-    ) -> List[Dict[str, Any]]:
+    ) -> list[dict[str, Any]]:
         """Get notifications for a user."""
         database = self._ensure_database()
 
@@ -170,7 +170,7 @@ class NotificationsMixin:
         """
         database = self._ensure_database()
 
-        now = datetime.now(timezone.utc).replace(tzinfo=None)
+        now = datetime.now(UTC).replace(tzinfo=None)
         thirty_days_ago = now - timedelta(days=30)
 
         condition = (notifications_table.c.expires_at < now) | (

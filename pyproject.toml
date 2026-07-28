@@ -64,7 +64,17 @@ line-length = 120
 target-version = "py313"
 
 [tool.ruff.lint]
-select = ["E", "F", "I"]
+# UP keeps annotations on modern syntax (list[int], X | None) now that the floor is 3.13.
+# Deliberately not enabled:
+#   B008 - flags Depends()/Query() in argument defaults, which is the FastAPI idiom.
+#   ARG001 - most "unused" arguments are required by FastAPI handler signatures.
+select = ["E", "F", "I", "UP"]
+ignore = [
+    # Rewriting `class Grade(str, Enum)` to StrEnum changes str() output from
+    # "Grade.AGAIN" to "again". Nothing relies on it today, but the payoff is cosmetic
+    # and the failure mode would be silent, so leave the existing declaration alone.
+    "UP042",
+]
 
 
 [tool.semantic_release]

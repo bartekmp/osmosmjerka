@@ -1,6 +1,6 @@
 """Pydantic models for game API request/response validation."""
 
-from typing import Any, Optional
+from typing import Any
 
 from pydantic import BaseModel, Field
 
@@ -10,7 +10,7 @@ from pydantic import BaseModel, Field
 class LearnLaterCheckRequest(BaseModel):
     """Request model for checking phrases in Learn This Later list."""
 
-    language_set_id: Optional[int] = None
+    language_set_id: int | None = None
     phrase_ids: list[int] = Field(default_factory=list)
 
 
@@ -37,7 +37,7 @@ class CreatePrivateListRequest(BaseModel):
     """
 
     list_name: str = Field(default="", max_length=200)
-    language_set_id: Optional[int] = None
+    language_set_id: int | None = None
 
 
 class UpdatePrivateListRequest(BaseModel):
@@ -53,7 +53,7 @@ class AddPhraseToPrivateListRequest(BaseModel):
     endpoint enforces the mutual-exclusivity rules and returns its own errors.
     """
 
-    phrase_id: Optional[int] = None
+    phrase_id: int | None = None
     custom_phrase: str = Field(default="", max_length=200)
     custom_translation: str = Field(default="", max_length=200)
     custom_categories: str = Field(default="", max_length=200)
@@ -87,8 +87,8 @@ class StartGameSessionRequest(BaseModel):
     total_phrases: int = Field(..., ge=1)
     game_type: str = Field(default="word_search", pattern="^(word_search|crossword)$")
     # For teacher puzzle sessions
-    phrase_set_id: Optional[int] = None
-    hotlink_token: Optional[str] = None
+    phrase_set_id: int | None = None
+    hotlink_token: str | None = None
 
 
 class UpdateGameProgressRequest(BaseModel):

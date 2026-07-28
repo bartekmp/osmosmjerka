@@ -1,7 +1,5 @@
 """Student groups API endpoints."""
 
-from typing import List, Optional
-
 from fastapi import APIRouter, Depends, HTTPException
 from osmosmjerka.auth import get_current_user
 from osmosmjerka.database.manager import db_manager
@@ -18,8 +16,8 @@ router = APIRouter(prefix="/user/groups", tags=["user_groups"])
 class StudentGroupOut(BaseModel):
     id: int
     name: str
-    joined_at: Optional[str] = None
-    teacher_username: Optional[str] = None
+    joined_at: str | None = None
+    teacher_username: str | None = None
 
 
 class InvitationOut(BaseModel):
@@ -27,8 +25,8 @@ class InvitationOut(BaseModel):
     group_id: int
     group_name: str
     teacher_username: str
-    invited_at: Optional[str] = None
-    expires_at: Optional[str] = None
+    invited_at: str | None = None
+    expires_at: str | None = None
 
 
 # =============================================================================
@@ -36,7 +34,7 @@ class InvitationOut(BaseModel):
 # =============================================================================
 
 
-@router.get("", response_model=List[StudentGroupOut])
+@router.get("", response_model=list[StudentGroupOut])
 async def get_my_groups(current_user: dict = Depends(get_current_user)):
     """List groups the current user is a member of."""
     groups = await db_manager.get_student_groups(current_user["id"])
@@ -51,7 +49,7 @@ async def get_my_groups(current_user: dict = Depends(get_current_user)):
     ]
 
 
-@router.get("/invitations", response_model=List[InvitationOut])
+@router.get("/invitations", response_model=list[InvitationOut])
 async def get_invitations(current_user: dict = Depends(get_current_user)):
     """List pending group invitations."""
     invites = await db_manager.get_student_invitations(current_user["id"])

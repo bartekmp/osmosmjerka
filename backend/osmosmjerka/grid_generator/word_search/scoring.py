@@ -1,11 +1,9 @@
 """Placement scoring logic for grid generation."""
 
-from typing import Dict, List, Tuple
-
 from osmosmjerka.grid_generator.shared.utils import calculate_density_around_position
 
 
-def _count_direction_usage(placed_phrases: List[Dict]) -> Dict[Tuple[int, int], int]:
+def _count_direction_usage(placed_phrases: list[dict]) -> dict[tuple[int, int], int]:
     """
     Count how many times each direction has been used.
     Helper function for score_phrase_placement.
@@ -28,11 +26,11 @@ def _count_direction_usage(placed_phrases: List[Dict]) -> Dict[Tuple[int, int], 
 
 
 def score_phrase_placement(
-    grid: List[List[str]],
+    grid: list[list[str]],
     phrase: str,
-    coords: List[Tuple[int, int]],
-    placed_phrases: List[Dict],
-    direction: Tuple[int, int],
+    coords: list[tuple[int, int]],
+    placed_phrases: list[dict],
+    direction: tuple[int, int],
 ) -> float:
     """
     Score a potential phrase placement to determine if it's a good fit.

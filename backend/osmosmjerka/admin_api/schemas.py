@@ -1,7 +1,5 @@
 """Pydantic models for admin API request/response validation."""
 
-from typing import Optional
-
 from pydantic import BaseModel, Field
 
 
@@ -14,5 +12,5 @@ class EnabledToggle(BaseModel):
 class ListLimitsUpdate(BaseModel):
     """Request model for updating private list limits."""
 
-    user_limit: Optional[int] = Field(None, ge=1, description="Maximum lists for regular users")
-    admin_limit: Optional[int] = Field(None, ge=1, description="Maximum lists for admins")
+    user_limit: int | None = Field(None, ge=1, description="Maximum lists for regular users")
+    admin_limit: int | None = Field(None, ge=1, description="Maximum lists for admins")

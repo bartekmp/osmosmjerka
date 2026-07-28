@@ -1,6 +1,7 @@
 import os
-from datetime import datetime, timedelta, timezone
-from typing import Any, Callable, TypedDict
+from collections.abc import Callable
+from datetime import UTC, datetime, timedelta
+from typing import Any, TypedDict
 
 import bcrypt
 from dotenv import load_dotenv
@@ -54,7 +55,7 @@ def create_access_token(data: dict[str, Any], expires_delta: timedelta | None = 
     if SECRET_KEY == "":
         raise HTTPException(status_code=500, detail="Server misconfiguration: SECRET_KEY is not set")
     to_encode = data.copy()
-    expire = datetime.now(timezone.utc) + (expires_delta or timedelta(minutes=ACCESS_TOKEN_EXPIRE_MINUTES))
+    expire = datetime.now(UTC) + (expires_delta or timedelta(minutes=ACCESS_TOKEN_EXPIRE_MINUTES))
     to_encode.update({"exp": expire})
     # Always set 'role' and 'user_id' explicitly
     if to_encode.get("sub") == ROOT_ADMIN_USERNAME:

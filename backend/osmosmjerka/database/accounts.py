@@ -1,6 +1,6 @@
 """Account and user management database operations."""
 
-from typing import Any, Optional
+from typing import Any
 
 from osmosmjerka.database.models import accounts_table
 from sqlalchemy import func
@@ -30,14 +30,14 @@ class AccountsMixin:
         result = await database.fetch_all(query)
         return [dict(row) for row in result]
 
-    async def get_account_by_username(self, username: str) -> Optional[dict[str, Any]]:
+    async def get_account_by_username(self, username: str) -> dict[str, Any] | None:
         """Get account by username."""
         database = self._ensure_database()
         query = select(accounts_table).where(accounts_table.c.username == username)
         result = await database.fetch_one(query)
         return self._serialize_datetimes(dict(result._mapping)) if result else None
 
-    async def get_account_by_id(self, account_id: int) -> Optional[dict[str, Any]]:
+    async def get_account_by_id(self, account_id: int) -> dict[str, Any] | None:
         """Get account by ID."""
         database = self._ensure_database()
         query = select(
@@ -53,7 +53,7 @@ class AccountsMixin:
         result = await database.fetch_one(query)
         return self._serialize_datetimes(dict(result._mapping)) if result else None
 
-    async def get_user_by_username(self, username: str) -> Optional[dict[str, Any]]:
+    async def get_user_by_username(self, username: str) -> dict[str, Any] | None:
         """Get user by username (alias for get_account_by_username)."""
         return await self.get_account_by_username(username)
 
@@ -64,7 +64,7 @@ class AccountsMixin:
         role: str = "regular",
         account_tier: str = "tier1",
         self_description: str = "",
-        id: Optional[int] = None,
+        id: int | None = None,
     ) -> int:
         """Create a new account."""
         database = self._ensure_database()

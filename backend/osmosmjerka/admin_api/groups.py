@@ -1,7 +1,5 @@
 """Teacher groups API endpoints."""
 
-from typing import List, Optional
-
 from fastapi import APIRouter, Depends, HTTPException
 from osmosmjerka.auth import require_teacher_access
 from osmosmjerka.database.manager import db_manager
@@ -20,7 +18,7 @@ class GroupCreate(BaseModel):
 
 
 class GroupInvite(BaseModel):
-    usernames: List[str]  # Support bulk invite
+    usernames: list[str]  # Support bulk invite
 
 
 class GroupOut(BaseModel):
@@ -34,15 +32,15 @@ class GroupMemberOut(BaseModel):
     id: int
     username: str
     status: str
-    invited_at: Optional[str] = None
-    responded_at: Optional[str] = None
+    invited_at: str | None = None
+    responded_at: str | None = None
 
 
 class InviteResult(BaseModel):
     username: str
     success: bool
-    user_id: Optional[int] = None
-    error: Optional[str] = None
+    user_id: int | None = None
+    error: str | None = None
 
 
 # =============================================================================
@@ -50,7 +48,7 @@ class InviteResult(BaseModel):
 # =============================================================================
 
 
-@router.get("", response_model=List[GroupOut])
+@router.get("", response_model=list[GroupOut])
 async def get_groups(current_user: dict = Depends(require_teacher_access)):
     """List all groups for the current teacher."""
     groups = await db_manager.get_teacher_groups(current_user["id"])
@@ -100,7 +98,7 @@ async def delete_group(group_id: int, current_user: dict = Depends(require_teach
     return {"status": "success"}
 
 
-@router.get("/{group_id}/members", response_model=List[GroupMemberOut])
+@router.get("/{group_id}/members", response_model=list[GroupMemberOut])
 async def get_group_members(group_id: int, current_user: dict = Depends(require_teacher_access)):
     """List members of a group with status."""
     group = await db_manager.get_teacher_group_by_id(group_id, current_user["id"])
@@ -120,7 +118,7 @@ async def get_group_members(group_id: int, current_user: dict = Depends(require_
     ]
 
 
-@router.post("/{group_id}/invite", response_model=List[InviteResult])
+@router.post("/{group_id}/invite", response_model=list[InviteResult])
 async def invite_members(
     group_id: int,
     data: GroupInvite,

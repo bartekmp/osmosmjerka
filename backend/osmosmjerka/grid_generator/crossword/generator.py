@@ -5,8 +5,6 @@ Unlike word search grids, crossword grids only use horizontal (across) and verti
 orientations, and phrases must intersect at common letters.
 """
 
-from typing import Dict, List, Optional, Tuple
-
 from osmosmjerka.grid_generator.shared.normalization import find_intersections, normalize_phrase
 
 # Crossword directions: horizontal (across) and vertical (down) only
@@ -99,7 +97,7 @@ def generate_crossword_grid(
     return grid, placed_phrases
 
 
-def _find_existing_start_number(placed_phrases: List[Dict], row: int, col: int) -> int:
+def _find_existing_start_number(placed_phrases: list[dict], row: int, col: int) -> int:
     """Find the start number for a phrase that shares a starting position."""
     for phrase in placed_phrases:
         if phrase["coords"][0] == [row, col]:
@@ -108,8 +106,8 @@ def _find_existing_start_number(placed_phrases: List[Dict], row: int, col: int) 
 
 
 def _place_crossword_phrase(
-    grid: List[List], phrase_data: Tuple[Dict, str, str], placed_phrases: List[Dict], size: int
-) -> Optional[Tuple[List[Tuple[int, int]], Tuple[int, int]]]:
+    grid: list[list], phrase_data: tuple[dict, str, str], placed_phrases: list[dict], size: int
+) -> tuple[list[tuple[int, int]], tuple[int, int]] | None:
     """
     Place a phrase in the crossword grid.
 
@@ -165,7 +163,7 @@ def _place_crossword_phrase(
     return best_placement
 
 
-def _place_first_phrase(grid: List[List], phrase: str, size: int) -> Tuple[List[Tuple[int, int]], Tuple[int, int]]:
+def _place_first_phrase(grid: list[list], phrase: str, size: int) -> tuple[list[tuple[int, int]], tuple[int, int]]:
     """Place the first phrase in the center of the grid, horizontally."""
     phrase_len = len(phrase)
     start_col = (size - phrase_len) // 2
@@ -175,7 +173,7 @@ def _place_first_phrase(grid: List[List], phrase: str, size: int) -> Tuple[List[
     return (coords, (0, 1))  # Horizontal
 
 
-def _is_valid_crossword_placement(grid: List[List], phrase: str, coords: List[Tuple[int, int]], size: int) -> bool:
+def _is_valid_crossword_placement(grid: list[list], phrase: str, coords: list[tuple[int, int]], size: int) -> bool:
     """
     Check if a crossword placement is valid.
 
@@ -238,7 +236,7 @@ def _is_valid_crossword_placement(grid: List[List], phrase: str, coords: List[Tu
     return True
 
 
-def _score_crossword_placement(grid: List[List], coords: List[Tuple[int, int]], placed_phrases: List[Dict]) -> int:
+def _score_crossword_placement(grid: list[list], coords: list[tuple[int, int]], placed_phrases: list[dict]) -> int:
     """Score a crossword placement - prefer more intersections."""
     score = 0
 

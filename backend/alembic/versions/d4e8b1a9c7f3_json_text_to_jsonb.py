@@ -14,14 +14,14 @@ Revision ID: d4e8b1a9c7f3
 Revises: c3a7e9d1f2b8
 """
 
-from typing import Sequence, Union
+from collections.abc import Sequence
 
 from alembic import op
 
 revision: str = "d4e8b1a9c7f3"
-down_revision: Union[str, Sequence[str], None] = "c3a7e9d1f2b8"
-branch_labels: Union[str, Sequence[str], None] = None
-depends_on: Union[str, Sequence[str], None] = None
+down_revision: str | Sequence[str] | None = "c3a7e9d1f2b8"
+branch_labels: str | Sequence[str] | None = None
+depends_on: str | Sequence[str] | None = None
 
 # NOTE: spaces after each colon are required — SQLAlchemy's text() parser treats
 # ":true"/":false"/":null" as bind parameters, but ": true" is left as a literal.

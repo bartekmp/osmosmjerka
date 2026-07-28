@@ -1,7 +1,5 @@
 """Phrase management database operations."""
 
-from typing import Optional
-
 from osmosmjerka.database.models import language_sets_table, phrases_table
 from sqlalchemy import func
 from sqlalchemy.sql import delete, insert, select, update
@@ -13,7 +11,7 @@ class PhrasesMixin:
     All phrases live in the single `phrases` table keyed by `language_set_id`.
     """
 
-    async def _resolve_language_set(self, language_set_id: Optional[int]):
+    async def _resolve_language_set(self, language_set_id: int | None):
         """Resolve a language set by id, or fall back to the first active one.
 
         Returns the language set dict, or None if none is available.
@@ -25,11 +23,11 @@ class PhrasesMixin:
 
     async def get_phrases(
         self,
-        language_set_id: Optional[int] = None,
-        category: Optional[str] = None,
-        limit: Optional[int] = None,
+        language_set_id: int | None = None,
+        category: str | None = None,
+        limit: int | None = None,
         offset: int = 0,
-        ignored_categories_override: Optional[set[str]] = None,
+        ignored_categories_override: set[str] | None = None,
     ) -> list[dict[str, str]]:
         """Get phrases from a language set (applies ignored-category filtering)."""
         database = self._ensure_database()
@@ -223,7 +221,7 @@ class PhrasesMixin:
         return affected_count
 
     async def get_categories_for_language_set(
-        self, language_set_id: Optional[int] = None, ignored_categories_override: Optional[set[str]] = None
+        self, language_set_id: int | None = None, ignored_categories_override: set[str] | None = None
     ) -> list[str]:
         """Get categories for a specific language set (applies ignored filtering)."""
         database = self._ensure_database()
@@ -307,11 +305,11 @@ class PhrasesMixin:
 
     async def get_phrases_for_admin(
         self,
-        language_set_id: Optional[int] = None,
-        category: Optional[str] = None,
-        limit: Optional[int] = None,
+        language_set_id: int | None = None,
+        category: str | None = None,
+        limit: int | None = None,
         offset: int = 0,
-        search_term: Optional[str] = None,
+        search_term: str | None = None,
     ) -> list[dict[str, str]]:
         """Get phrases for admin panel - returns all phrases including ignored categories."""
         database = self._ensure_database()
@@ -347,7 +345,7 @@ class PhrasesMixin:
         return row_list
 
     async def get_phrase_count_for_admin(
-        self, language_set_id: Optional[int] = None, category: Optional[str] = None, search_term: Optional[str] = None
+        self, language_set_id: int | None = None, category: str | None = None, search_term: str | None = None
     ) -> int:
         """Get phrase count for admin panel - counts all phrases including ignored categories."""
         database = self._ensure_database()
@@ -372,7 +370,7 @@ class PhrasesMixin:
         result = await database.fetch_one(query)
         return int(result[0]) if result and result[0] is not None else 0
 
-    async def get_all_categories_for_language_set(self, language_set_id: Optional[int] = None) -> list[str]:
+    async def get_all_categories_for_language_set(self, language_set_id: int | None = None) -> list[str]:
         """Get all categories including ignored ones for a language set - used for admin panel."""
         database = self._ensure_database()
 

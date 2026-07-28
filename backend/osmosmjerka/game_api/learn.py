@@ -5,7 +5,7 @@ self-assessed grade per word to :func:`submit_review`, which advances that word'
 schedule. Stats and due-item endpoints back the (later) review dashboard.
 """
 
-from typing import Literal, Optional
+from typing import Literal
 
 from fastapi import APIRouter, Depends, Query
 from fastapi.responses import JSONResponse
@@ -29,8 +29,8 @@ class ReviewRequest(BaseModel):
     language_set_id: int
     direction: Literal["production", "recognition"]
     grade: Literal["again", "good", "easy"]
-    phrase_id: Optional[int] = None
-    list_phrase_id: Optional[int] = Field(default=None)
+    phrase_id: int | None = None
+    list_phrase_id: int | None = Field(default=None)
 
     @model_validator(mode="after")
     def _exactly_one_ref(self) -> "ReviewRequest":
@@ -60,7 +60,7 @@ async def submit_review(body: ReviewRequest, user=Depends(get_current_user)) -> 
 
 
 @router.get("/learn/stats")
-async def get_learn_stats(language_set_id: Optional[int] = Query(None), user=Depends(get_current_user)) -> JSONResponse:
+async def get_learn_stats(language_set_id: int | None = Query(None), user=Depends(get_current_user)) -> JSONResponse:
     """Tracked / due / mastered counts for the current user."""
     try:
         stats = await db_manager.get_mastery_stats(user["id"], language_set_id)
@@ -82,7 +82,7 @@ async def get_streak(user=Depends(get_current_user)) -> JSONResponse:
 
 @router.get("/learn/due")
 async def get_due(
-    language_set_id: Optional[int] = Query(None),
+    language_set_id: int | None = Query(None),
     limit: int = Query(50, ge=1, le=200),
     user=Depends(get_current_user),
 ) -> JSONResponse:

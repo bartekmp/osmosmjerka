@@ -4,7 +4,6 @@ import csv
 import io
 import os
 import re
-from typing import Optional
 
 from fastapi import APIRouter, Depends, File, HTTPException, Query, Request, UploadFile, status
 from fastapi.responses import JSONResponse, StreamingResponse
@@ -22,7 +21,7 @@ router = APIRouter()
 MAX_UPLOAD_SIZE = int(os.getenv("MAX_UPLOAD_SIZE", str(5 * 1024 * 1024)))  # 5MB default
 
 
-def _parse_phrases_csv(content: str, delimiter: Optional[str] = None) -> tuple[list[dict], str]:
+def _parse_phrases_csv(content: str, delimiter: str | None = None) -> tuple[list[dict], str]:
     """Parse delimited content into phrase dicts with preserved line breaks.
 
     - Auto-detects delimiter from the first non-empty line if not provided.
@@ -148,7 +147,7 @@ def _parse_phrases_csv(content: str, delimiter: Optional[str] = None) -> tuple[l
     return phrases_data, ""
 
 
-def _extract_error_details(message: str) -> tuple[Optional[int], Optional[str]]:
+def _extract_error_details(message: str) -> tuple[int | None, str | None]:
     """Try to extract first error line number and content from an error message string.
 
     Returns (line_num, line_content) if found, else (None, None).

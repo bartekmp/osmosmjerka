@@ -2,7 +2,7 @@
 
 import json
 from datetime import datetime, timedelta
-from typing import Any, Dict, List, Optional
+from typing import Any
 
 from osmosmjerka.database.models import (
     accounts_table,
@@ -85,7 +85,7 @@ class TeacherGroupsMixin:
     # Teacher Group CRUD
     # =========================================================================
 
-    async def get_teacher_groups(self, teacher_id: int) -> List[Dict[str, Any]]:
+    async def get_teacher_groups(self, teacher_id: int) -> list[dict[str, Any]]:
         """Get all groups for a teacher with member counts by status."""
         database = self._ensure_database()
 
@@ -144,7 +144,7 @@ class TeacherGroupsMixin:
         await database.execute(query)
         return True
 
-    async def get_teacher_group_by_id(self, group_id: int, teacher_id: int) -> Optional[Dict[str, Any]]:
+    async def get_teacher_group_by_id(self, group_id: int, teacher_id: int) -> dict[str, Any] | None:
         """Get group details if owned by teacher."""
         database = self._ensure_database()
         query = select(teacher_groups_table).where(
@@ -158,7 +158,7 @@ class TeacherGroupsMixin:
     # Group Members (Teacher perspective)
     # =========================================================================
 
-    async def get_group_members(self, group_id: int) -> List[Dict[str, Any]]:
+    async def get_group_members(self, group_id: int) -> list[dict[str, Any]]:
         """Get all members of a group with their account details and status."""
         database = self._ensure_database()
         query = (
@@ -181,7 +181,7 @@ class TeacherGroupsMixin:
         result = await database.fetch_all(query)
         return [dict(row) for row in result]
 
-    async def get_users_in_teacher_groups(self, teacher_id: int, usernames: List[str]) -> List[int]:
+    async def get_users_in_teacher_groups(self, teacher_id: int, usernames: list[str]) -> list[int]:
         """
         Get user IDs for usernames, ONLY if they are members of the teacher's groups.
         Used for validating puzzle assignments.
@@ -220,7 +220,7 @@ class TeacherGroupsMixin:
         result = await database.fetch_all(query)
         return [row["id"] for row in result]
 
-    async def invite_group_member(self, group_id: int, username: str, teacher_id: int) -> Dict[str, Any]:
+    async def invite_group_member(self, group_id: int, username: str, teacher_id: int) -> dict[str, Any]:
         """
         Invite a student to a group.
         Returns: {"success": bool, "user_id": int|None, "error": str|None}
@@ -322,7 +322,7 @@ class TeacherGroupsMixin:
     # Student Group Operations
     # =========================================================================
 
-    async def get_student_groups(self, user_id: int) -> List[Dict[str, Any]]:
+    async def get_student_groups(self, user_id: int) -> list[dict[str, Any]]:
         """Get groups that a student is a member of (accepted only)."""
         database = self._ensure_database()
         query = (
@@ -350,7 +350,7 @@ class TeacherGroupsMixin:
         result = await database.fetch_all(query)
         return [dict(row) for row in result]
 
-    async def get_student_invitations(self, user_id: int) -> List[Dict[str, Any]]:
+    async def get_student_invitations(self, user_id: int) -> list[dict[str, Any]]:
         """Get pending invitations for a student."""
         database = self._ensure_database()
         now = datetime.utcnow()
@@ -385,7 +385,7 @@ class TeacherGroupsMixin:
         result = await database.fetch_all(query)
         return [dict(row) for row in result]
 
-    async def respond_to_invitation(self, invitation_id: int, user_id: int, accept: bool) -> Dict[str, Any]:
+    async def respond_to_invitation(self, invitation_id: int, user_id: int, accept: bool) -> dict[str, Any]:
         """Accept or decline an invitation. Returns group_id and teacher_id for notification."""
         database = self._ensure_database()
 
@@ -445,7 +445,7 @@ class TeacherGroupsMixin:
             "accepted": accept,
         }
 
-    async def leave_group(self, group_id: int, user_id: int) -> Dict[str, Any]:
+    async def leave_group(self, group_id: int, user_id: int) -> dict[str, Any]:
         """Student leaves a group. Returns teacher_id for notification."""
         database = self._ensure_database()
 

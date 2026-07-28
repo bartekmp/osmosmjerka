@@ -1,7 +1,5 @@
 """List sharing and list statistics database operations."""
 
-from typing import Optional
-
 from osmosmjerka.database.models import (
     accounts_table,
     user_list_shares_table,
@@ -93,7 +91,7 @@ class ListSharingMixin:
         rows = await database.fetch_all(query)
         return [dict(row) for row in rows]
 
-    async def get_shared_with_me_lists(self, user_id: int, language_set_id: Optional[int] = None) -> list:
+    async def get_shared_with_me_lists(self, user_id: int, language_set_id: int | None = None) -> list:
         """Get all lists shared with the current user."""
         database = self._ensure_database()
 
@@ -135,7 +133,7 @@ class ListSharingMixin:
         rows = await database.fetch_all(query)
         return [dict(row) for row in rows]
 
-    async def check_list_access(self, list_id: int, user_id: int) -> Optional[dict]:
+    async def check_list_access(self, list_id: int, user_id: int) -> dict | None:
         """Check if user has access to a list (owner or shared).
 
         Returns dict with 'access_type' ('owner' or 'shared') and 'permission' ('read' or 'write')
@@ -163,7 +161,7 @@ class ListSharingMixin:
 
         return None
 
-    async def get_list_statistics(self, list_id: int, user_id: int) -> Optional[dict]:
+    async def get_list_statistics(self, list_id: int, user_id: int) -> dict | None:
         """Get usage statistics for a specific list."""
         database = self._ensure_database()
 

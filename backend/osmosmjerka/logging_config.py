@@ -13,8 +13,8 @@ import logging
 import os
 import sys
 import traceback
-from datetime import datetime, timezone
-from typing import Any, Dict
+from datetime import UTC, datetime
+from typing import Any
 
 
 class PlainTextFormatter(logging.Formatter):
@@ -41,7 +41,7 @@ class PlainTextFormatter(logging.Formatter):
 
     def format(self, record: logging.LogRecord) -> str:
         # Timestamp in ISO8601 UTC format
-        timestamp = datetime.fromtimestamp(record.created, tz=timezone.utc).isoformat(timespec="milliseconds")
+        timestamp = datetime.fromtimestamp(record.created, tz=UTC).isoformat(timespec="milliseconds")
         timestamp = timestamp.replace("+00:00", "Z")
 
         # Component name (module name)
@@ -112,11 +112,11 @@ class JSONFormatter(logging.Formatter):
 
     def format(self, record: logging.LogRecord) -> str:
         # Timestamp in ISO8601 UTC format
-        timestamp = datetime.fromtimestamp(record.created, tz=timezone.utc).isoformat(timespec="milliseconds")
+        timestamp = datetime.fromtimestamp(record.created, tz=UTC).isoformat(timespec="milliseconds")
         timestamp = timestamp.replace("+00:00", "Z")
 
         # Build the base log entry
-        log_entry: Dict[str, Any] = {
+        log_entry: dict[str, Any] = {
             "timestamp": timestamp,
             "level": record.levelname,
             "component": record.name,

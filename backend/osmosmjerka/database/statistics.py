@@ -2,7 +2,6 @@
 
 import datetime
 import time
-from typing import Dict, List, Optional
 
 from osmosmjerka.database.models import (
     accounts_table,
@@ -19,7 +18,7 @@ from sqlalchemy.sql import delete, insert, select, update
 class StatisticsMixin:
     """Mixin class providing statistics and global settings management methods."""
 
-    async def get_user_statistics(self, user_id: int, language_set_id: Optional[int] = None) -> Dict:
+    async def get_user_statistics(self, user_id: int, language_set_id: int | None = None) -> dict:
         """Get user statistics with caching."""
         cache_key = self._get_cache_key("user_stats", user_id, language_set_id)
 
@@ -98,7 +97,7 @@ class StatisticsMixin:
 
         return result
 
-    async def get_user_favorite_categories(self, user_id: int, language_set_id: int, limit: int = 5) -> List[Dict]:
+    async def get_user_favorite_categories(self, user_id: int, language_set_id: int, limit: int = 5) -> list[dict]:
         """Get user's favorite categories for a language set."""
         cache_key = self._get_cache_key("fav_cats", user_id, language_set_id)
 
@@ -132,7 +131,7 @@ class StatisticsMixin:
 
         return result
 
-    async def get_admin_statistics_overview(self) -> Dict:
+    async def get_admin_statistics_overview(self) -> dict:
         """Get overview statistics for admin dashboard."""
         cache_key = "admin_overview"
 
@@ -176,7 +175,7 @@ class StatisticsMixin:
 
         return result
 
-    async def get_statistics_by_language_set(self, language_set_id: Optional[int] = None) -> List[Dict]:
+    async def get_statistics_by_language_set(self, language_set_id: int | None = None) -> list[dict]:
         """Get statistics grouped by language set."""
         cache_key = f"stats_by_langset:{language_set_id or 'all'}"
 
@@ -233,7 +232,7 @@ class StatisticsMixin:
 
         return result
 
-    async def get_user_statistics_list(self, language_set_id: Optional[int] = None, limit: int = 50) -> List[Dict]:
+    async def get_user_statistics_list(self, language_set_id: int | None = None, limit: int = 50) -> list[dict]:
         """Get statistics for all users, optionally filtered by language set."""
         cache_key = f"user_stats_list:{language_set_id or 'all'}:{limit}"
 
@@ -298,7 +297,7 @@ class StatisticsMixin:
 
         return result
 
-    async def get_global_setting(self, setting_key: str, default_value: Optional[str] = None) -> Optional[str]:
+    async def get_global_setting(self, setting_key: str, default_value: str | None = None) -> str | None:
         """Get a global setting value by key."""
         database = self._ensure_database()
 
@@ -308,7 +307,7 @@ class StatisticsMixin:
         return result["setting_value"] if result else default_value
 
     async def set_global_setting(
-        self, setting_key: str, setting_value: str, description: Optional[str] = None, updated_by: int = 0
+        self, setting_key: str, setting_value: str, description: str | None = None, updated_by: int = 0
     ) -> None:
         """Set a global setting value."""
         database = self._ensure_database()
