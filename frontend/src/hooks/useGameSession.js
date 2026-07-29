@@ -1,7 +1,7 @@
+import apiClient, { getAuthToken } from '@shared/utils/apiClient';
 import logger from '@shared/utils/logger';
-import axios from "axios";
 import { useCallback, useRef, useState } from "react";
-import { API_ENDPOINTS, STORAGE_KEYS } from "../shared/constants/constants";
+import { API_ENDPOINTS } from "../shared/constants/constants";
 
 export function useGameSession({ selectedLanguageSetId, statisticsEnabled }) {
   const [gameSessionId, setGameSessionId] = useState(null);
@@ -12,15 +12,16 @@ export function useGameSession({ selectedLanguageSetId, statisticsEnabled }) {
 
   const startGameSession = useCallback(
     async (category, difficulty, gridSize, totalPhrases) => {
-      const token = localStorage.getItem(STORAGE_KEYS.ADMIN_TOKEN);
-      if (!token || !selectedLanguageSetId || !statisticsEnabled) return;
+      if (!getAuthToken() || !selectedLanguageSetId || !statisticsEnabled) return;
 
       try {
-        const response = await axios.post(
-          `${API_ENDPOINTS.GAME}/game/start`,
-          { language_set_id: selectedLanguageSetId, category, difficulty, grid_size: gridSize, total_phrases: totalPhrases },
-          { headers: { Authorization: `Bearer ${token}`, "Content-Type": "application/json" } }
-        );
+        const response = await apiClient.post(`${API_ENDPOINTS.GAME}/game/start`, {
+          language_set_id: selectedLanguageSetId,
+          category,
+          difficulty,
+          grid_size: gridSize,
+          total_phrases: totalPhrases,
+        });
         setGameSessionId(response.data.session_id);
         setGameStartTime((prev) => prev ?? Date.now());
         setLastFoundCount(0);
@@ -35,15 +36,13 @@ export function useGameSession({ selectedLanguageSetId, statisticsEnabled }) {
 
   const updateGameProgress = useCallback(
     async (phrasesFound) => {
-      const token = localStorage.getItem(STORAGE_KEYS.ADMIN_TOKEN);
-      if (!token || !gameSessionId || !statisticsEnabled) return;
+      if (!getAuthToken() || !gameSessionId || !statisticsEnabled) return;
 
       try {
-        await axios.put(
-          `${API_ENDPOINTS.GAME}/game/progress`,
-          { session_id: gameSessionId, phrases_found: phrasesFound },
-          { headers: { Authorization: `Bearer ${token}`, "Content-Type": "application/json" } }
-        );
+        await apiClient.put(`${API_ENDPOINTS.GAME}/game/progress`, {
+          session_id: gameSessionId,
+          phrases_found: phrasesFound,
+        });
       } catch (error) {
         logger.error("Failed to update game progress:", error);
       }
@@ -53,9 +52,8 @@ export function useGameSession({ selectedLanguageSetId, statisticsEnabled }) {
 
   const completeGameSession = useCallback(
     async (phrasesFound, _isCompleted) => {
-      const token = localStorage.getItem(STORAGE_KEYS.ADMIN_TOKEN);
       if (
-        !token ||
+        !getAuthToken() ||
         !gameSessionId ||
         !gameStartTime ||
         sessionCompleted ||
@@ -68,11 +66,11 @@ export function useGameSession({ selectedLanguageSetId, statisticsEnabled }) {
       completionInProgressRef.current = true;
       try {
         const durationSeconds = Math.floor((Date.now() - gameStartTime) / 1000);
-        await axios.post(
-          `${API_ENDPOINTS.GAME}/game/complete`,
-          { session_id: gameSessionId, phrases_found: phrasesFound, duration_seconds: durationSeconds },
-          { headers: { Authorization: `Bearer ${token}`, "Content-Type": "application/json" } }
-        );
+        await apiClient.post(`${API_ENDPOINTS.GAME}/game/complete`, {
+          session_id: gameSessionId,
+          phrases_found: phrasesFound,
+          duration_seconds: durationSeconds,
+        });
         setSessionCompleted(true);
         setGameSessionId(null);
         setGameStartTime(null);

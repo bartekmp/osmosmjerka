@@ -1,7 +1,8 @@
+import apiClient from '@shared/utils/apiClient';
 import logger from '@shared/utils/logger';
 import axios from "axios";
 import { useEffect, useRef, useState } from "react";
-import { API_ENDPOINTS, STORAGE_KEYS } from "../shared/constants/constants";
+import { API_ENDPOINTS } from "../shared/constants/constants";
 
 export function useCategories({
   debouncedLanguageSetId,
@@ -30,6 +31,10 @@ export function useCategories({
       return;
     }
 
+    // Deliberately bare axios, not apiClient. These reads are anonymous on purpose:
+    // visibleCategories below already subtracts both ignored-category lists client-side,
+    // so authenticating would only make the backend repeat that filtering, and it would
+    // split a cache entry shared by every visitor into one per user.
     axios
       .get(`${API_ENDPOINTS.DEFAULT_IGNORED_CATEGORIES}?language_set_id=${debouncedLanguageSetId}`)
       .then((res) => setIgnoredCategories(res.data))
@@ -38,11 +43,8 @@ export function useCategories({
         if (err.response?.status === 429) onRateLimit();
       });
 
-    const token = localStorage.getItem("adminToken");
-    axios
-      .get(`${API_ENDPOINTS.USER_IGNORED_CATEGORIES}?language_set_id=${debouncedLanguageSetId}`, {
-        headers: token ? { Authorization: `Bearer ${token}` } : {},
-      })
+    apiClient
+      .get(`${API_ENDPOINTS.USER_IGNORED_CATEGORIES}?language_set_id=${debouncedLanguageSetId}`)
       .then((res) => setUserIgnoredCategories(res.data))
       .catch((err) => {
         setUserIgnoredCategories([]);
@@ -91,14 +93,10 @@ export function useCategories({
   useEffect(() => {
     if (!restored || !selectedLanguageSetId) return;
 
-    const token = localStorage.getItem(STORAGE_KEYS.ADMIN_TOKEN);
-
     if (selectedPrivateListId) {
       setCategoriesStatus("pending");
-      axios
-        .get(`/api/user/private-lists/${selectedPrivateListId}/categories?language_set_id=${selectedLanguageSetId}`, {
-          headers: token ? { Authorization: `Bearer ${token}` } : {},
-        })
+      apiClient
+        .get(`/api/user/private-lists/${selectedPrivateListId}/categories?language_set_id=${selectedLanguageSetId}`)
         .then((res) => {
           const listCategories = res.data || [];
           setCategories(["ALL", ...listCategories]);

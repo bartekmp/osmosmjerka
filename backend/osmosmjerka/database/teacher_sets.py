@@ -3,7 +3,7 @@
 import json
 import secrets
 from datetime import datetime, timedelta
-from typing import Any, Dict, List, Optional
+from typing import Any
 
 from osmosmjerka.database.models import (
     accounts_table,
@@ -49,16 +49,16 @@ class TeacherSetsMixin:
         name: str,
         language_set_id: int,
         created_by: int,
-        phrase_ids: List[int],
-        description: Optional[str] = None,
-        config: Optional[Dict] = None,
+        phrase_ids: list[int],
+        description: str | None = None,
+        config: dict | None = None,
         access_type: str = "public",
-        max_plays: Optional[int] = None,
-        expires_at: Optional[datetime] = None,
-        auto_delete_days: Optional[int] = 14,
-        access_user_ids: Optional[List[int]] = None,
-        access_group_ids: Optional[List[int]] = None,
-    ) -> Dict[str, Any]:
+        max_plays: int | None = None,
+        expires_at: datetime | None = None,
+        auto_delete_days: int | None = 14,
+        access_user_ids: list[int] | None = None,
+        access_group_ids: list[int] | None = None,
+    ) -> dict[str, Any]:
         """Create a new teacher phrase set with phrases and access control.
 
         Args:
@@ -188,7 +188,7 @@ class TeacherSetsMixin:
         limit: int = 20,
         offset: int = 0,
         active_only: bool = True,
-    ) -> Dict[str, Any]:
+    ) -> dict[str, Any]:
         """Get paginated list of teacher phrase sets.
 
         Args:
@@ -258,7 +258,7 @@ class TeacherSetsMixin:
             "has_more": offset + len(sets) < total,
         }
 
-    async def _get_phrase_set_counts(self, set_ids: List[int]) -> Dict[int, int]:
+    async def _get_phrase_set_counts(self, set_ids: list[int]) -> dict[int, int]:
         """Get phrase counts for multiple sets."""
         if not set_ids:
             return {}
@@ -276,7 +276,7 @@ class TeacherSetsMixin:
         result = await database.fetch_all(query)
         return {row["phrase_set_id"]: row["count"] for row in result}
 
-    async def _get_session_counts(self, set_ids: List[int]) -> Dict[int, Dict[str, int]]:
+    async def _get_session_counts(self, set_ids: list[int]) -> dict[int, dict[str, int]]:
         """Get session counts (total and completed) for multiple sets."""
         if not set_ids:
             return {}
@@ -302,8 +302,8 @@ class TeacherSetsMixin:
         }
 
     async def get_teacher_phrase_set_by_id(
-        self, set_id: int, user_id: Optional[int] = None, is_admin: bool = False
-    ) -> Optional[Dict[str, Any]]:
+        self, set_id: int, user_id: int | None = None, is_admin: bool = False
+    ) -> dict[str, Any] | None:
         """Get a phrase set by ID with ownership check.
 
         Args:
@@ -373,7 +373,7 @@ class TeacherSetsMixin:
         user_id: int,
         is_admin: bool = False,
         **kwargs,
-    ) -> Optional[Dict[str, Any]]:
+    ) -> dict[str, Any] | None:
         """Update a teacher phrase set.
 
         Only allows updating fields that don't affect existing sessions:
@@ -484,7 +484,7 @@ class TeacherSetsMixin:
 
         return True
 
-    async def regenerate_hotlink(self, set_id: int, user_id: int, is_admin: bool = False) -> Optional[Dict[str, str]]:
+    async def regenerate_hotlink(self, set_id: int, user_id: int, is_admin: bool = False) -> dict[str, str] | None:
         """Regenerate the hotlink token and increment version."""
         database = self._ensure_database()
 
@@ -517,9 +517,7 @@ class TeacherSetsMixin:
             "version": new_version,
         }
 
-    async def extend_auto_delete(
-        self, set_id: int, user_id: int, days: int, is_admin: bool = False
-    ) -> Optional[datetime]:
+    async def extend_auto_delete(self, set_id: int, user_id: int, days: int, is_admin: bool = False) -> datetime | None:
         """Extend the auto_delete_at date by specified days."""
         database = self._ensure_database()
 

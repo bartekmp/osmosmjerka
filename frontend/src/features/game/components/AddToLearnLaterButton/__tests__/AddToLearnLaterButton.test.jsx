@@ -2,12 +2,12 @@ import React from 'react';
 import { render, screen, fireEvent, waitFor } from '@testing-library/react';
 import { ThemeProvider } from '@mui/material/styles';
 import { createTheme } from '@mui/material/styles';
-import axios from 'axios';
+import axios from '@shared/utils/apiClient';
 import AddToLearnLaterButton from '../../AddToLearnLaterButton';
 import { withI18n } from '../../../../../testUtils';
 import { STORAGE_KEYS } from '../../../../../shared/constants/constants';
 
-jest.mock('axios');
+jest.mock('@shared/utils/apiClient');
 
 const theme = createTheme();
 
@@ -86,11 +86,6 @@ describe('AddToLearnLaterButton', () => {
           language_set_id: 1,
           phrase_ids: [1, 2, 3]
         },
-        expect.objectContaining({
-          headers: expect.objectContaining({
-            Authorization: 'Bearer test-token'
-          })
-        })
       );
     });
   });
@@ -131,11 +126,6 @@ describe('AddToLearnLaterButton', () => {
           language_set_id: 1,
           phrase_ids: [1, 2, 3]
         },
-        expect.objectContaining({
-          headers: expect.objectContaining({
-            Authorization: 'Bearer test-token'
-          })
-        })
       );
     });
 

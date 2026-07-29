@@ -1,7 +1,5 @@
 """Notifications API endpoints."""
 
-from typing import List, Optional
-
 from fastapi import APIRouter, Depends, Query, status
 from fastapi.responses import JSONResponse
 from osmosmjerka.auth import get_current_user
@@ -22,19 +20,19 @@ class Notification(BaseModel):
     type: str
     title: str
     message: str
-    link: Optional[str] = None
+    link: str | None = None
     is_read: bool = False
     created_at: str
-    expires_at: Optional[str] = None
-    metadata: Optional[dict] = None
+    expires_at: str | None = None
+    metadata: dict | None = None
 
 
-@router.get("", response_model=List[Notification])
+@router.get("", response_model=list[Notification])
 async def get_notifications(
     limit: int = Query(50, ge=1, le=100),
     unread_only: bool = False,
     user: dict = Depends(get_current_user),
-) -> List[Notification]:
+) -> list[Notification]:
     """Get notifications for the current user."""
     return await db_manager.get_user_notifications(user["id"], limit=limit, unread_only=unread_only)
 

@@ -1,7 +1,6 @@
 """Teacher phrase sets API endpoints."""
 
 from datetime import datetime
-from typing import List, Optional
 
 from fastapi import APIRouter, Depends, Query, status
 from fastapi.responses import JSONResponse
@@ -29,38 +28,38 @@ class PhraseSetConfig(BaseModel):
     show_timer: bool = False
     strict_grid_size: bool = False
     grid_size: int = Field(default=10, ge=8, le=20)
-    time_limit_minutes: Optional[int] = Field(default=None, ge=1, le=60)
+    time_limit_minutes: int | None = Field(default=None, ge=1, le=60)
     difficulty: str = "medium"
     game_type: str = Field(default="word_search", pattern="^(word_search|crossword)$")
 
 
 class CreatePhraseSetRequest(BaseModel):
     name: str = Field(..., min_length=1, max_length=255)
-    description: Optional[str] = None
+    description: str | None = None
     language_set_id: int
-    phrase_ids: List[int] = Field(..., min_length=1, max_length=50)
-    config: Optional[PhraseSetConfig] = None
+    phrase_ids: list[int] = Field(..., min_length=1, max_length=50)
+    config: PhraseSetConfig | None = None
     access_type: str = Field(default="public", pattern="^(public|private)$")
-    max_plays: Optional[int] = Field(default=None, ge=1)
-    expires_at: Optional[datetime] = None
-    auto_delete_days: Optional[int] = Field(default=14, ge=1, le=90)
-    access_user_ids: Optional[List[int]] = None
-    access_group_ids: Optional[List[int]] = None
-    access_usernames: Optional[List[str]] = None
-    game_type: Optional[str] = Field(default=None, pattern="^(word_search|crossword)$")
+    max_plays: int | None = Field(default=None, ge=1)
+    expires_at: datetime | None = None
+    auto_delete_days: int | None = Field(default=14, ge=1, le=90)
+    access_user_ids: list[int] | None = None
+    access_group_ids: list[int] | None = None
+    access_usernames: list[str] | None = None
+    game_type: str | None = Field(default=None, pattern="^(word_search|crossword)$")
 
 
 class UpdatePhraseSetRequest(BaseModel):
-    name: Optional[str] = Field(None, min_length=1, max_length=255)
-    description: Optional[str] = None
-    access_type: Optional[str] = Field(None, pattern="^(public|private)$")
-    max_plays: Optional[int] = Field(None, ge=1)
-    expires_at: Optional[datetime] = None
-    is_active: Optional[bool] = None
-    config: Optional[PhraseSetConfig] = None
-    access_user_ids: Optional[List[int]] = None
-    access_group_ids: Optional[List[int]] = None
-    access_usernames: Optional[List[str]] = None
+    name: str | None = Field(None, min_length=1, max_length=255)
+    description: str | None = None
+    access_type: str | None = Field(None, pattern="^(public|private)$")
+    max_plays: int | None = Field(None, ge=1)
+    expires_at: datetime | None = None
+    is_active: bool | None = None
+    config: PhraseSetConfig | None = None
+    access_user_ids: list[int] | None = None
+    access_group_ids: list[int] | None = None
+    access_usernames: list[str] | None = None
 
 
 class ExtendRequest(BaseModel):
@@ -68,15 +67,15 @@ class ExtendRequest(BaseModel):
 
 
 class StartSessionRequest(BaseModel):
-    nickname: Optional[str] = Field(None, max_length=100)
-    grid_size: Optional[int] = Field(None, ge=8, le=20)
+    nickname: str | None = Field(None, max_length=100)
+    grid_size: int | None = Field(None, ge=8, le=20)
 
 
 class CompleteSessionRequest(BaseModel):
     session_token: str
     phrases_found: int = Field(..., ge=0)
     duration_seconds: int = Field(..., ge=0)
-    translation_submissions: Optional[List[dict]] = None
+    translation_submissions: list[dict] | None = None
 
 
 # ============================================================================
@@ -527,7 +526,7 @@ async def export_sessions(
 @router.get("/set/{token}")
 async def get_set_by_token(
     token: str,
-    user: Optional[dict] = Depends(get_current_user_optional),
+    user: dict | None = Depends(get_current_user_optional),
 ) -> JSONResponse:
     """Validate hotlink and get phrase set data."""
     user_id = user["id"] if user else None
@@ -564,7 +563,7 @@ async def get_set_by_token(
 async def start_session(
     token: str,
     body: StartSessionRequest,
-    user: Optional[dict] = Depends(get_current_user_optional),
+    user: dict | None = Depends(get_current_user_optional),
 ) -> JSONResponse:
     """Start a new game session."""
     user_id = user["id"] if user else None

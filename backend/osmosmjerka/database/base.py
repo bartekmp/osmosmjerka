@@ -4,7 +4,7 @@ import asyncio
 import datetime
 import os
 import urllib.parse
-from typing import Any, Optional
+from typing import Any
 
 from databases import Database
 from dotenv import load_dotenv
@@ -21,7 +21,7 @@ logger = get_logger(__name__)
 class BaseDatabaseManager:
     """Base database manager class with connection management and utility methods."""
 
-    def __init__(self, database_url: Optional[str] = None) -> None:
+    def __init__(self, database_url: str | None = None) -> None:
         self._database_url = database_url
         self.database = None
         self.engine = None

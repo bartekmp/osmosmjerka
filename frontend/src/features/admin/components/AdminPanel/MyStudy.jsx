@@ -34,7 +34,7 @@ import { useStudentStudy } from './useStudentStudy';
 /**
  * My Study - Student view of their assigned puzzles and study groups
  */
-export default function MyStudy({ token }) {
+export default function MyStudy() {
     const { t } = useTranslation();
     const navigate = useNavigate();
     const [tabValue, setTabValue] = useState(0);
@@ -44,7 +44,7 @@ export default function MyStudy({ token }) {
     const [error, setError] = useState('');
     const [loading, setLoading] = useState(true);
 
-    const api = useStudentStudy({ token, setError });
+    const api = useStudentStudy({ setError });
 
     const loadData = useCallback(async () => {
         setLoading(true);

@@ -1,7 +1,5 @@
 """User preferences and ignored categories database operations."""
 
-from typing import Optional
-
 from osmosmjerka.database.models import user_ignored_categories_table, user_preferences_table
 from sqlalchemy.sql import delete, func, insert, select, update
 
@@ -55,8 +53,8 @@ class UserPreferencesMixin:
         return result
 
     async def get_user_preference(
-        self, user_id: int, preference_key: str, default_value: Optional[str] = None
-    ) -> Optional[str]:
+        self, user_id: int, preference_key: str, default_value: str | None = None
+    ) -> str | None:
         """Get a user preference value by key."""
         database = self._ensure_database()
 

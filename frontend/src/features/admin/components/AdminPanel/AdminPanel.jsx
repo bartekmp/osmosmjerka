@@ -1,3 +1,4 @@
+import { authHeaders } from '@shared/utils/apiClient';
 import logger from '@shared/utils/logger';
 import SchoolIcon from '@mui/icons-material/School';
 import ArrowBackIcon from '@mui/icons-material/ArrowBack';
@@ -74,7 +75,6 @@ export default function AdminPanel({
         handleLogin,
         showFetchRateLimit
     } = useAdminApi({
-        token,
         setError,
         setToken,
         setIsLogged,
@@ -154,9 +154,7 @@ export default function AdminPanel({
 
 
             fetch(endpoint, {
-                headers: {
-                    'Authorization': `Bearer ${token}`
-                }
+                headers: authHeaders()
             })
                 .then(res => {
                     if (!res.ok) {
@@ -202,9 +200,7 @@ export default function AdminPanel({
         const needsCategories = activeView === 'browseRecords' || activeView === 'languageSetManagement';
         if (isLogged && token && selectedLanguageSetId && needsCategories && !categoriesLoaded) {
             fetch(`${API_ENDPOINTS.ALL_CATEGORIES}?language_set_id=${selectedLanguageSetId}`, {
-                headers: {
-                    'Authorization': `Bearer ${token}`
-                }
+                headers: authHeaders()
             })
                 .then(res => {
                     if (!res.ok) {
@@ -239,7 +235,7 @@ export default function AdminPanel({
             }
             fetch(API_ENDPOINTS.USER_PROFILE, {
                 headers: token
-                    ? { Authorization: 'Bearer ' + token, 'Content-Type': 'application/json' }
+                    ? authHeaders({ 'Content-Type': 'application/json' })
                     : {}
             })
                 .then(res => {
@@ -573,7 +569,6 @@ export default function AdminPanel({
             <Box ref={containerRef} sx={{ width: '100%' }}>
                 {activeView === 'teacherDashboard' && (
                     <TeacherDashboard
-                        token={token}
                         setError={setError}
                         currentUser={currentUser}
                         languageSets={languageSets}
@@ -584,7 +579,7 @@ export default function AdminPanel({
                     <UserManagement currentUser={currentUser} />
                 )}
                 {activeView === 'statisticsDashboard' && (
-                    <StatisticsDashboard token={token} setError={setError} currentUser={currentUser} />
+                    <StatisticsDashboard setError={setError} currentUser={currentUser} />
                 )}
                 {activeView === 'systemSettings' && (
                     <SystemSettings />
@@ -600,7 +595,7 @@ export default function AdminPanel({
                     <UserProfile currentUser={currentUser} />
                 )}
                 {activeView === 'myStudy' && (
-                    <MyStudy token={token} />
+                    <MyStudy />
                 )}
                 {activeView === 'duplicateManagement' && (
                     <DuplicateManagement
@@ -616,7 +611,6 @@ export default function AdminPanel({
                 )}
                 {activeView === 'browseRecords' && (
                     <BrowseRecordsContainer
-                        token={token}
                         currentUser={currentUser}
                         selectedLanguageSetId={selectedLanguageSetId}
                         languageSets={languageSets}

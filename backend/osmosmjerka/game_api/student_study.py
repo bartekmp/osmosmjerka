@@ -1,7 +1,5 @@
 """Student study API endpoints."""
 
-from typing import List, Optional, Set
-
 from fastapi import APIRouter, Depends, Query
 from osmosmjerka.auth import get_current_user
 from osmosmjerka.database import db_manager
@@ -20,20 +18,20 @@ router = APIRouter(prefix="/user/study", tags=["student_study"])
 class AssignedPuzzleOut(BaseModel):
     id: int
     name: str
-    description: Optional[str] = None
+    description: str | None = None
     created_by: int
-    creator_username: Optional[str] = None
-    created_at: Optional[str] = None
+    creator_username: str | None = None
+    created_at: str | None = None
     phrase_count: int
     completed_count: int
     total_sessions: int
     is_completed: bool = False
-    expires_at: Optional[str] = None
+    expires_at: str | None = None
     token: str
 
 
 class AssignedPuzzlesResponse(BaseModel):
-    puzzles: List[AssignedPuzzleOut]
+    puzzles: list[AssignedPuzzleOut]
     total: int
 
 
@@ -57,7 +55,7 @@ async def list_assigned_puzzles(
     )
 
     # Get the set of completed puzzle IDs for this user
-    completed_ids: Set[int] = set()
+    completed_ids: set[int] = set()
     database = db_manager._ensure_database()
     completed_query = (
         select(teacher_phrase_set_sessions_table.c.phrase_set_id)

@@ -235,6 +235,10 @@ DB_POOL_SIZE=10          # Number of connections to maintain in the pool (defaul
 DB_MAX_OVERFLOW=5        # Maximum number of connections to create beyond pool_size (default: 5)
 DB_POOL_TIMEOUT=30      # Timeout in seconds for getting a connection from the pool (default: 30)
 
+# Background Maintenance (optional)
+# Periodically purges expired notifications and past-auto-delete teacher phrase sets.
+MAINTENANCE_INTERVAL_SECONDS=21600  # Seconds between sweeps (default: 21600 = 6h; 0 disables)
+
 # Logging Configuration (optional)
 LOG_DEVELOPMENT_MODE=false  # Enable human-readable logs with colors (default: false)
 LOG_LEVEL=INFO              # Logging level: DEBUG, INFO, WARNING, ERROR, CRITICAL (default: INFO)

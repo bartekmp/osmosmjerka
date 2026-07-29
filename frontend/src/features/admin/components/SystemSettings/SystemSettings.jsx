@@ -1,3 +1,4 @@
+import apiClient, { authHeaders, getAuthToken } from '@shared/utils/apiClient';
 import logger from '@shared/utils/logger';
 import React, { useState, useEffect } from "react";
 import {
@@ -16,7 +17,7 @@ import {
 } from "@mui/material";
 import { useTranslation } from "react-i18next";
 import axios from "axios";
-import { API_ENDPOINTS, STORAGE_KEYS } from "../../../../shared";
+import { API_ENDPOINTS } from "../../../../shared";
 
 const SystemSettings = () => {
   const { t } = useTranslation();
@@ -42,7 +43,7 @@ const SystemSettings = () => {
   }, []);
 
   const loadSettings = async () => {
-    const token = localStorage.getItem(STORAGE_KEYS.ADMIN_TOKEN);
+    const token = getAuthToken();
     if (!token) {
       setLoading(false);
       return;
@@ -54,18 +55,10 @@ const SystemSettings = () => {
       // Load all settings
       const [statisticsResponse, hintsResponse, ttsResponse, limitsResponse] =
         await Promise.all([
-          axios.get(`${API_ENDPOINTS.ADMIN}/settings/statistics`, {
-            headers: { Authorization: `Bearer ${token}` },
-          }),
-          axios.get(`${API_ENDPOINTS.ADMIN}/settings/progressive-hints`, {
-            headers: { Authorization: `Bearer ${token}` },
-          }),
-          axios.get(`${API_ENDPOINTS.ADMIN}/settings/tts`, {
-            headers: { Authorization: `Bearer ${token}` },
-          }).catch(() => ({ data: { enabled: true } })),
-          axios.get(`${API_ENDPOINTS.ADMIN}/settings/list-limits`, {
-            headers: { Authorization: `Bearer ${token}` },
-          }).catch(() => ({ data: { user_limit: 50, admin_limit: 500 } })),
+          apiClient.get(`${API_ENDPOINTS.ADMIN}/settings/statistics`),
+          apiClient.get(`${API_ENDPOINTS.ADMIN}/settings/progressive-hints`),
+          apiClient.get(`${API_ENDPOINTS.ADMIN}/settings/tts`).catch(() => ({ data: { enabled: true } })),
+          apiClient.get(`${API_ENDPOINTS.ADMIN}/settings/list-limits`).catch(() => ({ data: { user_limit: 50, admin_limit: 500 } })),
         ]);
 
       setSettings({
@@ -86,7 +79,7 @@ const SystemSettings = () => {
   };
 
   const updateSetting = async (settingType, enabled) => {
-    const token = localStorage.getItem(STORAGE_KEYS.ADMIN_TOKEN);
+    const token = getAuthToken();
     if (!token) return;
     try {
       let endpoint;
@@ -108,10 +101,7 @@ const SystemSettings = () => {
         endpoint,
         { enabled },
         {
-          headers: {
-            Authorization: `Bearer ${token}`,
-            "Content-Type": "application/json",
-          },
+          headers: authHeaders({ 'Content-Type': 'application/json' }),
         }
       );
 
@@ -146,7 +136,7 @@ const SystemSettings = () => {
   };
 
   const handleUpdateListLimits = async () => {
-    const token = localStorage.getItem(STORAGE_KEYS.ADMIN_TOKEN);
+    const token = getAuthToken();
     if (!token) return;
 
     setListLimitsLoading(true);
@@ -158,10 +148,7 @@ const SystemSettings = () => {
           admin_limit: listLimits.adminLimit,
         },
         {
-          headers: {
-            Authorization: `Bearer ${token}`,
-            "Content-Type": "application/json",
-          },
+          headers: authHeaders({ 'Content-Type': 'application/json' }),
         }
       );
 

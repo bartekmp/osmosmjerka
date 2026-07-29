@@ -1,7 +1,5 @@
 """Main DatabaseManager class that composes all database modules."""
 
-from typing import Optional
-
 from osmosmjerka.database.accounts import AccountsMixin
 from osmosmjerka.database.base import BaseDatabaseManager
 from osmosmjerka.database.game_sessions import GameSessionsMixin
@@ -44,7 +42,7 @@ class DatabaseManager(
     a specific domain of database operations.
     """
 
-    def __init__(self, database_url: Optional[str] = None):
+    def __init__(self, database_url: str | None = None):
         super().__init__(database_url)
 
 

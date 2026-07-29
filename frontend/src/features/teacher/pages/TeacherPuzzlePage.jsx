@@ -1,3 +1,4 @@
+import { authHeaders, getAuthToken } from '@shared/utils/apiClient';
 import logger from '@shared/utils/logger';
 import React, { useState, useEffect, useCallback, useRef } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
@@ -90,7 +91,7 @@ function TeacherPuzzlePage() {
     // Check if user is logged in
     useEffect(() => {
         const checkAuth = async () => {
-            const authToken = localStorage.getItem('adminToken');
+            const authToken = getAuthToken();
             if (!authToken) {
                 setCheckingAuth(false);
                 return;
@@ -98,10 +99,7 @@ function TeacherPuzzlePage() {
 
             try {
                 const response = await fetch('/admin/profile', {
-                    headers: {
-                        'Authorization': `Bearer ${authToken}`,
-                        'Content-Type': 'application/json',
-                    },
+                    headers: authHeaders({ 'Content-Type': 'application/json' }),
                 });
 
                 if (response.ok) {
@@ -145,11 +143,7 @@ function TeacherPuzzlePage() {
         setLoading(true);
         setError(null);
         try {
-            const authToken = localStorage.getItem('adminToken');
-            const headers = authToken
-                ? { 'Authorization': `Bearer ${authToken}` }
-                : {};
-            const response = await fetch(`/admin/teacher/set/${token}`, { headers });
+            const response = await fetch(`/admin/teacher/set/${token}`, { headers: authHeaders() });
             const data = await response.json();
 
             if (!response.ok) {
@@ -200,11 +194,7 @@ function TeacherPuzzlePage() {
 
         setLoading(true);
         try {
-            const headers = { 'Content-Type': 'application/json' };
-            const authToken = localStorage.getItem('adminToken');
-            if (authToken) {
-                headers['Authorization'] = `Bearer ${authToken}`;
-            }
+            const headers = authHeaders({ 'Content-Type': 'application/json' });
 
             const response = await fetch(`/admin/teacher/set/${token}/start`, {
                 method: 'POST',

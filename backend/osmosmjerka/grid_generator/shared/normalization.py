@@ -1,7 +1,5 @@
 """Phrase normalization utilities for grid generation."""
 
-from typing import List, Tuple
-
 
 def normalize_phrase(phrase: str) -> str:
     """
@@ -19,7 +17,7 @@ def normalize_phrase(phrase: str) -> str:
     return result.strip("-")
 
 
-def find_intersections(phrase1: str, phrase2: str) -> List[Tuple[int, int]]:
+def find_intersections(phrase1: str, phrase2: str) -> list[tuple[int, int]]:
     """
     Find all possible intersection points between two phrases.
 

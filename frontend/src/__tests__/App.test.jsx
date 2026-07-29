@@ -7,6 +7,25 @@ import { withI18n } from '../testUtils';
 
 jest.mock('axios');
 
+// axios is auto-mocked above, so axios.create() returns undefined and the real
+// apiClient module cannot initialise its interceptor. Stub the module instead, keeping
+// getAuthToken's localStorage-backed semantics so auth state still behaves normally.
+jest.mock('@shared/utils/apiClient', () => ({
+    __esModule: true,
+    // Resolve by default, mirroring the catch-all in this suite's axios.get mock: these
+    // are incidental auth-only calls (ignored categories, mastery stats) that the tests
+    // don't assert on, but whose promises are chained.
+    default: {
+        get: jest.fn(() => Promise.resolve({ data: [] })),
+        post: jest.fn(() => Promise.resolve({ data: {} })),
+        put: jest.fn(() => Promise.resolve({ data: {} })),
+        delete: jest.fn(() => Promise.resolve({ data: {} })),
+    },
+    // Reached via globalThis: jest forbids a mock factory from closing over out-of-scope
+    // variables, and `localStorage` is not on its allowlist.
+    getAuthToken: () => globalThis.localStorage.getItem('adminToken'),
+}));
+
 jest.mock('../features/game/components/Timer', () => {
     const React = require('react');
     return {

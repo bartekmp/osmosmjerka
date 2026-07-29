@@ -1,7 +1,6 @@
 """Game session tracking database operations."""
 
 import time
-from typing import Dict, Optional
 
 from osmosmjerka.database.models import game_sessions_table, user_category_plays_table, user_statistics_table
 from sqlalchemy.sql import func, insert, select, update
@@ -10,13 +9,13 @@ from sqlalchemy.sql import func, insert, select, update
 class GameSessionsMixin:
     """Mixin class providing game session tracking methods."""
 
-    def _get_cache_key(self, prefix: str, user_id: int, language_set_id: Optional[int] = None) -> str:
+    def _get_cache_key(self, prefix: str, user_id: int, language_set_id: int | None = None) -> str:
         """Generate cache key for statistics."""
         if language_set_id is not None:
             return f"{prefix}:{user_id}:{language_set_id}"
         return f"{prefix}:{user_id}"
 
-    def _is_cache_valid(self, cache_entry: Dict) -> bool:
+    def _is_cache_valid(self, cache_entry: dict) -> bool:
         """Check if cache entry is still valid."""
         return time.time() - cache_entry["timestamp"] < self._statistics_cache_ttl
 

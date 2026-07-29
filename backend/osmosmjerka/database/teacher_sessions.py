@@ -2,8 +2,8 @@
 
 import json
 import uuid
-from datetime import datetime, timezone
-from typing import Any, Dict, List, Optional
+from datetime import UTC, datetime
+from typing import Any
 
 from osmosmjerka.database.models import (
     accounts_table,
@@ -28,8 +28,8 @@ class TeacherSetsSessionsMixin:
         difficulty: str,
         total_phrases: int,
         hotlink_version: int,
-        user_id: Optional[int] = None,
-    ) -> Dict[str, Any]:
+        user_id: int | None = None,
+    ) -> dict[str, Any]:
         """Create a new game session for a phrase set."""
         database = self._ensure_database()
 
@@ -76,8 +76,8 @@ class TeacherSetsSessionsMixin:
         session_token: str,
         phrases_found: int,
         duration_seconds: int,
-        translation_submissions: Optional[List[Dict]] = None,
-    ) -> Optional[Dict[str, Any]]:
+        translation_submissions: list[dict] | None = None,
+    ) -> dict[str, Any] | None:
         """Complete a game session with results."""
         database = self._ensure_database()
 
@@ -182,7 +182,7 @@ class TeacherSetsSessionsMixin:
             "is_completed": True,
         }
 
-    async def get_session_by_token(self, session_token: str) -> Optional[Dict[str, Any]]:
+    async def get_session_by_token(self, session_token: str) -> dict[str, Any] | None:
         """Get a session by its token."""
         database = self._ensure_database()
 
@@ -209,7 +209,7 @@ class TeacherSetsSessionsMixin:
         limit: int = 50,
         offset: int = 0,
         completed_only: bool = False,
-    ) -> Dict[str, Any]:
+    ) -> dict[str, Any]:
         """Get paginated sessions for a phrase set."""
         database = self._ensure_database()
 
@@ -297,12 +297,17 @@ class TeacherSetsSessionsMixin:
     async def cleanup_expired_sets(self) -> int:
         """Delete phrase sets that have passed their auto_delete_at date.
 
+        The timestamp must be naive: ``teacher_phrase_sets.auto_delete_at`` is declared
+        without ``timezone=True`` (as is every DateTime column in models.py), and passing
+        an aware datetime makes asyncpg raise ``can't subtract offset-naive and
+        offset-aware datetimes``.
+
         Returns:
             Number of sets deleted
         """
         database = self._ensure_database()
 
-        now = datetime.now(timezone.utc)
+        now = datetime.now(UTC).replace(tzinfo=None)
 
         # Get sets to delete for logging
         select_query = select(
@@ -325,7 +330,9 @@ class TeacherSetsSessionsMixin:
                 "Auto-deleting expired phrase set",
                 extra={
                     "phrase_set_id": row["id"],
-                    "name": row["name"],
+                    # Not "name": logging reserves that attribute on LogRecord and
+                    # raises KeyError when `extra` tries to overwrite it.
+                    "phrase_set_name": row["name"],
                     "created_by": row["created_by"],
                 },
             )

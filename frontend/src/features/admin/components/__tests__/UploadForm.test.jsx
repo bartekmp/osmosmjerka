@@ -1,10 +1,10 @@
 import React from 'react';
 import { fireEvent, render, screen, waitFor } from '@testing-library/react';
-import axios from 'axios';
+import axios from '@shared/utils/apiClient';
 import UploadForm from '../UploadForm';
 import { withI18n } from '../../../../testUtils';
 
-jest.mock('axios');
+jest.mock('@shared/utils/apiClient');
 
 beforeEach(() => {
     // Reset localStorage between tests

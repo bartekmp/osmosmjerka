@@ -1,14 +1,13 @@
 """Phrase placement strategies for grid generation."""
 
 import random
-from typing import Dict, List, Optional, Tuple
 
 from osmosmjerka.grid_generator.shared.normalization import find_intersections, normalize_phrase
 from osmosmjerka.grid_generator.shared.utils import _place_phrase_on_grid
 from osmosmjerka.grid_generator.word_search.scoring import score_phrase_placement
 
 
-def _is_valid_placement(grid: List[List[str]], phrase: str, coords: List[Tuple[int, int]], size: int) -> bool:
+def _is_valid_placement(grid: list[list[str]], phrase: str, coords: list[tuple[int, int]], size: int) -> bool:
     """
     Check if a phrase can be placed at the given coordinates.
     Helper function for placement validation.
@@ -22,8 +21,8 @@ def _is_valid_placement(grid: List[List[str]], phrase: str, coords: List[Tuple[i
 
 
 def try_place_phrase_with_intersections(
-    grid: List[List[str]], phrase: str, placed_phrases: List[Dict]
-) -> Optional[Tuple[List[Tuple[int, int]], Tuple[int, int]]]:
+    grid: list[list[str]], phrase: str, placed_phrases: list[dict]
+) -> tuple[list[tuple[int, int]], tuple[int, int]] | None:
     """
     Attempt to place a phrase by finding intersections with already placed phrases.
     This is the primary placement strategy that creates interconnected phrase networks.
@@ -76,8 +75,8 @@ def try_place_phrase_with_intersections(
 
 
 def try_systematic_placement(
-    grid: List[List[str]], phrase: str, size: int, directions: List[Tuple[int, int]]
-) -> Optional[Tuple[List[Tuple[int, int]], Tuple[int, int]]]:
+    grid: list[list[str]], phrase: str, size: int, directions: list[tuple[int, int]]
+) -> tuple[list[tuple[int, int]], tuple[int, int]] | None:
     """
     Try systematic placement by checking all positions methodically.
     This is a fallback strategy when intersection-based placement fails.
@@ -113,8 +112,8 @@ def try_systematic_placement(
 
 
 def _try_random_placement_with_scoring(
-    grid: List[List[str]], phrase: str, placed_phrases: List[Dict]
-) -> Optional[Tuple[List[Tuple[int, int]], Tuple[int, int]]]:
+    grid: list[list[str]], phrase: str, placed_phrases: list[dict]
+) -> tuple[list[tuple[int, int]], tuple[int, int]] | None:
     """
     Try random placement with intelligent scoring.
     This balances randomness with strategic placement decisions.
@@ -156,7 +155,7 @@ def _try_random_placement_with_scoring(
     return best_placement
 
 
-def place_single_phrase(grid: List[List[str]], phrase_data: Tuple[Dict, str, str], placed_phrases: List[Dict]) -> bool:
+def place_single_phrase(grid: list[list[str]], phrase_data: tuple[dict, str, str], placed_phrases: list[dict]) -> bool:
     """
     Attempt to place a single phrase in the grid using the best available strategy.
 

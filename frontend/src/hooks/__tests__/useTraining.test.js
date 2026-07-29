@@ -1,15 +1,24 @@
 import { renderHook, act } from '@testing-library/react';
-import axios from 'axios';
+import apiClient from '@shared/utils/apiClient';
 import { useTraining } from '../useTraining';
 import { STORAGE_KEYS } from '../../shared/constants/constants';
 
-jest.mock('axios');
+jest.mock('@shared/utils/apiClient', () => {
+    // Only the axios instance is faked; getAuthToken keeps its real localStorage-backed
+    // implementation so these tests can still drive auth state via localStorage.
+    const actual = jest.requireActual('@shared/utils/apiClient');
+    return {
+        __esModule: true,
+        ...actual,
+        default: { get: jest.fn(), post: jest.fn(), put: jest.fn(), delete: jest.fn() },
+    };
+});
 
 describe('useTraining', () => {
     beforeEach(() => {
         jest.clearAllMocks();
         localStorage.clear();
-        axios.post.mockResolvedValue({ data: {} });
+        apiClient.post.mockResolvedValue({ data: {} });
     });
 
     test('defaults training mode on', () => {
@@ -60,8 +69,8 @@ describe('useTraining', () => {
         act(() => result.current.enqueueForRating({ id: 10, phrase: 'kruh', translation: 'chleb' }));
         act(() => result.current.submitRating('good'));
 
-        expect(axios.post).toHaveBeenCalledTimes(1);
-        const [url, body] = axios.post.mock.calls[0];
+        expect(apiClient.post).toHaveBeenCalledTimes(1);
+        const [url, body] = apiClient.post.mock.calls[0];
         expect(url).toContain('/learn/review');
         expect(body).toMatchObject({ language_set_id: 3, direction: 'recognition', grade: 'good', phrase_id: 10 });
         expect(result.current.currentRating).toBeNull();
@@ -72,14 +81,14 @@ describe('useTraining', () => {
         const { result } = renderHook(() => useTraining({ selectedLanguageSetId: 1, gameType: 'crossword' }));
         act(() => result.current.enqueueForRating({ id: 5, phrase: 'x', translation: 'y' }));
         act(() => result.current.submitRating('easy'));
-        expect(axios.post.mock.calls[0][1].direction).toBe('production');
+        expect(apiClient.post.mock.calls[0][1].direction).toBe('production');
     });
 
     test('submitRating does not post when no auth token', () => {
         const { result } = renderHook(() => useTraining({ selectedLanguageSetId: 1, gameType: 'word_search' }));
         act(() => result.current.enqueueForRating({ id: 5, phrase: 'x' }));
         act(() => result.current.submitRating('again'));
-        expect(axios.post).not.toHaveBeenCalled();
+        expect(apiClient.post).not.toHaveBeenCalled();
         expect(result.current.currentRating).toBeNull(); // still advances the queue
     });
 });

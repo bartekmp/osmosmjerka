@@ -3,8 +3,9 @@
 import os
 import time
 from collections import defaultdict
+from collections.abc import Callable
 from functools import wraps
-from typing import Any, Callable, Dict, Optional, TypeVar
+from typing import Any, TypeVar
 
 from fastapi import HTTPException, Request
 from osmosmjerka.logging_config import get_logger
@@ -18,11 +19,11 @@ class AsyncLRUCache:
     """Simple async-compatible LRU cache with TTL support."""
 
     def __init__(self, maxsize: int = 128, ttl: int = 300) -> None:
-        self.cache: Dict[str, tuple[Any, float]] = {}
+        self.cache: dict[str, tuple[Any, float]] = {}
         self.maxsize = maxsize
         self.ttl = ttl
 
-    def get(self, key: str) -> Optional[Any]:
+    def get(self, key: str) -> Any | None:
         """Get cached value if it exists and hasn't expired."""
         if key in self.cache:
             value, timestamp = self.cache[key]
@@ -54,7 +55,7 @@ class RateLimiter:
     """Simple in-memory rate limiter."""
 
     def __init__(self) -> None:
-        self.requests: Dict[str, list[float]] = defaultdict(list)
+        self.requests: dict[str, list[float]] = defaultdict(list)
 
     def is_allowed(self, identifier: str, max_requests: int, window_seconds: int) -> bool:
         """Check if request is allowed within rate limits."""
@@ -173,12 +174,17 @@ def rate_limit(max_requests: int, window_seconds: int) -> Callable[[F], F]:
     return decorator
 
 
-def cache_response(cache_instance: AsyncLRUCache, key_prefix: str = "") -> Callable[[F], F]:
+def cache_response(cache_instance: AsyncLRUCache, key_prefix: str = "", vary_on_user: bool = False) -> Callable[[F], F]:
     """Decorator to cache FastAPI endpoint responses.
 
     Args:
         cache_instance: The cache instance to use for storing responses
         key_prefix: Optional prefix for cache keys
+        vary_on_user: Set this on any endpoint whose response depends on who is asking.
+            The cache key is built only from scalar arguments, so the ``Request`` object
+            never contributes to it - without this flag two callers hitting the same URL
+            share one entry, and the first authenticated response would be served to
+            everyone else, including anonymous visitors.
 
     Returns:
         Decorator function that wraps the endpoint with caching
@@ -202,6 +208,14 @@ def cache_response(cache_instance: AsyncLRUCache, key_prefix: str = "") -> Calla
             for key, value in kwargs.items():
                 if key != "refresh" and isinstance(value, (str, int, float, bool)):
                     cache_key_parts.append(f"{key}_{value}")
+
+            if vary_on_user:
+                # Imported lazily: auth imports the database layer, which imports this
+                # module, so a module-level import would be circular.
+                from osmosmjerka.auth import optional_user_from_request
+
+                user = optional_user_from_request(kwargs.get("request"))
+                cache_key_parts.append(f"user_{user['id']}" if user else "anon")
 
             cache_key = "_".join(filter(None, cache_key_parts))
 

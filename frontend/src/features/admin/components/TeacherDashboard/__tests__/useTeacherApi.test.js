@@ -1,8 +1,15 @@
 import { renderHook, act } from '@testing-library/react';
+import apiClient from '@shared/utils/apiClient';
 import { useTeacherApi } from '../useTeacherApi';
 
-// Mock fetch
-global.fetch = jest.fn();
+// The hook talks to the shared API client now; the Authorization header is applied by
+// that client's interceptor (covered by its own tests) rather than assembled here.
+jest.mock('@shared/utils/apiClient', () => ({
+    __esModule: true,
+    default: { request: jest.fn() },
+}));
+
+const ok = (data) => apiClient.request.mockResolvedValue({ data });
 
 describe('useTeacherApi', () => {
     beforeEach(() => {
@@ -10,12 +17,7 @@ describe('useTeacherApi', () => {
     });
 
     test('fetchPhraseSets makes correct API call', async () => {
-        global.fetch = jest.fn(() =>
-            Promise.resolve({
-                ok: true,
-                json: () => Promise.resolve({ sets: [], total: 0 }),
-            })
-        );
+        ok({ sets: [], total: 0 });
 
         const { result } = renderHook(() => useTeacherApi({ token: 'test-token', setError: jest.fn() }));
 
@@ -23,23 +25,16 @@ describe('useTeacherApi', () => {
             await result.current.fetchPhraseSets();
         });
 
-        expect(global.fetch).toHaveBeenCalledWith(
-            expect.stringContaining('/admin/teacher/phrase-sets'),
+        expect(apiClient.request).toHaveBeenCalledWith(
             expect.objectContaining({
-                headers: expect.objectContaining({
-                    Authorization: 'Bearer test-token',
-                }),
+                url: expect.stringContaining('/admin/teacher/phrase-sets'),
+                method: 'GET',
             })
         );
     });
 
     test('createPhraseSet sends POST request', async () => {
-        global.fetch = jest.fn(() =>
-            Promise.resolve({
-                ok: true,
-                json: () => Promise.resolve({ id: 1, name: 'Test Set' }),
-            })
-        );
+        ok({ id: 1, name: 'Test Set' });
 
         const { result } = renderHook(() => useTeacherApi({ token: 'test-token', setError: jest.fn() }));
 
@@ -51,22 +46,17 @@ describe('useTeacherApi', () => {
             });
         });
 
-        expect(global.fetch).toHaveBeenCalledWith(
-            '/admin/teacher/phrase-sets',
+        expect(apiClient.request).toHaveBeenCalledWith(
             expect.objectContaining({
+                url: '/admin/teacher/phrase-sets',
                 method: 'POST',
-                body: expect.stringContaining('Test Set'),
+                data: expect.stringContaining('Test Set'),
             })
         );
     });
 
     test('deletePhraseSet sends DELETE request', async () => {
-        global.fetch = jest.fn(() =>
-            Promise.resolve({
-                ok: true,
-                json: () => Promise.resolve({ message: 'Deleted' }),
-            })
-        );
+        ok({ message: 'Deleted' });
 
         const { result } = renderHook(() => useTeacherApi({ token: 'test-token', setError: jest.fn() }));
 
@@ -74,21 +64,16 @@ describe('useTeacherApi', () => {
             await result.current.deletePhraseSet(1);
         });
 
-        expect(global.fetch).toHaveBeenCalledWith(
-            '/admin/teacher/phrase-sets/1',
+        expect(apiClient.request).toHaveBeenCalledWith(
             expect.objectContaining({
+                url: '/admin/teacher/phrase-sets/1',
                 method: 'DELETE',
             })
         );
     });
 
     test('regenerateLink sends POST request', async () => {
-        global.fetch = jest.fn(() =>
-            Promise.resolve({
-                ok: true,
-                json: () => Promise.resolve({ token: 'newtoken', version: 2 }),
-            })
-        );
+        ok({ token: 'newtoken', version: 2 });
 
         const { result } = renderHook(() => useTeacherApi({ token: 'test-token', setError: jest.fn() }));
 
@@ -109,12 +94,7 @@ describe('useTeacherApi', () => {
 
     test('handles API errors correctly', async () => {
         const mockSetError = jest.fn();
-        global.fetch = jest.fn(() =>
-            Promise.resolve({
-                ok: false,
-                json: () => Promise.resolve({ message: 'Server error' }),
-            })
-        );
+        apiClient.request.mockRejectedValue({ response: { data: { message: 'Server error' } } });
 
         const { result } = renderHook(() => useTeacherApi({ token: 'test-token', setError: mockSetError }));
 
@@ -131,8 +111,8 @@ describe('useTeacherApi', () => {
 
     test('isLoading state updates during API call', async () => {
         let resolvePromise;
-        global.fetch = jest.fn(() =>
-            new Promise((resolve) => {
+        apiClient.request.mockImplementation(
+            () => new Promise((resolve) => {
                 resolvePromise = resolve;
             })
         );
@@ -148,10 +128,7 @@ describe('useTeacherApi', () => {
         });
 
         // Resolve the fetch
-        resolvePromise({
-            ok: true,
-            json: () => Promise.resolve({ sets: [] }),
-        });
+        resolvePromise({ data: { sets: [] } });
 
         await act(async () => {
             await fetchPromise;

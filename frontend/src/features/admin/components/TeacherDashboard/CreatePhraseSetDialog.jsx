@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useMemo, useCallback } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import {
     Box,
     Button,
@@ -31,86 +31,43 @@ import {
 } from '@mui/material';
 import { useTranslation } from 'react-i18next';
 import { useTeacherApi } from './useTeacherApi';
-import { useGroups } from './useGroups';
+import { usePhraseSetForm } from './usePhraseSetForm';
 
 const STEP_KEYS = ['teacher.create.steps.basic', 'teacher.create.steps.select', 'teacher.create.steps.configure'];
 
 /**
  * Dialog for creating a new phrase set
  */
-function CreatePhraseSetDialog({ open, onClose, onCreated, token, languageSets, currentLanguageSetId }) {
+function CreatePhraseSetDialog({ open, onClose, onCreated, languageSets, currentLanguageSetId }) {
     // Stepper state
     const [activeStep, setActiveStep] = useState(0);
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState('');
 
-    // Form state - Step 1: Basic Info
-    const [name, setName] = useState('');
-    const [description, setDescription] = useState('');
-    const [languageSetId, setLanguageSetId] = useState(currentLanguageSetId || '');
+    // Create-only: the basic-info step lets the teacher pick a game type.
     const [gameType, setGameType] = useState('word_search');
 
-    // Form state - Step 2: Phrases (phrases loaded from API)
-    const [availablePhrases, setAvailablePhrases] = useState([]);
-    const [selectedPhraseIds, setSelectedPhraseIds] = useState([]);
-    const [phraseFilter, setPhraseFilter] = useState('');
-    const [categoryFilter, setCategoryFilter] = useState('');
-    const [loadingPhrases, setLoadingPhrases] = useState(false);
-
-    // Form state - Step 3: Configuration
-    const [config, setConfig] = useState({
-        allow_hints: true,
-        show_translations: true,
-        require_translation_input: false,
-        show_timer: false,
-        strict_grid_size: false,
-        grid_size: 10,
-        difficulty: 'medium',
-    });
-    const [accessType, setAccessType] = useState('public');
-    const [maxPlays, setMaxPlays] = useState('');
-    const [autoDeleteDays, setAutoDeleteDays] = useState(14);
-
-    const [neverDelete, setNeverDelete] = useState(false);
-
-    // Group selection state
-    const [groups, setGroups] = useState([]);
-    const [selectedGroupIds, setSelectedGroupIds] = useState([]);
-    const [manualUsernames, setManualUsernames] = useState('');
-
     const { t } = useTranslation();
-    const api = useTeacherApi({ token, setError });
-    const groupsApi = useGroups({ token, setError });
+    const form = usePhraseSetForm({ setError });
+    const {
+        name, setName, description, setDescription, languageSetId, setLanguageSetId,
+        selectedPhraseIds,
+        phraseFilter, setPhraseFilter, categoryFilter, setCategoryFilter, loadingPhrases,
+        config, setConfig, accessType, setAccessType, maxPlays, setMaxPlays,
+        autoDeleteDays, setAutoDeleteDays, neverDelete, setNeverDelete, groups,
+        selectedGroupIds, setSelectedGroupIds, manualUsernames, setManualUsernames,
+        loadGroups, loadPhrases, handlePhraseToggle, filteredPhrases, availableCategories,
+        resetForm, buildAccessPayload,
+    } = form;
+
+    const api = useTeacherApi({ setError });
 
     // Reset form when dialog opens
     useEffect(() => {
         if (open) {
             setActiveStep(0);
-            setName('');
-            setDescription('');
-            setLanguageSetId(currentLanguageSetId || '');
+            resetForm(currentLanguageSetId || '');
             setGameType('word_search');
-            setSelectedPhraseIds([]);
-            setPhraseFilter('');
-            setCategoryFilter('');
-            setConfig({
-                allow_hints: true,
-                show_translations: true,
-                require_translation_input: false,
-                show_timer: false,
-                strict_grid_size: false,
-                grid_size: 10,
-                difficulty: 'medium',
-            });
-            setAccessType('public');
-            setMaxPlays('');
-            setAutoDeleteDays(14);
-            setNeverDelete(false);
-            setMaxPlays('');
-            setAutoDeleteDays(14);
-            setNeverDelete(false);
-            setSelectedGroupIds([]);
-            setManualUsernames('');
             setError('');
 
             // Load groups if private access is possible (or just always load to be ready)
@@ -118,37 +75,12 @@ function CreatePhraseSetDialog({ open, onClose, onCreated, token, languageSets, 
         }
     }, [open, currentLanguageSetId]);
 
-    const loadGroups = async () => {
-        try {
-            const data = await groupsApi.fetchGroups();
-            setGroups(data);
-        } catch {
-            // Ignore (maybe teacher has no groups yet or error handled globally)
-        }
-    };
-
     // Load phrases when language set changes
     useEffect(() => {
         if (languageSetId && activeStep === 1) {
             loadPhrases();
         }
     }, [languageSetId, activeStep]);
-
-    const loadPhrases = async () => {
-        setLoadingPhrases(true);
-        try {
-            // Fetch phrases from admin API
-            const response = await fetch(`/admin/rows?language_set_id=${languageSetId}&limit=500`, {
-                headers: { Authorization: `Bearer ${token}` },
-            });
-            const data = await response.json();
-            setAvailablePhrases(data.rows || []);
-        } catch {
-            setError('Failed to load phrases');
-        } finally {
-            setLoadingPhrases(false);
-        }
-    };
 
     // Update config defaults when game type changes
     useEffect(() => {
@@ -160,18 +92,6 @@ function CreatePhraseSetDialog({ open, onClose, onCreated, token, languageSets, 
             }));
         }
     }, [gameType]);
-
-    const handlePhraseToggle = (phraseId) => {
-        setSelectedPhraseIds(prev => {
-            if (prev.includes(phraseId)) {
-                return prev.filter(id => id !== phraseId);
-            }
-            if (prev.length >= 50) {
-                return prev; // Max 50 phrases
-            }
-            return [...prev, phraseId];
-        });
-    };
 
     const handleNext = () => {
         if (activeStep === 0) {
@@ -203,11 +123,6 @@ function CreatePhraseSetDialog({ open, onClose, onCreated, token, languageSets, 
         setLoading(true);
         setError('');
         try {
-            let parsedUsernames = [];
-            if (manualUsernames.trim()) {
-                parsedUsernames = manualUsernames.split(',').map(u => u.trim()).filter(u => u);
-            }
-
             const result = await api.createPhraseSet({
                 name: name.trim(),
                 description: description.trim() || null,
@@ -215,11 +130,7 @@ function CreatePhraseSetDialog({ open, onClose, onCreated, token, languageSets, 
                 game_type: gameType,
                 phrase_ids: selectedPhraseIds,
                 config,
-                access_type: accessType,
-                max_plays: maxPlays ? parseInt(maxPlays) : null,
-                auto_delete_days: neverDelete ? null : autoDeleteDays,
-                access_group_ids: accessType === 'private' && selectedGroupIds.length > 0 ? selectedGroupIds : undefined,
-                access_usernames: accessType === 'private' && parsedUsernames.length > 0 ? parsedUsernames : undefined,
+                ...buildAccessPayload(),
             });
             onCreated(result);
             onClose();
@@ -230,42 +141,9 @@ function CreatePhraseSetDialog({ open, onClose, onCreated, token, languageSets, 
         }
     };
 
-    const availableCategories = useMemo(() => {
-        const categories = new Set();
-        availablePhrases.forEach(p => {
-            if (p.categories) {
-                p.categories.split(' ').forEach(c => {
-                    if (c.trim()) categories.add(c.trim());
-                });
-            }
-        });
-        return Array.from(categories).sort();
-    }, [availablePhrases]);
-
     // State for lazy loading
     const [visibleCount, setVisibleCount] = useState(50);
     const listRef = React.useRef(null);
-
-    const filteredPhrases = useMemo(() => availablePhrases.filter(p => {
-        // Text filter
-        if (phraseFilter) {
-            const search = phraseFilter.toLowerCase();
-            const matchesText = (
-                p.phrase?.toLowerCase().includes(search) ||
-                p.translation?.toLowerCase().includes(search) ||
-                p.categories?.toLowerCase().includes(search)
-            );
-            if (!matchesText) return false;
-        }
-
-        // Category filter
-        if (categoryFilter) {
-            const phraseCategories = p.categories ? p.categories.split(' ') : [];
-            if (!phraseCategories.includes(categoryFilter)) return false;
-        }
-
-        return true;
-    }), [availablePhrases, phraseFilter, categoryFilter]);
 
     // Reset visible count when filters change
     useEffect(() => {

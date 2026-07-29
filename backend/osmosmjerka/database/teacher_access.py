@@ -2,7 +2,7 @@
 
 import json
 from datetime import datetime
-from typing import Any, Dict, List, Optional
+from typing import Any
 
 from osmosmjerka.database.models import (
     accounts_table,
@@ -24,7 +24,7 @@ logger = get_logger(__name__)
 class TeacherSetsAccessMixin:
     """Mixin providing hotlink access validation and student puzzle queries."""
 
-    async def get_phrase_set_by_token(self, token: str) -> Optional[Dict[str, Any]]:
+    async def get_phrase_set_by_token(self, token: str) -> dict[str, Any] | None:
         """Get a phrase set by its hotlink token (for public access)."""
         database = self._ensure_database()
 
@@ -43,7 +43,7 @@ class TeacherSetsAccessMixin:
 
         return self._serialize_datetimes(row_dict)
 
-    async def validate_hotlink_access(self, token: str, user_id: Optional[int] = None) -> Dict[str, Any]:
+    async def validate_hotlink_access(self, token: str, user_id: int | None = None) -> dict[str, Any]:
         """Validate hotlink access and return set data or error.
 
         Returns:
@@ -200,7 +200,7 @@ class TeacherSetsAccessMixin:
         )
         await database.execute(query)
 
-    async def get_student_assigned_puzzles(self, user_id: int, limit: int = 50, offset: int = 0) -> Dict[str, Any]:
+    async def get_student_assigned_puzzles(self, user_id: int, limit: int = 50, offset: int = 0) -> dict[str, Any]:
         """Get puzzles assigned to a student (directly or via groups)."""
         database = self._ensure_database()
 
@@ -288,7 +288,7 @@ class TeacherSetsAccessMixin:
             "total": total,
         }
 
-    async def get_phrase_set_phrases(self, set_id: int) -> List[Dict[str, Any]]:
+    async def get_phrase_set_phrases(self, set_id: int) -> list[dict[str, Any]]:
         """Get all phrases for a phrase set with their details."""
         database = self._ensure_database()
 

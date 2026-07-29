@@ -1,3 +1,4 @@
+import { authHeaders } from '@shared/utils/apiClient';
 import logger from '@shared/utils/logger';
 import React, { useState, useEffect } from 'react';
 import {
@@ -35,13 +36,12 @@ import LanguageSetsTab from './Tabs/LanguageSetsTab';
 import UserStatisticsTab from './Tabs/UserStatisticsTab';
 import MasteryLeaderboardTab from './Tabs/MasteryLeaderboardTab';
 
-const StatisticsDashboard = ({ token, setError: onError, currentUser }) => {
+const StatisticsDashboard = ({ setError: onError, currentUser }) => {
   const { t } = useTranslation();
   const theme = useTheme();
 
   // Create a minimal configuration for useAdminApi, only providing what's needed
   const { getWithAuth } = useAdminApi({
-    token,
     setRows: () => { }, // Not used in statistics dashboard
     setTotalRows: () => { }, // Not used in statistics dashboard
     setDashboard: () => { }, // Not used in statistics dashboard
@@ -206,10 +206,7 @@ const StatisticsDashboard = ({ token, setError: onError, currentUser }) => {
       await axios.post('/admin/settings/statistics-enabled',
         { enabled: !statisticsEnabled },
         {
-          headers: {
-            'Authorization': `Bearer ${token}`,
-            'Content-Type': 'application/json'
-          }
+          headers: authHeaders({ 'Content-Type': 'application/json' })
         }
       );
       setStatisticsEnabled(!statisticsEnabled);
@@ -227,9 +224,7 @@ const StatisticsDashboard = ({ token, setError: onError, currentUser }) => {
     setSettingsLoading(true);
     try {
       await axios.delete('/admin/settings/clear-all-statistics', {
-        headers: {
-          'Authorization': `Bearer ${token}`
-        }
+        headers: authHeaders()
       });
       setClearStatsDialogOpen(false);
       // Reload data to show cleared statistics

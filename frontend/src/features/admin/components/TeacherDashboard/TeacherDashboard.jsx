@@ -44,7 +44,7 @@ import { Tabs, Tab } from '@mui/material';
  * Teacher Dashboard Component
  * Provides UI for teachers to manage their phrase sets
  */
-function TeacherDashboard({ token, languageSets, currentLanguageSetId }) {
+function TeacherDashboard({ languageSets, currentLanguageSetId }) {
     // State
     const [phraseSets, setPhraseSets] = useState([]);
     const [loading, setLoading] = useState(true);
@@ -61,7 +61,7 @@ function TeacherDashboard({ token, languageSets, currentLanguageSetId }) {
 
     const { t } = useTranslation();
     // API hook
-    const api = useTeacherApi({ token, setError });
+    const api = useTeacherApi({ setError });
 
     // Load phrase sets
     const loadPhraseSets = useCallback(async () => {
@@ -194,7 +194,7 @@ function TeacherDashboard({ token, languageSets, currentLanguageSetId }) {
             </Tabs>
 
             {currentTab === 1 ? (
-                <GroupsView token={token} />
+                <GroupsView />
             ) : (
                 <Box>
                     {/* Error Alert */}
@@ -356,7 +356,6 @@ function TeacherDashboard({ token, languageSets, currentLanguageSetId }) {
                         open={createDialogOpen}
                         onClose={() => setCreateDialogOpen(false)}
                         onCreated={handleSetCreated}
-                        token={token}
                         languageSets={languageSets}
                         currentLanguageSetId={currentLanguageSetId}
                     />
@@ -366,7 +365,6 @@ function TeacherDashboard({ token, languageSets, currentLanguageSetId }) {
                         open={editDialogOpen}
                         onClose={() => setEditDialogOpen(false)}
                         onUpdated={handleSetUpdated}
-                        token={token}
                         languageSets={languageSets}
                         phraseSet={selectedSet}
                     />
@@ -376,7 +374,6 @@ function TeacherDashboard({ token, languageSets, currentLanguageSetId }) {
                         open={sessionsDialogOpen}
                         onClose={() => setSessionsDialogOpen(false)}
                         phraseSet={selectedSet}
-                        token={token}
                     />
 
                     {/* Preview Dialog */}
@@ -384,7 +381,6 @@ function TeacherDashboard({ token, languageSets, currentLanguageSetId }) {
                         open={previewDialogOpen}
                         onClose={() => setPreviewDialogOpen(false)}
                         phraseSet={selectedSet}
-                        token={token}
                     />
 
                     {/* Delete Confirmation */}

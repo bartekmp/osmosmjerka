@@ -1,3 +1,4 @@
+import { authHeaders, getAuthToken } from '@shared/utils/apiClient';
 import logger from '@shared/utils/logger';
 import axios from 'axios';
 import { STORAGE_KEYS } from '../shared/constants/constants';
@@ -116,7 +117,7 @@ export function loadPuzzle(category, diff, setters, t, languageSetId = null, ref
 
     // Build API URL - use private list endpoint if privateListId is provided
     let apiUrl;
-    const token = localStorage.getItem(STORAGE_KEYS.ADMIN_TOKEN);
+    const token = getAuthToken();
 
     if (privateListId) {
         // Use private list endpoint (requires authentication)
@@ -146,9 +147,7 @@ export function loadPuzzle(category, diff, setters, t, languageSetId = null, ref
     // Prepare request config with auth header if using private list
     const requestConfig = {};
     if (privateListId && token) {
-        requestConfig.headers = {
-            Authorization: `Bearer ${token}`
-        };
+        requestConfig.headers = authHeaders();
     }
 
     return axios.get(apiUrl, requestConfig)

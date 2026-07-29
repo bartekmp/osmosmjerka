@@ -1,3 +1,4 @@
+import { authHeaders } from '@shared/utils/apiClient';
 import { useState, useEffect } from 'react';
 import {
     Box,
@@ -68,10 +69,7 @@ export default function UserProfile() {
     const [showListManager, setShowListManager] = useState(false);
     const [selectedLanguageSetForLists, setSelectedLanguageSetForLists] = useState(null);
 
-    const authHeader = {
-        'Authorization': `Bearer ${localStorage.getItem('adminToken')}`,
-        'Content-Type': 'application/json'
-    };
+    const authHeader = authHeaders({ 'Content-Type': 'application/json' });
 
     useEffect(() => {
         fetchProfile();
@@ -237,7 +235,7 @@ export default function UserProfile() {
             const updatedCategories = modifiedIgnoredSummary[languageSetId]?.filter(cat => cat !== category) || [];
 
             // Save immediately to server
-            const authHeader = { 'Authorization': `Bearer ${localStorage.getItem('adminToken')}`, 'Content-Type': 'application/json' };
+            const authHeader = authHeaders({ 'Content-Type': 'application/json' });
             const response = await fetch('/api/user/ignored-categories', {
                 method: 'PUT',
                 headers: authHeader,

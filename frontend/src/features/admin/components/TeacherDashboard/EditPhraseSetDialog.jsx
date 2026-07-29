@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useMemo } from 'react';
+import React, { useState, useEffect } from 'react';
 import {
     Box,
     Button,
@@ -31,7 +31,7 @@ import {
 } from '@mui/material';
 import { useTranslation } from 'react-i18next';
 import { useTeacherApi } from './useTeacherApi';
-import { useGroups } from './useGroups';
+import { usePhraseSetForm } from './usePhraseSetForm';
 
 const STEP_KEYS = ['teacher.create.steps.select', 'teacher.create.steps.configure'];
 
@@ -45,41 +45,20 @@ function EditPhraseSetDialog({ open, onClose, onUpdated, token, phraseSet }) {
     const [initialLoading, setInitialLoading] = useState(false);
     const [error, setError] = useState('');
 
-    // Form state - Step 1: Basic Info
-    const [name, setName] = useState('');
-    const [description, setDescription] = useState('');
-    const [languageSetId, setLanguageSetId] = useState('');
-
-    // Form state - Step 2: Phrases (phrases loaded from API)
-    const [availablePhrases, setAvailablePhrases] = useState([]);
-    const [selectedPhraseIds, setSelectedPhraseIds] = useState([]);
-    const [phraseFilter, setPhraseFilter] = useState('');
-    const [categoryFilter, setCategoryFilter] = useState('');
-    const [loadingPhrases, setLoadingPhrases] = useState(false);
-
-    // Form state - Step 3: Configuration
-    const [config, setConfig] = useState({
-        allow_hints: true,
-        show_translations: true,
-        require_translation_input: false,
-        show_timer: false,
-        strict_grid_size: false,
-        grid_size: 10,
-        difficulty: 'medium',
-    });
-    const [accessType, setAccessType] = useState('public');
-    const [maxPlays, setMaxPlays] = useState('');
-    const [autoDeleteDays, setAutoDeleteDays] = useState(14);
-    const [neverDelete, setNeverDelete] = useState(false);
-
-    // Group selection state
-    const [groups, setGroups] = useState([]);
-    const [selectedGroupIds, setSelectedGroupIds] = useState([]);
-    const [manualUsernames, setManualUsernames] = useState('');
-
     const { t } = useTranslation();
-    const api = useTeacherApi({ token, setError });
-    const groupsApi = useGroups({ token, setError });
+    const form = usePhraseSetForm({ token, setError });
+    const {
+        name, setName, description, setDescription, languageSetId, setLanguageSetId,
+        selectedPhraseIds, setSelectedPhraseIds,
+        phraseFilter, setPhraseFilter, categoryFilter, setCategoryFilter, loadingPhrases,
+        config, setConfig, accessType, setAccessType, maxPlays, setMaxPlays,
+        autoDeleteDays, setAutoDeleteDays, neverDelete, setNeverDelete, groups,
+        selectedGroupIds, setSelectedGroupIds, manualUsernames, setManualUsernames,
+        loadGroups, loadPhrases, handlePhraseToggle, filteredPhrases, availableCategories,
+        buildAccessPayload,
+    } = form;
+
+    const api = useTeacherApi({ setError });
 
     // Load data when dialog opens
     useEffect(() => {
@@ -148,43 +127,6 @@ function EditPhraseSetDialog({ open, onClose, onUpdated, token, phraseSet }) {
         }
     };
 
-    const loadGroups = async () => {
-        try {
-            const data = await groupsApi.fetchGroups();
-            setGroups(data);
-        } catch {
-            // Ignore
-        }
-    };
-
-    const loadPhrases = async () => {
-        setLoadingPhrases(true);
-        try {
-            // Fetch phrases from admin API
-            const response = await fetch(`/admin/rows?language_set_id=${languageSetId}&limit=500`, {
-                headers: { Authorization: `Bearer ${token}` },
-            });
-            const data = await response.json();
-            setAvailablePhrases(data.rows || []);
-        } catch {
-            setError('Failed to load phrases');
-        } finally {
-            setLoadingPhrases(false);
-        }
-    };
-
-    const handlePhraseToggle = (phraseId) => {
-        setSelectedPhraseIds(prev => {
-            if (prev.includes(phraseId)) {
-                return prev.filter(id => id !== phraseId);
-            }
-            if (prev.length >= 50) {
-                return prev; // Max 50 phrases
-            }
-            return [...prev, phraseId];
-        });
-    };
-
     const handleNext = () => {
         if (activeStep === 0) {
             if (selectedPhraseIds.length === 0) {
@@ -205,11 +147,6 @@ function EditPhraseSetDialog({ open, onClose, onUpdated, token, phraseSet }) {
         setLoading(true);
         setError('');
         try {
-            let parsedUsernames = [];
-            if (manualUsernames.trim()) {
-                parsedUsernames = manualUsernames.split(',').map(u => u.trim()).filter(u => u);
-            }
-
             const result = await api.updatePhraseSet(phraseSet.id, {
                 name: name.trim(),
                 description: description.trim() || null,
@@ -221,12 +158,8 @@ function EditPhraseSetDialog({ open, onClose, onUpdated, token, phraseSet }) {
                 // It takes kwargs.
                 phrase_ids: selectedPhraseIds,
                 config,
-                access_type: accessType,
-                max_plays: maxPlays ? parseInt(maxPlays) : null,
                 expires_at: null, // Should be date if we support specific date
-                auto_delete_days: neverDelete ? null : autoDeleteDays,
-                access_group_ids: accessType === 'private' && selectedGroupIds.length > 0 ? selectedGroupIds : undefined,
-                access_usernames: accessType === 'private' && parsedUsernames.length > 0 ? parsedUsernames : undefined,
+                ...buildAccessPayload(),
             });
 
             onUpdated(result);
@@ -237,39 +170,6 @@ function EditPhraseSetDialog({ open, onClose, onUpdated, token, phraseSet }) {
             setLoading(false);
         }
     };
-
-    const availableCategories = useMemo(() => {
-        const categories = new Set();
-        availablePhrases.forEach(p => {
-            if (p.categories) {
-                p.categories.split(' ').forEach(c => {
-                    if (c.trim()) categories.add(c.trim());
-                });
-            }
-        });
-        return Array.from(categories).sort();
-    }, [availablePhrases]);
-
-    const filteredPhrases = availablePhrases.filter(p => {
-        // Text filter
-        if (phraseFilter) {
-            const search = phraseFilter.toLowerCase();
-            const matchesText = (
-                p.phrase?.toLowerCase().includes(search) ||
-                p.translation?.toLowerCase().includes(search) ||
-                p.categories?.toLowerCase().includes(search)
-            );
-            if (!matchesText) return false;
-        }
-
-        // Category filter
-        if (categoryFilter) {
-            const phraseCategories = p.categories ? p.categories.split(' ') : [];
-            if (!phraseCategories.includes(categoryFilter)) return false;
-        }
-
-        return true;
-    });
 
     if (initialLoading) {
         return (

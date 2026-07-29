@@ -1,5 +1,6 @@
 """Tests for teacher phrase sets functionality."""
 
+from datetime import UTC
 from unittest.mock import patch
 
 import pytest
@@ -266,10 +267,10 @@ def test_extend_auto_delete(client, mock_teacher_user):
     """Test extending auto-delete date."""
     app.dependency_overrides[require_teacher_access] = lambda: mock_teacher_user
 
-    from datetime import datetime, timezone
+    from datetime import datetime
 
     with patch("osmosmjerka.database.db_manager.extend_auto_delete") as mock_extend:
-        new_date = datetime(2026, 2, 1, tzinfo=timezone.utc)
+        new_date = datetime(2026, 2, 1, tzinfo=UTC)
         mock_extend.return_value = new_date
         response = client.post(
             "/admin/teacher/phrase-sets/1/extend",

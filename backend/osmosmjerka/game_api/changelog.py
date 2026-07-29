@@ -4,7 +4,6 @@ import logging
 import re
 import time
 from pathlib import Path
-from typing import Optional
 
 from fastapi import APIRouter, Query, Request
 from osmosmjerka.cache import rate_limit
@@ -24,7 +23,7 @@ CACHE_TTL_SECONDS = 15 * 60  # 15 minutes
 _changelog_cache: dict = {"entries": None, "version": None, "timestamp": 0}
 
 
-def get_current_version() -> Optional[str]:
+def get_current_version() -> str | None:
     """Get the current app version from pyproject.toml."""
     try:
         if PYPROJECT_PATH.exists():
@@ -186,7 +185,7 @@ async def get_version(request: Request):
 @rate_limit(max_requests=5, window_seconds=60)  # 5 requests per minute
 async def get_whats_new(
     request: Request,
-    since: Optional[str] = Query(None, description="Only return entries newer than this version"),
+    since: str | None = Query(None, description="Only return entries newer than this version"),
     limit: int = Query(5, ge=1, le=20, description="Maximum number of entries"),
 ):
     """

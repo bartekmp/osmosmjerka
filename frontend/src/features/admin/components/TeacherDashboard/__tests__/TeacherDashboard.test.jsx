@@ -6,7 +6,13 @@ jest.mock('react-i18next', () => ({
     useTranslation: () => ({ t: (key, _) => key })
 }));
 
+import apiClient from '@shared/utils/apiClient';
 import TeacherDashboard from '../TeacherDashboard';
+
+jest.mock('@shared/utils/apiClient', () => ({
+    __esModule: true,
+    default: { request: jest.fn() },
+}));
 
 describe('TeacherDashboard', () => {
     // Suppress noisy React act() warnings in console output
@@ -34,12 +40,7 @@ describe('TeacherDashboard', () => {
             writable: true,
         });
         // Setup default fetch mock
-        global.fetch = jest.fn(() =>
-            Promise.resolve({
-                ok: true,
-                json: () => Promise.resolve({ sets: [], total: 0 }),
-            })
-        );
+        apiClient.request.mockResolvedValue({ data: { sets: [], total: 0 } });
     });
 
     afterEach(() => {
@@ -51,15 +52,14 @@ describe('TeacherDashboard', () => {
         expect(screen.getByRole('progressbar')).toBeInTheDocument();
     });
 
-    test('calls fetch on mount', () => {
+    test('loads phrase sets on mount', () => {
         render(<TeacherDashboard token="test-token" languageSets={[]} currentLanguageSetId={1} />);
 
-        expect(global.fetch).toHaveBeenCalledWith(
-            expect.stringContaining('/admin/teacher/phrase-sets'),
+        // The Authorization header now comes from apiClient's interceptor, which has its
+        // own tests; here we only assert the dashboard issues the request.
+        expect(apiClient.request).toHaveBeenCalledWith(
             expect.objectContaining({
-                headers: expect.objectContaining({
-                    Authorization: 'Bearer test-token',
-                }),
+                url: expect.stringContaining('/admin/teacher/phrase-sets'),
             })
         );
     });

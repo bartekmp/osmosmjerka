@@ -7,7 +7,7 @@ SM-2-lite schedule. An item is polymorphic: a public ``phrase_id`` or a custom
 """
 
 import datetime
-from typing import Any, Dict, List, Optional
+from typing import Any
 
 from asyncpg.exceptions import UniqueViolationError
 from osmosmjerka import srs
@@ -30,9 +30,9 @@ class WordMasteryMixin:
         language_set_id: int,
         direction: str,
         grade: str,
-        phrase_id: Optional[int] = None,
-        list_phrase_id: Optional[int] = None,
-    ) -> Dict[str, Any]:
+        phrase_id: int | None = None,
+        list_phrase_id: int | None = None,
+    ) -> dict[str, Any]:
         """Record one self-assessed review and advance the item's SRS schedule."""
         database = self._ensure_database()
 
@@ -141,8 +141,8 @@ class WordMasteryMixin:
         }
 
     async def get_due_items(
-        self, user_id: int, language_set_id: Optional[int] = None, limit: int = 50
-    ) -> List[Dict[str, Any]]:
+        self, user_id: int, language_set_id: int | None = None, limit: int = 50
+    ) -> list[dict[str, Any]]:
         """Return due items (``due_at`` <= now), soonest first, enriched with the phrase
         text + translation needed to render a review flashcard.
 
@@ -178,7 +178,7 @@ class WordMasteryMixin:
         # Skip rows we can't render yet (custom list phrases have no phrase text here).
         return [self._serialize_datetimes(dict(row)) for row in rows if row["phrase"] is not None]
 
-    async def get_mastery_stats(self, user_id: int, language_set_id: Optional[int] = None) -> Dict[str, int]:
+    async def get_mastery_stats(self, user_id: int, language_set_id: int | None = None) -> dict[str, int]:
         """Summary counts for the learning dashboard: tracked / due / mastered."""
         database = self._ensure_database()
         t = user_word_mastery_table
@@ -197,8 +197,8 @@ class WordMasteryMixin:
         return {"total": int(total or 0), "due": int(due or 0), "mastered": int(mastered or 0)}
 
     async def get_mastery_leaderboard(
-        self, language_set_id: Optional[int] = None, limit: int = 50
-    ) -> List[Dict[str, Any]]:
+        self, language_set_id: int | None = None, limit: int = 50
+    ) -> list[dict[str, Any]]:
         """Rank active accounts by words mastered (mastery_level >= 4), tiebroken by
         current streak. Replaces the old points-based leaderboard."""
         database = self._ensure_database()

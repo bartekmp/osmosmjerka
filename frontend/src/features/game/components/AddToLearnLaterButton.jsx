@@ -1,3 +1,4 @@
+import apiClient, { getAuthToken } from '@shared/utils/apiClient';
 import logger from '@shared/utils/logger';
 import React, { useState, useEffect, useMemo, useRef } from 'react';
 import { IconButton, Tooltip, Snackbar, Alert } from '@mui/material';
@@ -5,8 +6,6 @@ import AddCircleOutlineIcon from '@mui/icons-material/AddCircleOutlined';
 import CheckCircleIcon from '@mui/icons-material/CheckCircle';
 import PlaylistAddCheckIcon from '@mui/icons-material/PlaylistAddCheck';
 import { useTranslation } from 'react-i18next';
-import axios from 'axios';
-import { STORAGE_KEYS } from '../../../shared/constants/constants';
 
 export default function AddToLearnLaterButton({ 
   type = 'all', // 'all' or 'selected'
@@ -51,17 +50,15 @@ export default function AddToLearnLaterButton({
 
       setIsCheckingList(true);
       try {
-        const token = localStorage.getItem(STORAGE_KEYS.ADMIN_TOKEN);
+        const token = getAuthToken();
         if (!token) {
           setIsCheckingList(false);
           return;
         }
 
-        const response = await axios.post('/api/user/learn-later/check', {
+        const response = await apiClient.post('/api/user/learn-later/check', {
           language_set_id: languageSetId,
           phrase_ids: phraseIds
-        }, {
-          headers: { Authorization: `Bearer ${token}` }
         });
 
         setPhrasesInList(new Set(response.data.in_list || []));
@@ -106,17 +103,15 @@ export default function AddToLearnLaterButton({
 
     setIsAdding(true);
     try {
-      const token = localStorage.getItem(STORAGE_KEYS.ADMIN_TOKEN);
+      const token = getAuthToken();
       if (!token) {
         throw new Error('Not authenticated');
       }
 
       // Add only new phrases to "Learn This Later" list
-      const response = await axios.post('/api/user/learn-later/bulk', {
+      const response = await apiClient.post('/api/user/learn-later/bulk', {
         language_set_id: languageSetId,
         phrase_ids: newPhrases
-      }, {
-        headers: { Authorization: `Bearer ${token}` }
       });
 
       // Update local state to mark these phrases as added

@@ -9,6 +9,9 @@ import { withI18n } from '../../../../testUtils';
 import { STORAGE_KEYS } from '../../../../shared/constants/constants';
 
 jest.mock('axios');
+// Uses the manual mock in shared/utils/__mocks__ - the auto-mocked axios above makes
+// axios.create() undefined, which the real module needs at import time.
+jest.mock('@shared/utils/apiClient');
 
 const theme = createTheme();
 

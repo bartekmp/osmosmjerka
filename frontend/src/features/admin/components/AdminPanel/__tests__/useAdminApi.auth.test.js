@@ -1,8 +1,19 @@
 import { renderHook, waitFor } from '@testing-library/react';
+import apiClient from '@shared/utils/apiClient';
 import { useAdminApi } from '../useAdminApi';
 
-// Mock fetch
-global.fetch = jest.fn();
+jest.mock('@shared/utils/apiClient', () => ({
+    __esModule: true,
+    default: { get: jest.fn(), post: jest.fn(), put: jest.fn(), delete: jest.fn(), request: jest.fn() },
+}));
+
+// axios rejects on non-2xx (fetch resolved with ok:false), and the hook reads the status
+// off error.response. Each test drives exactly one call, so rejecting every verb is
+// equivalent to the single mockResolvedValueOnce this used to do.
+const rejectOnce = (status, data) => {
+    const err = { response: { status, data } };
+    ['get', 'post', 'put', 'delete', 'request'].forEach((m) => apiClient[m].mockRejectedValueOnce(err));
+};
 
 // Mock useDebouncedApiCall
 jest.mock('../../../../../hooks/useDebounce', () => ({
@@ -65,15 +76,10 @@ describe('useAdminApi Authentication Error Handling', () => {
 
     describe('handleAuthError in fetchRows', () => {
         test('should logout on 401 error', async () => {
-            global.fetch.mockResolvedValueOnce({
-                ok: false,
-                status: 401,
-                json: async () => ({ error: 'Unauthorized' })
-            });
+            rejectOnce(401, { error: 'Unauthorized' });
 
             const { result } = renderHook(() =>
                 useAdminApi({
-                    token: 'test-token',
                     setRows: mockSetRows,
                     setTotalRows: mockSetTotalRows,
                     setDashboard: mockSetDashboard,
@@ -99,15 +105,10 @@ describe('useAdminApi Authentication Error Handling', () => {
         });
 
         test('should logout on 400 error', async () => {
-            global.fetch.mockResolvedValueOnce({
-                ok: false,
-                status: 400,
-                json: async () => ({ error: 'Bad Request' })
-            });
+            rejectOnce(400, { error: 'Bad Request' });
 
             const { result } = renderHook(() =>
                 useAdminApi({
-                    token: 'test-token',
                     setRows: mockSetRows,
                     setTotalRows: mockSetTotalRows,
                     setDashboard: mockSetDashboard,
@@ -132,15 +133,10 @@ describe('useAdminApi Authentication Error Handling', () => {
         });
 
         test('should not logout on 429 (rate limit) error', async () => {
-            global.fetch.mockResolvedValueOnce({
-                ok: false,
-                status: 429,
-                json: async () => ({ error: 'Too many requests' })
-            });
+            rejectOnce(429, { error: 'Too many requests' });
 
             const { result } = renderHook(() =>
                 useAdminApi({
-                    token: 'test-token',
                     setRows: mockSetRows,
                     setTotalRows: mockSetTotalRows,
                     setDashboard: mockSetDashboard,
@@ -166,15 +162,10 @@ describe('useAdminApi Authentication Error Handling', () => {
 
     describe('handleAuthError in handleSave', () => {
         test('should logout on 401 error when saving', async () => {
-            global.fetch.mockResolvedValueOnce({
-                ok: false,
-                status: 401,
-                json: async () => ({ error: 'Unauthorized' })
-            });
+            rejectOnce(401, { error: 'Unauthorized' });
 
             const { result } = renderHook(() =>
                 useAdminApi({
-                    token: 'test-token',
                     setRows: mockSetRows,
                     setTotalRows: mockSetTotalRows,
                     setDashboard: mockSetDashboard,
@@ -203,15 +194,10 @@ describe('useAdminApi Authentication Error Handling', () => {
 
     describe('handleAuthError in batch operations', () => {
         test('should logout on 401 error in batch delete', async () => {
-            global.fetch.mockResolvedValueOnce({
-                ok: false,
-                status: 401,
-                json: async () => ({ error: 'Unauthorized' })
-            });
+            rejectOnce(401, { error: 'Unauthorized' });
 
             const { result } = renderHook(() =>
                 useAdminApi({
-                    token: 'test-token',
                     setRows: mockSetRows,
                     setTotalRows: mockSetTotalRows,
                     setDashboard: mockSetDashboard,
@@ -235,15 +221,10 @@ describe('useAdminApi Authentication Error Handling', () => {
         });
 
         test('should logout on 400 error in batch add category', async () => {
-            global.fetch.mockResolvedValueOnce({
-                ok: false,
-                status: 400,
-                json: async () => ({ error: 'Bad Request' })
-            });
+            rejectOnce(400, { error: 'Bad Request' });
 
             const { result } = renderHook(() =>
                 useAdminApi({
-                    token: 'test-token',
                     setRows: mockSetRows,
                     setTotalRows: mockSetTotalRows,
                     setDashboard: mockSetDashboard,

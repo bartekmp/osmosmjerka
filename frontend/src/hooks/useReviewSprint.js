@@ -1,12 +1,11 @@
+import apiClient, { getAuthToken } from "@shared/utils/apiClient";
 import logger from "@shared/utils/logger";
-import axios from "axios";
 import { useCallback, useEffect, useState } from "react";
-import { API_ENDPOINTS, STORAGE_KEYS } from "../shared/constants/constants";
+import { API_ENDPOINTS } from "../shared/constants/constants";
 
 // A sprint is a small, finishable batch of due reviews (ADHD-friendly bounded session).
 export const SPRINT_SIZE = 5;
 
-const token = () => localStorage.getItem(STORAGE_KEYS.ADMIN_TOKEN);
 
 /**
  * Drives a spaced-repetition review sprint: fetch due items, flip each flashcard,
@@ -22,13 +21,11 @@ export function useReviewSprint() {
   const [reviewedCount, setReviewedCount] = useState(0);
 
   const loadStats = useCallback(async () => {
-    const t = token();
-    if (!t) return;
-    const headers = { Authorization: `Bearer ${t}` };
+    if (!getAuthToken()) return;
     try {
       const [statsRes, streakRes] = await Promise.all([
-        axios.get(`${API_ENDPOINTS.GAME}/learn/stats`, { headers }),
-        axios.get(`${API_ENDPOINTS.GAME}/learn/streak`, { headers }),
+        apiClient.get(`${API_ENDPOINTS.GAME}/learn/stats`),
+        apiClient.get(`${API_ENDPOINTS.GAME}/learn/streak`),
       ]);
       setStats({ ...statsRes.data, streak: streakRes.data?.current ?? 0 });
     } catch (error) {
@@ -37,8 +34,7 @@ export function useReviewSprint() {
   }, []);
 
   const startSprint = useCallback(async () => {
-    const t = token();
-    if (!t) {
+    if (!getAuthToken()) {
       setStatus("unauthenticated");
       return;
     }
@@ -47,9 +43,7 @@ export function useReviewSprint() {
     setIndex(0);
     setReviewedCount(0);
     try {
-      const res = await axios.get(`${API_ENDPOINTS.GAME}/learn/due?limit=${SPRINT_SIZE}`, {
-        headers: { Authorization: `Bearer ${t}` },
-      });
+      const res = await apiClient.get(`${API_ENDPOINTS.GAME}/learn/due?limit=${SPRINT_SIZE}`);
       const due = Array.isArray(res.data) ? res.data : [];
       setItems(due);
       setStatus(due.length ? "active" : "empty");
@@ -68,20 +62,15 @@ export function useReviewSprint() {
 
   const rate = useCallback(
     (grade) => {
-      const t = token();
       const item = items[index];
-      if (item && t) {
-        axios
-          .post(
-            `${API_ENDPOINTS.GAME}/learn/review`,
-            {
-              language_set_id: item.language_set_id,
-              direction: item.direction,
-              grade,
-              phrase_id: item.phrase_id,
-            },
-            { headers: { Authorization: `Bearer ${t}` } }
-          )
+      if (item && getAuthToken()) {
+        apiClient
+          .post(`${API_ENDPOINTS.GAME}/learn/review`, {
+            language_set_id: item.language_set_id,
+            direction: item.direction,
+            grade,
+            phrase_id: item.phrase_id,
+          })
           .catch((error) => logger.error("Failed to record review:", error));
       }
       setReviewedCount((c) => c + 1);

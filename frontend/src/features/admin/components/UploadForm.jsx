@@ -1,5 +1,5 @@
 import React from 'react';
-import axios from 'axios';
+import apiClient from '@shared/utils/apiClient';
 import { useRef, useState } from 'react';
 import { Snackbar, Alert, IconButton } from '@mui/material';
 import CloseIcon from '@mui/icons-material/Close';
@@ -67,13 +67,11 @@ export default function UploadForm({ onUpload, selectedLanguageSetId = null, com
         const formData = new FormData();
         formData.append('file', file);
 
-        const token = localStorage.getItem('adminToken');
-        const headers = token ? { Authorization: 'Bearer ' + token } : {};
         const languageSetId = getEffectiveLanguageSetId();
 
         try {
             const url = `/admin/upload?language_set_id=${encodeURIComponent(languageSetId)}`;
-            const res = await axios.post(url, formData, { headers });
+            const res = await apiClient.post(url, formData);
             setNotification({
                 open: true,
                 message: res.data.message || t('upload_successful'),

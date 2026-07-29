@@ -1,6 +1,6 @@
 """Private lists management database operations."""
 
-from typing import Any, Dict, List, Optional
+from typing import Any
 
 from osmosmjerka.database.models import (
     accounts_table,
@@ -17,7 +17,7 @@ class PrivateListsMixin:
 
     async def get_learn_later_list(
         self, user_id: int, language_set_id: int, create_if_missing: bool = False
-    ) -> Optional[Dict]:
+    ) -> dict | None:
         """Get user's Learn This Later list for a language set."""
         database = self._ensure_database()
 
@@ -38,7 +38,7 @@ class PrivateListsMixin:
 
         return None
 
-    async def get_or_create_learn_later_list(self, user_id: int, language_set_id: int) -> Dict:
+    async def get_or_create_learn_later_list(self, user_id: int, language_set_id: int) -> dict:
         """Get or create user's Learn This Later list."""
         existing = await self.get_learn_later_list(user_id, language_set_id, create_if_missing=False)
 
@@ -47,7 +47,7 @@ class PrivateListsMixin:
 
         return await self.create_learn_later_list(user_id, language_set_id)
 
-    async def create_learn_later_list(self, user_id: int, language_set_id: int) -> Dict:
+    async def create_learn_later_list(self, user_id: int, language_set_id: int) -> dict:
         """Create Learn This Later list for user."""
         database = self._ensure_database()
 
@@ -69,7 +69,7 @@ class PrivateListsMixin:
             "is_system_list": True,
         }
 
-    async def get_phrase_ids_in_private_list(self, list_id: int, phrase_ids: List[int]) -> List[int]:
+    async def get_phrase_ids_in_private_list(self, list_id: int, phrase_ids: list[int]) -> list[int]:
         """Check which phrase IDs are already in a private list."""
         database = self._ensure_database()
 
@@ -83,7 +83,7 @@ class PrivateListsMixin:
         return [row["phrase_id"] for row in result]
 
     async def bulk_add_phrases_to_private_list(
-        self, list_id: int, phrase_ids: List[int], language_set_id: int, skip_duplicates: bool = True
+        self, list_id: int, phrase_ids: list[int], language_set_id: int, skip_duplicates: bool = True
     ) -> int:
         """Add multiple phrases to a private list."""
         database = self._ensure_database()
@@ -118,10 +118,10 @@ class PrivateListsMixin:
     async def get_user_private_lists(
         self,
         user_id: int,
-        language_set_id: Optional[int] = None,
-        limit: Optional[int] = None,
+        language_set_id: int | None = None,
+        limit: int | None = None,
         offset: int = 0,
-    ) -> Dict[str, Any]:
+    ) -> dict[str, Any]:
         """Get paginated private lists for a user, optionally filtered by language set.
 
         Returns:
@@ -158,7 +158,7 @@ class PrivateListsMixin:
             "has_more": limit is not None and (offset + len(lists) < total) if limit else False,
         }
 
-    async def get_private_list_by_id(self, list_id: int, user_id: int) -> Optional[Dict]:
+    async def get_private_list_by_id(self, list_id: int, user_id: int) -> dict | None:
         """Get a specific private list by ID (with user ownership check)."""
         database = self._ensure_database()
 
@@ -203,7 +203,7 @@ class PrivateListsMixin:
         result = await database.fetch_one(query)
         return result[0] if result else 0
 
-    async def get_phrase_counts_batch(self, list_ids: List[int]) -> Dict[int, int]:
+    async def get_phrase_counts_batch(self, list_ids: list[int]) -> dict[int, int]:
         """Get phrase counts for multiple lists in a single query (fixes N+1 problem).
 
         Args:
@@ -233,10 +233,10 @@ class PrivateListsMixin:
         self,
         list_id: int,
         user_id: int,
-        list_info: Optional[Dict] = None,
-        limit: Optional[int] = None,
+        list_info: dict | None = None,
+        limit: int | None = None,
         offset: int = 0,
-    ) -> Dict[str, Any]:
+    ) -> dict[str, Any]:
         """Return paginated entries from a private list with metadata for management interfaces.
 
         Returns:
@@ -299,7 +299,7 @@ class PrivateListsMixin:
             query = query.limit(limit).offset(offset)
 
         result = await database.fetch_all(query)
-        entries: List[Dict] = []
+        entries: list[dict] = []
 
         for row in result:
             row_dict = dict(row)
@@ -333,8 +333,8 @@ class PrivateListsMixin:
         }
 
     async def get_private_list_phrases(
-        self, list_id: int, user_id: int, language_set_id: int, category: Optional[str] = None
-    ) -> List[Dict]:
+        self, list_id: int, user_id: int, language_set_id: int, category: str | None = None
+    ) -> list[dict]:
         """Get all phrases from a private list for puzzle generation, with optional category filter."""
         list_info = await self.get_private_list_by_id(list_id, user_id)
         if not list_info or list_info["language_set_id"] != language_set_id:
@@ -343,7 +343,7 @@ class PrivateListsMixin:
         # get_private_list_entries returns a dict with "entries" key, not a list directly
         entries_result = await self.get_private_list_entries(list_id, user_id, list_info=list_info, limit=None)
         entries = entries_result.get("entries", [])
-        phrases: List[Dict] = []
+        phrases: list[dict] = []
 
         for entry in entries:
             phrase_text = entry["phrase"] or ""
@@ -366,7 +366,7 @@ class PrivateListsMixin:
 
         return phrases
 
-    async def get_private_list_categories(self, list_id: int, user_id: int, language_set_id: int) -> List[str]:
+    async def get_private_list_categories(self, list_id: int, user_id: int, language_set_id: int) -> list[str]:
         """Get all unique categories from phrases in a private list."""
         list_info = await self.get_private_list_by_id(list_id, user_id)
         if not list_info or list_info["language_set_id"] != language_set_id:
@@ -404,7 +404,7 @@ class PrivateListsMixin:
             return admin_limit
         return default_limit
 
-    async def get_user_current_list_count(self, user_id: int, language_set_id: Optional[int] = None) -> int:
+    async def get_user_current_list_count(self, user_id: int, language_set_id: int | None = None) -> int:
         """Get current number of lists for a user."""
         result = await self.get_user_private_lists(user_id, language_set_id, limit=None, offset=0)
         return result["total"]
@@ -468,10 +468,10 @@ class PrivateListsMixin:
     async def add_phrase_to_private_list(
         self,
         list_id: int,
-        phrase_id: Optional[int] = None,
-        custom_phrase: Optional[str] = None,
-        custom_translation: Optional[str] = None,
-        custom_categories: Optional[str] = None,
+        phrase_id: int | None = None,
+        custom_phrase: str | None = None,
+        custom_translation: str | None = None,
+        custom_categories: str | None = None,
     ) -> int:
         """Add a single phrase to a private list (either public phrase or custom phrase).
 

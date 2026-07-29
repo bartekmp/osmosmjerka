@@ -2,12 +2,12 @@ import React from 'react';
 import { render, screen, fireEvent, waitFor } from '@testing-library/react';
 import { ThemeProvider } from '@mui/material/styles';
 import { createTheme } from '@mui/material/styles';
-import axios from 'axios';
+import axios from '@shared/utils/apiClient';
 import PrivateListSelector from '../PrivateListSelector';
 import { withI18n } from '../../../../testUtils';
 import { STORAGE_KEYS } from '../../../../shared/constants/constants';
 
-jest.mock('axios');
+jest.mock('@shared/utils/apiClient');
 
 const theme = createTheme();
 
@@ -91,11 +91,6 @@ describe('PrivateListSelector', () => {
     await waitFor(() => {
       expect(axios.get).toHaveBeenCalledWith(
         '/api/user/private-lists?language_set_id=1',
-        expect.objectContaining({
-          headers: expect.objectContaining({
-            Authorization: 'Bearer test-token'
-          })
-        })
       );
     });
 

@@ -1,3 +1,4 @@
+import { authHeaders } from '@shared/utils/apiClient';
 import React, { useState, useEffect, useRef } from 'react';
 import {
     Box,
@@ -20,7 +21,7 @@ import PreviewGrid, { PHRASE_COLORS_LIGHT, PHRASE_COLORS_DARK } from './PreviewG
 /**
  * PreviewDialog - Preview how a phrase set will appear to students
  */
-function PreviewDialog({ open, onClose, phraseSet, token }) {
+function PreviewDialog({ open, onClose, phraseSet }) {
     const { t } = useTranslation();
     const { isDarkMode } = useThemeMode();
 
@@ -67,10 +68,7 @@ function PreviewDialog({ open, onClose, phraseSet, token }) {
             setError(null);
             try {
                 const response = await fetch(`/admin/teacher/phrase-sets/${phraseSet.id}/preview`, {
-                    headers: {
-                        'Authorization': `Bearer ${token}`,
-                        'Content-Type': 'application/json',
-                    },
+                    headers: authHeaders({ 'Content-Type': 'application/json' }),
                 });
                 if (!response.ok) throw new Error(t('teacher.preview.error_generate', 'Failed to generate preview'));
                 const data = await response.json();
@@ -83,7 +81,7 @@ function PreviewDialog({ open, onClose, phraseSet, token }) {
             }
         };
         generatePreview();
-    }, [open, phraseSet, token]);
+    }, [open, phraseSet]);
 
     const handleClose = () => {
         setGrid([]);

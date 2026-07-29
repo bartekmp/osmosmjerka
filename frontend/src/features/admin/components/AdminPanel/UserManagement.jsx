@@ -1,3 +1,4 @@
+import { authHeaders } from '@shared/utils/apiClient';
 import { Delete, Edit, PersonAdd, VpnKey } from '@mui/icons-material';
 import {
     Alert,
@@ -48,10 +49,7 @@ export default function UserManagement({ currentUser }) {
         self_description: ''
     });
 
-    const authHeader = {
-        'Authorization': `Bearer ${localStorage.getItem('adminToken')}`,
-        'Content-Type': 'application/json'
-    };
+    const authHeader = authHeaders({ 'Content-Type': 'application/json' });
 
     useEffect(() => {
         fetchUsers();

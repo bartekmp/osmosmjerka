@@ -1,10 +1,9 @@
 """Grid utility functions for grid generation."""
 
 import random
-from typing import List, Tuple
 
 
-def calculate_density_around_position(grid: List[List[str]], coords: List[Tuple[int, int]], radius: int = 2) -> float:
+def calculate_density_around_position(grid: list[list[str]], coords: list[tuple[int, int]], radius: int = 2) -> float:
     """
     Calculate the density of placed letters around the given coordinates.
     This helps avoid placing phrases in already crowded areas.
@@ -34,7 +33,7 @@ def calculate_density_around_position(grid: List[List[str]], coords: List[Tuple[
     return filled_cells / total_cells if total_cells > 0 else 0
 
 
-def calculate_optimal_grid_size(phrase_pairs: List[Tuple[str, str]]) -> int:
+def calculate_optimal_grid_size(phrase_pairs: list[tuple[str, str]]) -> int:
     """
     Calculate the optimal grid size based on phrase characteristics.
     Balances between fitting all phrases and maintaining reasonable density.
@@ -67,7 +66,7 @@ def calculate_optimal_grid_size(phrase_pairs: List[Tuple[str, str]]) -> int:
     return min(size, max_phrase_len + 5)
 
 
-def _place_phrase_on_grid(grid: List[List[str]], phrase: str, coords: List[Tuple[int, int]]) -> None:
+def _place_phrase_on_grid(grid: list[list[str]], phrase: str, coords: list[tuple[int, int]]) -> None:
     """
     Place a phrase on the grid at the specified coordinates.
     Helper function that modifies the grid in place.
@@ -76,7 +75,7 @@ def _place_phrase_on_grid(grid: List[List[str]], phrase: str, coords: List[Tuple
         grid[r][c] = phrase[i]
 
 
-def _fill_empty_cells_with_random_letters(grid: List[List[str]]) -> None:
+def _fill_empty_cells_with_random_letters(grid: list[list[str]]) -> None:
     """
     Fill all empty cells in the grid with random letters.
     This makes the phrase search puzzle complete and challenging.
