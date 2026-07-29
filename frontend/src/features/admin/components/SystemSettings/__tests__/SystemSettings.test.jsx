@@ -20,13 +20,13 @@ const mockLocalStorage = {
 };
 Object.defineProperty(window, 'localStorage', { value: mockLocalStorage });
 
-// Mock axios
-jest.mock('axios', () => ({
-    get: jest.fn(),
-    put: jest.fn()
+// SystemSettings talks to the shared API client; the interceptor supplies auth.
+jest.mock('@shared/utils/apiClient', () => ({
+    __esModule: true,
+    default: { get: jest.fn(), put: jest.fn() },
 }));
 
-const axios = require('axios');
+const axios = require('@shared/utils/apiClient').default;
 
 describe('SystemSettings', () => {
     beforeEach(() => {
@@ -71,12 +71,9 @@ describe('SystemSettings', () => {
             expect(switches).toHaveLength(3);
         });
 
-        // Check that axios.get was called for all settings
-        expect(axios.get).toHaveBeenCalledWith('/admin/settings/progressive-hints', {
-            headers: { 'Authorization': 'Bearer mock-token' }
-        });
-        expect(axios.get).toHaveBeenCalledWith('/admin/settings/statistics', {
-            headers: { 'Authorization': 'Bearer mock-token' }
-        });
+        // The Authorization header now comes from apiClient's interceptor, which has its
+        // own tests, so these only assert the URLs that get requested.
+        expect(axios.get).toHaveBeenCalledWith('/admin/settings/progressive-hints');
+        expect(axios.get).toHaveBeenCalledWith('/admin/settings/statistics');
     });
 });

@@ -6,13 +6,13 @@ import i18n from '../../../../../i18n';
 // Mock fetch
 global.fetch = jest.fn();
 
-// Mock axios
-jest.mock('axios', () => ({
-    get: jest.fn(),
-    put: jest.fn()
+// SystemSettings talks to the shared API client; the interceptor supplies auth.
+jest.mock('@shared/utils/apiClient', () => ({
+    __esModule: true,
+    default: { get: jest.fn(), put: jest.fn() },
 }));
 
-const axios = require('axios');
+const axios = require('@shared/utils/apiClient').default;
 
 // Mock localStorage
 const mockLocalStorage = {

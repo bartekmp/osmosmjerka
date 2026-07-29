@@ -1,3 +1,4 @@
+import apiClient from '@shared/utils/apiClient';
 import logger from '@shared/utils/logger';
 import React, { useState, useEffect } from "react";
 import {
@@ -54,18 +55,10 @@ const SystemSettings = () => {
       // Load all settings
       const [statisticsResponse, hintsResponse, ttsResponse, limitsResponse] =
         await Promise.all([
-          axios.get(`${API_ENDPOINTS.ADMIN}/settings/statistics`, {
-            headers: { Authorization: `Bearer ${token}` },
-          }),
-          axios.get(`${API_ENDPOINTS.ADMIN}/settings/progressive-hints`, {
-            headers: { Authorization: `Bearer ${token}` },
-          }),
-          axios.get(`${API_ENDPOINTS.ADMIN}/settings/tts`, {
-            headers: { Authorization: `Bearer ${token}` },
-          }).catch(() => ({ data: { enabled: true } })),
-          axios.get(`${API_ENDPOINTS.ADMIN}/settings/list-limits`, {
-            headers: { Authorization: `Bearer ${token}` },
-          }).catch(() => ({ data: { user_limit: 50, admin_limit: 500 } })),
+          apiClient.get(`${API_ENDPOINTS.ADMIN}/settings/statistics`),
+          apiClient.get(`${API_ENDPOINTS.ADMIN}/settings/progressive-hints`),
+          apiClient.get(`${API_ENDPOINTS.ADMIN}/settings/tts`).catch(() => ({ data: { enabled: true } })),
+          apiClient.get(`${API_ENDPOINTS.ADMIN}/settings/list-limits`).catch(() => ({ data: { user_limit: 50, admin_limit: 500 } })),
         ]);
 
       setSettings({

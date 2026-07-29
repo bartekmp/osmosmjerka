@@ -5,6 +5,9 @@ import UploadForm from '../UploadForm';
 import { withI18n } from '../../../../testUtils';
 
 jest.mock('axios');
+// Uses the manual mock in shared/utils/__mocks__ - the auto-mocked axios above makes
+// axios.create() undefined, which the real module needs at import time.
+jest.mock('@shared/utils/apiClient');
 
 beforeEach(() => {
     // Reset localStorage between tests

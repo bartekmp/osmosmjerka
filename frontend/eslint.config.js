@@ -109,7 +109,8 @@ export default [
     },
   },
   {
-    files: ['**/*.test.{js,jsx}', '**/__tests__/**/*.{js,jsx}', 'jest.setup.js'],
+    // __mocks__ is included because manual mocks are jest-only modules too.
+    files: ['**/*.test.{js,jsx}', '**/__tests__/**/*.{js,jsx}', '**/__mocks__/**/*.{js,jsx}', 'jest.setup.js'],
     languageOptions: {
       globals: {
         test: 'readonly',

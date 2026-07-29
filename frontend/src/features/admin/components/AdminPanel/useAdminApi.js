@@ -165,6 +165,9 @@ export function useAdminApi({ setRows, setTotalRows, setDashboard, setError, set
         }
 
         try {
+            // Bare axios on purpose: this is the admin category picker, which wants the
+            // full unfiltered list rather than one narrowed by the caller's ignored
+            // categories, and staying anonymous keeps it on the shared cache entry.
             const response = await axios.get(API_ENDPOINTS.CATEGORIES);
             categoriesCache = response.data;
             cacheTimestamp = now;

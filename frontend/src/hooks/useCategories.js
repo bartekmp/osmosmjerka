@@ -31,10 +31,10 @@ export function useCategories({
       return;
     }
 
-    // Deliberately bare axios, not apiClient: /api/categories and
-    // /api/default-ignored-categories are cached server-side under a key built only from
-    // scalar args, so the same response is served to every caller. Sending a token would
-    // let one user's personalised category list be cached and handed to everyone else.
+    // Deliberately bare axios, not apiClient. These reads are anonymous on purpose:
+    // visibleCategories below already subtracts both ignored-category lists client-side,
+    // so authenticating would only make the backend repeat that filtering, and it would
+    // split a cache entry shared by every visitor into one per user.
     axios
       .get(`${API_ENDPOINTS.DEFAULT_IGNORED_CATEGORIES}?language_set_id=${debouncedLanguageSetId}`)
       .then((res) => setIgnoredCategories(res.data))

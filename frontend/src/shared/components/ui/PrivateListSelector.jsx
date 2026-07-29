@@ -1,10 +1,10 @@
+import apiClient from '@shared/utils/apiClient';
 import logger from '@shared/utils/logger';
 import React, { useState, useEffect, useCallback } from 'react';
 import { FormControl, InputLabel, MenuItem, Select, Box, Typography, Divider } from '@mui/material';
 import DescriptionIcon from '@mui/icons-material/Description';
 import PersonIcon from '@mui/icons-material/Person';
 import { useTranslation } from 'react-i18next';
-import axios from 'axios';
 import { STORAGE_KEYS } from '../../constants/constants';
 
 const PrivateListSelector = ({
@@ -42,21 +42,11 @@ const PrivateListSelector = ({
 
             // Fetch both private lists and shared lists
             const [privateResponse, sharedResponse] = await Promise.all([
-                axios.get(
-                    `/api/user/private-lists?language_set_id=${languageSetId}`,
-                    {
-                        headers: { Authorization: `Bearer ${token}` }
-                    }
-                ).catch((err) => {
+                apiClient.get(`/api/user/private-lists?language_set_id=${languageSetId}`).catch((err) => {
                     logger.error('Failed to fetch private lists:', err);
                     return { data: { lists: [] } };
                 }),
-                axios.get(
-                    `/api/user/shared-lists?language_set_id=${languageSetId}`,
-                    {
-                        headers: { Authorization: `Bearer ${token}` }
-                    }
-                ).catch((err) => {
+                apiClient.get(`/api/user/shared-lists?language_set_id=${languageSetId}`).catch((err) => {
                     logger.error('Failed to fetch shared lists:', err);
                     return { data: { lists: [] } };
                 })
