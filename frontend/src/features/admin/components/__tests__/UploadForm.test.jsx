@@ -1,12 +1,9 @@
 import React from 'react';
 import { fireEvent, render, screen, waitFor } from '@testing-library/react';
-import axios from 'axios';
+import axios from '@shared/utils/apiClient';
 import UploadForm from '../UploadForm';
 import { withI18n } from '../../../../testUtils';
 
-jest.mock('axios');
-// Uses the manual mock in shared/utils/__mocks__ - the auto-mocked axios above makes
-// axios.create() undefined, which the real module needs at import time.
 jest.mock('@shared/utils/apiClient');
 
 beforeEach(() => {

@@ -23,6 +23,19 @@ export const getAuthToken = () => {
     }
 };
 
+/**
+ * Authorization headers for call sites still using `fetch`.
+ *
+ * Prefer `apiClient` for new code. This exists so the components that build a request
+ * by hand stop each re-reading the token and re-typing the Bearer string; converting
+ * their `response.ok` / `response.json()` handling to axios is a separate change with
+ * its own risk, and is deliberately not bundled in.
+ */
+export const authHeaders = (extra = {}) => {
+    const token = getAuthToken();
+    return { ...(token ? { Authorization: `Bearer ${token}` } : {}), ...extra };
+};
+
 const apiClient = axios.create();
 
 apiClient.interceptors.request.use((config) => {

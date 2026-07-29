@@ -1,3 +1,4 @@
+import { authHeaders } from '@shared/utils/apiClient';
 import logger from '@shared/utils/logger';
 import SchoolIcon from '@mui/icons-material/School';
 import ArrowBackIcon from '@mui/icons-material/ArrowBack';
@@ -154,9 +155,7 @@ export default function AdminPanel({
 
 
             fetch(endpoint, {
-                headers: {
-                    'Authorization': `Bearer ${token}`
-                }
+                headers: authHeaders()
             })
                 .then(res => {
                     if (!res.ok) {
@@ -202,9 +201,7 @@ export default function AdminPanel({
         const needsCategories = activeView === 'browseRecords' || activeView === 'languageSetManagement';
         if (isLogged && token && selectedLanguageSetId && needsCategories && !categoriesLoaded) {
             fetch(`${API_ENDPOINTS.ALL_CATEGORIES}?language_set_id=${selectedLanguageSetId}`, {
-                headers: {
-                    'Authorization': `Bearer ${token}`
-                }
+                headers: authHeaders()
             })
                 .then(res => {
                     if (!res.ok) {
@@ -239,7 +236,7 @@ export default function AdminPanel({
             }
             fetch(API_ENDPOINTS.USER_PROFILE, {
                 headers: token
-                    ? { Authorization: 'Bearer ' + token, 'Content-Type': 'application/json' }
+                    ? authHeaders({ 'Content-Type': 'application/json' })
                     : {}
             })
                 .then(res => {

@@ -1,3 +1,4 @@
+import { authHeaders } from '@shared/utils/apiClient';
 import logger from '@shared/utils/logger';
 import AddIcon from '@mui/icons-material/Add';
 import DeleteIcon from '@mui/icons-material/Delete';
@@ -83,9 +84,7 @@ export default function LanguageSetManagement({ currentUser, initialLanguageSets
         setError('');
         try {
             const response = await fetch(API_ENDPOINTS.ADMIN_LANGUAGE_SETS, {
-                headers: {
-                    'Authorization': `Bearer ${localStorage.getItem('adminToken')}`
-                }
+                headers: authHeaders()
             });
 
             if (response.ok) {
@@ -158,10 +157,7 @@ export default function LanguageSetManagement({ currentUser, initialLanguageSets
             // Always send JSON for metadata first
             const metaRes = await fetch(url, {
                 method,
-                headers: {
-                    'Content-Type': 'application/json',
-                    'Authorization': `Bearer ${localStorage.getItem('adminToken')}`
-                },
+                headers: authHeaders({ 'Content-Type': 'application/json' }),
                 body: JSON.stringify(formData)
             });
 
@@ -186,7 +182,7 @@ export default function LanguageSetManagement({ currentUser, initialLanguageSets
                 if (editingSet) {
                     await fetch(`${API_ENDPOINTS.ADMIN_CLEAR}?language_set_id=${targetId}`, {
                         method: 'DELETE',
-                        headers: { 'Authorization': `Bearer ${localStorage.getItem('adminToken')}` }
+                        headers: authHeaders()
                     });
                 }
 
@@ -194,7 +190,7 @@ export default function LanguageSetManagement({ currentUser, initialLanguageSets
                 form.append('file', file);
                 const uploadRes = await fetch(`/admin/upload?language_set_id=${encodeURIComponent(targetId)}`, {
                     method: 'POST',
-                    headers: { 'Authorization': `Bearer ${localStorage.getItem('adminToken')}` },
+                    headers: authHeaders(),
                     body: form
                 });
                 if (!uploadRes.ok) {
@@ -222,9 +218,7 @@ export default function LanguageSetManagement({ currentUser, initialLanguageSets
         try {
             const response = await fetch(`${API_ENDPOINTS.ADMIN_LANGUAGE_SETS}/${languageSet.id}`, {
                 method: 'DELETE',
-                headers: {
-                    'Authorization': `Bearer ${localStorage.getItem('adminToken')}`
-                }
+                headers: authHeaders()
             });
 
             if (response.ok) {
@@ -298,7 +292,7 @@ export default function LanguageSetManagement({ currentUser, initialLanguageSets
         try {
             const res = await fetch(API_ENDPOINTS.ADMIN_MAKE_DEFAULT(languageSetId), {
                 method: 'POST',
-                headers: { 'Authorization': `Bearer ${localStorage.getItem('adminToken')}` }
+                headers: authHeaders()
             });
             if (!res.ok) {
                 const data = await res.json().catch(() => ({}));
@@ -315,11 +309,10 @@ export default function LanguageSetManagement({ currentUser, initialLanguageSets
     const openIgnoredCategoriesDialog = async (languageSet) => {
         // Load all categories for this set and user ignored categories
         try {
-            const token = localStorage.getItem('adminToken');
             const [catsRes, userIgnoredRes] = await Promise.all([
                 fetch(`/api/categories?language_set_id=${languageSet.id}`),
                 fetch(`/api/user/ignored-categories?language_set_id=${languageSet.id}`, {
-                    headers: token ? { 'Authorization': `Bearer ${token}` } : {}
+                    headers: authHeaders()
                 })
             ]);
             const cats = catsRes.ok ? await catsRes.json() : [];
@@ -344,12 +337,11 @@ export default function LanguageSetManagement({ currentUser, initialLanguageSets
         if (!editingSet) return;
         setUpdatingIgnored(true);
         try {
-            const token = localStorage.getItem('adminToken');
             const res = await fetch('/api/user/ignored-categories', {
                 method: 'PUT',
                 headers: {
                     'Content-Type': 'application/json',
-                    ...(token ? { 'Authorization': `Bearer ${token}` } : {})
+                    ...(authHeaders())
                 },
                 body: JSON.stringify({ language_set_id: editingSet.id, categories: userIgnoredCategories })
             });

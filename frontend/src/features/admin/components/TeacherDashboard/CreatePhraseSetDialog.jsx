@@ -1,3 +1,4 @@
+import { authHeaders } from '@shared/utils/apiClient';
 import React, { useState, useEffect, useMemo, useCallback } from 'react';
 import {
     Box,
@@ -139,7 +140,7 @@ function CreatePhraseSetDialog({ open, onClose, onCreated, token, languageSets, 
         try {
             // Fetch phrases from admin API
             const response = await fetch(`/admin/rows?language_set_id=${languageSetId}&limit=500`, {
-                headers: { Authorization: `Bearer ${token}` },
+                headers: authHeaders(),
             });
             const data = await response.json();
             setAvailablePhrases(data.rows || []);

@@ -1,3 +1,4 @@
+import { authHeaders } from '@shared/utils/apiClient';
 import logger from '@shared/utils/logger';
 import React, { useState, useEffect, useCallback } from 'react';
 import { useTranslation } from 'react-i18next';
@@ -247,10 +248,7 @@ export default function BrowseRecordsContainer({
             // Update backend
             const response = await fetch('/api/user/ignored-categories', {
                 method: 'PUT',
-                headers: {
-                    'Authorization': `Bearer ${token}`,
-                    'Content-Type': 'application/json'
-                },
+                headers: authHeaders({ 'Content-Type': 'application/json' }),
                 body: JSON.stringify({
                     language_set_id: selectedLanguageSetId,
                     categories: newIgnoredCategories

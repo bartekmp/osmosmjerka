@@ -10,6 +10,8 @@ global.fetch = jest.fn();
 jest.mock('@shared/utils/apiClient', () => ({
     __esModule: true,
     default: { get: jest.fn(), put: jest.fn() },
+    getAuthToken: () => globalThis.localStorage.getItem('adminToken'),
+    authHeaders: (extra = {}) => ({ ...extra }),
 }));
 
 const axios = require('@shared/utils/apiClient').default;

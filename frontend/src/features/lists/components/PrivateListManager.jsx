@@ -1,3 +1,4 @@
+import { authHeaders, getAuthToken } from '@shared/utils/apiClient';
 import logger from '@shared/utils/logger';
 import React, { useState, useEffect, useCallback } from 'react';
 import {
@@ -38,7 +39,6 @@ import BarChartIcon from '@mui/icons-material/BarChart';
 import DownloadIcon from '@mui/icons-material/Download';
 import { useTranslation } from 'react-i18next';
 import axios from 'axios';
-import { STORAGE_KEYS } from '../../../shared/constants/constants';
 import CreateListDialog from './Dialogs/CreateListDialog';
 import DeleteConfirmationDialog from './Dialogs/DeleteConfirmationDialog';
 import AddCustomPhraseDialog from './Dialogs/AddCustomPhraseDialog';
@@ -82,8 +82,8 @@ export default function PrivateListManager({ open, onClose, languageSetId, isFul
   const [userStats, setUserStats] = useState(null);
 
   const getAuthHeader = useCallback(() => {
-    const token = localStorage.getItem(STORAGE_KEYS.ADMIN_TOKEN);
-    return token ? { Authorization: `Bearer ${token}` } : {};
+    const token = getAuthToken();
+    return token ? authHeaders() : {};
   }, []);
 
   useEffect(() => {

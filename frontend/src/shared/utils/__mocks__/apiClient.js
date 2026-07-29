@@ -25,4 +25,10 @@ export const getAuthToken = () => {
     }
 };
 
+// Mirrors the real helper so fetch-based components under test still get their headers.
+export const authHeaders = (extra = {}) => {
+    const token = getAuthToken();
+    return { ...(token ? { Authorization: `Bearer ${token}` } : {}), ...extra };
+};
+
 export default apiClient;

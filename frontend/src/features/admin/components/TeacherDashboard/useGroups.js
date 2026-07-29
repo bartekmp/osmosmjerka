@@ -1,14 +1,12 @@
+import apiClient from '@shared/utils/apiClient';
 import { useCallback, useMemo, useState } from 'react';
 
 /**
  * API hook for Groups management in Teacher Mode.
  */
-export function useGroups({ token, setError }) {
+export function useGroups({ setError }) {
     const [loading, setLoading] = useState(false);
 
-    const authHeader = useMemo(() => token
-        ? { Authorization: 'Bearer ' + token, 'Content-Type': 'application/json' }
-        : { 'Content-Type': 'application/json' }, [token]);
 
     /**
      * Make an authenticated API request
@@ -16,31 +14,29 @@ export function useGroups({ token, setError }) {
     const apiRequest = useCallback(async (url, options = {}) => {
         setLoading(true);
         try {
-            const response = await fetch(url, {
-                ...options,
-                headers: {
-                    ...authHeader,
-                    ...options.headers,
-                },
+            // Callers pass fetch-shaped options ({ method, body: JSON.stringify(..) });
+            // axios forwards a string `data` verbatim, so bodies need no re-encoding.
+            const { method = 'GET', body, headers } = options;
+            const response = await apiClient.request({
+                url,
+                method,
+                data: body,
+                headers: { 'Content-Type': 'application/json', ...headers },
             });
-
-            const data = await response.json();
-
-            if (!response.ok) {
-                const errorMessage = data.message || data.error_code || 'Request failed';
-                throw new Error(errorMessage);
-            }
-
-            return data;
+            return response.data;
         } catch (error) {
+            // axios rejects on non-2xx, so the message the old !response.ok branch read
+            // off the parsed body now lives on error.response.data.
+            const payload = error.response?.data;
+            const errorMessage = payload?.message || payload?.error_code || error.message || 'Request failed';
             if (setError) {
-                setError(error.message);
+                setError(errorMessage);
             }
-            throw error;
+            throw new Error(errorMessage);
         } finally {
             setLoading(false);
         }
-    }, [authHeader, setError]);
+    }, [setError]);
 
     /**
      * Fetch list of groups

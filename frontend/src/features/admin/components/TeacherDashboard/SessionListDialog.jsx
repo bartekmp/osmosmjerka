@@ -1,3 +1,4 @@
+import { authHeaders } from '@shared/utils/apiClient';
 import React, { useState, useEffect, useCallback } from 'react';
 import {
     Box,
@@ -124,7 +125,7 @@ function SessionListDialog({ open, onClose, phraseSet, token }) {
         link.setAttribute('download', `${phraseSet.name}_sessions.csv`);
         // Add auth header via fetch and blob
         fetch(exportUrl, {
-            headers: { 'Authorization': `Bearer ${token}` }
+            headers: authHeaders()
         })
             .then(res => res.blob())
             .then(blob => {

@@ -1,11 +1,10 @@
-import apiClient from '@shared/utils/apiClient';
+import apiClient, { getAuthToken } from '@shared/utils/apiClient';
 import logger from '@shared/utils/logger';
 import React, { useState, useEffect, useCallback } from 'react';
 import { FormControl, InputLabel, MenuItem, Select, Box, Typography, Divider } from '@mui/material';
 import DescriptionIcon from '@mui/icons-material/Description';
 import PersonIcon from '@mui/icons-material/Person';
 import { useTranslation } from 'react-i18next';
-import { STORAGE_KEYS } from '../../constants/constants';
 
 const PrivateListSelector = ({
     selectedListId,
@@ -33,7 +32,7 @@ const PrivateListSelector = ({
             setLoading(true);
             setError(null);
 
-            const token = localStorage.getItem(STORAGE_KEYS.ADMIN_TOKEN);
+            const token = getAuthToken();
             if (!token) {
                 setPrivateLists([]);
                 setSharedLists([]);

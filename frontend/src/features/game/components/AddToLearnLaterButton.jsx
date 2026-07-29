@@ -1,4 +1,4 @@
-import apiClient from '@shared/utils/apiClient';
+import apiClient, { getAuthToken } from '@shared/utils/apiClient';
 import logger from '@shared/utils/logger';
 import React, { useState, useEffect, useMemo, useRef } from 'react';
 import { IconButton, Tooltip, Snackbar, Alert } from '@mui/material';
@@ -6,7 +6,6 @@ import AddCircleOutlineIcon from '@mui/icons-material/AddCircleOutlined';
 import CheckCircleIcon from '@mui/icons-material/CheckCircle';
 import PlaylistAddCheckIcon from '@mui/icons-material/PlaylistAddCheck';
 import { useTranslation } from 'react-i18next';
-import { STORAGE_KEYS } from '../../../shared/constants/constants';
 
 export default function AddToLearnLaterButton({ 
   type = 'all', // 'all' or 'selected'
@@ -51,7 +50,7 @@ export default function AddToLearnLaterButton({
 
       setIsCheckingList(true);
       try {
-        const token = localStorage.getItem(STORAGE_KEYS.ADMIN_TOKEN);
+        const token = getAuthToken();
         if (!token) {
           setIsCheckingList(false);
           return;
@@ -104,7 +103,7 @@ export default function AddToLearnLaterButton({
 
     setIsAdding(true);
     try {
-      const token = localStorage.getItem(STORAGE_KEYS.ADMIN_TOKEN);
+      const token = getAuthToken();
       if (!token) {
         throw new Error('Not authenticated');
       }

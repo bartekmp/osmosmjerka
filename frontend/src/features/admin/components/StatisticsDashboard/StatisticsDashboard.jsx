@@ -1,3 +1,4 @@
+import { authHeaders } from '@shared/utils/apiClient';
 import logger from '@shared/utils/logger';
 import React, { useState, useEffect } from 'react';
 import {
@@ -206,10 +207,7 @@ const StatisticsDashboard = ({ token, setError: onError, currentUser }) => {
       await axios.post('/admin/settings/statistics-enabled',
         { enabled: !statisticsEnabled },
         {
-          headers: {
-            'Authorization': `Bearer ${token}`,
-            'Content-Type': 'application/json'
-          }
+          headers: authHeaders({ 'Content-Type': 'application/json' })
         }
       );
       setStatisticsEnabled(!statisticsEnabled);
@@ -227,9 +225,7 @@ const StatisticsDashboard = ({ token, setError: onError, currentUser }) => {
     setSettingsLoading(true);
     try {
       await axios.delete('/admin/settings/clear-all-statistics', {
-        headers: {
-          'Authorization': `Bearer ${token}`
-        }
+        headers: authHeaders()
       });
       setClearStatsDialogOpen(false);
       // Reload data to show cleared statistics

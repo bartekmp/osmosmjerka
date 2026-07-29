@@ -1,3 +1,4 @@
+import { authHeaders } from '@shared/utils/apiClient';
 import logger from '@shared/utils/logger';
 import React, { useState, useEffect, useCallback } from 'react';
 import {
@@ -81,14 +82,9 @@ export default function DuplicateManagement({ currentUser, selectedLanguageSetId
         setError('');
 
         try {
-            const token = localStorage.getItem('adminToken');
             const response = await fetch(
                 `${API_ENDPOINTS.ADMIN_DUPLICATES}?language_set_id=${activeLanguageSetId}&page=${page}&page_size=${size}`,
-                {
-                    headers: {
-                        'Authorization': `Bearer ${token}`
-                    }
-                }
+                { headers: authHeaders() }
             );
 
             if (!response.ok) {
@@ -165,8 +161,7 @@ export default function DuplicateManagement({ currentUser, selectedLanguageSetId
         if (!keepPhrase) return;
         setKeepEditSaving(true);
         try {
-            const token = localStorage.getItem('adminToken');
-            const auth = { 'Authorization': `Bearer ${token}`, 'Content-Type': 'application/json' };
+            const auth = authHeaders({ 'Content-Type': 'application/json' });
 
             // 1) update the kept phrase with the edited fields
             const updateRes = await fetch(
@@ -202,16 +197,12 @@ export default function DuplicateManagement({ currentUser, selectedLanguageSetId
         const duplicateIds = phrases.filter(p => p.id !== keepPhraseId).map(p => p.id);
 
         try {
-            const token = localStorage.getItem('adminToken');
 
             const response = await fetch(
                 `/admin/merge-categories?language_set_id=${activeLanguageSetId}`,
                 {
                     method: 'POST',
-                    headers: {
-                        'Authorization': `Bearer ${token}`,
-                        'Content-Type': 'application/json'
-                    },
+                    headers: authHeaders({ 'Content-Type': 'application/json' }),
                     body: JSON.stringify({
                         keep_phrase_id: keepPhraseId,
                         duplicate_phrase_ids: duplicateIds
@@ -262,17 +253,13 @@ export default function DuplicateManagement({ currentUser, selectedLanguageSetId
 
         setDeleting(true);
         try {
-            const token = localStorage.getItem('adminToken');
             const phraseIds = phrasesToDelete.map(p => p.id);
 
             const response = await fetch(
                 `${API_ENDPOINTS.ADMIN_DUPLICATES}?language_set_id=${activeLanguageSetId}`,
                 {
                     method: 'DELETE',
-                    headers: {
-                        'Authorization': `Bearer ${token}`,
-                        'Content-Type': 'application/json'
-                    },
+                    headers: authHeaders({ 'Content-Type': 'application/json' }),
                     body: JSON.stringify(phraseIds)
                 }
             );

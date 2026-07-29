@@ -1,3 +1,4 @@
+import { authHeaders } from '@shared/utils/apiClient';
 import React, { useState, useEffect, useRef } from 'react';
 import {
     Box,
@@ -67,10 +68,7 @@ function PreviewDialog({ open, onClose, phraseSet, token }) {
             setError(null);
             try {
                 const response = await fetch(`/admin/teacher/phrase-sets/${phraseSet.id}/preview`, {
-                    headers: {
-                        'Authorization': `Bearer ${token}`,
-                        'Content-Type': 'application/json',
-                    },
+                    headers: authHeaders({ 'Content-Type': 'application/json' }),
                 });
                 if (!response.ok) throw new Error(t('teacher.preview.error_generate', 'Failed to generate preview'));
                 const data = await response.json();

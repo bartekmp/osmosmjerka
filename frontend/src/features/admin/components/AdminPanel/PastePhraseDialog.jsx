@@ -17,7 +17,7 @@ import {
 } from '@mui/material';
 import { Close as CloseIcon } from '@mui/icons-material';
 import { useTranslation } from 'react-i18next';
-import axios from 'axios';
+import apiClient from '@shared/utils/apiClient';
 import { STORAGE_KEYS } from '../../../../shared';
 
 export default function PastePhraseDialog({ 
@@ -146,11 +146,6 @@ export default function PastePhraseDialog({
         setError('');
         
         try {
-            const token = localStorage.getItem('adminToken');
-            const headers = {
-                'Content-Type': 'application/json',
-                ...(token ? { Authorization: 'Bearer ' + token } : {})
-            };
             const languageSetId = getEffectiveLanguageSetId();
             const url = `/admin/upload-text?language_set_id=${encodeURIComponent(languageSetId)}`;
             // Decide which separator to send to backend
@@ -166,7 +161,7 @@ export default function PastePhraseDialog({
                 content: pasteText,
                 ...(payloadSeparator ? { separator: payloadSeparator } : {})
             };
-            const _ = await axios.post(url, payload, { headers });
+            const _ = await apiClient.post(url, payload);
             
             // Success - close dialog and refresh data
             handleClose();

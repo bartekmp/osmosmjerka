@@ -1,4 +1,4 @@
-import apiClient from '@shared/utils/apiClient';
+import apiClient, { authHeaders, getAuthToken } from '@shared/utils/apiClient';
 import logger from '@shared/utils/logger';
 import React, { useState, useEffect } from "react";
 import {
@@ -17,7 +17,7 @@ import {
 } from "@mui/material";
 import { useTranslation } from "react-i18next";
 import axios from "axios";
-import { API_ENDPOINTS, STORAGE_KEYS } from "../../../../shared";
+import { API_ENDPOINTS } from "../../../../shared";
 
 const SystemSettings = () => {
   const { t } = useTranslation();
@@ -43,7 +43,7 @@ const SystemSettings = () => {
   }, []);
 
   const loadSettings = async () => {
-    const token = localStorage.getItem(STORAGE_KEYS.ADMIN_TOKEN);
+    const token = getAuthToken();
     if (!token) {
       setLoading(false);
       return;
@@ -79,7 +79,7 @@ const SystemSettings = () => {
   };
 
   const updateSetting = async (settingType, enabled) => {
-    const token = localStorage.getItem(STORAGE_KEYS.ADMIN_TOKEN);
+    const token = getAuthToken();
     if (!token) return;
     try {
       let endpoint;
@@ -101,10 +101,7 @@ const SystemSettings = () => {
         endpoint,
         { enabled },
         {
-          headers: {
-            Authorization: `Bearer ${token}`,
-            "Content-Type": "application/json",
-          },
+          headers: authHeaders({ 'Content-Type': 'application/json' }),
         }
       );
 
@@ -139,7 +136,7 @@ const SystemSettings = () => {
   };
 
   const handleUpdateListLimits = async () => {
-    const token = localStorage.getItem(STORAGE_KEYS.ADMIN_TOKEN);
+    const token = getAuthToken();
     if (!token) return;
 
     setListLimitsLoading(true);
@@ -151,10 +148,7 @@ const SystemSettings = () => {
           admin_limit: listLimits.adminLimit,
         },
         {
-          headers: {
-            Authorization: `Bearer ${token}`,
-            "Content-Type": "application/json",
-          },
+          headers: authHeaders({ 'Content-Type': 'application/json' }),
         }
       );
 
