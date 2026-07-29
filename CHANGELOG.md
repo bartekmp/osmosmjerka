@@ -2,6 +2,75 @@
 
 <!-- version list -->
 
+## v1.51.0 (2026-07-29)
+
+### Bug Fixes
+
+- Key per-user cached responses by user, closing a cross-user leak
+  ([#235](https://github.com/bartekmp/osmosmjerka/pull/235),
+  [`b2eed9e`](https://github.com/bartekmp/osmosmjerka/commit/b2eed9e6cbc0232e489b82758b7254aef6661ba5))
+
+- Schedule the expired-notification and expired-set purges
+  ([#235](https://github.com/bartekmp/osmosmjerka/pull/235),
+  [`b2eed9e`](https://github.com/bartekmp/osmosmjerka/commit/b2eed9e6cbc0232e489b82758b7254aef6661ba5))
+
+### Chores
+
+- Delete dead code and unused translation keys
+  ([#235](https://github.com/bartekmp/osmosmjerka/pull/235),
+  [`b2eed9e`](https://github.com/bartekmp/osmosmjerka/commit/b2eed9e6cbc0232e489b82758b7254aef6661ba5))
+
+- Modernise type annotations and enable ruff UP
+  ([#235](https://github.com/bartekmp/osmosmjerka/pull/235),
+  [`b2eed9e`](https://github.com/bartekmp/osmosmjerka/commit/b2eed9e6cbc0232e489b82758b7254aef6661ba5))
+
+- Remove i18n keys unreachable by dynamic lookup
+  ([#235](https://github.com/bartekmp/osmosmjerka/pull/235),
+  [`b2eed9e`](https://github.com/bartekmp/osmosmjerka/commit/b2eed9e6cbc0232e489b82758b7254aef6661ba5))
+
+### Features
+
+- Add shared authed API client ([#235](https://github.com/bartekmp/osmosmjerka/pull/235),
+  [`b2eed9e`](https://github.com/bartekmp/osmosmjerka/commit/b2eed9e6cbc0232e489b82758b7254aef6661ba5))
+
+### Refactoring
+
+- Drop the token props left dead by the API client migration
+  ([#235](https://github.com/bartekmp/osmosmjerka/pull/235),
+  [`b2eed9e`](https://github.com/bartekmp/osmosmjerka/commit/b2eed9e6cbc0232e489b82758b7254aef6661ba5))
+
+- Extract the shared phrase-set form state into a hook
+  ([#235](https://github.com/bartekmp/osmosmjerka/pull/235),
+  [`b2eed9e`](https://github.com/bartekmp/osmosmjerka/commit/b2eed9e6cbc0232e489b82758b7254aef6661ba5))
+
+- Move the admin/teacher API hooks onto the shared client
+  ([#235](https://github.com/bartekmp/osmosmjerka/pull/235),
+  [`b2eed9e`](https://github.com/bartekmp/osmosmjerka/commit/b2eed9e6cbc0232e489b82758b7254aef6661ba5))
+
+- Move the axios-based leaf components onto the shared client
+  ([#235](https://github.com/bartekmp/osmosmjerka/pull/235),
+  [`b2eed9e`](https://github.com/bartekmp/osmosmjerka/commit/b2eed9e6cbc0232e489b82758b7254aef6661ba5))
+
+- Move the game hooks onto the shared API client
+  ([#235](https://github.com/bartekmp/osmosmjerka/pull/235),
+  [`b2eed9e`](https://github.com/bartekmp/osmosmjerka/commit/b2eed9e6cbc0232e489b82758b7254aef6661ba5))
+
+- Move useAdminApi onto the shared client ([#235](https://github.com/bartekmp/osmosmjerka/pull/235),
+  [`b2eed9e`](https://github.com/bartekmp/osmosmjerka/commit/b2eed9e6cbc0232e489b82758b7254aef6661ba5))
+
+- Remove dead code, consolidate duplication, fix a cross-user cache leak
+  ([#235](https://github.com/bartekmp/osmosmjerka/pull/235),
+  [`b2eed9e`](https://github.com/bartekmp/osmosmjerka/commit/b2eed9e6cbc0232e489b82758b7254aef6661ba5))
+
+- Share JWT decode/resolve helpers, check SECRET_KEY at startup
+  ([#235](https://github.com/bartekmp/osmosmjerka/pull/235),
+  [`b2eed9e`](https://github.com/bartekmp/osmosmjerka/commit/b2eed9e6cbc0232e489b82758b7254aef6661ba5))
+
+- Stop hand-building auth headers across the leaf components
+  ([#235](https://github.com/bartekmp/osmosmjerka/pull/235),
+  [`b2eed9e`](https://github.com/bartekmp/osmosmjerka/commit/b2eed9e6cbc0232e489b82758b7254aef6661ba5))
+
+
 ## v1.50.0 (2026-07-20)
 
 ### Features
