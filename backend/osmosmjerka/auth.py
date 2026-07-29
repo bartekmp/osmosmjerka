@@ -146,6 +146,25 @@ async def _resolve_account(payload: dict[str, Any]) -> UserInfo:
     return {"username": account["username"], "role": account["role"], "id": account["id"]}
 
 
+def optional_user_from_request(request: Request | None) -> UserInfo | None:
+    """Best-effort user for endpoints where authentication is optional.
+
+    Built on verify_token, so like it this trusts the token payload and performs **no**
+    database lookup - these are the hot game endpoints and a per-request round-trip
+    there would be costly. An absent, malformed or expired token yields None rather
+    than raising, i.e. the caller is treated as anonymous.
+    """
+    if request is None:
+        return None
+    token = _bearer_token(request)
+    if token is None:
+        return None
+    try:
+        return verify_token(token)
+    except HTTPException:
+        return None
+
+
 def verify_token(token: str) -> UserInfo:
     """Validate a token and return the user it claims to be, trusting the payload.
 

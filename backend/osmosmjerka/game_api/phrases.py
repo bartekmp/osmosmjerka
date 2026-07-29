@@ -2,9 +2,9 @@
 
 import random
 
-from fastapi import APIRouter, HTTPException, Query, Request, status
+from fastapi import APIRouter, Query, Request, status
 from fastapi.responses import JSONResponse
-from osmosmjerka.auth import verify_token
+from osmosmjerka.auth import optional_user_from_request
 from osmosmjerka.cache import cache_response, categories_cache, language_sets_cache, phrases_cache, rate_limit
 from osmosmjerka.database import db_manager
 from osmosmjerka.game_api.helpers import _generate_grid_with_exact_phrase_count, get_grid_size_and_num_phrases
@@ -25,18 +25,10 @@ async def get_language_sets() -> JSONResponse:
 
 @router.get("/categories")
 @rate_limit(max_requests=30, window_seconds=60)  # 30 requests per minute
-@cache_response(categories_cache, "categories")
+@cache_response(categories_cache, "categories", vary_on_user=True)
 async def get_all_categories(language_set_id: int = Query(None), *, request: Request) -> JSONResponse:
     """Get categories for a specific language set, applying user-specific ignored categories if authenticated"""
-    user = None
-    if request:
-        auth = request.headers.get("Authorization")
-        if auth and auth.startswith("Bearer "):
-            try:
-                user = verify_token(auth.split(" ", 1)[1])
-            except HTTPException:
-                # Invalid/expired token: treat as anonymous
-                user = None
+    user = optional_user_from_request(request)
     ignored_override = None
     if user and language_set_id is not None:
         user_ignored = await db_manager.get_user_ignored_categories(user["id"], language_set_id)
@@ -49,7 +41,7 @@ async def get_all_categories(language_set_id: int = Query(None), *, request: Req
 
 @router.get("/phrases")
 @rate_limit(max_requests=20, window_seconds=60)  # 20 requests per minute for phrase generation
-@cache_response(phrases_cache, "phrases")
+@cache_response(phrases_cache, "phrases", vary_on_user=True)
 async def get_phrases(
     category: str | None = None,
     difficulty: str = "medium",
@@ -60,15 +52,7 @@ async def get_phrases(
     request: Request,
 ) -> JSONResponse:
     """Get phrases for puzzle generation with language set support and user-specific ignored categories"""
-    user = None
-    if request:
-        auth = request.headers.get("Authorization")
-        if auth and auth.startswith("Bearer "):
-            try:
-                user = verify_token(auth.split(" ", 1)[1])
-            except HTTPException:
-                # Invalid/expired token: treat as anonymous
-                user = None
+    user = optional_user_from_request(request)
     ignored_override = None
     if user and language_set_id is not None:
         user_ignored = await db_manager.get_user_ignored_categories(user["id"], language_set_id)

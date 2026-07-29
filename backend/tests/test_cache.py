@@ -228,6 +228,61 @@ class TestCacheResponseDecorator:
         assert call_count == 1  # Function only called once
 
     @pytest.mark.asyncio
+    async def test_vary_on_user_isolates_entries_per_caller(self):
+        """Two users hitting the same URL must not share a cached response.
+
+        Regression test: the cache key is assembled from scalar arguments only, so the
+        Request object never reached it. Without vary_on_user the first authenticated
+        response was handed to every later caller, leaking one user's personalised
+        category/phrase list to others - including anonymous visitors.
+        """
+        cache = AsyncLRUCache(maxsize=10, ttl=300)
+
+        @cache_response(cache, key_prefix="test", vary_on_user=True)
+        async def per_user_endpoint(*, request):
+            return f"data_for_{request.headers.get('X-Test-User', 'anon')}"
+
+        def req_for(user_id):
+            r = MagicMock()
+            headers = {"X-Test-User": str(user_id), "Authorization": f"Bearer token-{user_id}"}
+            r.headers = headers
+            return r
+
+        with patch("osmosmjerka.auth.optional_user_from_request") as resolve:
+            resolve.side_effect = lambda request: (
+                {"id": int(request.headers["X-Test-User"]), "username": "u", "role": "regular"}
+                if request is not None
+                else None
+            )
+            first = await per_user_endpoint(request=req_for(1))
+            second = await per_user_endpoint(request=req_for(2))
+
+        assert first == "data_for_1"
+        assert second == "data_for_2", "user 2 was served user 1's cached response"
+
+    @pytest.mark.asyncio
+    async def test_vary_on_user_still_caches_for_the_same_caller(self):
+        """Per-user isolation must not disable caching outright."""
+        cache = AsyncLRUCache(maxsize=10, ttl=300)
+        calls = 0
+
+        @cache_response(cache, key_prefix="test", vary_on_user=True)
+        async def per_user_endpoint(*, request):
+            nonlocal calls
+            calls += 1
+            return calls
+
+        request = MagicMock()
+        request.headers = {"Authorization": "Bearer token-1"}
+
+        with patch("osmosmjerka.auth.optional_user_from_request") as resolve:
+            resolve.return_value = {"id": 7, "username": "u", "role": "regular"}
+            await per_user_endpoint(request=request)
+            await per_user_endpoint(request=request)
+
+        assert calls == 1
+
+    @pytest.mark.asyncio
     async def test_refresh_bypasses_cache(self):
         """Setting refresh=True bypasses cache."""
         cache = AsyncLRUCache(maxsize=10, ttl=300)

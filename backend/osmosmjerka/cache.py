@@ -174,12 +174,17 @@ def rate_limit(max_requests: int, window_seconds: int) -> Callable[[F], F]:
     return decorator
 
 
-def cache_response(cache_instance: AsyncLRUCache, key_prefix: str = "") -> Callable[[F], F]:
+def cache_response(cache_instance: AsyncLRUCache, key_prefix: str = "", vary_on_user: bool = False) -> Callable[[F], F]:
     """Decorator to cache FastAPI endpoint responses.
 
     Args:
         cache_instance: The cache instance to use for storing responses
         key_prefix: Optional prefix for cache keys
+        vary_on_user: Set this on any endpoint whose response depends on who is asking.
+            The cache key is built only from scalar arguments, so the ``Request`` object
+            never contributes to it - without this flag two callers hitting the same URL
+            share one entry, and the first authenticated response would be served to
+            everyone else, including anonymous visitors.
 
     Returns:
         Decorator function that wraps the endpoint with caching
@@ -203,6 +208,14 @@ def cache_response(cache_instance: AsyncLRUCache, key_prefix: str = "") -> Calla
             for key, value in kwargs.items():
                 if key != "refresh" and isinstance(value, (str, int, float, bool)):
                     cache_key_parts.append(f"{key}_{value}")
+
+            if vary_on_user:
+                # Imported lazily: auth imports the database layer, which imports this
+                # module, so a module-level import would be circular.
+                from osmosmjerka.auth import optional_user_from_request
+
+                user = optional_user_from_request(kwargs.get("request"))
+                cache_key_parts.append(f"user_{user['id']}" if user else "anon")
 
             cache_key = "_".join(filter(None, cache_key_parts))
 
