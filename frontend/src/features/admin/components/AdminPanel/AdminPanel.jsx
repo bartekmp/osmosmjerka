@@ -75,7 +75,6 @@ export default function AdminPanel({
         handleLogin,
         showFetchRateLimit
     } = useAdminApi({
-        token,
         setError,
         setToken,
         setIsLogged,
@@ -570,7 +569,6 @@ export default function AdminPanel({
             <Box ref={containerRef} sx={{ width: '100%' }}>
                 {activeView === 'teacherDashboard' && (
                     <TeacherDashboard
-                        token={token}
                         setError={setError}
                         currentUser={currentUser}
                         languageSets={languageSets}
@@ -581,7 +579,7 @@ export default function AdminPanel({
                     <UserManagement currentUser={currentUser} />
                 )}
                 {activeView === 'statisticsDashboard' && (
-                    <StatisticsDashboard token={token} setError={setError} currentUser={currentUser} />
+                    <StatisticsDashboard setError={setError} currentUser={currentUser} />
                 )}
                 {activeView === 'systemSettings' && (
                     <SystemSettings />
@@ -597,7 +595,7 @@ export default function AdminPanel({
                     <UserProfile currentUser={currentUser} />
                 )}
                 {activeView === 'myStudy' && (
-                    <MyStudy token={token} />
+                    <MyStudy />
                 )}
                 {activeView === 'duplicateManagement' && (
                     <DuplicateManagement
@@ -613,7 +611,6 @@ export default function AdminPanel({
                 )}
                 {activeView === 'browseRecords' && (
                     <BrowseRecordsContainer
-                        token={token}
                         currentUser={currentUser}
                         selectedLanguageSetId={selectedLanguageSetId}
                         languageSets={languageSets}

@@ -33,7 +33,7 @@ import { useGroups } from './useGroups';
 /**
  * Groups Management View
  */
-export default function GroupsView({ token }) {
+export default function GroupsView() {
     const { t } = useTranslation();
     const [groups, setGroups] = useState([]);
     const [error, setError] = useState('');
@@ -50,7 +50,7 @@ export default function GroupsView({ token }) {
     const [loadingMembers, setLoadingMembers] = useState(false);
     const [inviteResults, setInviteResults] = useState([]);  // Show invite status
 
-    const api = useGroups({ token, setError });
+    const api = useGroups({ setError });
 
     const loadGroups = useCallback(async () => {
         try {

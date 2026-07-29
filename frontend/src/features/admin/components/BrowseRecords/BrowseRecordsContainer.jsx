@@ -7,7 +7,6 @@ import BrowseRecordsView from './BrowseRecordsView';
 import { STORAGE_KEYS } from '../../../../shared/constants/constants';
 
 export default function BrowseRecordsContainer({
-    token,
     currentUser,
     selectedLanguageSetId,
     languageSets,
@@ -64,7 +63,6 @@ export default function BrowseRecordsContainer({
         invalidateCategoriesCache,
         isFetchingRows,
     } = useAdminApi({
-        token,
         setRows,
         setTotalRows,
         setDashboard,

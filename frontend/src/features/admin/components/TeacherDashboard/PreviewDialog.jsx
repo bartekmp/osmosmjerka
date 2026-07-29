@@ -21,7 +21,7 @@ import PreviewGrid, { PHRASE_COLORS_LIGHT, PHRASE_COLORS_DARK } from './PreviewG
 /**
  * PreviewDialog - Preview how a phrase set will appear to students
  */
-function PreviewDialog({ open, onClose, phraseSet, token }) {
+function PreviewDialog({ open, onClose, phraseSet }) {
     const { t } = useTranslation();
     const { isDarkMode } = useThemeMode();
 
@@ -81,7 +81,7 @@ function PreviewDialog({ open, onClose, phraseSet, token }) {
             }
         };
         generatePreview();
-    }, [open, phraseSet, token]);
+    }, [open, phraseSet]);
 
     const handleClose = () => {
         setGrid([]);

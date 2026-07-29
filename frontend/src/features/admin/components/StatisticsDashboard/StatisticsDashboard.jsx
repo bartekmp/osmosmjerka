@@ -36,13 +36,12 @@ import LanguageSetsTab from './Tabs/LanguageSetsTab';
 import UserStatisticsTab from './Tabs/UserStatisticsTab';
 import MasteryLeaderboardTab from './Tabs/MasteryLeaderboardTab';
 
-const StatisticsDashboard = ({ token, setError: onError, currentUser }) => {
+const StatisticsDashboard = ({ setError: onError, currentUser }) => {
   const { t } = useTranslation();
   const theme = useTheme();
 
   // Create a minimal configuration for useAdminApi, only providing what's needed
   const { getWithAuth } = useAdminApi({
-    token,
     setRows: () => { }, // Not used in statistics dashboard
     setTotalRows: () => { }, // Not used in statistics dashboard
     setDashboard: () => { }, // Not used in statistics dashboard

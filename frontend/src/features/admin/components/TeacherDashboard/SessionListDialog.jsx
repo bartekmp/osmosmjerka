@@ -36,7 +36,7 @@ import ReviewTranslationsDialog from './ReviewTranslationsDialog';
 /**
  * Dialog for viewing sessions for a phrase set
  */
-function SessionListDialog({ open, onClose, phraseSet, token }) {
+function SessionListDialog({ open, onClose, phraseSet }) {
     const [sessions, setSessions] = useState([]);
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState('');
@@ -45,7 +45,7 @@ function SessionListDialog({ open, onClose, phraseSet, token }) {
     const [reviewDialog, setReviewDialog] = useState({ open: false, session: null });
 
     const { t } = useTranslation();
-    const api = useTeacherApi({ token, setError });
+    const api = useTeacherApi({ setError });
 
     const loadSessions = useCallback(async () => {
         if (!phraseSet?.id) return;
