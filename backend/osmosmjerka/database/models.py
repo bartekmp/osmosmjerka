@@ -67,6 +67,14 @@ accounts_table = Table(
     metadata,
     Column("id", Integer, primary_key=True, index=True),
     Column("username", String, nullable=False, unique=True),
+    # Login identifier for self-registered accounts, stored lowercased. Nullable because
+    # accounts created before self-registration existed (root admin, admin-created users,
+    # the staging demo account) log in by username and may never have an address.
+    Column("email", String(320), nullable=True, unique=True),
+    # server_default only, no Python-side default: a `default=` puts the column into every
+    # compiled INSERT as a NULL bind (the `databases` layer never fills Python defaults
+    # in), which then violates NOT NULL instead of letting Postgres apply the default.
+    Column("email_verified", Boolean, nullable=False, server_default=text("false")),
     Column("password_hash", String, nullable=False),
     Column(
         "role", String, nullable=False, default="regular", server_default="regular"
@@ -79,6 +87,35 @@ accounts_table = Table(
     Column("updated_at", DateTime, nullable=False, server_default=func.now()),
     Column("is_active", Boolean, nullable=False, default=True, server_default=text("true")),
     Column("last_login", DateTime),
+    # Consecutive failed logins and the time the account is locked until, so brute force
+    # is throttled per account rather than only per client IP.
+    Column("failed_login_attempts", Integer, nullable=False, server_default=text("0")),
+    Column("locked_until", DateTime, nullable=True),
+)
+
+
+# Single-use tokens for email confirmation and password reset.
+#
+# Only a SHA-256 hash of the token is stored: the plaintext exists solely inside the
+# emailed link, so a database leak cannot be replayed to take over accounts. Tokens carry
+# an expiry and a used_at stamp, and both are enforced on redemption.
+account_tokens_table = Table(
+    "account_tokens",
+    metadata,
+    Column("id", Integer, primary_key=True, index=True),
+    Column(
+        "account_id",
+        Integer,
+        ForeignKey("accounts.id", ondelete="CASCADE"),
+        nullable=False,
+        index=True,
+    ),
+    Column("purpose", String(32), nullable=False),  # email_verification | password_reset
+    Column("token_hash", String(64), nullable=False, unique=True),
+    Column("created_at", DateTime, nullable=False, server_default=func.now()),
+    Column("expires_at", DateTime, nullable=False),
+    Column("used_at", DateTime, nullable=True),
+    Index("idx_account_tokens_lookup", "account_id", "purpose"),
 )
 
 # Define the user_ignored_categories table
