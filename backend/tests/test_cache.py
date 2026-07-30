@@ -4,6 +4,7 @@ import time
 from unittest.mock import MagicMock, patch
 
 import pytest
+from fastapi import HTTPException
 from osmosmjerka.cache import (
     AsyncLRUCache,
     RateLimiter,
@@ -141,11 +142,39 @@ class TestGetClientIp:
         request.headers = {"X-Forwarded-For": "192.168.1.1"}
         assert _get_client_ip(request) == "192.168.1.1"
 
-    def test_x_forwarded_for_multiple_ips(self):
-        """Takes first IP from X-Forwarded-For header."""
+    def test_takes_the_hop_our_own_proxy_added(self):
+        """The rightmost entry is the one the ingress observed; the rest are client-supplied."""
         request = MagicMock()
         request.headers = {"X-Forwarded-For": "192.168.1.1, 10.0.0.1, 172.16.0.1"}
-        assert _get_client_ip(request) == "192.168.1.1"
+        assert _get_client_ip(request) == "172.16.0.1"
+
+    def test_a_forged_prefix_cannot_change_the_result(self):
+        """Rotating a spoofed leading entry must not create a fresh rate-limit bucket."""
+        request = MagicMock()
+        request.headers = {"X-Forwarded-For": "203.0.113.9, 172.16.0.1"}
+        first = _get_client_ip(request)
+        request.headers = {"X-Forwarded-For": "203.0.113.250, 172.16.0.1"}
+        assert _get_client_ip(request) == first
+
+    def test_honours_a_deeper_proxy_chain(self, monkeypatch):
+        monkeypatch.setenv("TRUSTED_PROXY_HOPS", "2")
+        request = MagicMock()
+        request.headers = {"X-Forwarded-For": "192.168.1.1, 10.0.0.1, 172.16.0.1"}
+        assert _get_client_ip(request) == "10.0.0.1"
+
+    def test_zero_hops_ignores_the_header_entirely(self, monkeypatch):
+        monkeypatch.setenv("TRUSTED_PROXY_HOPS", "0")
+        request = MagicMock()
+        request.headers = {"X-Forwarded-For": "192.168.1.1"}
+        request.client.host = "127.0.0.1"
+        assert _get_client_ip(request) == "127.0.0.1"
+
+    def test_a_short_chain_falls_back_to_its_oldest_entry(self, monkeypatch):
+        """Fewer entries than configured hops: use what's there rather than indexing off the end."""
+        monkeypatch.setenv("TRUSTED_PROXY_HOPS", "3")
+        request = MagicMock()
+        request.headers = {"X-Forwarded-For": "10.0.0.1"}
+        assert _get_client_ip(request) == "10.0.0.1"
 
     def test_x_real_ip(self):
         """Falls back to X-Real-IP header."""
@@ -203,6 +232,27 @@ class TestRateLimitDecorator:
             # Should work even though limit is 1
             assert await test_endpoint(user=user) == "success"
             assert await test_endpoint(user=user) == "success"
+
+    @pytest.mark.asyncio
+    async def test_each_endpoint_gets_its_own_budget(self):
+        """One caller exhausting one endpoint must not lock them out of another."""
+
+        @rate_limit(max_requests=1, window_seconds=60)
+        async def first_endpoint(user=None):
+            return "first"
+
+        @rate_limit(max_requests=1, window_seconds=60)
+        async def second_endpoint(user=None):
+            return "second"
+
+        with patch.dict("os.environ", {"TESTING": "false"}):
+            user = {"role": "regular", "id": 3}
+            assert await first_endpoint(user=user) == "first"
+            with pytest.raises(HTTPException) as exc:
+                await first_endpoint(user=user)
+            assert exc.value.status_code == 429
+            # Same caller, different endpoint: still allowed.
+            assert await second_endpoint(user=user) == "second"
 
 
 class TestCacheResponseDecorator:
