@@ -236,8 +236,32 @@ DB_MAX_OVERFLOW=5        # Maximum number of connections to create beyond pool_s
 DB_POOL_TIMEOUT=30      # Timeout in seconds for getting a connection from the pool (default: 30)
 
 # Background Maintenance (optional)
-# Periodically purges expired notifications and past-auto-delete teacher phrase sets.
+# Periodically purges expired notifications, past-auto-delete teacher phrase sets and
+# spent account tokens.
 MAINTENANCE_INTERVAL_SECONDS=21600  # Seconds between sweeps (default: 21600 = 6h; 0 disables)
+
+# Self-Service Registration (optional)
+APP_BASE_URL=https://osmosmjerka.app  # Public base URL used in confirmation/reset links
+REGISTRATION_ENABLED=true             # false runs a closed instance (admin-created accounts only)
+
+# Outbound Email (optional)
+# With SMTP_HOST unset, transactional mail is written to the application log (link
+# included) instead of being sent, so local development and the E2E suite work offline.
+SMTP_HOST=smtp.example.com
+SMTP_PORT=587                  # Defaults to 587, or 465 when SMTP_SECURITY=ssl
+SMTP_USERNAME=<smtp_user>      # Omit for an unauthenticated relay
+SMTP_PASSWORD=<smtp_password>
+SMTP_SECURITY=starttls         # starttls (default) | ssl | none
+SMTP_TIMEOUT_SECONDS=15
+MAIL_FROM=no-reply@osmosmjerka.app
+MAIL_FROM_NAME=Osmosmjerka
+
+# Login Hardening (optional)
+MAX_FAILED_LOGINS=10       # Consecutive failures before the account is locked (default: 10)
+LOGIN_LOCKOUT_MINUTES=15   # How long the lock lasts (default: 15)
+TRUSTED_PROXY_HOPS=1       # Reverse proxies in front of the app; X-Forwarded-For is read
+                           # this many entries from the right so a client-supplied prefix
+                           # can't dodge the per-IP rate limits. 0 ignores the header.
 
 # Logging Configuration (optional)
 LOG_DEVELOPMENT_MODE=false  # Enable human-readable logs with colors (default: false)
@@ -245,9 +269,30 @@ LOG_LEVEL=INFO              # Logging level: DEBUG, INFO, WARNING, ERROR, CRITIC
 LOG_COLORS=true             # Enable colored output in development mode (default: true)
 ```
 
+### Accounts and Passwords
+
+Anyone can sign up at `/register` with an email address and a password; the account stays
+unusable until the emailed confirmation link is opened. `/forgot-password` sends a
+single-use reset link. Both links expire (24 hours for confirmation, 1 hour for a reset),
+only their SHA-256 hashes are stored, and the endpoints answer identically whether or not
+an address exists, so they can't be used to discover who has an account. Set
+`REGISTRATION_ENABLED=false` to close sign-ups and create accounts from the admin panel
+instead.
+
+Passwords are hashed with **Argon2id** (OWASP-recommended parameters) and must be at least
+10 characters. Accounts created before Argon2id are still stored as bcrypt; they keep
+working and are re-hashed transparently on the next successful login, so no reset is
+required.
+
+Signing in accepts either the email address or the display name. Ten consecutive failures
+lock an account for 15 minutes (see `MAX_FAILED_LOGINS` / `LOGIN_LOCKOUT_MINUTES`); an
+admin password reset clears the lock.
+
 ### Generate a Password Hash
 
-Use this command to create a bcrypt password hash (for `ADMIN_PASSWORD_HASH` or `DEMO_PASSWORD_HASH`):
+The root admin and demo accounts are configured by hash, not through the sign-up flow. Use
+this command to create a bcrypt password hash (for `ADMIN_PASSWORD_HASH` or
+`DEMO_PASSWORD_HASH`) — it is accepted and upgraded to Argon2id where applicable:
 
 ```bash
 python3 -c "import bcrypt; import getpass; pwd=getpass.getpass('Password: ').encode(); print(bcrypt.hashpw(pwd, bcrypt.gensalt()).decode())"

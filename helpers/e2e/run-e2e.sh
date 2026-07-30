@@ -27,10 +27,15 @@ DEMO_USER="e2e-demo"
 DEMO_PASS="e2e-demo-pass-$$"
 
 BACKEND_PID=""
+# The registration spec reads the confirmation link out of this log: with no SMTP server
+# configured the backend logs the email instead of sending it, which is exactly how the
+# flow is meant to work offline.
+BACKEND_LOG="$(mktemp -t osm-e2e-backend-XXXXXX.log)"
 cleanup() {
   [ -n "$BACKEND_PID" ] && kill "$BACKEND_PID" 2>/dev/null || true
   docker rm -f "$PG_NAME" >/dev/null 2>&1 || true
   rm -rf "$ROOT/backend/static" 2>/dev/null || true
+  rm -f "$BACKEND_LOG" 2>/dev/null || true
 }
 [ -n "${E2E_KEEP_UP:-}" ] || trap cleanup EXIT
 
@@ -91,8 +96,9 @@ echo "==> Starting backend on :$APP_PORT"
   ADMIN_USERNAME="$ADMIN_USER" ADMIN_PASSWORD_HASH="$ADMIN_HASH" ADMIN_SECRET_KEY="e2e-secret-$$" \
   DEMO_USERNAME="$DEMO_USER" DEMO_PASSWORD_HASH="$DEMO_HASH" \
   DEVELOPMENT_MODE=false \
+  APP_BASE_URL="$BASE_URL" \
   exec "$VENV/bin/python" -m uvicorn osmosmjerka.app:app --host 127.0.0.1 --port "$APP_PORT"
-) &
+) > >(tee -a "$BACKEND_LOG") 2>&1 &
 BACKEND_PID=$!
 
 echo "==> Seeding data"
@@ -106,10 +112,11 @@ echo "==> Installing Playwright browser (firefox)"
 ( cd "$ROOT/frontend"
   npx playwright install --with-deps firefox 2>/dev/null || npx playwright install firefox )
 
-echo "==> Running Playwright specs (word search + crossword, desktop + mobile)"
+echo "==> Running Playwright specs (both game modes + registration, desktop + mobile)"
 cd "$ROOT/frontend"
 E2E_BASE_URL="$BASE_URL" E2E_ADMIN_TOKEN="$E2E_ADMIN_TOKEN" E2E_LANG_SET_ID="$E2E_LANG_SET_ID" \
   E2E_DEMO_USERNAME="$DEMO_USER" E2E_DEMO_PASSWORD="$DEMO_PASS" \
+  E2E_BACKEND_LOG="$BACKEND_LOG" \
   npx playwright test --config e2e/playwright.config.js
 
 echo "==> E2E passed"
