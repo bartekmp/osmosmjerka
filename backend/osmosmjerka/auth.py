@@ -3,13 +3,13 @@ from collections.abc import Callable
 from datetime import UTC, datetime, timedelta
 from typing import Any, TypedDict
 
-import bcrypt
 from dotenv import load_dotenv
 from fastapi import Depends, HTTPException, Request
 from fastapi.security import OAuth2PasswordBearer
 from jose import JWTError, jwt
 from osmosmjerka.database import db_manager
 from osmosmjerka.logging_config import get_logger
+from osmosmjerka.passwords import hash_password, needs_rehash, verify_password
 
 load_dotenv()
 
@@ -22,6 +22,11 @@ logger = get_logger(__name__)
 
 ALGORITHM = "HS256"
 ACCESS_TOKEN_EXPIRE_MINUTES = 60
+
+# Per-account brute-force lockout. Generous enough that a user fumbling their own password
+# won't hit it, short enough that a lockout isn't a denial of service against them.
+MAX_FAILED_LOGINS = int(os.getenv("MAX_FAILED_LOGINS", "10"))
+LOCKOUT_DURATION = timedelta(minutes=int(os.getenv("LOGIN_LOCKOUT_MINUTES", "15")))
 
 oauth2_scheme = OAuth2PasswordBearer(tokenUrl="/admin/login")
 
@@ -69,46 +74,97 @@ def create_access_token(data: dict[str, Any], expires_delta: timedelta | None = 
     return jwt.encode(to_encode, SECRET_KEY, algorithm=ALGORITHM)
 
 
-async def authenticate_user(username: str, password: str) -> UserInfo | None:
-    """Authenticate user against database or root admin credentials"""
-    # Check if it's the root admin
-    if username == ROOT_ADMIN_USERNAME and ROOT_ADMIN_PASSWORD_HASH:
+def _account_lock_expiry(account: dict[str, Any]) -> datetime | None:
+    """The naive-UTC instant this account is locked until, or None if it isn't locked."""
+    locked_until = account.get("locked_until")
+    if not locked_until:
+        return None
+    if isinstance(locked_until, str):
+        # get_account_by_* serializes datetimes to ISO strings on the way out.
         try:
-            if bcrypt.checkpw(password.encode("utf-8"), ROOT_ADMIN_PASSWORD_HASH.encode("utf-8")):
-                logger.info("Root admin login successful", extra={"username": username})
-                return {"username": username, "role": "root_admin", "id": 0}  # Special ID for root admin
-        except ValueError as exc:
-            logger.error(
-                "Invalid ADMIN_PASSWORD_HASH configured; verify the bcrypt hash in your environment",
-                exc_info=True,
-            )
-            raise HTTPException(status_code=500, detail="Server misconfiguration: invalid admin password hash") from exc
-
-    # Check database users
-    account = await db_manager.get_account_by_username(username)
-    if account and account.get("is_active", False):
-        try:
-            if bcrypt.checkpw(password.encode("utf-8"), account["password_hash"].encode("utf-8")):
-                await db_manager.update_last_login(username)
-                logger.info(
-                    "User login successful",
-                    extra={
-                        "username": account["username"],
-                        "user_id": account["id"],
-                        "role": account["role"],
-                    },
-                )
-                return {"username": account["username"], "role": account["role"], "id": account["id"]}
+            locked_until = datetime.fromisoformat(locked_until)
         except ValueError:
-            logger.error(
-                "Invalid bcrypt hash stored for user",
-                extra={"username": account.get("username")},
-                exc_info=True,
-            )
             return None
+    if locked_until.tzinfo is not None:
+        locked_until = locked_until.astimezone(UTC).replace(tzinfo=None)
+    return locked_until if locked_until > datetime.now(UTC).replace(tzinfo=None) else None
 
-    # Log failed login attempt
-    logger.warning("Failed login attempt", extra={"username": username})
+
+async def authenticate_user(identifier: str, password: str) -> UserInfo | None:
+    """Authenticate against the root admin credentials or a database account.
+
+    ``identifier`` is an email address for self-registered accounts, or a username -
+    the root admin and accounts created before email identity existed still log in that
+    way. Verification accepts both Argon2id and legacy bcrypt hashes, and a verified
+    bcrypt hash is upgraded to Argon2id in place, so the migration happens as people log
+    in rather than via a forced reset.
+
+    Wrong passwords increment a per-account counter and lock the account for
+    LOCKOUT_DURATION once MAX_FAILED_LOGINS is reached, which throttles a distributed
+    guessing attack that the per-IP rate limit on the endpoint would not catch.
+
+    Returns None when the credentials simply don't match; raises HTTPException for the
+    cases the caller must report distinctly (locked account, unconfirmed email).
+    """
+    # Check if it's the root admin
+    if identifier == ROOT_ADMIN_USERNAME and ROOT_ADMIN_PASSWORD_HASH:
+        if verify_password(password, ROOT_ADMIN_PASSWORD_HASH):
+            logger.info("Root admin login successful", extra={"username": identifier})
+            return {"username": identifier, "role": "root_admin", "id": 0}  # Special ID for root admin
+
+    account = await db_manager.get_account_by_identifier(identifier)
+    if account and account.get("is_active", False):
+        locked_until = _account_lock_expiry(account)
+        if locked_until is not None:
+            logger.warning(
+                "Login refused: account temporarily locked",
+                extra={"user_id": account["id"], "locked_until": locked_until.isoformat()},
+            )
+            raise HTTPException(
+                status_code=429,
+                detail="Too many failed attempts. This account is temporarily locked - try again later.",
+            )
+
+        if verify_password(password, account["password_hash"]):
+            if account.get("email") and not account.get("email_verified", False):
+                # Registered but never activated: refuse rather than silently granting
+                # access, so an unverified address can't be used as an account.
+                logger.warning(
+                    "Login refused: email not verified",
+                    extra={"user_id": account["id"]},
+                )
+                raise HTTPException(
+                    status_code=403,
+                    detail="Please confirm your email address before signing in.",
+                )
+
+            if needs_rehash(account["password_hash"]):
+                await db_manager.update_account(account["id"], password_hash=hash_password(password))
+                logger.info("Upgraded stored password hash to Argon2id", extra={"user_id": account["id"]})
+
+            if account.get("failed_login_attempts"):
+                await db_manager.clear_failed_logins(account["id"])
+            await db_manager.update_last_login(account["username"])
+            logger.info(
+                "User login successful",
+                extra={
+                    "username": account["username"],
+                    "user_id": account["id"],
+                    "role": account["role"],
+                },
+            )
+            return {"username": account["username"], "role": account["role"], "id": account["id"]}
+
+        attempts = await db_manager.record_failed_login(account["id"], MAX_FAILED_LOGINS, LOCKOUT_DURATION)
+        logger.warning(
+            "Failed login attempt",
+            extra={"user_id": account["id"], "failed_login_attempts": attempts},
+        )
+        return None
+
+    # Unknown or deactivated account. Deliberately indistinguishable from a wrong
+    # password to the caller, so login can't be used to enumerate addresses.
+    logger.warning("Failed login attempt for unknown account")
     return None
 
 

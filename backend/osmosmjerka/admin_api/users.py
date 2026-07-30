@@ -1,7 +1,6 @@
 """User management endpoints for admin API"""
 
-import bcrypt
-from fastapi import APIRouter, Body, Depends, status
+from fastapi import APIRouter, Body, Depends, Request, status
 from fastapi.responses import JSONResponse
 from osmosmjerka.auth import (
     authenticate_user,
@@ -9,8 +8,15 @@ from osmosmjerka.auth import (
     get_current_user,
     require_admin_access,
 )
+from osmosmjerka.cache import rate_limit
 from osmosmjerka.database import db_manager
 from osmosmjerka.logging_config import get_logger
+from osmosmjerka.passwords import (
+    PasswordPolicyError,
+    hash_password,
+    validate_password,
+    verify_password,
+)
 from pydantic import BaseModel
 
 logger = get_logger(__name__)
@@ -23,7 +29,12 @@ class ProfileUpdateRequest(BaseModel):
 
 
 @router.post("/login")
-async def login(username: str = Body(...), password: str = Body(...)) -> JSONResponse:
+# Per-IP throttle on credential guessing. Complements the per-account lockout in
+# authenticate_user: that one stops a single account being ground down from many IPs, this
+# one stops a single IP working through many accounts.
+@rate_limit(max_requests=10, window_seconds=300)
+async def login(request: Request, username: str = Body(...), password: str = Body(...)) -> JSONResponse:
+    """Sign in with an email address (self-registered accounts) or a username."""
     user = await authenticate_user(username, password)
     if user:
         token = create_access_token(data={"sub": user["username"], "role": user["role"], "user_id": user["id"]})
@@ -65,8 +76,11 @@ async def create_user(
     existing_user = await db_manager.get_account_by_username(username)
     if existing_user:
         return JSONResponse({"error": "Username already exists"}, status_code=status.HTTP_400_BAD_REQUEST)
-    password_hash = bcrypt.hashpw(password.encode("utf-8"), bcrypt.gensalt()).decode("utf-8")
-    user_id = await db_manager.create_account(username, password_hash, role, self_description)
+    try:
+        validate_password(password, username=username)
+    except PasswordPolicyError as exc:
+        return JSONResponse({"error": str(exc)}, status_code=status.HTTP_400_BAD_REQUEST)
+    user_id = await db_manager.create_account(username, hash_password(password), role, self_description)
     return JSONResponse({"message": "User created", "user_id": user_id}, status_code=status.HTTP_201_CREATED)
 
 
@@ -121,8 +135,13 @@ async def reset_user_password(
     existing_user = await db_manager.get_account_by_id(user_id)
     if not existing_user:
         return JSONResponse({"error": "User not found"}, status_code=status.HTTP_404_NOT_FOUND)
-    password_hash = bcrypt.hashpw(new_password.encode("utf-8"), bcrypt.gensalt()).decode("utf-8")
-    await db_manager.update_account(user_id, password_hash=password_hash)
+    try:
+        validate_password(new_password, email=existing_user.get("email"), username=existing_user.get("username"))
+    except PasswordPolicyError as exc:
+        return JSONResponse({"error": str(exc)}, status_code=status.HTTP_400_BAD_REQUEST)
+    await db_manager.update_account(user_id, password_hash=hash_password(new_password))
+    # An admin reset is also how a locked-out user gets back in.
+    await db_manager.clear_failed_logins(user_id)
     return JSONResponse({"message": "Password reset successfully"}, status_code=status.HTTP_200_OK)
 
 
@@ -172,13 +191,14 @@ async def change_password(
         return JSONResponse({"error": "User not found"}, status_code=status.HTTP_404_NOT_FOUND)
 
     # Verify current password
-    if not bcrypt.checkpw(current_password.encode("utf-8"), account["password_hash"].encode("utf-8")):
+    if not verify_password(current_password, account["password_hash"]):
         return JSONResponse({"error": "Current password is incorrect"}, status_code=status.HTTP_400_BAD_REQUEST)
 
-    # Hash new password
-    new_password_hash = bcrypt.hashpw(new_password.encode("utf-8"), bcrypt.gensalt()).decode("utf-8")
+    try:
+        validate_password(new_password, email=account.get("email"), username=account.get("username"))
+    except PasswordPolicyError as exc:
+        return JSONResponse({"error": str(exc)}, status_code=status.HTTP_400_BAD_REQUEST)
 
-    # Update password
-    await db_manager.update_account(user["id"], password_hash=new_password_hash)
+    await db_manager.update_account(user["id"], password_hash=hash_password(new_password))
 
     return JSONResponse({"message": "Password changed successfully"}, status_code=status.HTTP_200_OK)
