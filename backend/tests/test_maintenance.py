@@ -28,29 +28,33 @@ def test_interval_falls_back_on_garbage(monkeypatch):
 
 
 @pytest.mark.asyncio
-async def test_run_maintenance_once_calls_both_purges(monkeypatch):
+async def test_run_maintenance_once_calls_every_purge(monkeypatch):
     db = AsyncMock()
     db.cleanup_expired_notifications.return_value = 3
     db.cleanup_expired_sets.return_value = 1
+    db.cleanup_expired_account_tokens.return_value = 4
     monkeypatch.setattr(maintenance, "db_manager", db)
 
     await run_maintenance_once()
 
     db.cleanup_expired_notifications.assert_awaited_once()
     db.cleanup_expired_sets.assert_awaited_once()
+    db.cleanup_expired_account_tokens.assert_awaited_once()
 
 
 @pytest.mark.asyncio
-async def test_one_failing_purge_does_not_skip_the_other(monkeypatch):
-    """A broken notifications purge must not stop phrase sets from being cleaned."""
+async def test_one_failing_purge_does_not_skip_the_others(monkeypatch):
+    """A broken notifications purge must not stop the rest of the sweep."""
     db = AsyncMock()
     db.cleanup_expired_notifications.side_effect = RuntimeError("boom")
     db.cleanup_expired_sets.return_value = 2
+    db.cleanup_expired_account_tokens.return_value = 0
     monkeypatch.setattr(maintenance, "db_manager", db)
 
     await run_maintenance_once()  # must not raise
 
     db.cleanup_expired_sets.assert_awaited_once()
+    db.cleanup_expired_account_tokens.assert_awaited_once()
 
 
 @pytest.mark.asyncio
