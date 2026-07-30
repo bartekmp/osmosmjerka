@@ -30,6 +30,8 @@ import { useTranslation } from 'react-i18next';
 import { API_ENDPOINTS } from '@shared';
 import { PrivateListManager } from '../../../lists';
 
+const MIN_PASSWORD_LENGTH = 10;
+
 export default function UserProfile() {
     const { t } = useTranslation();
     const _ = useTheme();
@@ -303,8 +305,10 @@ export default function UserProfile() {
             return;
         }
 
-        if (passwordData.new_password.length < 6) {
-            showNotification(t('password_too_short'), 'error');
+        // Mirrors MIN_PASSWORD_LENGTH in backend/osmosmjerka/passwords.py, which is the
+        // authority - this only saves a round trip.
+        if (passwordData.new_password.length < MIN_PASSWORD_LENGTH) {
+            showNotification(t('auth.password_too_short', { count: MIN_PASSWORD_LENGTH }), 'error');
             return;
         }
 

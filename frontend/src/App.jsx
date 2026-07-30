@@ -78,6 +78,11 @@ const TeacherPuzzlePage = lazy(() =>
 const ReviewSprint = lazy(() =>
   import("./features/game/components/Review/ReviewSprint").then((module) => ({ default: module.default }))
 );
+// Account self-service pages. Lazy like the rest: a signed-in player never loads them.
+const RegisterPage = lazy(() => import("./features/auth/RegisterPage"));
+const VerifyEmailPage = lazy(() => import("./features/auth/VerifyEmailPage"));
+const ForgotPasswordPage = lazy(() => import("./features/auth/ForgotPasswordPage"));
+const ResetPasswordPage = lazy(() => import("./features/auth/ResetPasswordPage"));
 
 function AppContent() {
   const { t } = useTranslation();
@@ -809,6 +814,39 @@ function AppContent() {
             }
           />
           <Route path="/learn" element={<Navigate to="/review" replace />} />
+          {/* Account self-service */}
+          <Route
+            path="/register"
+            element={
+              <Suspense fallback={<CircularProgress />}>
+                <RegisterPage />
+              </Suspense>
+            }
+          />
+          <Route
+            path="/verify-email"
+            element={
+              <Suspense fallback={<CircularProgress />}>
+                <VerifyEmailPage />
+              </Suspense>
+            }
+          />
+          <Route
+            path="/forgot-password"
+            element={
+              <Suspense fallback={<CircularProgress />}>
+                <ForgotPasswordPage />
+              </Suspense>
+            }
+          />
+          <Route
+            path="/reset-password"
+            element={
+              <Suspense fallback={<CircularProgress />}>
+                <ResetPasswordPage />
+              </Suspense>
+            }
+          />
           {/* Game Routes */}
           {/* Root now keeps SPA behavior with state-based game type */}
           <Route path="/" element={gameView} />

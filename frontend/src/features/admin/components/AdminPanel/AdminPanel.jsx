@@ -16,6 +16,7 @@ import { AdminButton, AdminLayout, API_ENDPOINTS, STORAGE_KEYS } from '@shared';
 import { RateLimitWarning } from '@shared/components/ui/RateLimitWarning';
 import { useCallback, useEffect, useState } from 'react';
 import { useTranslation } from 'react-i18next';
+import { Link as RouterLink } from 'react-router-dom';
 import { isTokenExpired } from './helpers';
 import LanguageSetManagement from './LanguageSetManagement';
 import DuplicateManagement from './DuplicateManagement';
@@ -312,9 +313,10 @@ export default function AdminPanel({
                     >
                         <Stack spacing={3}>
                             <TextField
-                                placeholder={t('username')}
+                                placeholder={t('auth.email_or_username', 'Email or username')}
                                 value={auth.user}
                                 onChange={e => setAuth({ ...auth, user: e.target.value })}
+                                autoComplete="username"
                                 fullWidth
                                 variant="outlined"
                             />
@@ -323,6 +325,7 @@ export default function AdminPanel({
                                 type="password"
                                 value={auth.pass}
                                 onChange={e => setAuth({ ...auth, pass: e.target.value })}
+                                autoComplete="current-password"
                                 fullWidth
                                 variant="outlined"
                             />
@@ -331,6 +334,24 @@ export default function AdminPanel({
                             </Button>
                         </Stack>
                     </Box>
+                    <Stack spacing={1} sx={{ mt: 3, alignItems: 'center' }}>
+                        <Typography
+                            variant="body2"
+                            component={RouterLink}
+                            to="/register"
+                            sx={{ color: 'primary.main' }}
+                        >
+                            {t('auth.no_account', "Don't have an account? Create one")}
+                        </Typography>
+                        <Typography
+                            variant="body2"
+                            component={RouterLink}
+                            to="/forgot-password"
+                            sx={{ color: 'primary.main' }}
+                        >
+                            {t('auth.forgot_password', 'Forgot your password?')}
+                        </Typography>
+                    </Stack>
                     {error && (
                         <Box sx={{ mt: 2, p: 2, bgcolor: 'error.light', borderRadius: 2, color: 'error.contrastText' }}>
                             <Typography color="error.contrastText">{error}</Typography>
