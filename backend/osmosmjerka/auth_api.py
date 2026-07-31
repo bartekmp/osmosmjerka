@@ -14,6 +14,7 @@ Design notes, since these are the endpoints an attacker probes first:
   which is exactly what confirmation establishes.
 """
 
+import os
 import re
 import secrets
 
@@ -42,6 +43,14 @@ from pydantic import BaseModel, Field
 logger = get_logger(__name__)
 
 router = APIRouter(prefix="/api/auth", tags=["Registration"])
+
+# Per-IP hourly caps. Configurable for the same reason as the login limit: these are keyed
+# on the source address, and a class signing up together shares one. The per-account
+# throttles below (and the single-use, expiring tokens) are what stop abuse of an
+# individual mailbox, and they are unaffected by these.
+SIGNUP_ATTEMPTS_PER_HOUR = int(os.getenv("SIGNUP_ATTEMPTS_PER_HOUR", "5"))
+EMAIL_REQUESTS_PER_HOUR = int(os.getenv("EMAIL_REQUESTS_PER_HOUR", "5"))
+TOKEN_REDEMPTIONS_PER_HOUR = int(os.getenv("TOKEN_REDEMPTIONS_PER_HOUR", "20"))
 
 # Deliberately permissive: the only authoritative test of an address is whether the
 # confirmation mail arrives, and over-strict patterns reject valid addresses.
@@ -116,7 +125,7 @@ async def registration_config() -> dict:
 
 
 @router.post("/register")
-@rate_limit(max_requests=5, window_seconds=3600)
+@rate_limit(max_requests=SIGNUP_ATTEMPTS_PER_HOUR, window_seconds=3600)
 async def register(body: RegisterRequest, request: Request) -> JSONResponse:
     """Create an unconfirmed account and email a confirmation link."""
     # Re-checked here rather than trusted from /config: the form hiding itself is a
@@ -165,7 +174,7 @@ async def register(body: RegisterRequest, request: Request) -> JSONResponse:
 
 
 @router.post("/resend-verification")
-@rate_limit(max_requests=5, window_seconds=3600)
+@rate_limit(max_requests=EMAIL_REQUESTS_PER_HOUR, window_seconds=3600)
 async def resend_verification(body: EmailRequest, request: Request) -> JSONResponse:
     """Re-send the confirmation link, if the address has an unconfirmed account."""
     email = _normalize_email(body.email)
@@ -184,7 +193,7 @@ async def resend_verification(body: EmailRequest, request: Request) -> JSONRespo
 
 
 @router.post("/verify-email")
-@rate_limit(max_requests=20, window_seconds=3600)
+@rate_limit(max_requests=TOKEN_REDEMPTIONS_PER_HOUR, window_seconds=3600)
 async def verify_email(body: TokenRequest, request: Request) -> JSONResponse:
     """Redeem a confirmation token and activate the account."""
     redeemed = await db_manager.consume_account_token(hash_account_token(body.token), PURPOSE_EMAIL_VERIFICATION)
@@ -197,7 +206,7 @@ async def verify_email(body: TokenRequest, request: Request) -> JSONResponse:
 
 
 @router.post("/forgot-password")
-@rate_limit(max_requests=5, window_seconds=3600)
+@rate_limit(max_requests=EMAIL_REQUESTS_PER_HOUR, window_seconds=3600)
 async def forgot_password(body: EmailRequest, request: Request) -> JSONResponse:
     """Email a password-reset link, if the address has an account."""
     email = _normalize_email(body.email)
@@ -214,7 +223,7 @@ async def forgot_password(body: EmailRequest, request: Request) -> JSONResponse:
 
 
 @router.post("/reset-password")
-@rate_limit(max_requests=10, window_seconds=3600)
+@rate_limit(max_requests=TOKEN_REDEMPTIONS_PER_HOUR, window_seconds=3600)
 async def reset_password(body: ResetPasswordRequest, request: Request) -> JSONResponse:
     """Redeem a reset token and set a new password."""
     token_hash = hash_account_token(body.token)

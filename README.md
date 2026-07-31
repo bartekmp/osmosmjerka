@@ -260,6 +260,13 @@ MAIL_FROM_NAME=Osmosmjerka
 # Login Hardening (optional)
 MAX_FAILED_LOGINS=10       # Consecutive failures before the account is locked (default: 10)
 LOGIN_LOCKOUT_MINUTES=15   # How long the lock lasts (default: 15)
+LOGIN_RATE_LIMIT_ATTEMPTS=10        # Sign-in attempts allowed per source IP (default: 10)
+LOGIN_RATE_LIMIT_WINDOW_SECONDS=300 # ...within this window (default: 300). Raise it if a
+                                    # whole class shares one address; the per-account
+                                    # lockout above is what actually stops brute force.
+SIGNUP_ATTEMPTS_PER_HOUR=5          # Registrations allowed per source IP per hour
+EMAIL_REQUESTS_PER_HOUR=5           # Confirmation resends / reset requests, per IP per hour
+TOKEN_REDEMPTIONS_PER_HOUR=20       # Confirmation and reset link redemptions, per IP per hour
 TRUSTED_PROXY_HOPS=1       # Reverse proxies in front of the app; X-Forwarded-For is read
                            # this many entries from the right so a client-supplied prefix
                            # can't dodge the per-IP rate limits. 0 ignores the header.

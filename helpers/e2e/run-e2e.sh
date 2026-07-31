@@ -29,7 +29,9 @@ DEMO_PASS="e2e-demo-pass-$$"
 BACKEND_PID=""
 # The registration spec reads the confirmation link out of this log: with no SMTP server
 # configured the backend logs the email instead of sending it, which is exactly how the
-# flow is meant to work offline.
+# flow is meant to work offline. The backend runs with PYTHONUNBUFFERED so its stdout
+# reaches this file as it happens - block buffering through the pipe otherwise holds a
+# just-issued link back until enough other output accumulates to flush it.
 BACKEND_LOG="$(mktemp -t osm-e2e-backend-XXXXXX.log)"
 cleanup() {
   [ -n "$BACKEND_PID" ] && kill "$BACKEND_PID" 2>/dev/null || true
@@ -82,6 +84,11 @@ echo "==> Building frontend and serving it from the backend"
 rm -rf "$ROOT/backend/static"
 cp -r "$ROOT/frontend/build" "$ROOT/backend/static"
 
+# The whole suite signs in and signs up many times from one address (127.0.0.1), which is
+# exactly the shared-NAT case these per-IP limits are tuned against - raise them so the
+# specs measure the flows, not the throttles. The per-account lockout and the per-account
+# email throttles are untouched.
+#
 # Throwaway admin + demo creds for this run (independent of any real credentials). The
 # demo account exercises the same self-provisioning path staging uses (DEMO_USERNAME /
 # DEMO_PASSWORD_HASH), so the e2e suite covers a regular-user login through the real form.
@@ -97,6 +104,9 @@ echo "==> Starting backend on :$APP_PORT"
   DEMO_USERNAME="$DEMO_USER" DEMO_PASSWORD_HASH="$DEMO_HASH" \
   DEVELOPMENT_MODE=false \
   APP_BASE_URL="$BASE_URL" \
+  LOGIN_RATE_LIMIT_ATTEMPTS=200 \
+  SIGNUP_ATTEMPTS_PER_HOUR=200 EMAIL_REQUESTS_PER_HOUR=200 TOKEN_REDEMPTIONS_PER_HOUR=200 \
+  PYTHONUNBUFFERED=1 \
   exec "$VENV/bin/python" -m uvicorn osmosmjerka.app:app --host 127.0.0.1 --port "$APP_PORT"
 ) > >(tee -a "$BACKEND_LOG") 2>&1 &
 BACKEND_PID=$!

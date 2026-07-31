@@ -1,5 +1,7 @@
 """User management endpoints for admin API"""
 
+import os
+
 from fastapi import APIRouter, Body, Depends, Request, status
 from fastapi.responses import JSONResponse
 from osmosmjerka.auth import (
@@ -29,16 +31,22 @@ logger = get_logger(__name__)
 
 router = APIRouter()
 
+# Per-IP throttle on the login endpoint. Configurable because the limit is per source
+# address, and a whole classroom behind one NAT is a legitimate burst of sign-ins - the
+# per-account lockout in authenticate_user is the control that actually stops brute force,
+# and it is unaffected by this.
+LOGIN_RATE_LIMIT_ATTEMPTS = int(os.getenv("LOGIN_RATE_LIMIT_ATTEMPTS", "10"))
+LOGIN_RATE_LIMIT_WINDOW_SECONDS = int(os.getenv("LOGIN_RATE_LIMIT_WINDOW_SECONDS", "300"))
+
 
 class ProfileUpdateRequest(BaseModel):
     self_description: str
 
 
 @router.post("/login")
-# Per-IP throttle on credential guessing. Complements the per-account lockout in
-# authenticate_user: that one stops a single account being ground down from many IPs, this
-# one stops a single IP working through many accounts.
-@rate_limit(max_requests=10, window_seconds=300)
+# Complements the per-account lockout in authenticate_user: that one stops a single account
+# being ground down from many IPs, this one stops a single IP working through many accounts.
+@rate_limit(max_requests=LOGIN_RATE_LIMIT_ATTEMPTS, window_seconds=LOGIN_RATE_LIMIT_WINDOW_SECONDS)
 async def login(request: Request, username: str = Body(...), password: str = Body(...)) -> JSONResponse:
     """Sign in with an email address (self-registered accounts) or a username."""
     user = await authenticate_user(username, password)
