@@ -3,7 +3,15 @@
 from datetime import UTC, datetime, timedelta
 from typing import Any
 
-from osmosmjerka.database.models import accounts_table
+from osmosmjerka.database.models import (
+    accounts_table,
+    game_sessions_table,
+    language_sets_table,
+    user_category_plays_table,
+    user_ignored_categories_table,
+    user_preferences_table,
+    user_statistics_table,
+)
 from sqlalchemy import case, func
 from sqlalchemy.sql import delete, insert, select, update
 
@@ -130,9 +138,34 @@ class AccountsMixin:
         result = await database.execute(query)
         return result
 
+    # Personal data keyed on user_id with no foreign key, so nothing removes it when the
+    # account row goes. Everything else that belongs to a user (notifications, private
+    # lists, mastery, streaks, teacher groups and sets, tokens) already cascades - verified
+    # against the live schema, not assumed.
+    _ORPHANED_USER_DATA = (
+        game_sessions_table,
+        user_category_plays_table,
+        user_ignored_categories_table,
+        user_preferences_table,
+        user_statistics_table,
+    )
+
     async def delete_account(self, account_id: int) -> int:
-        """Delete an account."""
+        """Delete an account and everything personal attached to it.
+
+        Content the account authored that other people depend on - language sets - is kept
+        but disowned: deleting a shared collection because its author left would take the
+        app apart, while leaving it attributed to a deleted person is the thing account
+        deletion is supposed to undo.
+        """
         database = self._ensure_database()
+
+        for table in self._ORPHANED_USER_DATA:
+            await database.execute(delete(table).where(table.c.user_id == account_id))
+        await database.execute(
+            update(language_sets_table).where(language_sets_table.c.created_by == account_id).values(created_by=None)
+        )
+
         query = delete(accounts_table).where(accounts_table.c.id == account_id)
         result = await database.execute(query)
         return result

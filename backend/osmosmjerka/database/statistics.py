@@ -358,11 +358,13 @@ class StatisticsMixin:
     async def is_registration_enabled(self) -> bool:
         """Check if self-service registration is open.
 
-        The REGISTRATION_ENABLED environment variable only supplies the default for a
-        deployment that has never touched the setting; once the root admin flips the
-        toggle the stored value wins, so a restart can't silently reopen sign-ups.
+        Closed unless deliberately opened. A fresh deployment should not accept strangers
+        before its owner has decided that it should - the admin panel creates accounts in
+        the meantime. REGISTRATION_ENABLED only supplies the default for a deployment that
+        has never touched the setting; once the root admin flips the toggle the stored
+        value wins, so a restart can't silently reopen sign-ups.
         """
-        default = "true" if os.getenv("REGISTRATION_ENABLED", "true").lower() == "true" else "false"
+        default = "true" if os.getenv("REGISTRATION_ENABLED", "false").lower() == "true" else "false"
         setting = await self.get_global_setting("registration_enabled", default)
         return setting is not None and setting.lower() == "true"
 

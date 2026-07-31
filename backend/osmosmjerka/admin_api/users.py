@@ -270,6 +270,32 @@ async def update_profile(body: ProfileUpdateRequest, user=Depends(get_current_us
     return JSONResponse({"message": "Profile updated"}, status_code=status.HTTP_200_OK)
 
 
+@router.delete("/profile")
+async def delete_own_account(user=Depends(get_current_user)) -> JSONResponse:
+    """Let a user delete their own account.
+
+    Everything personal goes with it - progress, statistics, private lists, notifications.
+    Language sets they authored are kept but disowned, since other people's games depend
+    on them.
+
+    The root admin is refused: that account is defined by the environment and recreated on
+    the next startup, so "deleting" it would only produce a confusing half-state.
+    """
+    if user["role"] == "root_admin":
+        return JSONResponse(
+            {"error": "The root admin account cannot be deleted from here"},
+            status_code=status.HTTP_400_BAD_REQUEST,
+        )
+
+    account = await db_manager.get_account_by_id(user["id"])
+    if not account:
+        return JSONResponse({"error": "User not found"}, status_code=status.HTTP_404_NOT_FOUND)
+
+    await db_manager.delete_account(user["id"])
+    logger.info("Account deleted by its owner", extra={"user_id": user["id"]})
+    return JSONResponse({"message": "Your account has been deleted"}, status_code=status.HTTP_200_OK)
+
+
 @router.post("/change-password")
 async def change_password(
     current_password: str = Body(...), new_password: str = Body(...), user=Depends(get_current_user)

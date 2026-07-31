@@ -863,5 +863,14 @@
   "enable_user": "Odblokuj to konto",
   "confirm_disable_user": "Zablokować użytkownika {{username}}? Zostanie natychmiast wylogowany i nie będzie mógł się zalogować.",
   "user_disabled": "Konto zostało zablokowane",
-  "user_enabled": "Konto zostało odblokowane"
+  "user_enabled": "Konto zostało odblokowane",
+  "continue": "Kontynuuj",
+  "delete_account": "Usuń moje konto",
+  "delete_account_description": "Trwale usuń swoje konto i wszystko, co się w nim znajduje. Tej operacji nie można cofnąć.",
+  "delete_account_warning": "Usunięcie konta jest trwałe. Nie da się go odzyskać.",
+  "delete_account_what_goes": "Twoje postępy, statystyki, prywatne listy i powiadomienia zostaną usunięte. Zestawy językowe, które utworzyłeś/aś, pozostaną dostępne dla innych graczy, ale nie będą już przypisane do Ciebie.",
+  "delete_account_final_title": "Czy na pewno?",
+  "delete_account_final_warning": "To ostatnia szansa na anulowanie. Twoje konto zostanie natychmiast usunięte.",
+  "delete_account_confirm": "Tak, usuń moje konto",
+  "delete_account_failed": "Nie udało się usunąć konta"
 }

@@ -242,8 +242,9 @@ MAINTENANCE_INTERVAL_SECONDS=21600  # Seconds between sweeps (default: 21600 = 6
 
 # Self-Service Registration (optional)
 APP_BASE_URL=https://osmosmjerka.app  # Public base URL used in confirmation/reset links
-REGISTRATION_ENABLED=true             # Initial default only - the root admin toggle in
-                                      # System Settings overrides it once used
+REGISTRATION_ENABLED=false            # Sign-ups are CLOSED unless you open them. Initial
+                                      # default only - the root admin toggle in System
+                                      # Settings overrides it once used
 
 # Outbound Email (optional)
 # With SMTP_HOST unset, transactional mail is written to the application log (link
@@ -288,11 +289,17 @@ single-use reset link. Both links expire (24 hours for confirmation, 1 hour for 
 only their SHA-256 hashes are stored, and the endpoints answer identically whether or not
 an address exists, so they can't be used to discover who has an account.
 
-The root admin can close sign-ups from **System Settings → Accounts**; the form then
-disappears and the API refuses registrations, leaving the admin panel as the only way to
-create an account. `REGISTRATION_ENABLED` supplies the initial value for a deployment that
-has never touched the toggle, after which the stored setting wins — so a restart can't
+**Self-registration is closed by default.** A fresh deployment should not accept strangers
+before its owner has decided that it should, so sign-ups stay shut until the root admin
+opens them from **System Settings → Accounts** (or sets `REGISTRATION_ENABLED=true` before
+first boot). While closed, the form disappears and the API refuses registrations, leaving
+the admin panel as the only way to create an account. The environment variable supplies the
+initial value only; once the toggle is used the stored setting wins, so a restart can't
 silently reopen sign-ups.
+
+Users can delete their own account from their profile, which removes their progress,
+statistics, private lists and notifications. Language sets they authored are kept but
+disowned — other people's games depend on them.
 
 When a confirmation email never arrives (bounced, spam-filtered, SMTP outage), an admin can
 confirm an account by hand or re-send its link from **User Management**, where each account

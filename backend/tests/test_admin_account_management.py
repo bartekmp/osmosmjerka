@@ -7,7 +7,7 @@ import pytest
 from fastapi import FastAPI
 from fastapi.testclient import TestClient
 from osmosmjerka.admin_api import router
-from osmosmjerka.auth import require_admin_access, require_root_admin
+from osmosmjerka.auth import get_current_user, require_admin_access, require_root_admin
 from osmosmjerka.database.account_tokens import PURPOSE_EMAIL_VERIFICATION
 from osmosmjerka.email_templates import DEFAULTS, VERIFICATION
 
@@ -318,3 +318,69 @@ class TestBanningAndDeletion:
 
         assert response.status_code == 400
         delete.assert_not_called()
+
+
+class TestSelfServiceDeletion:
+    @pytest.fixture
+    def mock_regular_user(self):
+        return {"username": "someone", "role": "regular", "id": 9, "is_active": True}
+
+    def test_a_user_can_delete_their_own_account(self, client, mock_regular_user):
+        app.dependency_overrides[get_current_user] = lambda: mock_regular_user
+        account = {"id": mock_regular_user["id"], "username": "someone", "role": "regular"}
+
+        with (
+            patch("osmosmjerka.database.db_manager.get_account_by_id", AsyncMock(return_value=account)),
+            patch("osmosmjerka.database.db_manager.delete_account", AsyncMock()) as delete,
+        ):
+            response = client.delete("/admin/profile")
+
+        assert response.status_code == 200
+        delete.assert_awaited_once_with(mock_regular_user["id"])
+
+    def test_the_root_admin_cannot_delete_itself_this_way(self, client, mock_root_admin_user):
+        """It is defined by the environment and would come back on the next startup."""
+        app.dependency_overrides[get_current_user] = lambda: mock_root_admin_user
+
+        with patch("osmosmjerka.database.db_manager.delete_account", AsyncMock()) as delete:
+            response = client.delete("/admin/profile")
+
+        assert response.status_code == 400
+        delete.assert_not_called()
+
+    def test_deleting_requires_being_signed_in(self, client):
+        response = client.delete("/admin/profile")
+
+        assert response.status_code in (401, 403)
+
+
+class TestRegistrationIsClosedByDefault:
+    @pytest.mark.asyncio
+    async def test_a_deployment_that_never_chose_keeps_signups_shut(self, monkeypatch):
+        """A fresh instance must not accept strangers before its owner opts in."""
+        monkeypatch.delenv("REGISTRATION_ENABLED", raising=False)
+        from osmosmjerka.database.statistics import StatisticsMixin
+
+        mixin = StatisticsMixin()
+        # get_global_setting hands back the default when nothing is stored.
+        with patch.object(StatisticsMixin, "get_global_setting", AsyncMock(side_effect=lambda k, d=None: d)):
+            assert await mixin.is_registration_enabled() is False
+
+    @pytest.mark.asyncio
+    async def test_the_env_var_can_open_it_before_first_boot(self, monkeypatch):
+        monkeypatch.setenv("REGISTRATION_ENABLED", "true")
+        from osmosmjerka.database.statistics import StatisticsMixin
+
+        mixin = StatisticsMixin()
+        with patch.object(StatisticsMixin, "get_global_setting", AsyncMock(side_effect=lambda k, d=None: d)):
+            assert await mixin.is_registration_enabled() is True
+
+    @pytest.mark.asyncio
+    async def test_a_stored_choice_beats_the_environment(self, monkeypatch):
+        """Flipping the toggle must survive a restart, whatever the env var says."""
+        monkeypatch.delenv("REGISTRATION_ENABLED", raising=False)
+        from osmosmjerka.database.statistics import StatisticsMixin
+
+        mixin = StatisticsMixin()
+        with patch.object(StatisticsMixin, "get_global_setting", AsyncMock(return_value="true")):
+            assert await mixin.is_registration_enabled() is True

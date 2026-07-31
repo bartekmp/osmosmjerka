@@ -106,6 +106,7 @@ echo "==> Starting backend on :$APP_PORT"
   APP_BASE_URL="$BASE_URL" \
   LOGIN_RATE_LIMIT_ATTEMPTS=200 \
   SIGNUP_ATTEMPTS_PER_HOUR=200 EMAIL_REQUESTS_PER_HOUR=200 TOKEN_REDEMPTIONS_PER_HOUR=200 \
+  REGISTRATION_ENABLED=true \
   PYTHONUNBUFFERED=1 \
   exec "$VENV/bin/python" -m uvicorn osmosmjerka.app:app --host 127.0.0.1 --port "$APP_PORT"
 ) > >(tee -a "$BACKEND_LOG") 2>&1 &

@@ -863,5 +863,14 @@
   "enable_user": "Ponovno omogući ovaj račun",
   "confirm_disable_user": "Onemogućiti korisnika {{username}}? Odmah će biti odjavljen i neće se moći prijaviti.",
   "user_disabled": "Račun je onemogućen",
-  "user_enabled": "Račun je ponovno omogućen"
+  "user_enabled": "Račun je ponovno omogućen",
+  "continue": "Nastavi",
+  "delete_account": "Izbriši moj račun",
+  "delete_account_description": "Trajno ukloni svoj račun i sve što je u njemu. Ovo se ne može poništiti.",
+  "delete_account_warning": "Brisanje računa je trajno. Nema načina da ga vratiš.",
+  "delete_account_what_goes": "Tvoj napredak, statistika, privatne liste i obavijesti bit će izbrisani. Jezični setovi koje si izradio/la ostaju dostupni drugim igračima, ali više neće biti pripisani tebi.",
+  "delete_account_final_title": "Jesi li potpuno siguran/na?",
+  "delete_account_final_warning": "Ovo je zadnja prilika za odustajanje. Tvoj račun bit će odmah izbrisan.",
+  "delete_account_confirm": "Da, izbriši moj račun",
+  "delete_account_failed": "Račun nije izbrisan"
 }

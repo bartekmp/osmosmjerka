@@ -863,5 +863,14 @@
   "enable_user": "Re-enable this account",
   "confirm_disable_user": "Disable {{username}}? They will be signed out immediately and unable to log in.",
   "user_disabled": "Account disabled",
-  "user_enabled": "Account re-enabled"
+  "user_enabled": "Account re-enabled",
+  "continue": "Continue",
+  "delete_account": "Delete my account",
+  "delete_account_description": "Permanently remove your account and everything in it. This cannot be undone.",
+  "delete_account_warning": "Deleting your account is permanent. There is no way to get it back.",
+  "delete_account_what_goes": "Your progress, statistics, private lists and notifications will be deleted. Language sets you created stay available to other players, but will no longer be attributed to you.",
+  "delete_account_final_title": "Are you absolutely sure?",
+  "delete_account_final_warning": "This is your last chance to cancel. Your account will be deleted immediately.",
+  "delete_account_confirm": "Yes, delete my account",
+  "delete_account_failed": "Could not delete the account"
 }

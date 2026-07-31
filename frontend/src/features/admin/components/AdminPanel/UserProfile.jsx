@@ -43,6 +43,8 @@ export default function UserProfile() {
     });
     const [description, setDescription] = useState('');
     const [passwordDialog, setPasswordDialog] = useState(false);
+    // 0 = closed, 1 = first warning, 2 = final confirmation.
+    const [deleteStep, setDeleteStep] = useState(0);
     const [passwordData, setPasswordData] = useState({
         current_password: '',
         new_password: '',
@@ -294,6 +296,32 @@ export default function UserProfile() {
             setProfile({ ...profile, self_description: description });
         } catch (err) {
             showNotification(t('network_error', { message: err.message }), 'error');
+        } finally {
+            setLoading(false);
+        }
+    };
+
+    // Two steps on purpose: this is irreversible and there is no undo, so a single stray
+    // click should never be enough. Step 1 spells out what goes; step 2 is the last word.
+    const deleteAccount = async () => {
+        setLoading(true);
+        try {
+            const response = await fetch('/admin/profile', { method: 'DELETE', headers: authHeader });
+            const data = await response.json();
+
+            if (response.ok) {
+                // The account is gone, so the token is worthless - clear it and land the
+                // user back on the game as an anonymous visitor.
+                localStorage.removeItem(STORAGE_KEYS.ADMIN_TOKEN);
+                window.dispatchEvent(new window.Event('admin-auth-changed'));
+                window.location.assign('/');
+            } else {
+                showNotification(data.error || t('delete_account_failed'), 'error');
+                setDeleteStep(0);
+            }
+        } catch (err) {
+            showNotification(t('network_error', { message: err.message }), 'error');
+            setDeleteStep(0);
         } finally {
             setLoading(false);
         }
@@ -663,6 +691,49 @@ export default function UserProfile() {
                     </Button>
                 </DialogActions>
             </Dialog>
+            {/* Danger zone - only for real accounts; the root admin is env-defined. */}
+            {profile.role !== 'root_admin' && (
+                <Box sx={{ mt: 4, p: 3, border: '1px solid', borderColor: 'error.main', borderRadius: 2 }}>
+                    <Typography variant="h6" color="error" gutterBottom>
+                        {t('delete_account')}
+                    </Typography>
+                    <Typography variant="body2" color="text.secondary" sx={{ mb: 2 }}>
+                        {t('delete_account_description')}
+                    </Typography>
+                    <Button variant="outlined" color="error" onClick={() => setDeleteStep(1)}>
+                        {t('delete_account')}
+                    </Button>
+                </Box>
+            )}
+
+            <Dialog open={deleteStep > 0} onClose={() => setDeleteStep(0)} maxWidth="sm" fullWidth>
+                <DialogTitle color="error">
+                    {deleteStep === 1 ? t('delete_account') : t('delete_account_final_title')}
+                </DialogTitle>
+                <DialogContent>
+                    <Alert severity="warning" sx={{ mb: 2 }}>
+                        {deleteStep === 1 ? t('delete_account_warning') : t('delete_account_final_warning')}
+                    </Alert>
+                    {deleteStep === 1 && (
+                        <Typography variant="body2" color="text.secondary">
+                            {t('delete_account_what_goes')}
+                        </Typography>
+                    )}
+                </DialogContent>
+                <DialogActions>
+                    <Button onClick={() => setDeleteStep(0)}>{t('cancel')}</Button>
+                    {deleteStep === 1 ? (
+                        <Button color="error" onClick={() => setDeleteStep(2)}>
+                            {t('continue')}
+                        </Button>
+                    ) : (
+                        <Button color="error" variant="contained" onClick={deleteAccount} disabled={loading}>
+                            {t('delete_account_confirm')}
+                        </Button>
+                    )}
+                </DialogActions>
+            </Dialog>
+
             {/* Notification Snackbar */}
             <Snackbar
                 open={notification.open}
