@@ -1,4 +1,4 @@
-import apiClient, { authHeaders, getAuthToken } from '@shared/utils/apiClient';
+import apiClient, { getAuthToken } from '@shared/utils/apiClient';
 import logger from '@shared/utils/logger';
 import React, { useState, useEffect } from "react";
 import {
@@ -16,14 +16,15 @@ import {
   Button,
 } from "@mui/material";
 import { useTranslation } from "react-i18next";
-import axios from "axios";
 import { API_ENDPOINTS } from "../../../../shared";
+import EmailTemplateSettings from "./EmailTemplateSettings";
 
 const SystemSettings = () => {
   const { t } = useTranslation();
   const [settings, setSettings] = useState({
     statisticsEnabled: false,
     progressiveHintsEnabled: false,
+    registrationEnabled: true,
   });
   const [listLimits, setListLimits] = useState({
     userLimit: 50,
@@ -53,11 +54,12 @@ const SystemSettings = () => {
       setLoading(true);
 
       // Load all settings
-      const [statisticsResponse, hintsResponse, ttsResponse, limitsResponse] =
+      const [statisticsResponse, hintsResponse, ttsResponse, registrationResponse, limitsResponse] =
         await Promise.all([
           apiClient.get(`${API_ENDPOINTS.ADMIN}/settings/statistics`),
           apiClient.get(`${API_ENDPOINTS.ADMIN}/settings/progressive-hints`),
           apiClient.get(`${API_ENDPOINTS.ADMIN}/settings/tts`).catch(() => ({ data: { enabled: true } })),
+          apiClient.get(`${API_ENDPOINTS.ADMIN}/settings/registration`).catch(() => ({ data: { enabled: true } })),
           apiClient.get(`${API_ENDPOINTS.ADMIN}/settings/list-limits`).catch(() => ({ data: { user_limit: 50, admin_limit: 500 } })),
         ]);
 
@@ -65,6 +67,7 @@ const SystemSettings = () => {
         statisticsEnabled: statisticsResponse.data.enabled,
         progressiveHintsEnabled: hintsResponse.data.enabled,
         ttsEnabled: ttsResponse.data.enabled,
+        registrationEnabled: registrationResponse.data.enabled,
       });
       setListLimits({
         userLimit: limitsResponse.data.user_limit || 50,
@@ -93,17 +96,14 @@ const SystemSettings = () => {
         case "tts":
           endpoint = `${API_ENDPOINTS.ADMIN}/settings/tts`;
           break;
+        case "registration":
+          endpoint = `${API_ENDPOINTS.ADMIN}/settings/registration`;
+          break;
         default:
           throw new Error(`Unknown setting type: ${settingType}`);
       }
 
-      await axios.put(
-        endpoint,
-        { enabled },
-        {
-          headers: authHeaders({ 'Content-Type': 'application/json' }),
-        }
-      );
+      await apiClient.put(endpoint, { enabled });
 
       // Refresh settings from server to ensure consistency
       await loadSettings();
@@ -141,16 +141,10 @@ const SystemSettings = () => {
 
     setListLimitsLoading(true);
     try {
-      await axios.put(
-        `${API_ENDPOINTS.ADMIN}/settings/list-limits`,
-        {
-          user_limit: listLimits.userLimit,
-          admin_limit: listLimits.adminLimit,
-        },
-        {
-          headers: authHeaders({ 'Content-Type': 'application/json' }),
-        }
-      );
+      await apiClient.put(`${API_ENDPOINTS.ADMIN}/settings/list-limits`, {
+        user_limit: listLimits.userLimit,
+        admin_limit: listLimits.adminLimit,
+      });
 
       showNotification(t("admin.settings.updateSuccess"), "success");
     } catch (error) {
@@ -267,6 +261,40 @@ const SystemSettings = () => {
           </Paper>
         </Grid>
 
+        {/* Accounts */}
+        <Grid size={{ xs: 12, md: 6 }}>
+          <Paper elevation={2} sx={{ p: 3 }}>
+            <Typography variant="h6" gutterBottom color="primary">
+              {t("admin.settings.accounts.title", "Accounts")}
+            </Typography>
+
+            <FormGroup>
+              <FormControlLabel
+                control={
+                  <Switch
+                    checked={!!settings.registrationEnabled}
+                    onChange={handleToggle("registration")}
+                    color="primary"
+                  />
+                }
+                label={
+                  <Box>
+                    <Typography variant="body1">
+                      {t("admin.settings.registration.title", "Self-service registration")}
+                    </Typography>
+                    <Typography variant="body2" color="text.secondary">
+                      {t(
+                        "admin.settings.registration.description",
+                        "Let anyone sign up with an email address. When off, the sign-up form disappears and only you can create accounts."
+                      )}
+                    </Typography>
+                  </Box>
+                }
+              />
+            </FormGroup>
+          </Paper>
+        </Grid>
+
         {/* Private List Limits */}
         <Grid size={{ xs: 12, md: 6 }}>
           <Paper elevation={2} sx={{ p: 3 }}>
@@ -313,6 +341,10 @@ const SystemSettings = () => {
           </Paper>
         </Grid>
       </Grid>
+
+      <Box sx={{ mt: 3 }}>
+        <EmailTemplateSettings onNotify={showNotification} />
+      </Box>
 
       <Box sx={{ mt: 3 }}>
         <Alert severity="info">{t("admin.settings.notice")}</Alert>

@@ -19,6 +19,7 @@ from osmosmjerka import auth_api  # noqa: E402
 from osmosmjerka.database.account_tokens import (  # noqa: E402
     PURPOSE_EMAIL_VERIFICATION,
     PURPOSE_PASSWORD_RESET,
+    hash_account_token,
 )
 
 GOOD_PASSWORD = "a-decent-passphrase"
@@ -40,6 +41,7 @@ def db():
     mock.get_account_by_id.return_value = {"id": 5, "username": "someone", "email": "new@example.com"}
     mock.create_account.return_value = 5
     mock.count_recent_account_tokens.return_value = 0
+    mock.is_registration_enabled.return_value = True
     with patch.object(auth_api, "db_manager", mock):
         yield mock
 
@@ -75,7 +77,7 @@ class TestRegistration:
         emailed_token = mail["verification"].call_args.args[1]
         stored_hash = db.create_account_token.call_args.args[2]
         assert stored_hash != emailed_token
-        assert stored_hash == auth_api._hash_token(emailed_token)
+        assert stored_hash == hash_account_token(emailed_token)
         assert len(stored_hash) == 64
 
     def test_derives_a_username_when_none_is_given(self, client, db, mail):
@@ -129,12 +131,19 @@ class TestRegistration:
         db.create_account.assert_not_called()
         mail["verification"].assert_not_awaited()
 
-    def test_can_be_disabled(self, client, db, mail):
-        with patch.object(auth_api, "REGISTRATION_ENABLED", False):
-            response = client.post("/api/auth/register", json={"email": "new@example.com", "password": GOOD_PASSWORD})
+    def test_can_be_disabled_by_the_root_admin(self, client, db, mail):
+        db.is_registration_enabled.return_value = False
+
+        response = client.post("/api/auth/register", json={"email": "new@example.com", "password": GOOD_PASSWORD})
 
         assert response.status_code == 403
         db.create_account.assert_not_called()
+        mail["verification"].assert_not_awaited()
+
+    def test_config_reports_the_closed_state_so_the_form_can_hide(self, client, db):
+        db.is_registration_enabled.return_value = False
+
+        assert client.get("/api/auth/config").json()["registration_enabled"] is False
 
 
 class TestEmailConfirmation:
@@ -144,9 +153,7 @@ class TestEmailConfirmation:
         response = client.post("/api/auth/verify-email", json={"token": "some-token"})
 
         assert response.status_code == 200
-        db.consume_account_token.assert_awaited_once_with(
-            auth_api._hash_token("some-token"), PURPOSE_EMAIL_VERIFICATION
-        )
+        db.consume_account_token.assert_awaited_once_with(hash_account_token("some-token"), PURPOSE_EMAIL_VERIFICATION)
         db.update_account.assert_awaited_once_with(5, email_verified=True)
 
     def test_rejects_a_spent_or_unknown_token(self, client, db):
@@ -243,7 +250,7 @@ class TestPasswordReset:
         db.update_account.assert_not_called()
 
 
-def test_config_exposes_what_the_signup_form_needs(client):
+def test_config_exposes_what_the_signup_form_needs(client, db):
     response = client.get("/api/auth/config")
 
     assert response.status_code == 200

@@ -14,8 +14,6 @@ Design notes, since these are the endpoints an attacker probes first:
   which is exactly what confirmation establishes.
 """
 
-import hashlib
-import os
 import re
 import secrets
 
@@ -28,18 +26,22 @@ from osmosmjerka.database.account_tokens import (
     PASSWORD_RESET_TTL,
     PURPOSE_EMAIL_VERIFICATION,
     PURPOSE_PASSWORD_RESET,
+    hash_account_token,
+    new_account_token,
 )
 from osmosmjerka.logging_config import get_logger
 from osmosmjerka.mailer import send_password_reset_email, send_verification_email
-from osmosmjerka.passwords import PasswordPolicyError, hash_password, validate_password
+from osmosmjerka.passwords import (
+    MIN_PASSWORD_LENGTH,
+    PasswordPolicyError,
+    hash_password,
+    validate_password,
+)
 from pydantic import BaseModel, Field
 
 logger = get_logger(__name__)
 
 router = APIRouter(prefix="/api/auth", tags=["Registration"])
-
-# Lets an operator run a closed instance where accounts are created by an admin only.
-REGISTRATION_ENABLED = os.getenv("REGISTRATION_ENABLED", "true").lower() == "true"
 
 # Deliberately permissive: the only authoritative test of an address is whether the
 # confirmation mail arrives, and over-strict patterns reject valid addresses.
@@ -74,17 +76,6 @@ def _normalize_email(email: str) -> str:
     return email.strip().lower()
 
 
-def _hash_token(token: str) -> str:
-    """SHA-256 of the token. No salt or stretching needed: it's 256 bits of entropy."""
-    return hashlib.sha256(token.encode("utf-8")).hexdigest()
-
-
-def _new_token() -> tuple[str, str]:
-    """Return (plaintext for the emailed link, hash to store)."""
-    token = secrets.token_urlsafe(32)
-    return token, _hash_token(token)
-
-
 def _error(message: str, code: int = status.HTTP_400_BAD_REQUEST) -> JSONResponse:
     return JSONResponse({"error": message}, status_code=code)
 
@@ -110,7 +101,7 @@ async def _unique_username(preferred: str | None, email: str) -> str | None:
 
 
 async def _issue_verification(account_id: int, email: str, display_name: str) -> None:
-    token, token_hash = _new_token()
+    token, token_hash = new_account_token()
     await db_manager.create_account_token(account_id, PURPOSE_EMAIL_VERIFICATION, token_hash, EMAIL_VERIFICATION_TTL)
     await send_verification_email(email, token, display_name)
 
@@ -118,16 +109,19 @@ async def _issue_verification(account_id: int, email: str, display_name: str) ->
 @router.get("/config")
 async def registration_config() -> dict:
     """What the sign-up UI needs to know before showing a form."""
-    from osmosmjerka.passwords import MIN_PASSWORD_LENGTH
-
-    return {"registration_enabled": REGISTRATION_ENABLED, "min_password_length": MIN_PASSWORD_LENGTH}
+    return {
+        "registration_enabled": await db_manager.is_registration_enabled(),
+        "min_password_length": MIN_PASSWORD_LENGTH,
+    }
 
 
 @router.post("/register")
 @rate_limit(max_requests=5, window_seconds=3600)
 async def register(body: RegisterRequest, request: Request) -> JSONResponse:
     """Create an unconfirmed account and email a confirmation link."""
-    if not REGISTRATION_ENABLED:
+    # Re-checked here rather than trusted from /config: the form hiding itself is a
+    # courtesy, this is the part that actually closes registration.
+    if not await db_manager.is_registration_enabled():
         return _error("Self-registration is disabled on this instance.", status.HTTP_403_FORBIDDEN)
 
     email = _normalize_email(body.email)
@@ -193,7 +187,7 @@ async def resend_verification(body: EmailRequest, request: Request) -> JSONRespo
 @rate_limit(max_requests=20, window_seconds=3600)
 async def verify_email(body: TokenRequest, request: Request) -> JSONResponse:
     """Redeem a confirmation token and activate the account."""
-    redeemed = await db_manager.consume_account_token(_hash_token(body.token), PURPOSE_EMAIL_VERIFICATION)
+    redeemed = await db_manager.consume_account_token(hash_account_token(body.token), PURPOSE_EMAIL_VERIFICATION)
     if not redeemed:
         return _error("This confirmation link is invalid or has expired. Request a new one.")
 
@@ -211,7 +205,7 @@ async def forgot_password(body: EmailRequest, request: Request) -> JSONResponse:
     if account and account.get("is_active", False):
         recent = await db_manager.count_recent_account_tokens(account["id"], PURPOSE_PASSWORD_RESET, PASSWORD_RESET_TTL)
         if recent < 5:
-            token, token_hash = _new_token()
+            token, token_hash = new_account_token()
             await db_manager.create_account_token(account["id"], PURPOSE_PASSWORD_RESET, token_hash, PASSWORD_RESET_TTL)
             await send_password_reset_email(email, token, account.get("username", ""))
         else:
@@ -223,7 +217,7 @@ async def forgot_password(body: EmailRequest, request: Request) -> JSONResponse:
 @rate_limit(max_requests=10, window_seconds=3600)
 async def reset_password(body: ResetPasswordRequest, request: Request) -> JSONResponse:
     """Redeem a reset token and set a new password."""
-    token_hash = _hash_token(body.token)
+    token_hash = hash_account_token(body.token)
     # Validate the password before burning the token, so a rejected password doesn't force
     # the user to request a whole new link.
     peeked = await db_manager.get_account_token_owner(token_hash, PURPOSE_PASSWORD_RESET)

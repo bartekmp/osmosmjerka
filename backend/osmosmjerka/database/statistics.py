@@ -1,6 +1,7 @@
 """Statistics and global settings database operations."""
 
 import datetime
+import os
 import time
 
 from osmosmjerka.database.models import (
@@ -353,6 +354,17 @@ class StatisticsMixin:
             return user_preference.lower() == "true"
 
         return global_enabled
+
+    async def is_registration_enabled(self) -> bool:
+        """Check if self-service registration is open.
+
+        The REGISTRATION_ENABLED environment variable only supplies the default for a
+        deployment that has never touched the setting; once the root admin flips the
+        toggle the stored value wins, so a restart can't silently reopen sign-ups.
+        """
+        default = "true" if os.getenv("REGISTRATION_ENABLED", "true").lower() == "true" else "false"
+        setting = await self.get_global_setting("registration_enabled", default)
+        return setting is not None and setting.lower() == "true"
 
     async def is_tts_enabled_globally(self) -> bool:
         """Check if in-browser text-to-speech (voice packs) is globally enabled.
