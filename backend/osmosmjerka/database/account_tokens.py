@@ -7,6 +7,8 @@ Timestamps are naive UTC to match the rest of the schema, whose DateTime columns
 ``TIMESTAMP WITHOUT TIME ZONE``.
 """
 
+import hashlib
+import secrets
 from datetime import UTC, datetime, timedelta
 from typing import Any
 
@@ -25,6 +27,17 @@ PURPOSE_PASSWORD_RESET = "password_reset"
 
 def _now() -> datetime:
     return datetime.now(UTC).replace(tzinfo=None)
+
+
+def hash_account_token(token: str) -> str:
+    """SHA-256 of a token. No salt or stretching needed: it is 256 bits of entropy."""
+    return hashlib.sha256(token.encode("utf-8")).hexdigest()
+
+
+def new_account_token() -> tuple[str, str]:
+    """Return (plaintext for the emailed link, hash to store)."""
+    token = secrets.token_urlsafe(32)
+    return token, hash_account_token(token)
 
 
 class AccountTokensMixin:

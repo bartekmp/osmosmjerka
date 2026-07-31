@@ -10,7 +10,13 @@ from osmosmjerka.auth import (
 )
 from osmosmjerka.cache import rate_limit
 from osmosmjerka.database import db_manager
+from osmosmjerka.database.account_tokens import (
+    EMAIL_VERIFICATION_TTL,
+    PURPOSE_EMAIL_VERIFICATION,
+    new_account_token,
+)
 from osmosmjerka.logging_config import get_logger
+from osmosmjerka.mailer import send_verification_email
 from osmosmjerka.passwords import (
     PasswordPolicyError,
     hash_password,
@@ -123,6 +129,56 @@ async def delete_user(user_id: int, user=Depends(require_admin_access)) -> JSONR
         return JSONResponse({"error": "User not found"}, status_code=status.HTTP_404_NOT_FOUND)
     await db_manager.delete_account(user_id)
     return JSONResponse({"message": "User deleted"}, status_code=status.HTTP_200_OK)
+
+
+@router.post("/users/{user_id}/confirm-email")
+async def confirm_user_email(user_id: int, user=Depends(require_admin_access)) -> JSONResponse:
+    """Manually confirm an account's email address, without the emailed link.
+
+    For the case the flow can't handle on its own: the address is real but the mail never
+    arrived (bounced, spam-filtered, or an SMTP outage). Any outstanding confirmation token
+    is invalidated at the same time, so a link from an old email can't be replayed later.
+    """
+    existing_user = await db_manager.get_account_by_id(user_id)
+    if not existing_user:
+        return JSONResponse({"error": "User not found"}, status_code=status.HTTP_404_NOT_FOUND)
+    if not existing_user.get("email"):
+        return JSONResponse(
+            {"error": "This account has no email address, so there is nothing to confirm"},
+            status_code=status.HTTP_400_BAD_REQUEST,
+        )
+    if existing_user.get("email_verified"):
+        return JSONResponse({"message": "Email already confirmed"}, status_code=status.HTTP_200_OK)
+
+    await db_manager.update_account(user_id, email_verified=True)
+    await db_manager.invalidate_account_tokens(user_id, PURPOSE_EMAIL_VERIFICATION)
+    logger.info(
+        "Email confirmed manually by an admin",
+        extra={"user_id": user_id, "confirmed_by": user["id"]},
+    )
+    return JSONResponse({"message": "Email confirmed"}, status_code=status.HTTP_200_OK)
+
+
+@router.post("/users/{user_id}/resend-verification")
+async def resend_user_verification(user_id: int, user=Depends(require_admin_access)) -> JSONResponse:
+    """Send the confirmation link again, for an account still awaiting confirmation."""
+    existing_user = await db_manager.get_account_by_id(user_id)
+    if not existing_user:
+        return JSONResponse({"error": "User not found"}, status_code=status.HTTP_404_NOT_FOUND)
+    email = existing_user.get("email")
+    if not email:
+        return JSONResponse({"error": "This account has no email address"}, status_code=status.HTTP_400_BAD_REQUEST)
+    if existing_user.get("email_verified"):
+        return JSONResponse({"error": "This account is already confirmed"}, status_code=status.HTTP_400_BAD_REQUEST)
+
+    token, token_hash = new_account_token()
+    await db_manager.create_account_token(user_id, PURPOSE_EMAIL_VERIFICATION, token_hash, EMAIL_VERIFICATION_TTL)
+    sent = await send_verification_email(email, token, existing_user.get("username", ""))
+    logger.info("Confirmation email re-sent by an admin", extra={"user_id": user_id, "sent": sent})
+    return JSONResponse(
+        {"message": "Confirmation email sent" if sent else "Could not send the email - check the SMTP settings"},
+        status_code=status.HTTP_200_OK if sent else status.HTTP_502_BAD_GATEWAY,
+    )
 
 
 @router.post("/users/{user_id}/reset-password")

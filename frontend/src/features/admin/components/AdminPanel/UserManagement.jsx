@@ -1,5 +1,5 @@
 import { authHeaders } from '@shared/utils/apiClient';
-import { Delete, Edit, PersonAdd, VpnKey } from '@mui/icons-material';
+import { Delete, Edit, MarkEmailRead, PersonAdd, Send, VpnKey } from '@mui/icons-material';
 import {
     Alert,
     Box,
@@ -155,6 +155,44 @@ export default function UserManagement({ currentUser }) {
         }
     };
 
+    // Manual confirmation, for when the emailed link never arrived (bounced, spam-filtered,
+    // or the SMTP server was down). The account can log in immediately afterwards.
+    const handleConfirmEmail = async (userId) => {
+        if (!window.confirm(t('confirm_email_prompt'))) return;
+        try {
+            const response = await fetch(`/admin/users/${userId}/confirm-email`, {
+                method: 'POST',
+                headers: authHeader
+            });
+            const data = await response.json();
+            if (response.ok) {
+                setNotification({ open: true, message: t('email_confirmed_successfully'), severity: 'success' });
+                fetchUsers();
+            } else {
+                setError(data.error || t('failed_to_confirm_email'));
+            }
+        } catch (err) {
+            setError(t('network_error', { message: err.message }));
+        }
+    };
+
+    const handleResendVerification = async (userId) => {
+        try {
+            const response = await fetch(`/admin/users/${userId}/resend-verification`, {
+                method: 'POST',
+                headers: authHeader
+            });
+            const data = await response.json();
+            if (response.ok) {
+                setNotification({ open: true, message: data.message, severity: 'success' });
+            } else {
+                setError(data.error || data.detail || t('failed_to_resend_verification'));
+            }
+        } catch (err) {
+            setError(t('network_error', { message: err.message }));
+        }
+    };
+
     const handleResetPassword = async (userId) => {
         const newPassword = prompt(t('enter_new_password_for_user'));
         if (newPassword) {
@@ -264,6 +302,7 @@ export default function UserManagement({ currentUser }) {
                     <TableHead>
                         <TableRow>
                             <TableCell>{t('username')}</TableCell>
+                            <TableCell>{t('auth.email')}</TableCell>
                             <TableCell>{t('role')}</TableCell>
                             <TableCell>{t('description')}</TableCell>
                             <TableCell>{t('created')}</TableCell>
@@ -275,6 +314,21 @@ export default function UserManagement({ currentUser }) {
                         {users.map((user) => (
                             <TableRow key={user.id}>
                                 <TableCell>{user.username}</TableCell>
+                                <TableCell>
+                                    {user.email ? (
+                                        <Box>
+                                            <Typography variant="body2">{user.email}</Typography>
+                                            <Chip
+                                                label={user.email_verified ? t('email_confirmed') : t('email_pending')}
+                                                color={user.email_verified ? 'success' : 'warning'}
+                                                size="small"
+                                                variant="outlined"
+                                            />
+                                        </Box>
+                                    ) : (
+                                        <Typography variant="body2" color="text.secondary">-</Typography>
+                                    )}
+                                </TableCell>
                                 <TableCell>
                                     <Chip
                                         label={user.role}
@@ -298,6 +352,25 @@ export default function UserManagement({ currentUser }) {
                                     >
                                         <Edit />
                                     </IconButton>
+                                    {user.email && !user.email_verified && (
+                                        <>
+                                            <IconButton
+                                                size="small"
+                                                color="success"
+                                                onClick={() => handleConfirmEmail(user.id)}
+                                                title={t('confirm_email')}
+                                            >
+                                                <MarkEmailRead fontSize="small" />
+                                            </IconButton>
+                                            <IconButton
+                                                size="small"
+                                                onClick={() => handleResendVerification(user.id)}
+                                                title={t('resend_verification')}
+                                            >
+                                                <Send fontSize="small" />
+                                            </IconButton>
+                                        </>
+                                    )}
                                     <IconButton
                                         size="small"
                                         onClick={() => handleResetPassword(user.id)}
