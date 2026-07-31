@@ -267,6 +267,9 @@ LOGIN_RATE_LIMIT_WINDOW_SECONDS=300 # ...within this window (default: 300). Rais
 SIGNUP_ATTEMPTS_PER_HOUR=5          # Registrations allowed per source IP per hour
 EMAIL_REQUESTS_PER_HOUR=5           # Confirmation resends / reset requests, per IP per hour
 TOKEN_REDEMPTIONS_PER_HOUR=20       # Confirmation and reset link redemptions, per IP per hour
+MAX_OUTBOUND_EMAILS_PER_HOUR=200    # Hard ceiling on outbound mail (0 = unlimited)
+MIN_FORM_FILL_SECONDS=2             # Sign-up submitted faster than this is treated as a bot
+FORM_TOKEN_TTL_SECONDS=21600        # How long a rendered sign-up form stays submittable
 TRUSTED_PROXY_HOPS=1       # Reverse proxies in front of the app; X-Forwarded-For is read
                            # this many entries from the right so a client-supplied prefix
                            # can't dodge the per-IP rate limits. 0 ignores the header.
@@ -309,6 +312,32 @@ Changing a password ends every session opened with the old one — the point of 
 compromised account is to evict whoever else is signed in, and access tokens live an hour.
 Disabling an account does the same immediately. Changing your own password re-issues a
 token for the tab you did it in, so you aren't signed out by your own action.
+
+### Bot Resistance
+
+The public forms carry two checks instead of a CAPTCHA. A **honeypot field**, hidden from
+both the page and the accessibility tree, is something only a script fills in; and a
+**signed form token** issued when the page loads forces a would-be flooder to fetch the
+form before each submission and lets the server reject one submitted implausibly fast. A
+tripped check answers exactly as a real sign-up does, so a bot learns nothing; a form left
+open past `FORM_TOKEN_TTL_SECONDS` gets an honest "please reload" instead.
+
+Separately, `MAX_OUTBOUND_EMAILS_PER_HOUR` caps total outbound mail. That is not an
+anti-bot measure — it is the circuit breaker for when the rate limits are not enough. Bulk
+sign-ups with junk addresses generate bounces, bounces get a sending domain blocklisted, and
+a blocklisted domain sends real confirmation emails to spam. Refusing to send is the
+recoverable failure.
+
+This deliberately stops short of a CAPTCHA: image challenges are a real accessibility
+barrier for an app aimed partly at classrooms, third-party widgets would need holes in the
+Content-Security-Policy, and reCAPTCHA in particular ships visitor data off to a third
+party. If genuine abuse ever appears, the next step is a self-hosted proof-of-work
+challenge, which stays invisible and keeps the data local.
+
+> **Note:** the rate limits and the outbound budget are held in memory, per process. With
+> more than one replica the effective ceiling is the configured value times the replica
+> count, and every limit resets on deploy. The per-account lockout and the per-account
+> email caps live in the database and are unaffected.
 
 ### Email Templates
 

@@ -22,6 +22,8 @@ import asyncio
 import os
 import re
 import smtplib
+import time
+from collections import deque
 from email.message import EmailMessage
 from email.utils import formataddr
 
@@ -44,6 +46,47 @@ _EMAIL_RE = re.compile(r"^[^@\s]+@[^@\s.]+(\.[^@\s.]+)+$")
 def is_valid_email(email: str) -> bool:
     """Whether this looks like an address we can put in a header and try to deliver to."""
     return bool(email) and len(email) <= 320 and bool(_EMAIL_RE.match(email.strip()))
+
+
+# --- outbound budget ---------------------------------------------------------
+# A ceiling on how much mail this process will send in an hour, regardless of who asked.
+#
+# Not an anti-bot measure - the per-IP and per-account limits do that. This is the circuit
+# breaker for when they are not enough: bulk sign-ups with junk addresses generate bounces,
+# bounces get a sending domain blocklisted, and a blocklisted domain means real
+# confirmation emails land in spam. That is the failure that takes weeks to undo, so it is
+# worth refusing to send at all rather than sending your reputation away.
+#
+# Per process, like the rate limiter - with several replicas the real ceiling is this times
+# the replica count.
+MAX_OUTBOUND_EMAILS_PER_HOUR = int(os.getenv("MAX_OUTBOUND_EMAILS_PER_HOUR", "200"))
+_BUDGET_WINDOW_SECONDS = 3600
+_recent_sends: deque[float] = deque()
+
+
+def _budget_allows() -> bool:
+    """Whether the hourly outbound budget has room, counting this send if so."""
+    if MAX_OUTBOUND_EMAILS_PER_HOUR <= 0:
+        return True
+
+    now = time.monotonic()
+    while _recent_sends and now - _recent_sends[0] > _BUDGET_WINDOW_SECONDS:
+        _recent_sends.popleft()
+
+    if len(_recent_sends) >= MAX_OUTBOUND_EMAILS_PER_HOUR:
+        return False
+
+    _recent_sends.append(now)
+    return True
+
+
+def outbound_budget_remaining() -> int:
+    """How many more emails this process will send this hour. Surfaced in the admin panel."""
+    if MAX_OUTBOUND_EMAILS_PER_HOUR <= 0:
+        return -1  # unlimited
+    now = time.monotonic()
+    used = sum(1 for sent_at in _recent_sends if now - sent_at <= _BUDGET_WINDOW_SECONDS)
+    return max(MAX_OUTBOUND_EMAILS_PER_HOUR - used, 0)
 
 
 def _env(name: str, default: str = "") -> str:
@@ -115,6 +158,13 @@ async def send_email(to: str, subject: str, body: str, html_body: str | None = N
     """
     if not is_valid_email(to):
         logger.error("Refusing to send to a malformed address")
+        return False
+
+    if is_configured() and not _budget_allows():
+        logger.error(
+            "Outbound email budget exhausted; refusing to send",
+            extra={"subject": subject, "limit_per_hour": MAX_OUTBOUND_EMAILS_PER_HOUR},
+        )
         return False
 
     if not is_configured():

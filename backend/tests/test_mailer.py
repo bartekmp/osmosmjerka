@@ -96,3 +96,50 @@ class TestSmtpDelivery:
 
         with patch("smtplib.SMTP", side_effect=TimeoutError("no route")):
             assert await mailer.send_email("someone@example.com", "Hi", "Body") is False
+
+
+class TestOutboundBudget:
+    """A ceiling on total outbound mail, so bulk abuse can't burn the sending domain."""
+
+    @pytest.fixture(autouse=True)
+    def reset_budget(self):
+        mailer._recent_sends.clear()
+        yield
+        mailer._recent_sends.clear()
+
+    @pytest.mark.asyncio
+    async def test_sending_stops_once_the_hourly_budget_is_gone(self, monkeypatch):
+        monkeypatch.setenv("SMTP_HOST", "smtp.example.com")
+        monkeypatch.setattr(mailer, "MAX_OUTBOUND_EMAILS_PER_HOUR", 3)
+
+        with patch("smtplib.SMTP") as smtp_class:
+            results = [await mailer.send_email("a@b.com", "Hi", "body") for _ in range(5)]
+
+        assert results == [True, True, True, False, False]
+        # The refused ones never reach the relay.
+        assert smtp_class.call_count == 3
+
+    @pytest.mark.asyncio
+    async def test_a_zero_budget_means_unlimited(self, monkeypatch):
+        monkeypatch.setenv("SMTP_HOST", "smtp.example.com")
+        monkeypatch.setattr(mailer, "MAX_OUTBOUND_EMAILS_PER_HOUR", 0)
+
+        with patch("smtplib.SMTP"):
+            assert all([await mailer.send_email("a@b.com", "Hi", "body") for _ in range(5)])
+
+    @pytest.mark.asyncio
+    async def test_the_budget_does_not_apply_when_mail_is_only_logged(self, monkeypatch):
+        """No SMTP server means nothing leaves the process, so there is nothing to ration -
+        and development and the E2E suite must not hit a ceiling."""
+        monkeypatch.setattr(mailer, "MAX_OUTBOUND_EMAILS_PER_HOUR", 2)
+
+        assert all([await mailer.send_email("a@b.com", "Hi", "body") for _ in range(5)])
+
+    def test_remaining_reports_what_is_left(self, monkeypatch):
+        monkeypatch.setattr(mailer, "MAX_OUTBOUND_EMAILS_PER_HOUR", 10)
+        assert mailer.outbound_budget_remaining() == 10
+
+        mailer._budget_allows()
+        mailer._budget_allows()
+
+        assert mailer.outbound_budget_remaining() == 8

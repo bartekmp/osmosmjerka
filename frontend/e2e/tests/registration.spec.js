@@ -61,6 +61,10 @@ async function signUp(page, email, password = PASSWORD) {
   await page.getByLabel(/^Email/).fill(email);
   await page.getByLabel(/^Password/).fill(password);
   await page.getByLabel(/Confirm password/).fill(password);
+  // The bot guard drops anything submitted faster than a person could type it, and
+  // Playwright fills a form in milliseconds. Waiting here keeps the guard switched on for
+  // these runs, so the specs prove it lets a real user through rather than skipping it.
+  await page.waitForTimeout(2500);
   await page.getByRole('button', { name: /Create account/i }).click();
   // Match the success wording, not merely "an alert appeared" - a refusal renders an alert
   // too, and accepting it here would surface as a baffling failure several steps later.
@@ -177,6 +181,9 @@ test.describe('registration', () => {
 
     await page.goto('/forgot-password');
     await page.getByLabel(/^Email/).fill(email);
+    // Guarded like the sign-up form, and for the same reason: it emails an address someone
+    // typed in. So it needs the same human-speed pause.
+    await page.waitForTimeout(2500);
     await page.getByRole('button', { name: /Send the reset link/i }).click();
     await expect(page.getByRole('alert')).toBeVisible();
 
@@ -190,5 +197,24 @@ test.describe('registration', () => {
     // even though its confirmation link was never opened.
     await signIn(page, email, newPassword);
     await expect(page.locator('text=/Welcome,/').first()).toBeVisible();
+  });
+
+  test('a submission with the honeypot filled is silently ignored', async ({ page }, testInfo) => {
+    const email = uniqueEmail(testInfo);
+
+    await page.goto('/register');
+    await page.getByLabel(/^Email/).fill(email);
+    await page.getByLabel(/^Password/).fill(PASSWORD);
+    await page.getByLabel(/Confirm password/).fill(PASSWORD);
+    // What a form-filling bot does: put something in every input it can find.
+    await page.locator('input[name="website"]').fill('http://spam.example', { force: true });
+    await page.waitForTimeout(2500);
+    await page.getByRole('button', { name: /Create account/i }).click();
+
+    // Indistinguishable from success, so a bot cannot tell it was caught...
+    await expect(page.getByRole('alert')).toContainText(/confirmation link/i);
+    // ...but no account exists, so the credentials do not work.
+    await signIn(page, email);
+    await expect(page.locator('text=/Invalid credentials/i').first()).toBeVisible();
   });
 });

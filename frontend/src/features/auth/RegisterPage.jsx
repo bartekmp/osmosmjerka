@@ -3,6 +3,7 @@ import { useEffect, useState } from "react";
 import { useTranslation } from "react-i18next";
 import logger from "@shared/utils/logger";
 import AuthPageLayout, { AuthLink } from "./AuthPageLayout";
+import HoneypotField from "./HoneypotField";
 import { errorMessage, fetchRegistrationConfig, register, resendVerification } from "./api";
 
 const DEFAULT_MIN_PASSWORD_LENGTH = 10;
@@ -11,6 +12,9 @@ export default function RegisterPage() {
   const { t } = useTranslation();
   const [form, setForm] = useState({ email: "", username: "", password: "", confirm: "" });
   const [minLength, setMinLength] = useState(DEFAULT_MIN_PASSWORD_LENGTH);
+  // Bot resistance: a signed token proving this form was rendered, plus a field only a
+  // script would fill. Neither is visible to the person filling the form in.
+  const [guard, setGuard] = useState({ formToken: "", honeypotField: "website", honeypot: "" });
   const [registrationEnabled, setRegistrationEnabled] = useState(true);
   const [error, setError] = useState("");
   const [success, setSuccess] = useState("");
@@ -26,6 +30,11 @@ export default function RegisterPage() {
         if (cancelled) return;
         if (config.min_password_length) setMinLength(config.min_password_length);
         setRegistrationEnabled(config.registration_enabled !== false);
+        setGuard((current) => ({
+          ...current,
+          formToken: config.form_token || "",
+          honeypotField: config.honeypot_field || current.honeypotField,
+        }));
       })
       .catch((err) => logger.warn("Failed to load registration config:", err));
     return () => {
@@ -54,6 +63,8 @@ export default function RegisterPage() {
         email: form.email.trim(),
         password: form.password,
         username: form.username.trim(),
+        formToken: guard.formToken,
+        honeypot: guard.honeypot,
       });
       setSuccess(data.message);
     } catch (err) {
@@ -146,6 +157,11 @@ export default function RegisterPage() {
           autoComplete="new-password"
           required
           fullWidth
+        />
+        <HoneypotField
+          name={guard.honeypotField}
+          value={guard.honeypot}
+          onChange={(value) => setGuard({ ...guard, honeypot: value })}
         />
         <Button type="submit" variant="contained" size="large" disabled={submitting}>
           {t("auth.create_account", "Create account")}

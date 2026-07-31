@@ -38,6 +38,7 @@ from osmosmjerka.passwords import (
     hash_password,
     validate_password,
 )
+from osmosmjerka.signup_guard import HONEYPOT_FIELD, FormTokenExpired, issue_form_token, looks_automated
 from pydantic import BaseModel, Field
 
 logger = get_logger(__name__)
@@ -57,16 +58,23 @@ _USERNAME_RE = re.compile(r"^[A-Za-z0-9](?:[A-Za-z0-9 ._-]{1,30}[A-Za-z0-9])$")
 # Same wording for every outcome, so timing aside there is nothing to learn from the body.
 _GENERIC_REGISTER_MESSAGE = "Check your inbox - if the address can be registered, a confirmation link is on its way."
 _GENERIC_RESET_MESSAGE = "Check your inbox - if that address has an account, a reset link is on its way."
+_EXPIRED_FORM_MESSAGE = "This form has been open too long. Please reload the page and try again."
 
 
 class RegisterRequest(BaseModel):
     email: str = Field(max_length=320)
     password: str = Field(max_length=1024)
     username: str | None = Field(default=None, max_length=32)
+    # Bot resistance, see osmosmjerka.signup_guard. `website` is the honeypot: it is hidden
+    # from both the page and the accessibility tree, so anything in it came from a script.
+    website: str | None = Field(default=None, max_length=320)
+    form_token: str | None = Field(default=None, max_length=256)
 
 
 class EmailRequest(BaseModel):
     email: str = Field(max_length=320)
+    website: str | None = Field(default=None, max_length=320)
+    form_token: str | None = Field(default=None, max_length=256)
 
 
 class TokenRequest(BaseModel):
@@ -138,6 +146,8 @@ async def registration_config() -> dict:
     return {
         "registration_enabled": await db_manager.is_registration_enabled(),
         "min_password_length": MIN_PASSWORD_LENGTH,
+        "form_token": issue_form_token(),
+        "honeypot_field": HONEYPOT_FIELD,
     }
 
 
@@ -149,6 +159,14 @@ async def register(body: RegisterRequest, request: Request) -> JSONResponse:
     # courtesy, this is the part that actually closes registration.
     if not await db_manager.is_registration_enabled():
         return _error("Self-registration is disabled on this instance.", status.HTTP_403_FORBIDDEN)
+
+    try:
+        if looks_automated(body.website, body.form_token, "register"):
+            # Same body a real sign-up gets: a bot must not learn which check caught it.
+            return JSONResponse({"message": _GENERIC_REGISTER_MESSAGE}, status_code=status.HTTP_202_ACCEPTED)
+    except FormTokenExpired:
+        # A genuine tab left open too long. Say so rather than silently dropping it.
+        return _error(_EXPIRED_FORM_MESSAGE)
 
     email = _normalize_email(body.email)
     if not is_valid_email(email):
@@ -219,6 +237,12 @@ async def verify_email(body: TokenRequest, request: Request) -> JSONResponse:
 @rate_limit(max_requests=EMAIL_REQUESTS_PER_HOUR, window_seconds=3600)
 async def forgot_password(body: EmailRequest, request: Request) -> JSONResponse:
     """Email a password-reset link, if the address has an account."""
+    try:
+        if looks_automated(body.website, body.form_token, "forgot-password"):
+            return JSONResponse({"message": _GENERIC_RESET_MESSAGE}, status_code=status.HTTP_202_ACCEPTED)
+    except FormTokenExpired:
+        return _error(_EXPIRED_FORM_MESSAGE)
+
     email = _normalize_email(body.email)
     account = await db_manager.get_account_by_email(email) if is_valid_email(email) else None
     if account and account.get("is_active", False):

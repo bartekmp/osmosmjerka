@@ -184,7 +184,12 @@ class AccountsMixin:
         signed in until it expires - which is precisely who the reset is meant to evict.
         """
         database = self._ensure_database()
-        query = update(accounts_table).where(accounts_table.c.id == account_id).values(sessions_valid_from=_utc_now())
+        # Truncated to the second to match the granularity of a JWT's `iat`, which is whole
+        # seconds by spec. Storing microseconds makes a token minted moments later look
+        # older than the cut-off, so the user resets their password, signs in, and is
+        # immediately signed out again - which is what the E2E suite caught.
+        cutoff = _utc_now().replace(microsecond=0)
+        query = update(accounts_table).where(accounts_table.c.id == account_id).values(sessions_valid_from=cutoff)
         await database.execute(query)
 
     async def get_account_count(self) -> int:

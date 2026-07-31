@@ -8,7 +8,14 @@ import RegisterPage from '../RegisterPage';
 
 jest.mock('axios');
 
-const CONFIG = { data: { registration_enabled: true, min_password_length: 10 } };
+const CONFIG = {
+  data: {
+    registration_enabled: true,
+    min_password_length: 10,
+    form_token: 'signed-form-token',
+    honeypot_field: 'website',
+  },
+};
 
 function renderPage() {
   return render(withI18n(
@@ -40,6 +47,7 @@ test('submits the address, the password and no username when none is given', asy
   await waitFor(() => expect(axios.post).toHaveBeenCalledWith('/api/auth/register', {
     email: 'someone@example.com',
     password: 'a-decent-passphrase',
+    form_token: 'signed-form-token',
   }));
 });
 
@@ -120,4 +128,48 @@ test('can resend the confirmation mail from the success state', async () => {
     '/api/auth/resend-verification', { email: 'someone@example.com' }
   ));
   expect(await screen.findByRole('button', { name: /sent again/i })).toBeDisabled();
+});
+
+test('carries the form token the server issued, and no honeypot value', async () => {
+  axios.post.mockResolvedValue({ data: { message: 'Check your inbox' } });
+  renderPage();
+  await waitFor(() => expect(axios.get).toHaveBeenCalled());
+
+  await fillIn({ email: 'someone@example.com', password: 'a-decent-passphrase' });
+  await userEvent.click(screen.getByRole('button', { name: /Create account/i }));
+
+  await waitFor(() => expect(axios.post).toHaveBeenCalled());
+  const body = axios.post.mock.calls[0][1];
+  expect(body.form_token).toBe('signed-form-token');
+  // A person never fills the honeypot, so it must not be sent at all.
+  expect(body.website).toBeUndefined();
+});
+
+test('the honeypot is hidden from assistive technology and the tab order', async () => {
+  renderPage();
+  await waitFor(() => expect(axios.get).toHaveBeenCalled());
+
+  // Absent from the accessibility tree, so a screen-reader user never meets it. Queried by
+  // role rather than by label: role queries are the ones that honour aria-hidden, which is
+  // exactly the property being asserted.
+  expect(screen.queryByRole('textbox', { name: /Leave this field empty/i })).not.toBeInTheDocument();
+
+  const honeypot = document.querySelector('input[name="website"]');
+  expect(honeypot).toBeInTheDocument();
+  expect(honeypot).toHaveAttribute('tabindex', '-1');
+  expect(honeypot).toHaveAttribute('autocomplete', 'off');
+  expect(honeypot.closest('[aria-hidden="true"]')).not.toBeNull();
+});
+
+test('a bot filling the honeypot sends it, so the server can drop the submission', async () => {
+  axios.post.mockResolvedValue({ data: { message: 'Check your inbox' } });
+  renderPage();
+  await waitFor(() => expect(axios.get).toHaveBeenCalled());
+
+  await fillIn({ email: 'bot@example.com', password: 'a-decent-passphrase' });
+  await userEvent.type(document.querySelector('input[name="website"]'), 'http://spam.example');
+  await userEvent.click(screen.getByRole('button', { name: /Create account/i }));
+
+  await waitFor(() => expect(axios.post).toHaveBeenCalled());
+  expect(axios.post.mock.calls[0][1].website).toBe('http://spam.example');
 });

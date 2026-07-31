@@ -5,7 +5,9 @@ that are hashed at rest and only redeemable once, and the policy applying everyw
 password can be set.
 """
 
+import base64
 import os
+import time
 from datetime import timedelta
 from unittest.mock import AsyncMock, patch
 
@@ -15,7 +17,7 @@ from fastapi.testclient import TestClient
 
 os.environ["TESTING"] = "true"  # disables the per-IP rate limiter
 
-from osmosmjerka import auth_api  # noqa: E402
+from osmosmjerka import auth_api, signup_guard  # noqa: E402
 from osmosmjerka.database.account_tokens import (  # noqa: E402
     PURPOSE_EMAIL_VERIFICATION,
     PURPOSE_PASSWORD_RESET,
@@ -44,6 +46,17 @@ def db():
     mock.is_registration_enabled.return_value = True
     with patch.object(auth_api, "db_manager", mock):
         yield mock
+
+
+@pytest.fixture(autouse=True)
+def human_submission():
+    """Treat every request in this module as coming from a person.
+
+    The bot guard needs a signed form token that these tests have no reason to carry;
+    TestBotGuard below exercises the real thing with real tokens.
+    """
+    with patch.object(auth_api, "looks_automated", return_value=False):
+        yield
 
 
 @pytest.fixture
@@ -257,3 +270,102 @@ def test_config_exposes_what_the_signup_form_needs(client, db):
     body = response.json()
     assert "registration_enabled" in body
     assert body["min_password_length"] >= 8
+
+
+class TestBotGuard:
+    """The guard itself, with the autouse stub disabled so the real checks run."""
+
+    @pytest.fixture(autouse=True)
+    def human_submission(self):
+        yield  # deliberately overrides the module-level stub
+
+    @staticmethod
+    def _token(seconds_ago: int = 5) -> str:
+        """A genuinely signed token, backdated so it passes the minimum fill time."""
+        issued_at = str(int(time.time()) - seconds_ago)
+        raw = f"{issued_at}.{signup_guard._sign(issued_at)}"
+        return base64.urlsafe_b64encode(raw.encode()).decode()
+
+    def test_a_normal_submission_goes_through(self, client, db, mail):
+        response = client.post(
+            "/api/auth/register",
+            json={"email": "new@example.com", "password": GOOD_PASSWORD, "form_token": self._token()},
+        )
+
+        assert response.status_code == 202
+        db.create_account.assert_called_once()
+
+    def test_a_filled_honeypot_is_dropped_without_a_trace(self, client, db, mail):
+        response = client.post(
+            "/api/auth/register",
+            json={
+                "email": "bot@example.com",
+                "password": GOOD_PASSWORD,
+                "form_token": self._token(),
+                "website": "http://spam.example",
+            },
+        )
+
+        # Same status and body as a real sign-up: the bot learns nothing.
+        assert response.status_code == 202
+        assert response.json()["message"] == auth_api._GENERIC_REGISTER_MESSAGE
+        db.create_account.assert_not_called()
+        mail["verification"].assert_not_awaited()
+
+    def test_a_submission_with_no_token_is_dropped(self, client, db, mail):
+        response = client.post("/api/auth/register", json={"email": "bot@example.com", "password": GOOD_PASSWORD})
+
+        assert response.status_code == 202
+        db.create_account.assert_not_called()
+
+    def test_an_instant_submission_is_dropped(self, client, db, mail):
+        """Nobody types an address and two passwords in under two seconds."""
+        response = client.post(
+            "/api/auth/register",
+            json={"email": "bot@example.com", "password": GOOD_PASSWORD, "form_token": self._token(seconds_ago=0)},
+        )
+
+        assert response.status_code == 202
+        db.create_account.assert_not_called()
+
+    def test_a_forged_token_is_dropped(self, client, db, mail):
+        forged = base64.urlsafe_b64encode(f"{int(time.time()) - 5}.deadbeef".encode()).decode()
+
+        response = client.post(
+            "/api/auth/register",
+            json={"email": "bot@example.com", "password": GOOD_PASSWORD, "form_token": forged},
+        )
+
+        assert response.status_code == 202
+        db.create_account.assert_not_called()
+
+    def test_a_stale_tab_is_told_to_reload_rather_than_dropped(self, client, db, mail):
+        """An expired token is a real person who left the page open, not a bot."""
+        stale = self._token(seconds_ago=signup_guard.FORM_TOKEN_TTL_SECONDS + 60)
+
+        response = client.post(
+            "/api/auth/register",
+            json={"email": "someone@example.com", "password": GOOD_PASSWORD, "form_token": stale},
+        )
+
+        assert response.status_code == 400
+        assert "reload" in response.json()["error"].lower()
+        db.create_account.assert_not_called()
+
+    def test_forgot_password_is_guarded_too(self, client, db, mail):
+        db.get_account_by_email.return_value = {"id": 5, "username": "someone", "is_active": True}
+
+        response = client.post(
+            "/api/auth/forgot-password",
+            json={"email": "someone@example.com", "form_token": self._token(), "website": "spam"},
+        )
+
+        assert response.status_code == 202
+        mail["reset"].assert_not_awaited()
+
+    def test_config_hands_out_a_usable_token(self, client, db):
+        body = client.get("/api/auth/config").json()
+
+        assert body["honeypot_field"] == signup_guard.HONEYPOT_FIELD
+        # Just minted, so it is correctly signed but not yet old enough to submit.
+        assert signup_guard.check_form_token(body["form_token"]) is False

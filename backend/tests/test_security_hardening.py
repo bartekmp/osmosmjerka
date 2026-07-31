@@ -204,6 +204,19 @@ class TestSessionCutoff:
 
         assert user["id"] == 7
 
+    @pytest.mark.asyncio
+    async def test_a_token_minted_right_after_the_cutoff_is_accepted(self):
+        """Resetting and immediately signing in must work.
+
+        A JWT's iat is whole seconds, so a cut-off stored with microseconds would make the
+        brand-new token look older than it and sign the user straight back out.
+        """
+        cutoff = datetime.now(UTC).replace(tzinfo=None, microsecond=0)
+        # The login happens a fraction of a second later; jose truncates iat to the second.
+        issued_at = float(int((cutoff + timedelta(microseconds=400000)).replace(tzinfo=UTC).timestamp()))
+
+        assert auth_module._token_predates_cutoff(issued_at, cutoff) is False
+
     def test_issued_tokens_carry_an_issued_at(self):
         with patch.object(auth_module, "SECRET_KEY", "test-secret"):
             token = auth_module.create_access_token({"sub": "someone", "role": "regular", "user_id": 7})
