@@ -438,6 +438,37 @@
       "tts": {
         "title": "Synteza mowy (pakiety głosowe)",
         "description": "Pozwól uczniom pobierać głosy w przeglądarce, aby słyszeć słowa. Gdy wyłączone, modele głosów nie są pobierane."
+      },
+      "accounts": {
+        "title": "Konta"
+      },
+      "registration": {
+        "title": "Samodzielna rejestracja",
+        "description": "Pozwól każdemu założyć konto z adresem e-mail. Gdy wyłączone, formularz rejestracji znika i tylko Ty możesz tworzyć konta."
+      },
+      "emails": {
+        "title": "Szablony e-maili",
+        "description": "Pisane w Markdownie i wysyłane jako zwykły tekst i HTML. Symbole w podwójnych nawiasach klamrowych są zastępowane przy wysyłce.",
+        "verification": "Potwierdzenie",
+        "passwordReset": "Reset hasła",
+        "subject": "Temat",
+        "body": "Treść (Markdown)",
+        "placeholders": "Symbole",
+        "preview": "Podgląd",
+        "previewSubject": "Temat",
+        "restoreDefault": "Przywróć domyślny",
+        "testAddress": "Wyślij test na",
+        "sendTest": "Wyślij test",
+        "testNote": "Test używa zapisanego szablonu z przykładowymi wartościami i zastępczym linkiem - nigdy nie tworzy działającego linku potwierdzającego.",
+        "from": "Wysyłane z",
+        "noSmtp": "Serwer SMTP nie jest skonfigurowany, więc e-maile są zapisywane w dzienniku aplikacji zamiast wysyłane.",
+        "saved": "Szablon e-maila został zapisany",
+        "reset": "Przywrócono domyślny szablon",
+        "loadError": "Nie udało się wczytać szablonów e-maili",
+        "saveError": "Nie udało się zapisać szablonu",
+        "previewError": "Nie udało się wygenerować podglądu",
+        "resetError": "Nie udało się przywrócić domyślnego szablonu",
+        "testError": "Nie udało się wysłać testowego e-maila"
       }
     },
     "notifications": {
@@ -818,5 +849,13 @@
     "reset_failed": "Nie udało się zmienić hasła",
     "reset_no_token": "W tym linku brakuje tokenu. Poproś o nowy.",
     "request_new_link": "Poproś o nowy link"
-  }
+  },
+  "confirm_email": "Potwierdź adres e-mail",
+  "confirm_email_prompt": "Potwierdzić adres e-mail tego konta bez wysłanego linku?",
+  "email_confirmed": "Potwierdzony",
+  "email_pending": "Oczekuje",
+  "email_confirmed_successfully": "Adres e-mail został potwierdzony",
+  "failed_to_confirm_email": "Nie udało się potwierdzić adresu e-mail",
+  "resend_verification": "Wyślij ponownie e-mail z potwierdzeniem",
+  "failed_to_resend_verification": "Nie udało się ponownie wysłać e-maila z potwierdzeniem"
 }

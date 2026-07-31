@@ -242,7 +242,8 @@ MAINTENANCE_INTERVAL_SECONDS=21600  # Seconds between sweeps (default: 21600 = 6
 
 # Self-Service Registration (optional)
 APP_BASE_URL=https://osmosmjerka.app  # Public base URL used in confirmation/reset links
-REGISTRATION_ENABLED=true             # false runs a closed instance (admin-created accounts only)
+REGISTRATION_ENABLED=true             # Initial default only - the root admin toggle in
+                                      # System Settings overrides it once used
 
 # Outbound Email (optional)
 # With SMTP_HOST unset, transactional mail is written to the application log (link
@@ -275,9 +276,18 @@ Anyone can sign up at `/register` with an email address and a password; the acco
 unusable until the emailed confirmation link is opened. `/forgot-password` sends a
 single-use reset link. Both links expire (24 hours for confirmation, 1 hour for a reset),
 only their SHA-256 hashes are stored, and the endpoints answer identically whether or not
-an address exists, so they can't be used to discover who has an account. Set
-`REGISTRATION_ENABLED=false` to close sign-ups and create accounts from the admin panel
-instead.
+an address exists, so they can't be used to discover who has an account.
+
+The root admin can close sign-ups from **System Settings → Accounts**; the form then
+disappears and the API refuses registrations, leaving the admin panel as the only way to
+create an account. `REGISTRATION_ENABLED` supplies the initial value for a deployment that
+has never touched the toggle, after which the stored setting wins — so a restart can't
+silently reopen sign-ups.
+
+When a confirmation email never arrives (bounced, spam-filtered, SMTP outage), an admin can
+confirm an account by hand or re-send its link from **User Management**, where each account
+shows its address and whether it is confirmed. A manual confirmation voids any outstanding
+link, so an old email can't be replayed.
 
 Passwords are hashed with **Argon2id** (OWASP-recommended parameters) and must be at least
 10 characters. Accounts created before Argon2id are still stored as bcrypt; they keep
@@ -287,6 +297,18 @@ required.
 Signing in accepts either the email address or the display name. Ten consecutive failures
 lock an account for 15 minutes (see `MAX_FAILED_LOGINS` / `LOGIN_LOCKOUT_MINUTES`); an
 admin password reset clears the lock.
+
+### Email Templates
+
+The subject and body of the confirmation and password-reset emails are editable by the root
+admin under **System Settings → Email templates**. Bodies are Markdown, rendered to HTML at
+send time and delivered as multipart/alternative, so clients that refuse HTML still get a
+readable message. Placeholders (`{{name}}`, `{{link}}`, `{{app_name}}`, `{{email}}`,
+`{{expiry_hours}}`) are substituted on send; a template is rejected if it uses an unknown
+one or omits `{{link}}`. The editor previews the real rendered HTML and can send a test
+message — with a sample link, never a usable token. Markdown is deliberate: raw HTML in a
+template is escaped rather than passed through, so a template can't inject script into a
+recipient's mail client.
 
 ### Generate a Password Hash
 

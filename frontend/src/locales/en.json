@@ -438,6 +438,37 @@
       "tts": {
         "title": "Text-to-speech (voice packs)",
         "description": "Let learners download in-browser voices to hear words. When off, no voice models are downloaded."
+      },
+      "accounts": {
+        "title": "Accounts"
+      },
+      "registration": {
+        "title": "Self-service registration",
+        "description": "Let anyone sign up with an email address. When off, the sign-up form disappears and only you can create accounts."
+      },
+      "emails": {
+        "title": "Email templates",
+        "description": "Written in Markdown and sent as both plain text and HTML. Placeholders in double braces are replaced when the email goes out.",
+        "verification": "Confirmation",
+        "passwordReset": "Password reset",
+        "subject": "Subject",
+        "body": "Body (Markdown)",
+        "placeholders": "Placeholders",
+        "preview": "Preview",
+        "previewSubject": "Subject",
+        "restoreDefault": "Restore default",
+        "testAddress": "Send a test to",
+        "sendTest": "Send test",
+        "testNote": "The test uses the saved template with sample values and a placeholder link - it never creates a usable confirmation link.",
+        "from": "Sent from",
+        "noSmtp": "No SMTP server is configured, so emails are written to the application log instead of being sent.",
+        "saved": "Email template saved",
+        "reset": "Template restored to the default",
+        "loadError": "Could not load the email templates",
+        "saveError": "Could not save the template",
+        "previewError": "Could not render the preview",
+        "resetError": "Could not restore the default",
+        "testError": "Could not send the test email"
       }
     },
     "notifications": {
@@ -818,5 +849,13 @@
     "reset_failed": "Could not change the password",
     "reset_no_token": "This link is missing its token. Request a new one.",
     "request_new_link": "Request a new link"
-  }
+  },
+  "confirm_email": "Confirm email address",
+  "confirm_email_prompt": "Confirm this account's email address without the emailed link?",
+  "email_confirmed": "Confirmed",
+  "email_pending": "Pending",
+  "email_confirmed_successfully": "Email address confirmed",
+  "failed_to_confirm_email": "Failed to confirm the email address",
+  "resend_verification": "Resend the confirmation email",
+  "failed_to_resend_verification": "Failed to resend the confirmation email"
 }

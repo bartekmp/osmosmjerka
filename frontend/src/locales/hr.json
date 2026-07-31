@@ -438,6 +438,37 @@
       "tts": {
         "title": "Govor (glasovni paketi)",
         "description": "Dopustite učenicima preuzimanje glasova u pregledniku za slušanje riječi. Kada je isključeno, glasovni modeli se ne preuzimaju."
+      },
+      "accounts": {
+        "title": "Računi"
+      },
+      "registration": {
+        "title": "Samostalna registracija",
+        "description": "Dopusti svima otvaranje računa s e-mail adresom. Kad je isključeno, obrazac za registraciju nestaje i samo ti možeš otvarati račune."
+      },
+      "emails": {
+        "title": "Predlošci e-maila",
+        "description": "Pišu se u Markdownu i šalju se kao običan tekst i HTML. Rezervirana mjesta u dvostrukim vitičastim zagradama zamjenjuju se pri slanju.",
+        "verification": "Potvrda",
+        "passwordReset": "Ponovno postavljanje lozinke",
+        "subject": "Predmet",
+        "body": "Sadržaj (Markdown)",
+        "placeholders": "Rezervirana mjesta",
+        "preview": "Pregled",
+        "previewSubject": "Predmet",
+        "restoreDefault": "Vrati zadano",
+        "testAddress": "Pošalji test na",
+        "sendTest": "Pošalji test",
+        "testNote": "Test koristi spremljeni predložak s primjerima vrijednosti i lažnim linkom - nikad ne stvara upotrebljiv link za potvrdu.",
+        "from": "Šalje se s",
+        "noSmtp": "SMTP poslužitelj nije konfiguriran, pa se e-mailovi zapisuju u zapisnik aplikacije umjesto da se šalju.",
+        "saved": "Predložak e-maila je spremljen",
+        "reset": "Predložak je vraćen na zadani",
+        "loadError": "Predlošci e-maila nisu učitani",
+        "saveError": "Predložak nije spremljen",
+        "previewError": "Pregled nije prikazan",
+        "resetError": "Zadani predložak nije vraćen",
+        "testError": "Testni e-mail nije poslan"
       }
     },
     "notifications": {
@@ -818,5 +849,13 @@
     "reset_failed": "Lozinka nije promijenjena",
     "reset_no_token": "Ovom linku nedostaje token. Zatraži novi.",
     "request_new_link": "Zatraži novi link"
-  }
+  },
+  "confirm_email": "Potvrdi e-mail adresu",
+  "confirm_email_prompt": "Potvrditi e-mail adresu ovog računa bez poslanog linka?",
+  "email_confirmed": "Potvrđeno",
+  "email_pending": "Na čekanju",
+  "email_confirmed_successfully": "E-mail adresa je potvrđena",
+  "failed_to_confirm_email": "Potvrda e-mail adrese nije uspjela",
+  "resend_verification": "Ponovno pošalji e-mail za potvrdu",
+  "failed_to_resend_verification": "Ponovno slanje e-maila za potvrdu nije uspjelo"
 }
