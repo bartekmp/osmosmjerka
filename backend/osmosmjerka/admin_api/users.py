@@ -125,6 +125,8 @@ async def update_user(
         update_data["is_active"] = is_active
     if update_data:
         await db_manager.update_account(user_id, **update_data)
+    if is_active is False:
+        await db_manager.end_active_sessions(user_id)
     return JSONResponse({"message": "User updated"}, status_code=status.HTTP_200_OK)
 
 
@@ -206,6 +208,9 @@ async def reset_user_password(
     await db_manager.update_account(user_id, password_hash=hash_password(new_password))
     # An admin reset is also how a locked-out user gets back in.
     await db_manager.clear_failed_logins(user_id)
+    # A reset is often a response to a compromise, so it has to end whatever sessions the
+    # old password left behind.
+    await db_manager.end_active_sessions(user_id)
     return JSONResponse({"message": "Password reset successfully"}, status_code=status.HTTP_200_OK)
 
 
@@ -264,5 +269,13 @@ async def change_password(
         return JSONResponse({"error": str(exc)}, status_code=status.HTTP_400_BAD_REQUEST)
 
     await db_manager.update_account(user["id"], password_hash=hash_password(new_password))
+    # Ends every session opened with the old password - including any an attacker holds -
+    # and then re-issues one for the caller, so changing your password doesn't sign you out
+    # of the tab you did it in.
+    await db_manager.end_active_sessions(user["id"])
+    token = create_access_token(data={"sub": user["username"], "role": user["role"], "user_id": user["id"]})
 
-    return JSONResponse({"message": "Password changed successfully"}, status_code=status.HTTP_200_OK)
+    return JSONResponse(
+        {"message": "Password changed successfully", "access_token": token, "token_type": "bearer"},
+        status_code=status.HTTP_200_OK,
+    )

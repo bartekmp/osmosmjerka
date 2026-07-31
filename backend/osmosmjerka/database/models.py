@@ -91,6 +91,10 @@ accounts_table = Table(
     # is throttled per account rather than only per client IP.
     Column("failed_login_attempts", Integer, nullable=False, server_default=text("0")),
     Column("locked_until", DateTime, nullable=True),
+    # Tokens issued before this instant are refused. Bumped whenever the password changes
+    # or the account is disabled, which is how a reset actually evicts whoever else was
+    # signed in - without it a stolen token stays usable until it expires on its own.
+    Column("sessions_valid_from", DateTime, nullable=True),
 )
 
 

@@ -17,6 +17,7 @@ unknown placeholders and insists the link is present, so a typo can't silently s
 email nobody can act on.
 """
 
+import re
 from typing import Any
 
 from markdown_it import MarkdownIt
@@ -98,6 +99,11 @@ def validate_template(kind: str, subject: str, body: str) -> None:
         raise TemplateError("Body cannot be empty")
     if len(subject) > 200:
         raise TemplateError("Subject must be at most 200 characters")
+    if "\n" in subject or "\r" in subject:
+        # A mail header cannot span lines. Python refuses to build the message at all, so
+        # without this check a stray newline - a paste into the field is enough - turns
+        # every registration into a 500 until someone edits the template back.
+        raise TemplateError("Subject must be a single line")
     if len(body) > 20000:
         raise TemplateError("Body must be at most 20000 characters")
 
@@ -114,14 +120,31 @@ def validate_template(kind: str, subject: str, body: str) -> None:
 
 
 def _find_placeholders(text: str) -> list[str]:
-    import re
-
     return re.findall(r"\{\{\s*([a-z_]+)\s*\}\}", text)
 
 
-def _substitute(text: str, context: dict[str, Any]) -> str:
+# CommonMark honours a backslash before any ASCII punctuation, which is how a substituted
+# value stays literal text.
+_MARKDOWN_PUNCTUATION = re.compile(r"([!\"#$%&'()*+,\-./:;<=>?@\[\\\]^_`{|}~])")
+
+
+def _escape_markdown(value: str) -> str:
+    """Neutralise Markdown syntax in a substituted value.
+
+    Placeholders carry user-controlled text - a display name, an address - and it is
+    rendered, so without this a name like ``[Click here](https://evil.example)`` becomes a
+    real link in the HTML part. The link placeholder is deliberately exempt: it is built by
+    the server and has to stay a working URL.
+    """
+    return _MARKDOWN_PUNCTUATION.sub(r"\\\1", value)
+
+
+def _substitute(text: str, context: dict[str, Any], escape: bool = False) -> str:
     for name, value in context.items():
-        text = text.replace("{{" + name + "}}", str(value))
+        rendered = str(value)
+        if escape and name != REQUIRED_PLACEHOLDER:
+            rendered = _escape_markdown(rendered)
+        text = text.replace("{{" + name + "}}", rendered)
     return text
 
 
@@ -188,7 +211,9 @@ async def render(kind: str, context: dict[str, Any]) -> tuple[str, str, str]:
 
     subject = _substitute(template["subject"], context)
     text_body = _substitute(template["body"], context)
-    html_body = render_markdown(text_body, str(context.get("app_name", "")))
+    # Rendered from a separately escaped pass: the text part should read naturally, while
+    # the HTML part must not let a value introduce markup.
+    html_body = render_markdown(_substitute(template["body"], context, escape=True), str(context.get("app_name", "")))
     return subject, text_body, html_body
 
 
@@ -214,7 +239,8 @@ def render_preview(kind: str, subject: str, body: str) -> tuple[str, str, str]:
     context = _sample_context(kind)
     filled_subject = _substitute(subject, context)
     text_body = _substitute(body, context)
-    return filled_subject, text_body, render_markdown(text_body, str(context["app_name"]))
+    html_body = render_markdown(_substitute(body, context, escape=True), str(context["app_name"]))
+    return filled_subject, text_body, html_body
 
 
 async def send_test(kind: str, to: str) -> bool:

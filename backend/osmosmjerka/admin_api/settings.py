@@ -1,8 +1,9 @@
-from fastapi import APIRouter, Depends, HTTPException
+from fastapi import APIRouter, Depends, HTTPException, Request
 from fastapi.responses import JSONResponse
 from osmosmjerka import email_templates, mailer
 from osmosmjerka.admin_api.schemas import EmailTemplateUpdate, EmailTestSend, EnabledToggle, ListLimitsUpdate
 from osmosmjerka.auth import require_root_admin
+from osmosmjerka.cache import rate_limit
 from osmosmjerka.database import db_manager
 
 router = APIRouter(prefix="/settings")
@@ -307,7 +308,12 @@ async def preview_email_template(
 
 
 @router.post("/email-templates/{kind}/test")
-async def send_test_email(kind: str, body: EmailTestSend, user=Depends(require_root_admin)) -> JSONResponse:
+# The one admin endpoint that causes outbound mail to an arbitrary address, so it gets a
+# ceiling even though only the root admin can reach it.
+@rate_limit(max_requests=10, window_seconds=600)
+async def send_test_email(
+    kind: str, body: EmailTestSend, request: Request, user=Depends(require_root_admin)
+) -> JSONResponse:
     """Send the saved template to an address, to check SMTP and how it renders.
 
     The link points at the app root rather than a real token: this is a rendering and
@@ -316,6 +322,8 @@ async def send_test_email(kind: str, body: EmailTestSend, user=Depends(require_r
     """
     if kind not in email_templates.DEFAULTS:
         raise HTTPException(status_code=404, detail=f"Unknown template: {kind}")
+    if not mailer.is_valid_email(body.email):
+        raise HTTPException(status_code=400, detail="That doesn't look like a valid email address")
 
     sent = await email_templates.send_test(kind, body.email)
     if not sent:

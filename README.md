@@ -305,6 +305,11 @@ Signing in accepts either the email address or the display name. Ten consecutive
 lock an account for 15 minutes (see `MAX_FAILED_LOGINS` / `LOGIN_LOCKOUT_MINUTES`); an
 admin password reset clears the lock.
 
+Changing a password ends every session opened with the old one — the point of resetting a
+compromised account is to evict whoever else is signed in, and access tokens live an hour.
+Disabling an account does the same immediately. Changing your own password re-issues a
+token for the tab you did it in, so you aren't signed out by your own action.
+
 ### Email Templates
 
 The subject and body of the confirmation and password-reset emails are editable by the root

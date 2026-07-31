@@ -11,6 +11,7 @@ from fastapi.staticfiles import StaticFiles
 from osmosmjerka.logging_config import get_logger
 
 # isort: on
+from osmosmjerka import mailer
 from osmosmjerka.admin_api import router as admin_router
 from osmosmjerka.auth import ROOT_ADMIN_PASSWORD_HASH, ROOT_ADMIN_USERNAME, SECRET_KEY
 from osmosmjerka.auth_api import router as auth_router
@@ -207,6 +208,17 @@ async def lifespan(_: FastAPI):
             logger.info("Demo account verified")
         else:
             logger.info("Demo account not configured (skipped)")
+
+        # Every confirmation and reset link is built from this. Unset in production it
+        # silently defaults to localhost, so the emails go out pointing nowhere - a failure
+        # nobody notices until a user reports that sign-up "doesn't work".
+        if not DEVELOPMENT_MODE and "localhost" in mailer.base_url():
+            logger.warning(
+                "APP_BASE_URL is not set; confirmation and reset links will point at localhost",
+                extra={"base_url": mailer.base_url()},
+            )
+        if not mailer.is_configured():
+            logger.warning("SMTP is not configured; transactional emails will be logged instead of sent")
 
         maintenance_task = start_maintenance()
 

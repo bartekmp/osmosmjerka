@@ -560,9 +560,11 @@ def test_update_profile_empty_description(client, mock_regular_user):
 
 
 # Test password change functionality
+@patch("osmosmjerka.auth.SECRET_KEY", "test-secret-for-reissued-token")
+@patch("osmosmjerka.database.db_manager.end_active_sessions")
 @patch("osmosmjerka.database.db_manager.get_account_by_username")
 @patch("osmosmjerka.database.db_manager.update_account")
-def test_change_password(mock_update_account, mock_get_by_username, client, mock_regular_user):
+def test_change_password(mock_update_account, mock_get_by_username, mock_end_sessions, client, mock_regular_user):
     """Test changing password"""
     # Override the dependency
     app.dependency_overrides[get_current_user] = lambda: mock_regular_user
@@ -586,6 +588,10 @@ def test_change_password(mock_update_account, mock_get_by_username, client, mock
     mock_update_account.assert_called_once()
     new_hash = mock_update_account.call_args.kwargs["password_hash"]
     assert verify_password("the-new-passphrase", new_hash)
+    # Sessions opened with the old password must not survive the change...
+    mock_end_sessions.assert_awaited_once_with(2)
+    # ...but the caller gets a fresh token, so they aren't signed out of their own tab.
+    assert data["access_token"]
 
 
 @patch("osmosmjerka.database.db_manager.get_account_by_username")
@@ -646,10 +652,12 @@ def test_change_password_root_admin_forbidden(client, mock_root_admin_user):
     assert "Root admin password cannot be changed" in data["error"]
 
 
+@patch("osmosmjerka.auth.SECRET_KEY", "test-secret-for-reissued-token")
+@patch("osmosmjerka.database.db_manager.end_active_sessions")
 @patch("osmosmjerka.database.db_manager.update_account")
 @patch("osmosmjerka.database.db_manager.get_account_by_username")
 def test_change_password_upgrades_legacy_bcrypt_hash(
-    mock_get_by_username, mock_update_account, client, mock_regular_user
+    mock_get_by_username, mock_update_account, mock_end_sessions, client, mock_regular_user
 ):
     """An account still on bcrypt can change its password, and lands on Argon2id."""
     app.dependency_overrides[get_current_user] = lambda: mock_regular_user

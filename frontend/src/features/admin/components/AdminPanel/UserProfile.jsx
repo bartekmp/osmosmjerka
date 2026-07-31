@@ -27,7 +27,7 @@ import {
 import { EmojiEvents as TrophyIcon } from '@mui/icons-material';
 import PlaylistAddCheckIcon from '@mui/icons-material/PlaylistAddCheck';
 import { useTranslation } from 'react-i18next';
-import { API_ENDPOINTS } from '@shared';
+import { API_ENDPOINTS, STORAGE_KEYS } from '@shared';
 import { PrivateListManager } from '../../../lists';
 
 const MIN_PASSWORD_LENGTH = 10;
@@ -325,6 +325,13 @@ export default function UserProfile() {
             const data = await response.json();
 
             if (response.ok) {
+                // Changing the password ends every session opened with the old one, so the
+                // server hands back a replacement for this tab. Without storing it the next
+                // request 401s and the user looks to have been signed out by their own
+                // password change.
+                if (data.access_token) {
+                    localStorage.setItem(STORAGE_KEYS.ADMIN_TOKEN, data.access_token);
+                }
                 showNotification(t('password_changed'), 'success');
                 setPasswordDialog(false);
                 setPasswordData({

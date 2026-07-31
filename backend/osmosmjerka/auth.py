@@ -1,4 +1,5 @@
 import os
+import secrets
 from collections.abc import Callable
 from datetime import UTC, datetime, timedelta
 from typing import Any, TypedDict
@@ -27,6 +28,12 @@ ACCESS_TOKEN_EXPIRE_MINUTES = 60
 # won't hit it, short enough that a lockout isn't a denial of service against them.
 MAX_FAILED_LOGINS = int(os.getenv("MAX_FAILED_LOGINS", "10"))
 LOCKOUT_DURATION = timedelta(minutes=int(os.getenv("LOGIN_LOCKOUT_MINUTES", "15")))
+
+# Verified against when no account matches, so the request still pays the Argon2 cost.
+# Without it a missing account answers in microseconds while a real one takes ~45ms, which
+# is a reliable oracle for "does this address have an account" - and would undo the
+# enumeration resistance the rest of these endpoints are built around.
+_DUMMY_PASSWORD_HASH = hash_password(secrets.token_urlsafe(32))
 
 oauth2_scheme = OAuth2PasswordBearer(tokenUrl="/admin/login")
 
@@ -60,8 +67,11 @@ def create_access_token(data: dict[str, Any], expires_delta: timedelta | None = 
     if SECRET_KEY == "":
         raise HTTPException(status_code=500, detail="Server misconfiguration: SECRET_KEY is not set")
     to_encode = data.copy()
-    expire = datetime.now(UTC) + (expires_delta or timedelta(minutes=ACCESS_TOKEN_EXPIRE_MINUTES))
-    to_encode.update({"exp": expire})
+    now = datetime.now(UTC)
+    expire = now + (expires_delta or timedelta(minutes=ACCESS_TOKEN_EXPIRE_MINUTES))
+    # iat lets _resolve_account date this token against the account's sessions_valid_from,
+    # which is what makes a password change able to end sessions that already exist.
+    to_encode.update({"exp": expire, "iat": now})
     # Always set 'role' and 'user_id' explicitly
     if to_encode.get("sub") == ROOT_ADMIN_USERNAME:
         to_encode["role"] = "root_admin"
@@ -162,10 +172,44 @@ async def authenticate_user(identifier: str, password: str) -> UserInfo | None:
         )
         return None
 
-    # Unknown or deactivated account. Deliberately indistinguishable from a wrong
-    # password to the caller, so login can't be used to enumerate addresses.
+    # Unknown or deactivated account. Burn the same work a real verification would, so the
+    # response body *and* its timing look the same as a wrong password on a real account.
+    verify_password(password, _DUMMY_PASSWORD_HASH)
     logger.warning("Failed login attempt for unknown account")
     return None
+
+
+def _as_naive_utc(value: Any) -> datetime | None:
+    """Coerce a stored timestamp to naive UTC, or None if it isn't one.
+
+    The column is naive (as the whole schema is), but a driver or a serialized round trip
+    can hand back a string or an aware value.
+    """
+    if not value:
+        return None
+    if isinstance(value, str):
+        try:
+            value = datetime.fromisoformat(value)
+        except ValueError:
+            return None
+    if not isinstance(value, datetime):
+        return None
+    return value.astimezone(UTC).replace(tzinfo=None) if value.tzinfo is not None else value
+
+
+def _token_predates_cutoff(issued_at: Any, cutoff: Any) -> bool:
+    """Whether a token was issued before the account's session cut-off.
+
+    A missing cut-off means every session is still valid, which is what accounts that
+    predate this feature carry. A missing iat is treated as too old to trust: tokens
+    minted before the claim existed cannot be dated, and refusing them costs one re-login.
+    """
+    cutoff_at = _as_naive_utc(cutoff)
+    if cutoff_at is None:
+        return False
+    if issued_at is None:
+        return True
+    return datetime.fromtimestamp(issued_at, UTC).replace(tzinfo=None) < cutoff_at
 
 
 def _decode_token(token: str) -> dict[str, Any]:
@@ -199,6 +243,9 @@ async def _resolve_account(payload: dict[str, Any]) -> UserInfo:
     account = await db_manager.get_account_by_username(username)
     if not account or not account.get("is_active", False):
         raise HTTPException(status_code=401, detail="Inactive or invalid user")
+    if _token_predates_cutoff(payload.get("iat"), account.get("sessions_valid_from")):
+        logger.info("Token refused: issued before the account's session cut-off", extra={"user_id": account["id"]})
+        raise HTTPException(status_code=401, detail="Session ended, please log in again")
     return {"username": account["username"], "role": account["role"], "id": account["id"]}
 
 

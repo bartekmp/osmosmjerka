@@ -176,6 +176,17 @@ class AccountsMixin:
         )
         await database.execute(query)
 
+    async def end_active_sessions(self, account_id: int) -> None:
+        """Invalidate every access token issued for this account up to now.
+
+        Called whenever the password changes or the account is disabled. Tokens are
+        stateless and long-lived, so without this a reset leaves whoever else holds one
+        signed in until it expires - which is precisely who the reset is meant to evict.
+        """
+        database = self._ensure_database()
+        query = update(accounts_table).where(accounts_table.c.id == account_id).values(sessions_valid_from=_utc_now())
+        await database.execute(query)
+
     async def get_account_count(self) -> int:
         """Get total account count."""
         database = self._ensure_database()

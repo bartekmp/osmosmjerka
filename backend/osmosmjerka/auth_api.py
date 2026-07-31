@@ -31,7 +31,7 @@ from osmosmjerka.database.account_tokens import (
     new_account_token,
 )
 from osmosmjerka.logging_config import get_logger
-from osmosmjerka.mailer import send_password_reset_email, send_verification_email
+from osmosmjerka.mailer import is_valid_email, send_password_reset_email, send_verification_email
 from osmosmjerka.passwords import (
     MIN_PASSWORD_LENGTH,
     PasswordPolicyError,
@@ -52,9 +52,6 @@ SIGNUP_ATTEMPTS_PER_HOUR = int(os.getenv("SIGNUP_ATTEMPTS_PER_HOUR", "5"))
 EMAIL_REQUESTS_PER_HOUR = int(os.getenv("EMAIL_REQUESTS_PER_HOUR", "5"))
 TOKEN_REDEMPTIONS_PER_HOUR = int(os.getenv("TOKEN_REDEMPTIONS_PER_HOUR", "20"))
 
-# Deliberately permissive: the only authoritative test of an address is whether the
-# confirmation mail arrives, and over-strict patterns reject valid addresses.
-_EMAIL_RE = re.compile(r"^[^@\s]+@[^@\s.]+(\.[^@\s.]+)+$")
 _USERNAME_RE = re.compile(r"^[A-Za-z0-9](?:[A-Za-z0-9 ._-]{1,30}[A-Za-z0-9])$")
 
 # Same wording for every outcome, so timing aside there is nothing to learn from the body.
@@ -109,10 +106,30 @@ async def _unique_username(preferred: str | None, email: str) -> str | None:
     return None
 
 
-async def _issue_verification(account_id: int, email: str, display_name: str) -> None:
+# Per-account cap on confirmation and reset emails, on top of the per-IP rate limits. The
+# IP limit protects the server; this protects a specific mailbox from being buried by
+# someone cycling through addresses.
+MAX_EMAILS_PER_ACCOUNT = 5
+
+
+async def _issue_verification(account_id: int, email: str, display_name: str) -> bool:
+    """Send a confirmation link, unless this account has already had its share recently.
+
+    Both the sign-up and the resend path go through here. They used to differ - only
+    resend checked the cap - which left re-submitting the sign-up form as a way to flood
+    an unconfirmed address with mail.
+    """
+    recent = await db_manager.count_recent_account_tokens(
+        account_id, PURPOSE_EMAIL_VERIFICATION, EMAIL_VERIFICATION_TTL
+    )
+    if recent >= MAX_EMAILS_PER_ACCOUNT:
+        logger.warning("Confirmation email throttled for this account", extra={"user_id": account_id})
+        return False
+
     token, token_hash = new_account_token()
     await db_manager.create_account_token(account_id, PURPOSE_EMAIL_VERIFICATION, token_hash, EMAIL_VERIFICATION_TTL)
     await send_verification_email(email, token, display_name)
+    return True
 
 
 @router.get("/config")
@@ -134,7 +151,7 @@ async def register(body: RegisterRequest, request: Request) -> JSONResponse:
         return _error("Self-registration is disabled on this instance.", status.HTTP_403_FORBIDDEN)
 
     email = _normalize_email(body.email)
-    if not _EMAIL_RE.match(email):
+    if not is_valid_email(email):
         return _error("Please enter a valid email address.")
 
     username = body.username.strip() if body.username else None
@@ -149,8 +166,9 @@ async def register(body: RegisterRequest, request: Request) -> JSONResponse:
     existing = await db_manager.get_account_by_email(email)
     if existing:
         # Enumeration-safe: identical response to a fresh sign-up. If the account was
-        # never confirmed, re-send the link - that's the honest owner retrying. For a
-        # confirmed account we send nothing, so this can't be used to spam a mailbox.
+        # never confirmed, re-send the link - that's the honest owner retrying, and the
+        # per-account cap inside _issue_verification stops it being a flooding path. For a
+        # confirmed account we send nothing at all.
         if not existing.get("email_verified", False):
             await _issue_verification(existing["id"], email, existing.get("username", ""))
         else:
@@ -178,17 +196,9 @@ async def register(body: RegisterRequest, request: Request) -> JSONResponse:
 async def resend_verification(body: EmailRequest, request: Request) -> JSONResponse:
     """Re-send the confirmation link, if the address has an unconfirmed account."""
     email = _normalize_email(body.email)
-    account = await db_manager.get_account_by_email(email) if _EMAIL_RE.match(email) else None
+    account = await db_manager.get_account_by_email(email) if is_valid_email(email) else None
     if account and not account.get("email_verified", False):
-        recent = await db_manager.count_recent_account_tokens(
-            account["id"], PURPOSE_EMAIL_VERIFICATION, EMAIL_VERIFICATION_TTL
-        )
-        # Per-account cap on top of the per-IP limit, so nobody can use this endpoint to
-        # bury someone else's inbox by cycling through addresses.
-        if recent < 5:
-            await _issue_verification(account["id"], email, account.get("username", ""))
-        else:
-            logger.warning("Verification resend throttled", extra={"user_id": account["id"]})
+        await _issue_verification(account["id"], email, account.get("username", ""))
     return JSONResponse({"message": _GENERIC_REGISTER_MESSAGE}, status_code=status.HTTP_202_ACCEPTED)
 
 
@@ -210,10 +220,10 @@ async def verify_email(body: TokenRequest, request: Request) -> JSONResponse:
 async def forgot_password(body: EmailRequest, request: Request) -> JSONResponse:
     """Email a password-reset link, if the address has an account."""
     email = _normalize_email(body.email)
-    account = await db_manager.get_account_by_email(email) if _EMAIL_RE.match(email) else None
+    account = await db_manager.get_account_by_email(email) if is_valid_email(email) else None
     if account and account.get("is_active", False):
         recent = await db_manager.count_recent_account_tokens(account["id"], PURPOSE_PASSWORD_RESET, PASSWORD_RESET_TTL)
-        if recent < 5:
+        if recent < MAX_EMAILS_PER_ACCOUNT:
             token, token_hash = new_account_token()
             await db_manager.create_account_token(account["id"], PURPOSE_PASSWORD_RESET, token_hash, PASSWORD_RESET_TTL)
             await send_password_reset_email(email, token, account.get("username", ""))
@@ -259,5 +269,7 @@ async def reset_password(body: ResetPasswordRequest, request: Request) -> JSONRe
     # that, and any other outstanding reset link is now void.
     await db_manager.clear_failed_logins(account_id)
     await db_manager.invalidate_account_tokens(account_id, PURPOSE_PASSWORD_RESET)
+    # The whole point of a reset in a compromise: whoever else was signed in is now out.
+    await db_manager.end_active_sessions(account_id)
     logger.info("Password reset completed", extra={"user_id": account_id})
     return JSONResponse({"message": "Your password has been changed - you can sign in now."})

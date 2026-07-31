@@ -20,6 +20,7 @@ Environment:
 
 import asyncio
 import os
+import re
 import smtplib
 from email.message import EmailMessage
 from email.utils import formataddr
@@ -33,6 +34,16 @@ load_dotenv()
 logger = get_logger(__name__)
 
 APP_NAME = "Osmosmjerka"
+
+# Deliberately permissive: the only authoritative test of an address is whether the mail
+# arrives, and over-strict patterns reject valid addresses. It does exclude whitespace,
+# which is what keeps a newline out of the To header.
+_EMAIL_RE = re.compile(r"^[^@\s]+@[^@\s.]+(\.[^@\s.]+)+$")
+
+
+def is_valid_email(email: str) -> bool:
+    """Whether this looks like an address we can put in a header and try to deliver to."""
+    return bool(email) and len(email) <= 320 and bool(_EMAIL_RE.match(email.strip()))
 
 
 def _env(name: str, default: str = "") -> str:
@@ -102,6 +113,10 @@ async def send_email(to: str, subject: str, body: str, html_body: str | None = N
     E2E suite working. Only the text part is logged; the HTML says the same thing and would
     bury the link in markup.
     """
+    if not is_valid_email(to):
+        logger.error("Refusing to send to a malformed address")
+        return False
+
     if not is_configured():
         logger.info(
             "SMTP is not configured; logging email instead of sending it\n"
@@ -112,12 +127,15 @@ async def send_email(to: str, subject: str, body: str, html_body: str | None = N
         )
         return True
 
-    message = _build_message(to, subject, body, html_body)
     try:
+        # Inside the guard on purpose: Python refuses to build a message whose headers
+        # contain a newline, and that ValueError would otherwise surface as a 500 on
+        # whatever flow triggered the send.
+        message = _build_message(to, subject, body, html_body)
         await asyncio.to_thread(_send_blocking, message)
-    except (OSError, smtplib.SMTPException):
-        # Never propagate: registration must not 500 because a relay is down, and the
-        # endpoints answer identically regardless of delivery.
+    except (OSError, ValueError, smtplib.SMTPException):
+        # Never propagate: registration must not 500 because a relay is down or a template
+        # is malformed, and the endpoints answer identically regardless of delivery.
         logger.error("Failed to send email", extra={"subject": subject}, exc_info=True)
         return False
 
