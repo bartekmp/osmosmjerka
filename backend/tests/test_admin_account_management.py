@@ -221,3 +221,100 @@ class TestEmailTemplateEditor:
             )
 
         assert response.status_code == 502
+
+
+class TestBanningAndDeletion:
+    """Disabling is the reversible control; deleting is root-admin only."""
+
+    def _account(self, **overrides):
+        account = {"id": 4, "username": "someone", "role": "regular", "is_active": True}
+        account.update(overrides)
+        return account
+
+    def test_disabling_an_account_ends_its_sessions(self, as_root):
+        with (
+            patch("osmosmjerka.database.db_manager.get_account_by_id", AsyncMock(return_value=self._account())),
+            patch("osmosmjerka.database.db_manager.update_account", AsyncMock()) as update,
+            patch("osmosmjerka.database.db_manager.end_active_sessions", AsyncMock()) as end_sessions,
+        ):
+            response = as_root.put("/admin/users/4", json={"is_active": False})
+
+        assert response.status_code == 200
+        assert update.call_args.kwargs["is_active"] is False
+        # Otherwise the ban would not bite until their token expired an hour later.
+        end_sessions.assert_awaited_once_with(4)
+
+    def test_re_enabling_does_not_touch_sessions(self, as_root):
+        disabled = self._account(is_active=False)
+        with (
+            patch("osmosmjerka.database.db_manager.get_account_by_id", AsyncMock(return_value=disabled)),
+            patch("osmosmjerka.database.db_manager.update_account", AsyncMock()) as update,
+            patch("osmosmjerka.database.db_manager.end_active_sessions", AsyncMock()) as end_sessions,
+        ):
+            response = as_root.put("/admin/users/4", json={"is_active": True})
+
+        assert response.status_code == 200
+        assert update.call_args.kwargs["is_active"] is True
+        end_sessions.assert_not_called()
+
+    def test_editing_a_banned_account_leaves_it_banned(self, as_root):
+        """The bug this replaced: any role edit used to silently re-enable the account."""
+        disabled = self._account(is_active=False)
+        with (
+            patch("osmosmjerka.database.db_manager.get_account_by_id", AsyncMock(return_value=disabled)),
+            patch("osmosmjerka.database.db_manager.update_account", AsyncMock()) as update,
+        ):
+            response = as_root.put("/admin/users/4", json={"role": "teacher"})
+
+        assert response.status_code == 200
+        assert "is_active" not in update.call_args.kwargs
+
+    def test_the_root_admin_cannot_be_disabled(self, as_root):
+        with (
+            patch("osmosmjerka.database.db_manager.get_account_by_id", AsyncMock(return_value=self._account(id=0))),
+            patch("osmosmjerka.database.db_manager.update_account", AsyncMock()) as update,
+        ):
+            response = as_root.put("/admin/users/0", json={"is_active": False})
+
+        assert response.status_code == 400
+        update.assert_not_called()
+
+    def test_you_cannot_disable_yourself(self, client, mock_admin_user):
+        """A self-ban needs another admin or a database edit to undo."""
+        app.dependency_overrides[require_admin_access] = lambda: mock_admin_user
+        with (
+            patch(
+                "osmosmjerka.database.db_manager.get_account_by_id",
+                AsyncMock(return_value=self._account(id=mock_admin_user["id"])),
+            ),
+            patch("osmosmjerka.database.db_manager.update_account", AsyncMock()) as update,
+        ):
+            response = client.put(f"/admin/users/{mock_admin_user['id']}", json={"is_active": False})
+
+        assert response.status_code == 400
+        update.assert_not_called()
+
+    def test_deleting_requires_root_admin(self, client, mock_admin_user):
+        """An administrative user can disable, but not destroy."""
+        app.dependency_overrides[require_admin_access] = lambda: mock_admin_user
+
+        response = client.delete("/admin/users/4")
+
+        assert response.status_code in (401, 403)
+
+    def test_root_admin_can_delete(self, as_root):
+        with (
+            patch("osmosmjerka.database.db_manager.get_account_by_id", AsyncMock(return_value=self._account())),
+            patch("osmosmjerka.database.db_manager.delete_account", AsyncMock()) as delete,
+        ):
+            response = as_root.delete("/admin/users/4")
+
+        assert response.status_code == 200
+        delete.assert_awaited_once_with(4)
+
+    def test_you_cannot_delete_yourself(self, as_root, mock_root_admin_user):
+        with patch("osmosmjerka.database.db_manager.delete_account", AsyncMock()) as delete:
+            response = as_root.delete(f"/admin/users/{mock_root_admin_user['id']}")
+
+        assert response.status_code == 400
+        delete.assert_not_called()

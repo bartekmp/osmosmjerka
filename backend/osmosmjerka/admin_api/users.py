@@ -9,6 +9,7 @@ from osmosmjerka.auth import (
     create_access_token,
     get_current_user,
     require_admin_access,
+    require_root_admin,
 )
 from osmosmjerka.cache import rate_limit
 from osmosmjerka.database import db_manager
@@ -122,22 +123,47 @@ async def update_user(
             return JSONResponse({"error": "Description cannot be empty"}, status_code=status.HTTP_400_BAD_REQUEST)
         update_data["self_description"] = self_description
     if is_active is not None:
+        # Banning is the one field here with an immediate security consequence, so it has
+        # its own guards rather than riding along with role and description edits.
+        if user_id == 0:
+            return JSONResponse(
+                {"error": "The root admin account cannot be disabled"}, status_code=status.HTTP_400_BAD_REQUEST
+            )
+        if user_id == user["id"] and is_active is False:
+            # A self-ban is unrecoverable without another admin or a database edit.
+            return JSONResponse(
+                {"error": "You cannot disable your own account"}, status_code=status.HTTP_400_BAD_REQUEST
+            )
         update_data["is_active"] = is_active
     if update_data:
         await db_manager.update_account(user_id, **update_data)
     if is_active is False:
+        # Their tokens are valid for another hour otherwise, which would make a ban look
+        # like it had not worked.
         await db_manager.end_active_sessions(user_id)
+        logger.info("Account disabled", extra={"user_id": user_id, "disabled_by": user["id"]})
+    elif is_active is True and not existing_user.get("is_active", True):
+        logger.info("Account re-enabled", extra={"user_id": user_id, "enabled_by": user["id"]})
     return JSONResponse({"message": "User updated"}, status_code=status.HTTP_200_OK)
 
 
 @router.delete("/users/{user_id}")
-async def delete_user(user_id: int, user=Depends(require_admin_access)) -> JSONResponse:
+async def delete_user(user_id: int, user=Depends(require_root_admin)) -> JSONResponse:
+    """Delete an account outright - root admin only.
+
+    Narrower than the rest of user management because it is irreversible and cascades to
+    the account's tokens and data. Disabling an account (PUT with is_active=false) is the
+    reversible option, and stays available to any administrative user.
+    """
     if user_id == 0:
         return JSONResponse({"error": "Cannot delete root admin account"}, status_code=status.HTTP_400_BAD_REQUEST)
+    if user_id == user["id"]:
+        return JSONResponse({"error": "You cannot delete your own account"}, status_code=status.HTTP_400_BAD_REQUEST)
     existing_user = await db_manager.get_account_by_id(user_id)
     if not existing_user:
         return JSONResponse({"error": "User not found"}, status_code=status.HTTP_404_NOT_FOUND)
     await db_manager.delete_account(user_id)
+    logger.info("Account deleted", extra={"user_id": user_id, "deleted_by": user["id"]})
     return JSONResponse({"message": "User deleted"}, status_code=status.HTTP_200_OK)
 
 

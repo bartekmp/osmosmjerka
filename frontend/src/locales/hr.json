@@ -857,5 +857,11 @@
   "email_confirmed_successfully": "E-mail adresa je potvrđena",
   "failed_to_confirm_email": "Potvrda e-mail adrese nije uspjela",
   "resend_verification": "Ponovno pošalji e-mail za potvrdu",
-  "failed_to_resend_verification": "Ponovno slanje e-maila za potvrdu nije uspjelo"
+  "failed_to_resend_verification": "Ponovno slanje e-maila za potvrdu nije uspjelo",
+  "disabled": "Onemogućen",
+  "disable_user": "Onemogući ovaj račun",
+  "enable_user": "Ponovno omogući ovaj račun",
+  "confirm_disable_user": "Onemogućiti korisnika {{username}}? Odmah će biti odjavljen i neće se moći prijaviti.",
+  "user_disabled": "Račun je onemogućen",
+  "user_enabled": "Račun je ponovno omogućen"
 }

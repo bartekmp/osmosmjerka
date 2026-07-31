@@ -232,7 +232,7 @@
   "author": "Autor",
   "status": "Status",
   "created_at": "Utworzono",
-  "active": "Aktywny",
+  "active": "Aktywne",
   "inactive": "Nieaktywny",
   "add_language_set": "Dodaj zestaw językowy",
   "add_language_set_short": "Dodaj",
@@ -857,5 +857,11 @@
   "email_confirmed_successfully": "Adres e-mail został potwierdzony",
   "failed_to_confirm_email": "Nie udało się potwierdzić adresu e-mail",
   "resend_verification": "Wyślij ponownie e-mail z potwierdzeniem",
-  "failed_to_resend_verification": "Nie udało się ponownie wysłać e-maila z potwierdzeniem"
+  "failed_to_resend_verification": "Nie udało się ponownie wysłać e-maila z potwierdzeniem",
+  "disabled": "Zablokowane",
+  "disable_user": "Zablokuj to konto",
+  "enable_user": "Odblokuj to konto",
+  "confirm_disable_user": "Zablokować użytkownika {{username}}? Zostanie natychmiast wylogowany i nie będzie mógł się zalogować.",
+  "user_disabled": "Konto zostało zablokowane",
+  "user_enabled": "Konto zostało odblokowane"
 }

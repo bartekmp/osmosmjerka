@@ -552,6 +552,11 @@ Access the admin panel at `/admin` with your configured admin credentials.
 - Role assignment and permissions
 - Password reset functionality
 - User profile customization
+- **Disable an account** — reversible, ends the user's live sessions immediately rather
+  than waiting for their token to expire, and blocks further logins. Available to any
+  administrative user; the root admin and your own account cannot be disabled.
+- **Delete an account** — irreversible and cascades to the account's data, so it is
+  restricted to the root admin, and you cannot delete your own.
 
 #### Language Sets Management
 

@@ -857,5 +857,11 @@
   "email_confirmed_successfully": "Email address confirmed",
   "failed_to_confirm_email": "Failed to confirm the email address",
   "resend_verification": "Resend the confirmation email",
-  "failed_to_resend_verification": "Failed to resend the confirmation email"
+  "failed_to_resend_verification": "Failed to resend the confirmation email",
+  "disabled": "Disabled",
+  "disable_user": "Disable this account",
+  "enable_user": "Re-enable this account",
+  "confirm_disable_user": "Disable {{username}}? They will be signed out immediately and unable to log in.",
+  "user_disabled": "Account disabled",
+  "user_enabled": "Account re-enabled"
 }

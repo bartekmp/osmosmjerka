@@ -142,3 +142,87 @@ test('a failed confirmation shows the server error', async () => {
 
     expect(await screen.findByText('This account has no email address')).toBeInTheDocument();
 });
+
+// --- disabling accounts ---------------------------------------------------------
+
+const ACTIVE = { ...CONFIRMED, id: 7, username: 'active-user', is_active: true };
+const BANNED = { ...CONFIRMED, id: 8, username: 'banned-user', is_active: false };
+
+test('shows whether each account is active or disabled', async () => {
+    mockUserList([ACTIVE, BANNED]);
+    render(<UserManagement currentUser={rootAdmin} />);
+
+    await screen.findByText('active-user');
+    expect(screen.getByText('active')).toBeInTheDocument();
+    expect(screen.getByText('disabled')).toBeInTheDocument();
+});
+
+test('disabling asks first, then sends is_active false', async () => {
+    mockUserList([ACTIVE]);
+    render(<UserManagement currentUser={rootAdmin} />);
+    await screen.findByText('active-user');
+
+    global.fetch.mockResolvedValueOnce({ ok: true, json: () => Promise.resolve({ message: 'ok' }) });
+    await userEvent.click(screen.getByTitle('disable_user'));
+
+    expect(window.confirm).toHaveBeenCalled();
+    await waitFor(() =>
+        expect(global.fetch).toHaveBeenCalledWith(
+            '/admin/users/7',
+            expect.objectContaining({ method: 'PUT', body: JSON.stringify({ is_active: false }) })
+        )
+    );
+});
+
+test('re-enabling does not ask, and sends is_active true', async () => {
+    mockUserList([BANNED]);
+    render(<UserManagement currentUser={rootAdmin} />);
+    await screen.findByText('banned-user');
+
+    global.fetch.mockResolvedValueOnce({ ok: true, json: () => Promise.resolve({ message: 'ok' }) });
+    await userEvent.click(screen.getByTitle('enable_user'));
+
+    expect(window.confirm).not.toHaveBeenCalled();
+    await waitFor(() =>
+        expect(global.fetch).toHaveBeenCalledWith(
+            '/admin/users/8',
+            expect.objectContaining({ body: JSON.stringify({ is_active: true }) })
+        )
+    );
+});
+
+test('editing a disabled account does not silently re-enable it', async () => {
+    // The regression this replaced: the edit dialog always sent is_active: true.
+    mockUserList([BANNED]);
+    render(<UserManagement currentUser={rootAdmin} />);
+    await screen.findByText('banned-user');
+
+    await userEvent.click(screen.getByTitle('edit_user'));
+    global.fetch.mockResolvedValueOnce({ ok: true, json: () => Promise.resolve({ message: 'ok' }) });
+    await userEvent.click(screen.getByRole('button', { name: 'update' }));
+
+    await waitFor(() => {
+        const put = global.fetch.mock.calls.find(([, opts]) => opts?.method === 'PUT');
+        expect(put).toBeTruthy();
+        expect(JSON.parse(put[1].body)).not.toHaveProperty('is_active');
+    });
+});
+
+test('nobody can disable or delete their own account from the table', async () => {
+    const self = { ...ACTIVE, id: rootAdmin.id, username: 'root' };
+    mockUserList([self]);
+    render(<UserManagement currentUser={rootAdmin} />);
+
+    await screen.findByText('root');
+    expect(screen.getByTitle('disable_user')).toBeDisabled();
+});
+
+test('an administrative user gets no delete button at all', async () => {
+    mockUserList([ACTIVE]);
+    render(<UserManagement currentUser={{ id: 1, username: 'admin', role: 'administrative' }} />);
+
+    await screen.findByText('active-user');
+    expect(screen.queryByTitle('delete_user')).not.toBeInTheDocument();
+    // ...but disabling stays available to them, since it is reversible.
+    expect(screen.getByTitle('disable_user')).toBeInTheDocument();
+});
