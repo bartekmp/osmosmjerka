@@ -297,9 +297,11 @@ the admin panel as the only way to create an account. The environment variable s
 initial value only; once the toggle is used the stored setting wins, so a restart can't
 silently reopen sign-ups.
 
-Users can delete their own account from their profile, which removes their progress,
-statistics, private lists and notifications. Language sets they authored are kept but
-disowned — other people's games depend on them.
+Users can delete their own account from their profile. It takes two confirmations and
+their password: deletion is irreversible, and a dialog only proves that someone clicked,
+which a stolen session can do as easily as its owner. It removes their progress,
+statistics, private lists and notifications; language sets they authored are kept but
+disowned, since other people's games depend on them.
 
 When a confirmation email never arrives (bounced, spam-filtered, SMTP outage), an admin can
 confirm an account by hand or re-send its link from **User Management**, where each account

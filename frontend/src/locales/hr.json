@@ -872,5 +872,7 @@
   "delete_account_final_title": "Jesi li potpuno siguran/na?",
   "delete_account_final_warning": "Ovo je zadnja prilika za odustajanje. Tvoj račun bit će odmah izbrisan.",
   "delete_account_confirm": "Da, izbriši moj račun",
-  "delete_account_failed": "Račun nije izbrisan"
+  "delete_account_failed": "Račun nije izbrisan",
+  "delete_account_password_label": "Tvoja lozinka",
+  "delete_account_password_help": "Potvrdi da si to ti prije nego što sve izbrišemo."
 }

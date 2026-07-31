@@ -872,5 +872,7 @@
   "delete_account_final_title": "Are you absolutely sure?",
   "delete_account_final_warning": "This is your last chance to cancel. Your account will be deleted immediately.",
   "delete_account_confirm": "Yes, delete my account",
-  "delete_account_failed": "Could not delete the account"
+  "delete_account_failed": "Could not delete the account",
+  "delete_account_password_label": "Your password",
+  "delete_account_password_help": "Confirm it's you before we delete everything."
 }

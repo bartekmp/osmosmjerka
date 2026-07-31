@@ -10,6 +10,7 @@ from osmosmjerka.admin_api import router
 from osmosmjerka.auth import get_current_user, require_admin_access, require_root_admin
 from osmosmjerka.database.account_tokens import PURPOSE_EMAIL_VERIFICATION
 from osmosmjerka.email_templates import DEFAULTS, VERIFICATION
+from osmosmjerka.passwords import hash_password
 
 app = FastAPI()
 app.include_router(router)
@@ -325,31 +326,69 @@ class TestSelfServiceDeletion:
     def mock_regular_user(self):
         return {"username": "someone", "role": "regular", "id": 9, "is_active": True}
 
-    def test_a_user_can_delete_their_own_account(self, client, mock_regular_user):
+    PASSWORD = "a-decent-passphrase"
+
+    def _account(self, user):
+        return {
+            "id": user["id"],
+            "username": user["username"],
+            "role": user["role"],
+            "password_hash": hash_password(self.PASSWORD),
+        }
+
+    def test_the_right_password_deletes_the_account(self, client, mock_regular_user):
         app.dependency_overrides[get_current_user] = lambda: mock_regular_user
-        account = {"id": mock_regular_user["id"], "username": "someone", "role": "regular"}
 
         with (
-            patch("osmosmjerka.database.db_manager.get_account_by_id", AsyncMock(return_value=account)),
+            patch(
+                "osmosmjerka.database.db_manager.get_account_by_username",
+                AsyncMock(return_value=self._account(mock_regular_user)),
+            ),
             patch("osmosmjerka.database.db_manager.delete_account", AsyncMock()) as delete,
         ):
-            response = client.delete("/admin/profile")
+            response = client.post("/admin/delete-account", json={"password": self.PASSWORD})
 
         assert response.status_code == 200
         delete.assert_awaited_once_with(mock_regular_user["id"])
+
+    def test_a_wrong_password_deletes_nothing(self, client, mock_regular_user):
+        """A confirmation dialog only proves someone clicked; the password proves who."""
+        app.dependency_overrides[get_current_user] = lambda: mock_regular_user
+
+        with (
+            patch(
+                "osmosmjerka.database.db_manager.get_account_by_username",
+                AsyncMock(return_value=self._account(mock_regular_user)),
+            ),
+            patch("osmosmjerka.database.db_manager.delete_account", AsyncMock()) as delete,
+        ):
+            response = client.post("/admin/delete-account", json={"password": "not-my-password"})
+
+        assert response.status_code == 400
+        assert "incorrect" in response.json()["error"]
+        delete.assert_not_called()
+
+    def test_the_password_is_required(self, client, mock_regular_user):
+        app.dependency_overrides[get_current_user] = lambda: mock_regular_user
+
+        with patch("osmosmjerka.database.db_manager.delete_account", AsyncMock()) as delete:
+            response = client.post("/admin/delete-account", json={})
+
+        assert response.status_code == 422
+        delete.assert_not_called()
 
     def test_the_root_admin_cannot_delete_itself_this_way(self, client, mock_root_admin_user):
         """It is defined by the environment and would come back on the next startup."""
         app.dependency_overrides[get_current_user] = lambda: mock_root_admin_user
 
         with patch("osmosmjerka.database.db_manager.delete_account", AsyncMock()) as delete:
-            response = client.delete("/admin/profile")
+            response = client.post("/admin/delete-account", json={"password": self.PASSWORD})
 
         assert response.status_code == 400
         delete.assert_not_called()
 
     def test_deleting_requires_being_signed_in(self, client):
-        response = client.delete("/admin/profile")
+        response = client.post("/admin/delete-account", json={"password": self.PASSWORD})
 
         assert response.status_code in (401, 403)
 

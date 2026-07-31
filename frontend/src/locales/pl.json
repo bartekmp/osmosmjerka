@@ -872,5 +872,7 @@
   "delete_account_final_title": "Czy na pewno?",
   "delete_account_final_warning": "To ostatnia szansa na anulowanie. Twoje konto zostanie natychmiast usunięte.",
   "delete_account_confirm": "Tak, usuń moje konto",
-  "delete_account_failed": "Nie udało się usunąć konta"
+  "delete_account_failed": "Nie udało się usunąć konta",
+  "delete_account_password_label": "Twoje hasło",
+  "delete_account_password_help": "Potwierdź swoją tożsamość, zanim wszystko usuniemy."
 }

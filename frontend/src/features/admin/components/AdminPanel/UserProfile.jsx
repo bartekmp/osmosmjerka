@@ -43,8 +43,9 @@ export default function UserProfile() {
     });
     const [description, setDescription] = useState('');
     const [passwordDialog, setPasswordDialog] = useState(false);
-    // 0 = closed, 1 = first warning, 2 = final confirmation.
+    // 0 = closed, 1 = first warning, 2 = final confirmation (password required).
     const [deleteStep, setDeleteStep] = useState(0);
+    const [deletePassword, setDeletePassword] = useState('');
     const [passwordData, setPasswordData] = useState({
         current_password: '',
         new_password: '',
@@ -301,12 +302,21 @@ export default function UserProfile() {
         }
     };
 
-    // Two steps on purpose: this is irreversible and there is no undo, so a single stray
-    // click should never be enough. Step 1 spells out what goes; step 2 is the last word.
+    const closeDeleteDialog = () => {
+        setDeleteStep(0);
+        setDeletePassword('');
+    };
+
+    // Two steps plus the password. The steps stop a stray click; the password is what
+    // makes the action the account owner's rather than whoever is holding their session.
     const deleteAccount = async () => {
         setLoading(true);
         try {
-            const response = await fetch('/admin/profile', { method: 'DELETE', headers: authHeader });
+            const response = await fetch('/admin/delete-account', {
+                method: 'POST',
+                headers: authHeader,
+                body: JSON.stringify({ password: deletePassword })
+            });
             const data = await response.json();
 
             if (response.ok) {
@@ -316,12 +326,10 @@ export default function UserProfile() {
                 window.dispatchEvent(new window.Event('admin-auth-changed'));
                 window.location.assign('/');
             } else {
-                showNotification(data.error || t('delete_account_failed'), 'error');
-                setDeleteStep(0);
+                showNotification(data.error || data.detail || t('delete_account_failed'), 'error');
             }
         } catch (err) {
             showNotification(t('network_error', { message: err.message }), 'error');
-            setDeleteStep(0);
         } finally {
             setLoading(false);
         }
@@ -706,7 +714,7 @@ export default function UserProfile() {
                 </Box>
             )}
 
-            <Dialog open={deleteStep > 0} onClose={() => setDeleteStep(0)} maxWidth="sm" fullWidth>
+            <Dialog open={deleteStep > 0} onClose={closeDeleteDialog} maxWidth="sm" fullWidth>
                 <DialogTitle color="error">
                     {deleteStep === 1 ? t('delete_account') : t('delete_account_final_title')}
                 </DialogTitle>
@@ -714,20 +722,36 @@ export default function UserProfile() {
                     <Alert severity="warning" sx={{ mb: 2 }}>
                         {deleteStep === 1 ? t('delete_account_warning') : t('delete_account_final_warning')}
                     </Alert>
-                    {deleteStep === 1 && (
+                    {deleteStep === 1 ? (
                         <Typography variant="body2" color="text.secondary">
                             {t('delete_account_what_goes')}
                         </Typography>
+                    ) : (
+                        <TextField
+                            label={t('delete_account_password_label')}
+                            type="password"
+                            value={deletePassword}
+                            onChange={(e) => setDeletePassword(e.target.value)}
+                            autoComplete="current-password"
+                            helperText={t('delete_account_password_help')}
+                            fullWidth
+                            autoFocus
+                        />
                     )}
                 </DialogContent>
                 <DialogActions>
-                    <Button onClick={() => setDeleteStep(0)}>{t('cancel')}</Button>
+                    <Button onClick={closeDeleteDialog}>{t('cancel')}</Button>
                     {deleteStep === 1 ? (
                         <Button color="error" onClick={() => setDeleteStep(2)}>
                             {t('continue')}
                         </Button>
                     ) : (
-                        <Button color="error" variant="contained" onClick={deleteAccount} disabled={loading}>
+                        <Button
+                            color="error"
+                            variant="contained"
+                            onClick={deleteAccount}
+                            disabled={loading || !deletePassword}
+                        >
                             {t('delete_account_confirm')}
                         </Button>
                     )}

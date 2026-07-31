@@ -270,13 +270,25 @@ async def update_profile(body: ProfileUpdateRequest, user=Depends(get_current_us
     return JSONResponse({"message": "Profile updated"}, status_code=status.HTTP_200_OK)
 
 
-@router.delete("/profile")
-async def delete_own_account(user=Depends(get_current_user)) -> JSONResponse:
-    """Let a user delete their own account.
+@router.post("/delete-account")
+# A wrong password here is distinguishable from a right one, so without a ceiling this
+# endpoint would let someone holding a stolen session brute-force the account's password.
+# Authenticated, so the limit is per user rather than per address.
+@rate_limit(max_requests=5, window_seconds=300)
+async def delete_own_account(
+    request: Request, password: str = Body(..., embed=True), user=Depends(get_current_user)
+) -> JSONResponse:
+    """Let a user delete their own account, after re-entering their password.
+
+    The password is the point: deletion is irreversible and a confirmation dialog only
+    proves someone clicked twice, which a stolen session can do as easily as its owner.
 
     Everything personal goes with it - progress, statistics, private lists, notifications.
     Language sets they authored are kept but disowned, since other people's games depend
     on them.
+
+    POST rather than DELETE because it carries a body, and a body on DELETE is
+    inconsistently handled by proxies and clients.
 
     The root admin is refused: that account is defined by the environment and recreated on
     the next startup, so "deleting" it would only produce a confusing half-state.
@@ -287,9 +299,13 @@ async def delete_own_account(user=Depends(get_current_user)) -> JSONResponse:
             status_code=status.HTTP_400_BAD_REQUEST,
         )
 
-    account = await db_manager.get_account_by_id(user["id"])
+    account = await db_manager.get_account_by_username(user["username"])
     if not account:
         return JSONResponse({"error": "User not found"}, status_code=status.HTTP_404_NOT_FOUND)
+
+    if not verify_password(password, account["password_hash"]):
+        logger.warning("Account deletion refused: wrong password", extra={"user_id": user["id"]})
+        return JSONResponse({"error": "Password is incorrect"}, status_code=status.HTTP_400_BAD_REQUEST)
 
     await db_manager.delete_account(user["id"])
     logger.info("Account deleted by its owner", extra={"user_id": user["id"]})
