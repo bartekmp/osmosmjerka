@@ -11,8 +11,10 @@ from fastapi.staticfiles import StaticFiles
 from osmosmjerka.logging_config import get_logger
 
 # isort: on
+from osmosmjerka import mailer
 from osmosmjerka.admin_api import router as admin_router
 from osmosmjerka.auth import ROOT_ADMIN_PASSWORD_HASH, ROOT_ADMIN_USERNAME, SECRET_KEY
+from osmosmjerka.auth_api import router as auth_router
 from osmosmjerka.database import db_manager
 from osmosmjerka.game_api import router as game_router
 from osmosmjerka.maintenance import start_maintenance, stop_maintenance
@@ -63,6 +65,31 @@ ALLOWED_ORIGINS = [
     "https://osmosmjerka.lel.lu",  # staging
     FRONTEND_DEV_URL,  # localhost development server
 ]
+
+# Content Security Policy. Every allowance below is something the app actually needs:
+#   'wasm-unsafe-eval' + blob: worker  - Piper TTS (ONNX Runtime and the espeak-ng
+#                                        phonemizer are both WASM, run in a worker)
+#   huggingface.co                     - where piper-tts-web fetches voice models from
+#   style-src 'unsafe-inline'          - MUI/emotion injects styles at runtime
+#   fonts.googleapis.com/gstatic.com   - the webfonts linked from index.html
+#   blob: in media/img                 - audio playback and file downloads built from Blobs
+# Reported-but-not-enforced would be safer to roll out, but the app already runs without a
+# CSP, so anything it breaks is visible immediately in staging rather than in the wild.
+_CSP_DIRECTIVES = [
+    "default-src 'self'",
+    "script-src 'self' 'wasm-unsafe-eval'",
+    "worker-src 'self' blob:",
+    "style-src 'self' 'unsafe-inline' https://fonts.googleapis.com",
+    "font-src 'self' data: https://fonts.gstatic.com",
+    "img-src 'self' data: blob:",
+    "media-src 'self' blob:",
+    "connect-src 'self' https://huggingface.co https://cdn-lfs.huggingface.co",
+    "object-src 'none'",
+    "base-uri 'self'",
+    "form-action 'self'",
+    "frame-ancestors 'none'",
+]
+CONTENT_SECURITY_POLICY = "; ".join(_CSP_DIRECTIVES)
 
 
 # Initialize the FastAPI application
@@ -182,6 +209,17 @@ async def lifespan(_: FastAPI):
         else:
             logger.info("Demo account not configured (skipped)")
 
+        # Every confirmation and reset link is built from this. Unset in production it
+        # silently defaults to localhost, so the emails go out pointing nowhere - a failure
+        # nobody notices until a user reports that sign-up "doesn't work".
+        if not DEVELOPMENT_MODE and "localhost" in mailer.base_url():
+            logger.warning(
+                "APP_BASE_URL is not set; confirmation and reset links will point at localhost",
+                extra={"base_url": mailer.base_url()},
+            )
+        if not mailer.is_configured():
+            logger.warning("SMTP is not configured; transactional emails will be logged instead of sent")
+
         maintenance_task = start_maintenance()
 
         logger.info("Application ready to accept requests")
@@ -259,7 +297,12 @@ async def add_security_headers(request: Request, call_next):
     response = await call_next(request)
     response.headers["X-Content-Type-Options"] = "nosniff"
     response.headers["X-Frame-Options"] = "DENY"
-    response.headers["X-XSS-Protection"] = "1; mode=block"
+    # Don't leak the URL (which for confirmation and reset pages carries a token) to
+    # third-party hosts.
+    response.headers["Referrer-Policy"] = "strict-origin-when-cross-origin"
+    # Nothing here uses the camera, microphone or geolocation; deny them outright.
+    response.headers["Permissions-Policy"] = "camera=(), microphone=(), geolocation=(), payment=()"
+    response.headers["Content-Security-Policy"] = CONTENT_SECURITY_POLICY
     # Only add HSTS in production (HTTPS)
     if not DEVELOPMENT_MODE:
         response.headers["Strict-Transport-Security"] = "max-age=31536000; includeSubDomains"
@@ -278,6 +321,7 @@ app.add_middleware(
 # Include API routers
 app.include_router(game_router)
 app.include_router(admin_router)
+app.include_router(auth_router)
 
 # Serve static files at /static (only if not in development mode and directory exists)
 if not DEVELOPMENT_MODE and os.path.isdir("static"):

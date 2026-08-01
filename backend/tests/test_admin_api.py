@@ -1,10 +1,12 @@
 from unittest.mock import AsyncMock, patch
 
+import bcrypt
 import pytest
 from fastapi import FastAPI
 from fastapi.testclient import TestClient
 from osmosmjerka.admin_api import router
 from osmosmjerka.auth import get_current_user, require_admin_access, require_root_admin
+from osmosmjerka.passwords import hash_password, verify_password
 
 app = FastAPI()
 app.include_router(router)
@@ -410,22 +412,21 @@ def test_get_user_not_found(mock_get_account, client, mock_root_admin_user):
 
 @patch("osmosmjerka.database.db_manager.get_account_by_username")
 @patch("osmosmjerka.database.db_manager.create_account")
-@patch("osmosmjerka.admin_api.users.bcrypt.hashpw")
-@patch("osmosmjerka.admin_api.users.bcrypt.gensalt")
-def test_create_user(
-    mock_gensalt, mock_hashpw, mock_create_account, mock_get_by_username, client, mock_root_admin_user
-):
+def test_create_user(mock_create_account, mock_get_by_username, client, mock_root_admin_user):
     """Test creating new user"""
     # Override the dependency
     app.dependency_overrides[require_admin_access] = lambda: mock_root_admin_user
     mock_get_by_username.return_value = None  # User doesn't exist
-    mock_gensalt.return_value = b"salt"
-    mock_hashpw.return_value = b"hashed_password"
     mock_create_account.return_value = 3
 
     response = client.post(
         "/admin/users",
-        json={"username": "newuser", "password": "password123", "role": "regular", "self_description": "New user"},
+        json={
+            "username": "newuser",
+            "password": "a-decent-passphrase",
+            "role": "regular",
+            "self_description": "New user",
+        },
     )
 
     assert response.status_code == 201
@@ -435,6 +436,27 @@ def test_create_user(
 
     mock_get_by_username.assert_called_once_with("newuser")
     mock_create_account.assert_called_once()
+    # The password must be stored hashed with Argon2id, never in the clear.
+    stored_hash = mock_create_account.call_args.args[1]
+    assert stored_hash.startswith("$argon2id$")
+    assert "a-decent-passphrase" not in stored_hash
+
+
+@patch("osmosmjerka.database.db_manager.get_account_by_username")
+@patch("osmosmjerka.database.db_manager.create_account")
+def test_create_user_rejects_weak_password(mock_create_account, mock_get_by_username, client, mock_root_admin_user):
+    """A password failing the policy must be refused before any account is created."""
+    app.dependency_overrides[require_admin_access] = lambda: mock_root_admin_user
+    mock_get_by_username.return_value = None
+
+    response = client.post(
+        "/admin/users",
+        json={"username": "newuser", "password": "short", "role": "regular", "self_description": "New user"},
+    )
+
+    assert response.status_code == 400
+    assert "at least" in response.json()["error"]
+    mock_create_account.assert_not_called()
 
 
 @patch("osmosmjerka.database.db_manager.get_account_by_username")
@@ -538,25 +560,24 @@ def test_update_profile_empty_description(client, mock_regular_user):
 
 
 # Test password change functionality
+@patch("osmosmjerka.auth.SECRET_KEY", "test-secret-for-reissued-token")
+@patch("osmosmjerka.database.db_manager.end_active_sessions")
 @patch("osmosmjerka.database.db_manager.get_account_by_username")
 @patch("osmosmjerka.database.db_manager.update_account")
-@patch("osmosmjerka.admin_api.users.bcrypt.checkpw")
-@patch("osmosmjerka.admin_api.users.bcrypt.hashpw")
-@patch("osmosmjerka.admin_api.users.bcrypt.gensalt")
-def test_change_password(
-    mock_gensalt, mock_hashpw, mock_checkpw, mock_update_account, mock_get_by_username, client, mock_regular_user
-):
+def test_change_password(mock_update_account, mock_get_by_username, mock_end_sessions, client, mock_regular_user):
     """Test changing password"""
     # Override the dependency
     app.dependency_overrides[get_current_user] = lambda: mock_regular_user
-    mock_get_by_username.return_value = {"username": "user", "password_hash": "old_hash"}
-    mock_checkpw.return_value = True  # Current password is correct
-    mock_gensalt.return_value = b"salt"
-    mock_hashpw.return_value = b"new_hashed_password"
+    mock_get_by_username.return_value = {
+        "id": 1,
+        "username": "user",
+        "password_hash": hash_password("the-old-passphrase"),
+    }
     mock_update_account.return_value = None
 
     response = client.post(
-        "/admin/change-password", json={"current_password": "old_password", "new_password": "new_password"}
+        "/admin/change-password",
+        json={"current_password": "the-old-passphrase", "new_password": "the-new-passphrase"},
     )
 
     assert response.status_code == 200
@@ -564,28 +585,57 @@ def test_change_password(
     assert data["message"] == "Password changed successfully"
 
     mock_get_by_username.assert_called_once_with("user")
-    mock_checkpw.assert_called_once()
     mock_update_account.assert_called_once()
+    new_hash = mock_update_account.call_args.kwargs["password_hash"]
+    assert verify_password("the-new-passphrase", new_hash)
+    # Sessions opened with the old password must not survive the change...
+    mock_end_sessions.assert_awaited_once_with(2)
+    # ...but the caller gets a fresh token, so they aren't signed out of their own tab.
+    assert data["access_token"]
 
 
 @patch("osmosmjerka.database.db_manager.get_account_by_username")
-@patch("osmosmjerka.admin_api.users.bcrypt.checkpw")
-def test_change_password_wrong_current(mock_checkpw, mock_get_by_username, client, mock_regular_user):
+@patch("osmosmjerka.database.db_manager.update_account")
+def test_change_password_rejects_weak_new_password(
+    mock_update_account, mock_get_by_username, client, mock_regular_user
+):
+    """The policy applies to changes too, not just to newly created accounts."""
+    app.dependency_overrides[get_current_user] = lambda: mock_regular_user
+    mock_get_by_username.return_value = {
+        "id": 1,
+        "username": "user",
+        "password_hash": hash_password("the-old-passphrase"),
+    }
+
+    response = client.post(
+        "/admin/change-password", json={"current_password": "the-old-passphrase", "new_password": "password123"}
+    )
+
+    assert response.status_code == 400
+    assert "too common" in response.json()["error"]
+    mock_update_account.assert_not_called()
+
+
+@patch("osmosmjerka.database.db_manager.get_account_by_username")
+def test_change_password_wrong_current(mock_get_by_username, client, mock_regular_user):
     """Test changing password with wrong current password"""
     # Override the dependency
     app.dependency_overrides[get_current_user] = lambda: mock_regular_user
-    mock_get_by_username.return_value = {"username": "user", "password_hash": "old_hash"}
-    mock_checkpw.return_value = False  # Current password is wrong
+    mock_get_by_username.return_value = {
+        "id": 1,
+        "username": "user",
+        "password_hash": hash_password("the-old-passphrase"),
+    }
 
     response = client.post(
-        "/admin/change-password", json={"current_password": "wrong_password", "new_password": "new_password"}
+        "/admin/change-password",
+        json={"current_password": "definitely-not-it", "new_password": "the-new-passphrase"},
     )
 
     assert response.status_code == 400
     data = response.json()
     assert "Current password is incorrect" in data["error"]
     mock_get_by_username.assert_called_once_with("user")
-    mock_checkpw.assert_called_once()
 
 
 def test_change_password_root_admin_forbidden(client, mock_root_admin_user):
@@ -602,35 +652,27 @@ def test_change_password_root_admin_forbidden(client, mock_root_admin_user):
     assert "Root admin password cannot be changed" in data["error"]
 
 
+@patch("osmosmjerka.auth.SECRET_KEY", "test-secret-for-reissued-token")
+@patch("osmosmjerka.database.db_manager.end_active_sessions")
 @patch("osmosmjerka.database.db_manager.update_account")
 @patch("osmosmjerka.database.db_manager.get_account_by_username")
-@patch("bcrypt.gensalt")
-@patch("bcrypt.hashpw")
-@patch("bcrypt.checkpw")
-def test_change_password_success(
-    mock_checkpw, mock_hashpw, mock_gensalt, mock_get_by_username, mock_update_account, client, mock_regular_user
+def test_change_password_upgrades_legacy_bcrypt_hash(
+    mock_get_by_username, mock_update_account, mock_end_sessions, client, mock_regular_user
 ):
-    """Test successful password change"""
-    # Override the dependency
+    """An account still on bcrypt can change its password, and lands on Argon2id."""
     app.dependency_overrides[get_current_user] = lambda: mock_regular_user
 
-    # Mock account exists
-    mock_get_by_username.return_value = {"id": 1, "username": "user", "password_hash": "hashed_old_password"}
-
-    # Mock password verification succeeds
-    mock_checkpw.return_value = True
-
-    # Mock password hashing
-    mock_gensalt.return_value = b"salt"
-    mock_hashpw.return_value = b"hashed_new_password"
+    legacy_hash = bcrypt.hashpw(b"the-old-passphrase", bcrypt.gensalt()).decode()
+    mock_get_by_username.return_value = {"id": 1, "username": "user", "password_hash": legacy_hash}
 
     response = client.post(
-        "/admin/change-password", json={"current_password": "old_password", "new_password": "new_secure_password"}
+        "/admin/change-password",
+        json={"current_password": "the-old-passphrase", "new_password": "the-new-passphrase"},
     )
 
     assert response.status_code == 200
-    data = response.json()
-    assert data["message"] == "Password changed successfully"
+    assert response.json()["message"] == "Password changed successfully"
+    assert mock_update_account.call_args.kwargs["password_hash"].startswith("$argon2id$")
 
 
 # Batch Operations Tests

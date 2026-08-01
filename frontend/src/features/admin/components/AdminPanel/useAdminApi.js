@@ -90,7 +90,11 @@ export function useAdminApi({ setRows, setTotalRows, setDashboard, setError, set
                 }
             })
             .catch(err => {
-                setError(err.message);
+                // Show what the server said, not "Request failed with status code 403":
+                // an unconfirmed address (403) and a locked account (429) each need their
+                // own explanation, and only the server knows which applies.
+                const body = err.response?.data;
+                setError(body?.detail || body?.error || err.message);
                 setIsLogged(false);
             });
     }, [setToken, setIsLogged]);

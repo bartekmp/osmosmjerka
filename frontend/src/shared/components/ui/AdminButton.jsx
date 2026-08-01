@@ -32,6 +32,8 @@ const AdminButton = ({
     onClick,
     variant,
     color,
+    // Before the ...props spread, so an explicit aria-label from the caller still wins.
+    'aria-label': icon ? desktopText : undefined,
     sx: {
       ...RESPONSIVE_BUTTON_STYLES.admin,
       width: { xs: '100%', sm: 'auto' },
@@ -48,6 +50,10 @@ const AdminButton = ({
   // When an icon is provided, show it on all sizes and keep the text label for
   // larger screens only (icon-only on mobile). Otherwise fall back to the
   // responsive text behaviour.
+  //
+  // The label is hidden with CSS, which also removes it from the accessible name, so an
+  // icon-only button would announce as unlabelled to a screen reader. Fall back to the
+  // desktop text as an aria-label unless the caller supplied one.
   const content = icon ? (
     <>
       {icon}

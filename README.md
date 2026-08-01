@@ -236,8 +236,44 @@ DB_MAX_OVERFLOW=5        # Maximum number of connections to create beyond pool_s
 DB_POOL_TIMEOUT=30      # Timeout in seconds for getting a connection from the pool (default: 30)
 
 # Background Maintenance (optional)
-# Periodically purges expired notifications and past-auto-delete teacher phrase sets.
+# Periodically purges expired notifications, past-auto-delete teacher phrase sets and
+# spent account tokens.
 MAINTENANCE_INTERVAL_SECONDS=21600  # Seconds between sweeps (default: 21600 = 6h; 0 disables)
+
+# Self-Service Registration (optional)
+APP_BASE_URL=https://osmosmjerka.app  # Public base URL used in confirmation/reset links
+REGISTRATION_ENABLED=false            # Sign-ups are CLOSED unless you open them. Initial
+                                      # default only - the root admin toggle in System
+                                      # Settings overrides it once used
+
+# Outbound Email (optional)
+# With SMTP_HOST unset, transactional mail is written to the application log (link
+# included) instead of being sent, so local development and the E2E suite work offline.
+SMTP_HOST=smtp.example.com
+SMTP_PORT=587                  # Defaults to 587, or 465 when SMTP_SECURITY=ssl
+SMTP_USERNAME=<smtp_user>      # Omit for an unauthenticated relay
+SMTP_PASSWORD=<smtp_password>
+SMTP_SECURITY=starttls         # starttls (default) | ssl | none
+SMTP_TIMEOUT_SECONDS=15
+MAIL_FROM=no-reply@osmosmjerka.app
+MAIL_FROM_NAME=Osmosmjerka
+
+# Login Hardening (optional)
+MAX_FAILED_LOGINS=10       # Consecutive failures before the account is locked (default: 10)
+LOGIN_LOCKOUT_MINUTES=15   # How long the lock lasts (default: 15)
+LOGIN_RATE_LIMIT_ATTEMPTS=10        # Sign-in attempts allowed per source IP (default: 10)
+LOGIN_RATE_LIMIT_WINDOW_SECONDS=300 # ...within this window (default: 300). Raise it if a
+                                    # whole class shares one address; the per-account
+                                    # lockout above is what actually stops brute force.
+SIGNUP_ATTEMPTS_PER_HOUR=5          # Registrations allowed per source IP per hour
+EMAIL_REQUESTS_PER_HOUR=5           # Confirmation resends / reset requests, per IP per hour
+TOKEN_REDEMPTIONS_PER_HOUR=20       # Confirmation and reset link redemptions, per IP per hour
+MAX_OUTBOUND_EMAILS_PER_HOUR=200    # Hard ceiling on outbound mail (0 = unlimited)
+MIN_FORM_FILL_SECONDS=2             # Sign-up submitted faster than this is treated as a bot
+FORM_TOKEN_TTL_SECONDS=21600        # How long a rendered sign-up form stays submittable
+TRUSTED_PROXY_HOPS=1       # Reverse proxies in front of the app; X-Forwarded-For is read
+                           # this many entries from the right so a client-supplied prefix
+                           # can't dodge the per-IP rate limits. 0 ignores the header.
 
 # Logging Configuration (optional)
 LOG_DEVELOPMENT_MODE=false  # Enable human-readable logs with colors (default: false)
@@ -245,9 +281,90 @@ LOG_LEVEL=INFO              # Logging level: DEBUG, INFO, WARNING, ERROR, CRITIC
 LOG_COLORS=true             # Enable colored output in development mode (default: true)
 ```
 
+### Accounts and Passwords
+
+Anyone can sign up at `/register` with an email address and a password; the account stays
+unusable until the emailed confirmation link is opened. `/forgot-password` sends a
+single-use reset link. Both links expire (24 hours for confirmation, 1 hour for a reset),
+only their SHA-256 hashes are stored, and the endpoints answer identically whether or not
+an address exists, so they can't be used to discover who has an account.
+
+**Self-registration is closed by default.** A fresh deployment should not accept strangers
+before its owner has decided that it should, so sign-ups stay shut until the root admin
+opens them from **System Settings → Accounts** (or sets `REGISTRATION_ENABLED=true` before
+first boot). While closed, the form disappears and the API refuses registrations, leaving
+the admin panel as the only way to create an account. The environment variable supplies the
+initial value only; once the toggle is used the stored setting wins, so a restart can't
+silently reopen sign-ups.
+
+Users can delete their own account from their profile. It takes two confirmations and
+their password: deletion is irreversible, and a dialog only proves that someone clicked,
+which a stolen session can do as easily as its owner. It removes their progress,
+statistics, private lists and notifications; language sets they authored are kept but
+disowned, since other people's games depend on them.
+
+When a confirmation email never arrives (bounced, spam-filtered, SMTP outage), an admin can
+confirm an account by hand or re-send its link from **User Management**, where each account
+shows its address and whether it is confirmed. A manual confirmation voids any outstanding
+link, so an old email can't be replayed.
+
+Passwords are hashed with **Argon2id** (OWASP-recommended parameters) and must be at least
+10 characters. Accounts created before Argon2id are still stored as bcrypt; they keep
+working and are re-hashed transparently on the next successful login, so no reset is
+required.
+
+Signing in accepts either the email address or the display name. Ten consecutive failures
+lock an account for 15 minutes (see `MAX_FAILED_LOGINS` / `LOGIN_LOCKOUT_MINUTES`); an
+admin password reset clears the lock.
+
+Changing a password ends every session opened with the old one — the point of resetting a
+compromised account is to evict whoever else is signed in, and access tokens live an hour.
+Disabling an account does the same immediately. Changing your own password re-issues a
+token for the tab you did it in, so you aren't signed out by your own action.
+
+### Bot Resistance
+
+The public forms carry two checks instead of a CAPTCHA. A **honeypot field**, hidden from
+both the page and the accessibility tree, is something only a script fills in; and a
+**signed form token** issued when the page loads forces a would-be flooder to fetch the
+form before each submission and lets the server reject one submitted implausibly fast. A
+tripped check answers exactly as a real sign-up does, so a bot learns nothing; a form left
+open past `FORM_TOKEN_TTL_SECONDS` gets an honest "please reload" instead.
+
+Separately, `MAX_OUTBOUND_EMAILS_PER_HOUR` caps total outbound mail. That is not an
+anti-bot measure — it is the circuit breaker for when the rate limits are not enough. Bulk
+sign-ups with junk addresses generate bounces, bounces get a sending domain blocklisted, and
+a blocklisted domain sends real confirmation emails to spam. Refusing to send is the
+recoverable failure.
+
+This deliberately stops short of a CAPTCHA: image challenges are a real accessibility
+barrier for an app aimed partly at classrooms, third-party widgets would need holes in the
+Content-Security-Policy, and reCAPTCHA in particular ships visitor data off to a third
+party. If genuine abuse ever appears, the next step is a self-hosted proof-of-work
+challenge, which stays invisible and keeps the data local.
+
+> **Note:** the rate limits and the outbound budget are held in memory, per process. With
+> more than one replica the effective ceiling is the configured value times the replica
+> count, and every limit resets on deploy. The per-account lockout and the per-account
+> email caps live in the database and are unaffected.
+
+### Email Templates
+
+The subject and body of the confirmation and password-reset emails are editable by the root
+admin under **System Settings → Email templates**. Bodies are Markdown, rendered to HTML at
+send time and delivered as multipart/alternative, so clients that refuse HTML still get a
+readable message. Placeholders (`{{name}}`, `{{link}}`, `{{app_name}}`, `{{email}}`,
+`{{expiry_hours}}`) are substituted on send; a template is rejected if it uses an unknown
+one or omits `{{link}}`. The editor previews the real rendered HTML and can send a test
+message — with a sample link, never a usable token. Markdown is deliberate: raw HTML in a
+template is escaped rather than passed through, so a template can't inject script into a
+recipient's mail client.
+
 ### Generate a Password Hash
 
-Use this command to create a bcrypt password hash (for `ADMIN_PASSWORD_HASH` or `DEMO_PASSWORD_HASH`):
+The root admin and demo accounts are configured by hash, not through the sign-up flow. Use
+this command to create a bcrypt password hash (for `ADMIN_PASSWORD_HASH` or
+`DEMO_PASSWORD_HASH`) — it is accepted and upgraded to Argon2id where applicable:
 
 ```bash
 python3 -c "import bcrypt; import getpass; pwd=getpass.getpass('Password: ').encode(); print(bcrypt.hashpw(pwd, bcrypt.gensalt()).decode())"
@@ -444,6 +561,11 @@ Access the admin panel at `/admin` with your configured admin credentials.
 - Role assignment and permissions
 - Password reset functionality
 - User profile customization
+- **Disable an account** — reversible, ends the user's live sessions immediately rather
+  than waiting for their token to expire, and blocks further logins. Available to any
+  administrative user; the root admin and your own account cannot be disabled.
+- **Delete an account** — irreversible and cascades to the account's data, so it is
+  restricted to the root admin, and you cannot delete your own.
 
 #### Language Sets Management
 

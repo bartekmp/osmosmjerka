@@ -1,5 +1,6 @@
 """Main DatabaseManager class that composes all database modules."""
 
+from osmosmjerka.database.account_tokens import AccountTokensMixin
 from osmosmjerka.database.accounts import AccountsMixin
 from osmosmjerka.database.base import BaseDatabaseManager
 from osmosmjerka.database.game_sessions import GameSessionsMixin
@@ -21,6 +22,7 @@ from osmosmjerka.database.word_mastery import WordMasteryMixin
 class DatabaseManager(
     BaseDatabaseManager,
     AccountsMixin,
+    AccountTokensMixin,
     LanguageSetsMixin,
     PhrasesMixin,
     UserPreferencesMixin,

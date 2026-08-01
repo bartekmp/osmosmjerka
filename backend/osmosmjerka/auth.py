@@ -1,15 +1,16 @@
 import os
+import secrets
 from collections.abc import Callable
 from datetime import UTC, datetime, timedelta
 from typing import Any, TypedDict
 
-import bcrypt
 from dotenv import load_dotenv
 from fastapi import Depends, HTTPException, Request
 from fastapi.security import OAuth2PasswordBearer
 from jose import JWTError, jwt
 from osmosmjerka.database import db_manager
 from osmosmjerka.logging_config import get_logger
+from osmosmjerka.passwords import hash_password, needs_rehash, verify_password
 
 load_dotenv()
 
@@ -22,6 +23,17 @@ logger = get_logger(__name__)
 
 ALGORITHM = "HS256"
 ACCESS_TOKEN_EXPIRE_MINUTES = 60
+
+# Per-account brute-force lockout. Generous enough that a user fumbling their own password
+# won't hit it, short enough that a lockout isn't a denial of service against them.
+MAX_FAILED_LOGINS = int(os.getenv("MAX_FAILED_LOGINS", "10"))
+LOCKOUT_DURATION = timedelta(minutes=int(os.getenv("LOGIN_LOCKOUT_MINUTES", "15")))
+
+# Verified against when no account matches, so the request still pays the Argon2 cost.
+# Without it a missing account answers in microseconds while a real one takes ~45ms, which
+# is a reliable oracle for "does this address have an account" - and would undo the
+# enumeration resistance the rest of these endpoints are built around.
+_DUMMY_PASSWORD_HASH = hash_password(secrets.token_urlsafe(32))
 
 oauth2_scheme = OAuth2PasswordBearer(tokenUrl="/admin/login")
 
@@ -55,8 +67,11 @@ def create_access_token(data: dict[str, Any], expires_delta: timedelta | None = 
     if SECRET_KEY == "":
         raise HTTPException(status_code=500, detail="Server misconfiguration: SECRET_KEY is not set")
     to_encode = data.copy()
-    expire = datetime.now(UTC) + (expires_delta or timedelta(minutes=ACCESS_TOKEN_EXPIRE_MINUTES))
-    to_encode.update({"exp": expire})
+    now = datetime.now(UTC)
+    expire = now + (expires_delta or timedelta(minutes=ACCESS_TOKEN_EXPIRE_MINUTES))
+    # iat lets _resolve_account date this token against the account's sessions_valid_from,
+    # which is what makes a password change able to end sessions that already exist.
+    to_encode.update({"exp": expire, "iat": now})
     # Always set 'role' and 'user_id' explicitly
     if to_encode.get("sub") == ROOT_ADMIN_USERNAME:
         to_encode["role"] = "root_admin"
@@ -69,47 +84,132 @@ def create_access_token(data: dict[str, Any], expires_delta: timedelta | None = 
     return jwt.encode(to_encode, SECRET_KEY, algorithm=ALGORITHM)
 
 
-async def authenticate_user(username: str, password: str) -> UserInfo | None:
-    """Authenticate user against database or root admin credentials"""
-    # Check if it's the root admin
-    if username == ROOT_ADMIN_USERNAME and ROOT_ADMIN_PASSWORD_HASH:
+def _account_lock_expiry(account: dict[str, Any]) -> datetime | None:
+    """The naive-UTC instant this account is locked until, or None if it isn't locked."""
+    locked_until = account.get("locked_until")
+    if not locked_until:
+        return None
+    if isinstance(locked_until, str):
+        # get_account_by_* serializes datetimes to ISO strings on the way out.
         try:
-            if bcrypt.checkpw(password.encode("utf-8"), ROOT_ADMIN_PASSWORD_HASH.encode("utf-8")):
-                logger.info("Root admin login successful", extra={"username": username})
-                return {"username": username, "role": "root_admin", "id": 0}  # Special ID for root admin
-        except ValueError as exc:
-            logger.error(
-                "Invalid ADMIN_PASSWORD_HASH configured; verify the bcrypt hash in your environment",
-                exc_info=True,
-            )
-            raise HTTPException(status_code=500, detail="Server misconfiguration: invalid admin password hash") from exc
-
-    # Check database users
-    account = await db_manager.get_account_by_username(username)
-    if account and account.get("is_active", False):
-        try:
-            if bcrypt.checkpw(password.encode("utf-8"), account["password_hash"].encode("utf-8")):
-                await db_manager.update_last_login(username)
-                logger.info(
-                    "User login successful",
-                    extra={
-                        "username": account["username"],
-                        "user_id": account["id"],
-                        "role": account["role"],
-                    },
-                )
-                return {"username": account["username"], "role": account["role"], "id": account["id"]}
+            locked_until = datetime.fromisoformat(locked_until)
         except ValueError:
-            logger.error(
-                "Invalid bcrypt hash stored for user",
-                extra={"username": account.get("username")},
-                exc_info=True,
-            )
             return None
+    if locked_until.tzinfo is not None:
+        locked_until = locked_until.astimezone(UTC).replace(tzinfo=None)
+    return locked_until if locked_until > datetime.now(UTC).replace(tzinfo=None) else None
 
-    # Log failed login attempt
-    logger.warning("Failed login attempt", extra={"username": username})
+
+async def authenticate_user(identifier: str, password: str) -> UserInfo | None:
+    """Authenticate against the root admin credentials or a database account.
+
+    ``identifier`` is an email address for self-registered accounts, or a username -
+    the root admin and accounts created before email identity existed still log in that
+    way. Verification accepts both Argon2id and legacy bcrypt hashes, and a verified
+    bcrypt hash is upgraded to Argon2id in place, so the migration happens as people log
+    in rather than via a forced reset.
+
+    Wrong passwords increment a per-account counter and lock the account for
+    LOCKOUT_DURATION once MAX_FAILED_LOGINS is reached, which throttles a distributed
+    guessing attack that the per-IP rate limit on the endpoint would not catch.
+
+    Returns None when the credentials simply don't match; raises HTTPException for the
+    cases the caller must report distinctly (locked account, unconfirmed email).
+    """
+    # Check if it's the root admin
+    if identifier == ROOT_ADMIN_USERNAME and ROOT_ADMIN_PASSWORD_HASH:
+        if verify_password(password, ROOT_ADMIN_PASSWORD_HASH):
+            logger.info("Root admin login successful", extra={"username": identifier})
+            return {"username": identifier, "role": "root_admin", "id": 0}  # Special ID for root admin
+
+    account = await db_manager.get_account_by_identifier(identifier)
+    if account and account.get("is_active", False):
+        locked_until = _account_lock_expiry(account)
+        if locked_until is not None:
+            logger.warning(
+                "Login refused: account temporarily locked",
+                extra={"user_id": account["id"], "locked_until": locked_until.isoformat()},
+            )
+            raise HTTPException(
+                status_code=429,
+                detail="Too many failed attempts. This account is temporarily locked - try again later.",
+            )
+
+        if verify_password(password, account["password_hash"]):
+            if account.get("email") and not account.get("email_verified", False):
+                # Registered but never activated: refuse rather than silently granting
+                # access, so an unverified address can't be used as an account.
+                logger.warning(
+                    "Login refused: email not verified",
+                    extra={"user_id": account["id"]},
+                )
+                raise HTTPException(
+                    status_code=403,
+                    detail="Please confirm your email address before signing in.",
+                )
+
+            if needs_rehash(account["password_hash"]):
+                await db_manager.update_account(account["id"], password_hash=hash_password(password))
+                logger.info("Upgraded stored password hash to Argon2id", extra={"user_id": account["id"]})
+
+            if account.get("failed_login_attempts"):
+                await db_manager.clear_failed_logins(account["id"])
+            await db_manager.update_last_login(account["username"])
+            logger.info(
+                "User login successful",
+                extra={
+                    "username": account["username"],
+                    "user_id": account["id"],
+                    "role": account["role"],
+                },
+            )
+            return {"username": account["username"], "role": account["role"], "id": account["id"]}
+
+        attempts = await db_manager.record_failed_login(account["id"], MAX_FAILED_LOGINS, LOCKOUT_DURATION)
+        logger.warning(
+            "Failed login attempt",
+            extra={"user_id": account["id"], "failed_login_attempts": attempts},
+        )
+        return None
+
+    # Unknown or deactivated account. Burn the same work a real verification would, so the
+    # response body *and* its timing look the same as a wrong password on a real account.
+    verify_password(password, _DUMMY_PASSWORD_HASH)
+    logger.warning("Failed login attempt for unknown account")
     return None
+
+
+def _as_naive_utc(value: Any) -> datetime | None:
+    """Coerce a stored timestamp to naive UTC, or None if it isn't one.
+
+    The column is naive (as the whole schema is), but a driver or a serialized round trip
+    can hand back a string or an aware value.
+    """
+    if not value:
+        return None
+    if isinstance(value, str):
+        try:
+            value = datetime.fromisoformat(value)
+        except ValueError:
+            return None
+    if not isinstance(value, datetime):
+        return None
+    return value.astimezone(UTC).replace(tzinfo=None) if value.tzinfo is not None else value
+
+
+def _token_predates_cutoff(issued_at: Any, cutoff: Any) -> bool:
+    """Whether a token was issued before the account's session cut-off.
+
+    A missing cut-off means every session is still valid, which is what accounts that
+    predate this feature carry. A missing iat is treated as too old to trust: tokens
+    minted before the claim existed cannot be dated, and refusing them costs one re-login.
+    """
+    cutoff_at = _as_naive_utc(cutoff)
+    if cutoff_at is None:
+        return False
+    if issued_at is None:
+        return True
+    return datetime.fromtimestamp(issued_at, UTC).replace(tzinfo=None) < cutoff_at
 
 
 def _decode_token(token: str) -> dict[str, Any]:
@@ -143,6 +243,9 @@ async def _resolve_account(payload: dict[str, Any]) -> UserInfo:
     account = await db_manager.get_account_by_username(username)
     if not account or not account.get("is_active", False):
         raise HTTPException(status_code=401, detail="Inactive or invalid user")
+    if _token_predates_cutoff(payload.get("iat"), account.get("sessions_valid_from")):
+        logger.info("Token refused: issued before the account's session cut-off", extra={"user_id": account["id"]})
+        raise HTTPException(status_code=401, detail="Session ended, please log in again")
     return {"username": account["username"], "role": account["role"], "id": account["id"]}
 
 

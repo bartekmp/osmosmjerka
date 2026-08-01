@@ -50,6 +50,12 @@ async def run_maintenance_once() -> None:
     except Exception:
         logger.exception("Failed to purge expired phrase sets")
 
+    try:
+        deleted = await db_manager.cleanup_expired_account_tokens()
+        logger.info("Expired account tokens purged", extra={"deleted_count": deleted})
+    except Exception:
+        logger.exception("Failed to purge expired account tokens")
+
 
 async def maintenance_loop(interval_seconds: int) -> None:
     """Sweep every ``interval_seconds`` until cancelled.

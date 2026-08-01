@@ -1,5 +1,5 @@
 import { authHeaders } from '@shared/utils/apiClient';
-import { Delete, Edit, PersonAdd, VpnKey } from '@mui/icons-material';
+import { Block, CheckCircle, Delete, Edit, MarkEmailRead, PersonAdd, Send, VpnKey } from '@mui/icons-material';
 import {
     Alert,
     Box,
@@ -101,10 +101,13 @@ export default function UserManagement({ currentUser }) {
 
     const handleUpdateUser = async () => {
         try {
+            // is_active is deliberately absent: this dialog edits the role and the
+            // description, and sending a hardcoded `true` here used to silently re-enable
+            // a banned account whenever anyone tweaked its role. Enabling and disabling is
+            // the toggle's job.
             const updateData = {
                 role: formData.role,
-                self_description: formData.self_description,
-                is_active: true
+                self_description: formData.self_description
             };
 
             const response = await fetch(`/admin/users/${selectedUser.id}`, {
@@ -152,6 +155,73 @@ export default function UserManagement({ currentUser }) {
             } catch (err) {
                 setError(t('network_error', { message: err.message }));
             }
+        }
+    };
+
+    // Manual confirmation, for when the emailed link never arrived (bounced, spam-filtered,
+    // or the SMTP server was down). The account can log in immediately afterwards.
+    const handleConfirmEmail = async (userId) => {
+        if (!window.confirm(t('confirm_email_prompt'))) return;
+        try {
+            const response = await fetch(`/admin/users/${userId}/confirm-email`, {
+                method: 'POST',
+                headers: authHeader
+            });
+            const data = await response.json();
+            if (response.ok) {
+                setNotification({ open: true, message: t('email_confirmed_successfully'), severity: 'success' });
+                fetchUsers();
+            } else {
+                setError(data.error || t('failed_to_confirm_email'));
+            }
+        } catch (err) {
+            setError(t('network_error', { message: err.message }));
+        }
+    };
+
+    const handleResendVerification = async (userId) => {
+        try {
+            const response = await fetch(`/admin/users/${userId}/resend-verification`, {
+                method: 'POST',
+                headers: authHeader
+            });
+            const data = await response.json();
+            if (response.ok) {
+                setNotification({ open: true, message: data.message, severity: 'success' });
+            } else {
+                setError(data.error || data.detail || t('failed_to_resend_verification'));
+            }
+        } catch (err) {
+            setError(t('network_error', { message: err.message }));
+        }
+    };
+
+    // Disabling an account also ends its live sessions server-side, so a ban takes effect
+    // on the very next request rather than whenever the user's token happens to expire.
+    const handleToggleActive = async (targetUser) => {
+        const disabling = targetUser.is_active !== false;
+        if (disabling && !window.confirm(t('confirm_disable_user', { username: targetUser.username }))) return;
+
+        try {
+            const response = await fetch(`/admin/users/${targetUser.id}`, {
+                method: 'PUT',
+                headers: authHeader,
+                body: JSON.stringify({ is_active: !disabling })
+            });
+            const data = await response.json();
+
+            if (response.ok) {
+                setNotification({
+                    open: true,
+                    message: disabling ? t('user_disabled') : t('user_enabled'),
+                    severity: 'success'
+                });
+                fetchUsers();
+            } else {
+                setError(data.error || data.detail || t('failed_to_update_user'));
+            }
+        } catch (err) {
+            setError(t('network_error', { message: err.message }));
         }
     };
 
@@ -264,7 +334,9 @@ export default function UserManagement({ currentUser }) {
                     <TableHead>
                         <TableRow>
                             <TableCell>{t('username')}</TableCell>
+                            <TableCell>{t('auth.email')}</TableCell>
                             <TableCell>{t('role')}</TableCell>
+                            <TableCell>{t('status')}</TableCell>
                             <TableCell>{t('description')}</TableCell>
                             <TableCell>{t('created')}</TableCell>
                             <TableCell>{t('last_login')}</TableCell>
@@ -276,10 +348,33 @@ export default function UserManagement({ currentUser }) {
                             <TableRow key={user.id}>
                                 <TableCell>{user.username}</TableCell>
                                 <TableCell>
+                                    {user.email ? (
+                                        <Box>
+                                            <Typography variant="body2">{user.email}</Typography>
+                                            <Chip
+                                                label={user.email_verified ? t('email_confirmed') : t('email_pending')}
+                                                color={user.email_verified ? 'success' : 'warning'}
+                                                size="small"
+                                                variant="outlined"
+                                            />
+                                        </Box>
+                                    ) : (
+                                        <Typography variant="body2" color="text.secondary">-</Typography>
+                                    )}
+                                </TableCell>
+                                <TableCell>
                                     <Chip
                                         label={user.role}
                                         color={getRoleColor(user.role)}
                                         size="small"
+                                    />
+                                </TableCell>
+                                <TableCell>
+                                    <Chip
+                                        label={user.is_active === false ? t('disabled') : t('active')}
+                                        color={user.is_active === false ? 'error' : 'success'}
+                                        size="small"
+                                        variant={user.is_active === false ? 'filled' : 'outlined'}
                                     />
                                 </TableCell>
                                 <TableCell>{user.self_description || '-'}</TableCell>
@@ -298,6 +393,25 @@ export default function UserManagement({ currentUser }) {
                                     >
                                         <Edit />
                                     </IconButton>
+                                    {user.email && !user.email_verified && (
+                                        <>
+                                            <IconButton
+                                                size="small"
+                                                color="success"
+                                                onClick={() => handleConfirmEmail(user.id)}
+                                                title={t('confirm_email')}
+                                            >
+                                                <MarkEmailRead fontSize="small" />
+                                            </IconButton>
+                                            <IconButton
+                                                size="small"
+                                                onClick={() => handleResendVerification(user.id)}
+                                                title={t('resend_verification')}
+                                            >
+                                                <Send fontSize="small" />
+                                            </IconButton>
+                                        </>
+                                    )}
                                     <IconButton
                                         size="small"
                                         onClick={() => handleResetPassword(user.id)}
@@ -308,13 +422,26 @@ export default function UserManagement({ currentUser }) {
                                     </IconButton>
                                     <IconButton
                                         size="small"
-                                        color="error"
-                                        onClick={() => handleDeleteUser(user.id)}
-                                        title={t('delete_user')}
-                                        disabled={user.id === 0}
+                                        color={user.is_active === false ? 'success' : 'warning'}
+                                        onClick={() => handleToggleActive(user)}
+                                        title={user.is_active === false ? t('enable_user') : t('disable_user')}
+                                        // The root admin cannot be locked out of their own
+                                        // instance, and neither can you lock out yourself.
+                                        disabled={user.id === 0 || user.id === currentUser?.id}
                                     >
-                                        <Delete />
+                                        {user.is_active === false ? <CheckCircle fontSize="small" /> : <Block fontSize="small" />}
                                     </IconButton>
+                                    {currentUser?.role === 'root_admin' && (
+                                        <IconButton
+                                            size="small"
+                                            color="error"
+                                            onClick={() => handleDeleteUser(user.id)}
+                                            title={t('delete_user')}
+                                            disabled={user.id === 0 || user.id === currentUser?.id}
+                                        >
+                                            <Delete />
+                                        </IconButton>
+                                    )}
                                 </TableCell>
                             </TableRow>
                         ))}

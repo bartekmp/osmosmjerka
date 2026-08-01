@@ -27,8 +27,10 @@ import {
 import { EmojiEvents as TrophyIcon } from '@mui/icons-material';
 import PlaylistAddCheckIcon from '@mui/icons-material/PlaylistAddCheck';
 import { useTranslation } from 'react-i18next';
-import { API_ENDPOINTS } from '@shared';
+import { API_ENDPOINTS, STORAGE_KEYS } from '@shared';
 import { PrivateListManager } from '../../../lists';
+
+const MIN_PASSWORD_LENGTH = 10;
 
 export default function UserProfile() {
     const { t } = useTranslation();
@@ -41,6 +43,9 @@ export default function UserProfile() {
     });
     const [description, setDescription] = useState('');
     const [passwordDialog, setPasswordDialog] = useState(false);
+    // 0 = closed, 1 = first warning, 2 = final confirmation (password required).
+    const [deleteStep, setDeleteStep] = useState(0);
+    const [deletePassword, setDeletePassword] = useState('');
     const [passwordData, setPasswordData] = useState({
         current_password: '',
         new_password: '',
@@ -297,14 +302,49 @@ export default function UserProfile() {
         }
     };
 
+    const closeDeleteDialog = () => {
+        setDeleteStep(0);
+        setDeletePassword('');
+    };
+
+    // Two steps plus the password. The steps stop a stray click; the password is what
+    // makes the action the account owner's rather than whoever is holding their session.
+    const deleteAccount = async () => {
+        setLoading(true);
+        try {
+            const response = await fetch('/admin/delete-account', {
+                method: 'POST',
+                headers: authHeader,
+                body: JSON.stringify({ password: deletePassword })
+            });
+            const data = await response.json();
+
+            if (response.ok) {
+                // The account is gone, so the token is worthless - clear it and land the
+                // user back on the game as an anonymous visitor.
+                localStorage.removeItem(STORAGE_KEYS.ADMIN_TOKEN);
+                window.dispatchEvent(new window.Event('admin-auth-changed'));
+                window.location.assign('/');
+            } else {
+                showNotification(data.error || data.detail || t('delete_account_failed'), 'error');
+            }
+        } catch (err) {
+            showNotification(t('network_error', { message: err.message }), 'error');
+        } finally {
+            setLoading(false);
+        }
+    };
+
     const changePassword = async () => {
         if (passwordData.new_password !== passwordData.confirm_password) {
             showNotification(t('passwords_do_not_match'), 'error');
             return;
         }
 
-        if (passwordData.new_password.length < 6) {
-            showNotification(t('password_too_short'), 'error');
+        // Mirrors MIN_PASSWORD_LENGTH in backend/osmosmjerka/passwords.py, which is the
+        // authority - this only saves a round trip.
+        if (passwordData.new_password.length < MIN_PASSWORD_LENGTH) {
+            showNotification(t('auth.password_too_short', { count: MIN_PASSWORD_LENGTH }), 'error');
             return;
         }
 
@@ -321,6 +361,13 @@ export default function UserProfile() {
             const data = await response.json();
 
             if (response.ok) {
+                // Changing the password ends every session opened with the old one, so the
+                // server hands back a replacement for this tab. Without storing it the next
+                // request 401s and the user looks to have been signed out by their own
+                // password change.
+                if (data.access_token) {
+                    localStorage.setItem(STORAGE_KEYS.ADMIN_TOKEN, data.access_token);
+                }
                 showNotification(t('password_changed'), 'success');
                 setPasswordDialog(false);
                 setPasswordData({
@@ -652,6 +699,65 @@ export default function UserProfile() {
                     </Button>
                 </DialogActions>
             </Dialog>
+            {/* Danger zone - only for real accounts; the root admin is env-defined. */}
+            {profile.role !== 'root_admin' && (
+                <Box sx={{ mt: 4, p: 3, border: '1px solid', borderColor: 'error.main', borderRadius: 2 }}>
+                    <Typography variant="h6" color="error" gutterBottom>
+                        {t('delete_account')}
+                    </Typography>
+                    <Typography variant="body2" color="text.secondary" sx={{ mb: 2 }}>
+                        {t('delete_account_description')}
+                    </Typography>
+                    <Button variant="outlined" color="error" onClick={() => setDeleteStep(1)}>
+                        {t('delete_account')}
+                    </Button>
+                </Box>
+            )}
+
+            <Dialog open={deleteStep > 0} onClose={closeDeleteDialog} maxWidth="sm" fullWidth>
+                <DialogTitle color="error">
+                    {deleteStep === 1 ? t('delete_account') : t('delete_account_final_title')}
+                </DialogTitle>
+                <DialogContent>
+                    <Alert severity="warning" sx={{ mb: 2 }}>
+                        {deleteStep === 1 ? t('delete_account_warning') : t('delete_account_final_warning')}
+                    </Alert>
+                    {deleteStep === 1 ? (
+                        <Typography variant="body2" color="text.secondary">
+                            {t('delete_account_what_goes')}
+                        </Typography>
+                    ) : (
+                        <TextField
+                            label={t('delete_account_password_label')}
+                            type="password"
+                            value={deletePassword}
+                            onChange={(e) => setDeletePassword(e.target.value)}
+                            autoComplete="current-password"
+                            helperText={t('delete_account_password_help')}
+                            fullWidth
+                            autoFocus
+                        />
+                    )}
+                </DialogContent>
+                <DialogActions>
+                    <Button onClick={closeDeleteDialog}>{t('cancel')}</Button>
+                    {deleteStep === 1 ? (
+                        <Button color="error" onClick={() => setDeleteStep(2)}>
+                            {t('continue')}
+                        </Button>
+                    ) : (
+                        <Button
+                            color="error"
+                            variant="contained"
+                            onClick={deleteAccount}
+                            disabled={loading || !deletePassword}
+                        >
+                            {t('delete_account_confirm')}
+                        </Button>
+                    )}
+                </DialogActions>
+            </Dialog>
+
             {/* Notification Snackbar */}
             <Snackbar
                 open={notification.open}
