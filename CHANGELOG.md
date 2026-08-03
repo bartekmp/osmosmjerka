@@ -2,6 +2,25 @@
 
 <!-- version list -->
 
+## v1.51.3 (2026-08-03)
+
+### Bug Fixes
+
+- **deps**: Update dependency i18next to v26
+  ([#238](https://github.com/bartekmp/osmosmjerka/pull/238),
+  [`f9ef575`](https://github.com/bartekmp/osmosmjerka/commit/f9ef575697c2152807a987d67e80a55b917f874b))
+
+### Chores
+
+- **deps**: Update actions/checkout digest to 3d3c42e
+  ([#242](https://github.com/bartekmp/osmosmjerka/pull/242),
+  [`72a20ae`](https://github.com/bartekmp/osmosmjerka/commit/72a20ae7c89296e30eb7a04fd5302347c2172477))
+
+- **deps**: Update dependency @testing-library/jest-dom to v7
+  ([#237](https://github.com/bartekmp/osmosmjerka/pull/237),
+  [`e690558`](https://github.com/bartekmp/osmosmjerka/commit/e690558ea5cc08af26f36e67500d86f11b7fc91c))
+
+
 ## v1.51.2 (2026-08-03)
 
 ### Chores
