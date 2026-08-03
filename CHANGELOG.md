@@ -2,6 +2,15 @@
 
 <!-- version list -->
 
+## v1.51.2 (2026-08-03)
+
+### Chores
+
+- **deps**: Update actions/setup-python action to v7
+  ([#241](https://github.com/bartekmp/osmosmjerka/pull/241),
+  [`b5089a6`](https://github.com/bartekmp/osmosmjerka/commit/b5089a68a592b039a1be9031baeab6429b87ff44))
+
+
 ## v1.51.1 (2026-08-01)
 
 ### Bug Fixes
