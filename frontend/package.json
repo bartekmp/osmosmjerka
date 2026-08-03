@@ -39,7 +39,7 @@
         "@diffusionstudio/piper-wasm": "^1.0.0",
         "@eslint/js": "^9.36.0",
         "@playwright/test": "^1.49.0",
-        "@testing-library/jest-dom": "^6.8.0",
+        "@testing-library/jest-dom": "^7.0.0",
         "@testing-library/react": "^16.3.0",
         "@testing-library/user-event": "^14.6.1",
         "@vitejs/plugin-react": "^6.0.0",
