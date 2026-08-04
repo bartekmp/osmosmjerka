@@ -2,6 +2,15 @@
 
 <!-- version list -->
 
+## v1.51.4 (2026-08-04)
+
+### Bug Fixes
+
+- **deps**: Update dependency react-i18next to v17
+  ([#239](https://github.com/bartekmp/osmosmjerka/pull/239),
+  [`de9455c`](https://github.com/bartekmp/osmosmjerka/commit/de9455c59665793eb11e23cd88fd551397dfc9da))
+
+
 ## v1.51.3 (2026-08-03)
 
 ### Bug Fixes
