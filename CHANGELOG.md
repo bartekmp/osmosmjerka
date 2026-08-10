@@ -2,6 +2,19 @@
 
 <!-- version list -->
 
+## v1.51.5 (2026-08-10)
+
+### Chores
+
+- **deps**: Update docker/login-action digest to dbcb813
+  ([#243](https://github.com/bartekmp/osmosmjerka/pull/243),
+  [`e1eea71`](https://github.com/bartekmp/osmosmjerka/commit/e1eea71f82f3d859b80ab103611608fcfba978aa))
+
+- **deps**: Update docker/setup-buildx-action digest to bb05f3f
+  ([#244](https://github.com/bartekmp/osmosmjerka/pull/244),
+  [`dc953f9`](https://github.com/bartekmp/osmosmjerka/commit/dc953f9098893c2e61d6af01ddc0e419cc262d65))
+
+
 ## v1.51.4 (2026-08-04)
 
 ### Bug Fixes
