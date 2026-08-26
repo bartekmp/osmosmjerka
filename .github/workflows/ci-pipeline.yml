@@ -147,7 +147,7 @@ jobs:
     
     services:
       postgres:
-        image: postgres:18@sha256:78481659c47e862334611ccdaf7c369c986b3046da9857112f3b309114a65fb4
+        image: postgres:18@sha256:4ef4dbc939d61acea57712655ddb4b4ab27419c913f94cca0cd57cb3ea3c2280
         env:
           POSTGRES_PASSWORD: testpass
           POSTGRES_DB: testdb
