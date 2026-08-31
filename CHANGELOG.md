@@ -2,6 +2,19 @@
 
 <!-- version list -->
 
+## v1.51.6 (2026-08-31)
+
+### Chores
+
+- **deps**: Update docker/setup-buildx-action digest to 37fe631
+  ([#245](https://github.com/bartekmp/osmosmjerka/pull/245),
+  [`f8c485f`](https://github.com/bartekmp/osmosmjerka/commit/f8c485f6cf5d18e42008ab8402e34e59d57d5508))
+
+- **deps**: Update postgres:18 docker digest to 4ef4dbc
+  ([#246](https://github.com/bartekmp/osmosmjerka/pull/246),
+  [`7a9d126`](https://github.com/bartekmp/osmosmjerka/commit/7a9d1260dbd7b33ce16f7d54fe2013339892b174))
+
+
 ## v1.51.5 (2026-08-10)
 
 ### Chores
