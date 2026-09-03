@@ -30,7 +30,7 @@ dev = [
     "pytest-env==1.6.0",
     "httpx2==2.5.0",
     "python-semantic-release==10.5.3",
-    "setuptools_scm==9.2.2",
+    "setuptools_scm==10.2.3",
     "ruff==0.15.8",
 ]
 
