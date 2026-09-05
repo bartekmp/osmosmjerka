@@ -2,6 +2,20 @@
 
 <!-- version list -->
 
+## v1.51.7 (2026-09-05)
+
+### Bug Fixes
+
+- **deps**: Update dependency setuptools-scm to v10
+  ([#248](https://github.com/bartekmp/osmosmjerka/pull/248),
+  [`1d10090`](https://github.com/bartekmp/osmosmjerka/commit/1d100909e9985bbb5262d4e019bf247aaba1ef35))
+
+### Chores
+
+- **deps**: Update docker base images ([#249](https://github.com/bartekmp/osmosmjerka/pull/249),
+  [`1e1ffa8`](https://github.com/bartekmp/osmosmjerka/commit/1e1ffa83becbe9df339c94ab637d526e0daf0456))
+
+
 ## v1.51.6 (2026-08-31)
 
 ### Chores
