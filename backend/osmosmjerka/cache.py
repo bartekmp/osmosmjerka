@@ -80,20 +80,42 @@ phrases_cache = AsyncLRUCache(maxsize=100, ttl=180)  # 3 min TTL
 rate_limiter = RateLimiter()
 
 
-def _get_client_ip(request: Request) -> str:
-    """Extract client IP address from request, handling proxy headers."""
-    # Check X-Forwarded-For header (first IP in chain)
-    forwarded_for = request.headers.get("X-Forwarded-For")
-    if forwarded_for:
-        # X-Forwarded-For can contain multiple IPs, take the first one
-        client_ip = forwarded_for.split(",")[0].strip()
-        if client_ip:
-            return client_ip
+def _trusted_proxy_hops() -> int:
+    """How many reverse proxies sit in front of the app (1 = the k8s ingress)."""
+    try:
+        return max(int(os.getenv("TRUSTED_PROXY_HOPS", "1")), 0)
+    except ValueError:
+        return 1
 
-    # Check X-Real-IP header
-    real_ip = request.headers.get("X-Real-IP")
-    if real_ip:
-        return real_ip.strip()
+
+def _get_client_ip(request: Request) -> str:
+    """Extract the client IP, reading X-Forwarded-For from the right-hand side.
+
+    X-Forwarded-For is a client-supplied header that each proxy *appends* to, so the
+    leftmost entry is whatever the client claimed and can be forged freely - reading it
+    lets anyone defeat every per-IP rate limit by rotating the header, which is exactly
+    what a brute-force script would do. Only the entries our own proxies added are
+    trustworthy, so we count TRUSTED_PROXY_HOPS in from the end.
+
+    With the default of one hop and a chain of "1.2.3.4, 203.0.113.7" this returns
+    203.0.113.7 - the address the ingress observed. Set TRUSTED_PROXY_HOPS to match the
+    actual number of proxies; 0 ignores the header entirely and uses the socket peer.
+    """
+    hops = _trusted_proxy_hops()
+    if hops:
+        forwarded_for = request.headers.get("X-Forwarded-For")
+        if forwarded_for:
+            chain = [part.strip() for part in forwarded_for.split(",") if part.strip()]
+            if chain:
+                # Clamp: a chain shorter than the configured hop count means the request
+                # didn't come through the full proxy path, so take the oldest entry we have.
+                return chain[-min(hops, len(chain))]
+
+        # X-Real-IP is set by the proxy itself and holds a single address, so there is no
+        # chain to pick from.
+        real_ip = request.headers.get("X-Real-IP")
+        if real_ip:
+            return real_ip.strip()
 
     # Fall back to direct client IP
     if request.client:
@@ -154,6 +176,11 @@ def rate_limit(max_requests: int, window_seconds: int) -> Callable[[F], F]:
                     identifier = f"ip_{client_ip}"
                 else:
                     identifier = "anonymous"
+
+            # Scope the bucket to this endpoint. Without it every decorated endpoint shares
+            # one list of timestamps per caller, so whichever limit is tightest applies to
+            # all of them at once and ordinary browsing can lock a user out of, say, login.
+            identifier = f"{func.__name__}:{identifier}"
 
             if not rate_limiter.is_allowed(identifier, max_requests, window_seconds):
                 logger.warning(
