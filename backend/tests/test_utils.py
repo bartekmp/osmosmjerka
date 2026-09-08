@@ -223,3 +223,25 @@ def test_export_to_png_crossword_blank_cells(tmp_path):
 
     img = Image.open(str(png_file))
     assert img.format == "PNG"
+
+
+def test_docx_export_of_a_max_size_grid_is_not_a_cpu_sink():
+    """python-docx's ``table.cell(r, c)`` walks the table's XML from the start every
+    time, so filling an n-by-n grid that way costs O(n^4). At the export cap of 50x50
+    that measured 43 seconds of CPU - five requests a minute, the endpoint's rate limit,
+    is then enough to saturate the pod's 500m CPU indefinitely, from an unauthenticated
+    client. Walking each row's cells once is O(n^2) and takes well under a second.
+
+    The budget is deliberately loose (a CI runner is slower than a workstation); it is
+    the difference between quadratic and quartic that matters, not the exact number.
+    """
+    import time
+
+    from osmosmjerka.game_api.schemas import MAX_EXPORT_GRID_DIMENSION as n
+
+    grid = [["A"] * n for _ in range(n)]
+    phrases = [{"phrase": "ALPHA", "translation": "a"}]
+
+    started = time.perf_counter()
+    export_to_docx("Test", grid, phrases)
+    assert time.perf_counter() - started < 5

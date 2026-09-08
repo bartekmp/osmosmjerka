@@ -396,3 +396,50 @@ def test_router_has_expected_routes():
     """Test that router has the expected number of routes"""
     # Should have routes for: categories, phrases, export, ignored-categories
     assert len(router.routes) >= 4
+
+
+class TestExportSizeLimits:
+    """/api/export is unauthenticated, and the only bound on it was the 2 MB request cap.
+
+    A 400x400 grid is 0.76 MB of JSON and OOM-killed a 512Mi pod rendering the PNG; a
+    60x60 grid bought >50s of CPU on the DOCX path. The largest grid the app itself ever
+    produces is 20x20 (very_hard, and the teacher slider's maximum), so the cap below is
+    generous headroom rather than a constraint on real puzzles.
+    """
+
+    def _payload(self, rows, cols=None, phrases=1):
+        cols = rows if cols is None else cols
+        return {
+            "category": "Test",
+            "grid": [["A"] * cols for _ in range(rows)],
+            "phrases": [{"phrase": "A", "translation": "A"}] * phrases,
+            "format": "png",
+        }
+
+    def test_a_grid_with_too_many_rows_is_rejected(self, client):
+        from osmosmjerka.game_api.schemas import MAX_EXPORT_GRID_DIMENSION
+
+        response = client.post("/api/export", json=self._payload(MAX_EXPORT_GRID_DIMENSION + 1))
+        assert response.status_code == 422
+
+    def test_a_grid_with_too_many_columns_is_rejected(self, client):
+        """A short but very wide grid costs just as much to render as a tall one."""
+        from osmosmjerka.game_api.schemas import MAX_EXPORT_GRID_DIMENSION
+
+        response = client.post("/api/export", json=self._payload(2, cols=MAX_EXPORT_GRID_DIMENSION + 1))
+        assert response.status_code == 422
+
+    def test_too_many_phrases_are_rejected(self, client):
+        from osmosmjerka.game_api.schemas import MAX_EXPORT_PHRASES
+
+        response = client.post("/api/export", json=self._payload(2, phrases=MAX_EXPORT_PHRASES + 1))
+        assert response.status_code == 422
+
+    @patch("osmosmjerka.game_api.export.export_to_png")
+    def test_a_grid_at_the_limit_still_exports(self, mock_export_png, client):
+        from osmosmjerka.game_api.schemas import MAX_EXPORT_GRID_DIMENSION
+
+        mock_export_png.return_value = b"png_content"
+
+        response = client.post("/api/export", json=self._payload(MAX_EXPORT_GRID_DIMENSION))
+        assert response.status_code == 200

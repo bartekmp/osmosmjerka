@@ -143,9 +143,12 @@ def export_to_docx(
     cell_dim = Cm(1.0) if is_crossword else Cm(0.8)
     numbers = _crossword_start_numbers(phrases) if is_crossword else {}
 
-    for r, row in enumerate(grid):
+    # Walk each row's cells once rather than calling table.cell(r, c), which re-scans the
+    # table's XML from the start on every lookup and makes filling an n-by-n grid O(n^4).
+    for r, (row, table_row) in enumerate(zip(grid, table.rows, strict=False)):
+        row_cells = table_row.cells
         for c, cell in enumerate(row):
-            cell_obj = table.cell(r, c)
+            cell_obj = row_cells[c]
             cell_obj.width = cell_dim
             if cell is None:
                 if is_crossword:
