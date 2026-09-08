@@ -2,10 +2,12 @@ import os
 import sys
 from contextlib import asynccontextmanager
 
-from fastapi import FastAPI, Request
+from fastapi import FastAPI, Request, Response
+from fastapi.exception_handlers import http_exception_handler
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import FileResponse, JSONResponse, RedirectResponse
 from fastapi.staticfiles import StaticFiles
+from starlette.exceptions import HTTPException as StarletteHTTPException
 
 # isort: off
 from osmosmjerka.logging_config import get_logger
@@ -275,6 +277,29 @@ async def sanitize_errors(request: Request, call_next):
             {"error": str(exc), "type": type(exc).__name__},
             status_code=500,
         )
+
+
+@app.exception_handler(StarletteHTTPException)
+async def sanitize_server_error_details(request: Request, exc: StarletteHTTPException) -> Response:
+    """Keep internal error text out of 5xx responses.
+
+    Handlers across the app answer with ``HTTPException(500, detail=str(e))``. That is a
+    *handled* exception, so the sanitize_errors middleware above never sees it and the
+    original text - database messages included - reached the client whatever
+    DEVELOPMENT_MODE said. Sanitising here covers every such handler at once, including
+    ones added later. 4xx details are written for the user and are left alone.
+    """
+    if exc.status_code >= 500 and not DEVELOPMENT_MODE:
+        logger.error(
+            "Server error returned to client",
+            extra={"path": request.url.path, "status_code": exc.status_code, "detail": str(exc.detail)},
+        )
+        exc = StarletteHTTPException(
+            status_code=exc.status_code,
+            detail="An internal error occurred. Please try again later.",
+            headers=exc.headers,
+        )
+    return await http_exception_handler(request, exc)
 
 
 # Add security headers middleware
