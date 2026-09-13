@@ -443,3 +443,72 @@ class TestExportSizeLimits:
 
         response = client.post("/api/export", json=self._payload(MAX_EXPORT_GRID_DIMENSION))
         assert response.status_code == 200
+
+
+class TestSharedAddressLimits:
+    """The anonymous game endpoints are rate limited per IP, and a classroom sits behind
+    one NAT address. At 20 requests a minute the twenty-first student to start a game got
+    a 429 and could not play; /api/version had the same problem at 5, in the footer.
+
+    A class of 30 is the unit that has to fit, so these check 30 in one window.
+    """
+
+    CLASS_SIZE = 30
+
+    @patch("osmosmjerka.database.db_manager.get_categories_for_language_set")
+    def test_a_class_can_all_load_the_category_list(self, mock_get_categories, client):
+        from osmosmjerka.cache import categories_cache, rate_limiter
+
+        mock_get_categories.return_value = ["A", "B"]
+        rate_limiter.requests.clear()
+        categories_cache.invalidate()
+
+        with patch.dict("os.environ", {"TESTING": "false"}):
+            statuses = {client.get("/api/categories?language_set_id=1").status_code for _ in range(self.CLASS_SIZE)}
+
+        rate_limiter.requests.clear()
+        assert statuses == {200}
+
+    @patch("osmosmjerka.database.db_manager.get_categories_for_language_set")
+    @patch("osmosmjerka.database.db_manager.get_phrases")
+    @patch("osmosmjerka.game_api.phrases._generate_grid_with_exact_phrase_count")
+    def test_a_class_can_all_start_a_game(self, mock_generate_grid, mock_get_phrases, mock_get_categories, client):
+        from osmosmjerka.cache import phrases_cache, rate_limiter
+
+        mock_get_categories.return_value = ["A"]
+        mock_get_phrases.return_value = [{"phrase": "test", "categories": "A", "translation": "test"}] * 20
+        mock_generate_grid.return_value = ([["A"]], [{"phrase": "test"}])
+        rate_limiter.requests.clear()
+        # An earlier test in this file asks for the same category with no phrases behind
+        # it, and cache_response stores that 404 like any other response.
+        phrases_cache.invalidate()
+
+        with patch.dict("os.environ", {"TESTING": "false"}):
+            statuses = {client.get("/api/phrases?category=A").status_code for _ in range(self.CLASS_SIZE)}
+
+        rate_limiter.requests.clear()
+        assert statuses == {200}
+
+    @patch("osmosmjerka.game_api.export.export_to_png")
+    def test_a_teacher_can_print_a_set_of_worksheets(self, mock_export_png, client):
+        """Five a minute blocked an ordinary print run. Bounded by CPU cost, not habit:
+        an export at the 50x50 ceiling costs 0.39s, so this ceiling is ~4s a minute.
+        """
+        from osmosmjerka.cache import rate_limiter
+        from osmosmjerka.game_api.export import EXPORT_RATE_LIMIT_PER_MINUTE
+
+        mock_export_png.return_value = b"png_content"
+        rate_limiter.requests.clear()
+        payload = {
+            "category": "Test",
+            "grid": [["A"]],
+            "phrases": [{"phrase": "A", "translation": "A"}],
+            "format": "png",
+        }
+
+        with patch.dict("os.environ", {"TESTING": "false"}):
+            statuses = {client.post("/api/export", json=payload).status_code for _ in range(10)}
+
+        rate_limiter.requests.clear()
+        assert statuses == {200}
+        assert EXPORT_RATE_LIMIT_PER_MINUTE <= 20, "export stays the tightest limit; it is the only costly one"
