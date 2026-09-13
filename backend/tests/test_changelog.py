@@ -166,3 +166,50 @@ class TestCaching:
 
         # Cache should be empty initially
         assert _changelog_cache["entries"] is None
+
+
+class TestChangelogRateLimits:
+    """Both endpoints serve a constant string out of an in-process cache, so the request
+    costs a dict lookup - but they were capped at 5 requests a minute per IP. The app's
+    users are classrooms, which sit behind one NAT address, so the sixth student to open
+    the page in a minute got a 429 and no version in the footer.
+    """
+
+    def _client(self):
+        from fastapi import FastAPI
+        from fastapi.testclient import TestClient
+        from osmosmjerka.game_api import router
+
+        app = FastAPI()
+        app.include_router(router)
+        return TestClient(app)
+
+    def test_a_classroom_sharing_one_address_can_all_load_the_version(self):
+        from osmosmjerka.cache import rate_limiter
+
+        client = self._client()
+        rate_limiter.requests.clear()
+
+        with patch.dict("os.environ", {"TESTING": "false"}):
+            statuses = {client.get("/api/version").status_code for _ in range(30)}
+
+        rate_limiter.requests.clear()
+        assert statuses == {200}
+
+    def test_the_same_holds_for_whats_new(self):
+        from osmosmjerka.cache import rate_limiter
+
+        client = self._client()
+        rate_limiter.requests.clear()
+
+        with patch.dict("os.environ", {"TESTING": "false"}):
+            statuses = {client.get("/api/whats-new").status_code for _ in range(30)}
+
+        rate_limiter.requests.clear()
+        assert statuses == {200}
+
+    def test_the_endpoints_are_still_bounded(self):
+        """Loosened, not removed - an unauthenticated endpoint still needs a ceiling."""
+        from osmosmjerka.game_api.changelog import CHANGELOG_RATE_LIMIT_PER_MINUTE
+
+        assert CHANGELOG_RATE_LIMIT_PER_MINUTE <= 120

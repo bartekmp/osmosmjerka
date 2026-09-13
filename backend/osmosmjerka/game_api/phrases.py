@@ -14,6 +14,14 @@ logger = get_logger(__name__)
 
 router = APIRouter()
 
+# These two are the anonymous game path, so the limiter keys them by IP - and a classroom
+# reaches the app through one NAT address. At the old 30 and 20 a minute a class of 30
+# sat exactly on the category limit and blew straight through the phrase limit, so the
+# twenty-first student to start a game got a 429 and could not play. A generated puzzle
+# costs at most 33 ms (very_hard word search, measured), so 120 a minute is under 4
+# seconds of CPU per address per minute - bounded, but well clear of a full class.
+GAME_RATE_LIMIT_PER_MINUTE = 120
+
 
 @router.get("/language-sets")
 @cache_response(language_sets_cache, "language_sets")
@@ -24,7 +32,7 @@ async def get_language_sets() -> JSONResponse:
 
 
 @router.get("/categories")
-@rate_limit(max_requests=30, window_seconds=60)  # 30 requests per minute
+@rate_limit(max_requests=GAME_RATE_LIMIT_PER_MINUTE, window_seconds=60)
 @cache_response(categories_cache, "categories", vary_on_user=True)
 async def get_all_categories(language_set_id: int = Query(None), *, request: Request) -> JSONResponse:
     """Get categories for a specific language set, applying user-specific ignored categories if authenticated"""
@@ -40,7 +48,7 @@ async def get_all_categories(language_set_id: int = Query(None), *, request: Req
 
 
 @router.get("/phrases")
-@rate_limit(max_requests=20, window_seconds=60)  # 20 requests per minute for phrase generation
+@rate_limit(max_requests=GAME_RATE_LIMIT_PER_MINUTE, window_seconds=60)
 @cache_response(phrases_cache, "phrases", vary_on_user=True)
 async def get_phrases(
     category: str | None = None,

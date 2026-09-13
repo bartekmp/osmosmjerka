@@ -2,7 +2,7 @@
 
 from typing import Any
 
-from pydantic import BaseModel, Field
+from pydantic import BaseModel, Field, field_validator
 
 # ===== Learn Later / Private Lists =====
 
@@ -61,17 +61,39 @@ class AddPhraseToPrivateListRequest(BaseModel):
 
 # ===== Export =====
 
+# /api/export is unauthenticated and renders whatever grid it is handed, so the request
+# body has to be bounded here - the 2 MB request cap is nowhere near tight enough. A
+# 400x400 grid is only 0.76 MB of JSON but OOM-kills a 512Mi pod rendering the PNG, and
+# the DOCX path costs superlinear CPU. The largest grid the app itself produces is 20x20
+# (very_hard, which is also the teacher slider's maximum), so 50 is headroom, not a limit
+# anyone will meet in normal use.
+MAX_EXPORT_GRID_DIMENSION = 50
+MAX_EXPORT_PHRASES = 200
+MAX_EXPORT_CATEGORY_LENGTH = 200
+
 
 class ExportPuzzleRequest(BaseModel):
     """Request model for exporting a puzzle."""
 
-    category: str
-    grid: list[Any]  # 2D grid of characters (crossword cells may be null)
-    phrases: list[Any]  # Can be strings or dicts with phrase/translation
+    category: str = Field(..., max_length=MAX_EXPORT_CATEGORY_LENGTH)
+    # 2D grid of characters (crossword cells may be null)
+    grid: list[Any] = Field(..., max_length=MAX_EXPORT_GRID_DIMENSION)
+    # Can be strings or dicts with phrase/translation
+    phrases: list[Any] = Field(..., max_length=MAX_EXPORT_PHRASES)
     format: str = Field(default="docx", pattern="^(docx|png)$")
     game_type: str = Field(default="word_search", pattern="^(word_search|crossword)$")
     across_label: str = Field(default="Across", max_length=50)
     down_label: str = Field(default="Down", max_length=50)
+
+    @field_validator("grid")
+    @classmethod
+    def _rows_must_be_bounded(cls, grid: list[Any]) -> list[Any]:
+        """max_length on the field only bounds the row count; a 2x100000 grid costs the
+        same to render as a tall one, so each row has to be checked too."""
+        for row in grid:
+            if isinstance(row, (list, tuple)) and len(row) > MAX_EXPORT_GRID_DIMENSION:
+                raise ValueError(f"grid rows must have at most {MAX_EXPORT_GRID_DIMENSION} cells")
+        return grid
 
 
 # ===== Game Sessions =====

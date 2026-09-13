@@ -538,3 +538,57 @@ async def test_default_config():
     assert DEFAULT_CONFIG["require_translation_input"] is False
     assert DEFAULT_CONFIG["grid_size"] == 10
     assert DEFAULT_CONFIG["difficulty"] == "medium"
+
+
+class TestDeleteSessionOwnership:
+    """DELETE /admin/teacher/sessions/{id} took the id and deleted it, with no check that
+    the session belonged to the caller. Every other route in the module scopes its lookup
+    by user_id; this one was missed, so any teacher could enumerate ids and wipe another
+    teacher's student session records.
+    """
+
+    def test_a_teacher_cannot_delete_another_teachers_session(self, client, mock_teacher_user):
+        app.dependency_overrides[require_teacher_access] = lambda: mock_teacher_user
+
+        with (
+            patch("osmosmjerka.database.db_manager.get_session_by_id") as mock_get_session,
+            patch("osmosmjerka.database.db_manager.get_teacher_phrase_set_by_id") as mock_get_set,
+            patch("osmosmjerka.database.db_manager.delete_session") as mock_delete,
+        ):
+            mock_get_session.return_value = {"id": 5, "phrase_set_id": 99}
+            # The set belongs to someone else, so the scoped lookup finds nothing.
+            mock_get_set.return_value = None
+            response = client.delete("/admin/teacher/sessions/5")
+
+        assert response.status_code == 404
+        mock_delete.assert_not_called()
+
+    def test_a_missing_session_is_not_deleted(self, client, mock_teacher_user):
+        app.dependency_overrides[require_teacher_access] = lambda: mock_teacher_user
+
+        with (
+            patch("osmosmjerka.database.db_manager.get_session_by_id") as mock_get_session,
+            patch("osmosmjerka.database.db_manager.delete_session") as mock_delete,
+        ):
+            mock_get_session.return_value = None
+            response = client.delete("/admin/teacher/sessions/5")
+
+        assert response.status_code == 404
+        mock_delete.assert_not_called()
+
+    def test_the_owning_teacher_can_still_delete_their_own_session(self, client, mock_teacher_user):
+        app.dependency_overrides[require_teacher_access] = lambda: mock_teacher_user
+
+        with (
+            patch("osmosmjerka.database.db_manager.get_session_by_id") as mock_get_session,
+            patch("osmosmjerka.database.db_manager.get_teacher_phrase_set_by_id") as mock_get_set,
+            patch("osmosmjerka.database.db_manager.delete_session") as mock_delete,
+        ):
+            mock_get_session.return_value = {"id": 5, "phrase_set_id": 1}
+            mock_get_set.return_value = {"id": 1, "created_by": mock_teacher_user["id"]}
+            mock_delete.return_value = True
+            response = client.delete("/admin/teacher/sessions/5")
+
+        assert response.status_code == 200
+        mock_delete.assert_called_once_with(5)
+        assert mock_get_set.call_args.kwargs["user_id"] == mock_teacher_user["id"]

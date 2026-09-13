@@ -144,3 +144,49 @@ async def test_ensure_demo_account_leaves_matching_account_untouched(monkeypatch
 
     mock_db.create_account.assert_not_called()
     mock_db.update_account.assert_not_called()
+
+
+class TestServerErrorSanitising:
+    """21 handlers answer with ``detail=str(e)``. The sanitize_errors middleware only
+    catches *unhandled* exceptions, so those raised HTTPExceptions sailed past it and
+    returned internal text — database messages among them — to the client regardless of
+    DEVELOPMENT_MODE.
+    """
+
+    def _app_with_failing_route(self, monkeypatch, development_mode):
+        from fastapi import FastAPI, HTTPException
+
+        monkeypatch.setattr(app_module, "DEVELOPMENT_MODE", development_mode)
+
+        probe = FastAPI()
+        for handler_type, handler in app.exception_handlers.items():
+            probe.add_exception_handler(handler_type, handler)
+
+        @probe.get("/boom")
+        async def boom():
+            raise HTTPException(status_code=500, detail='relation "accounts" does not exist')
+
+        @probe.get("/not-found")
+        async def not_found():
+            raise HTTPException(status_code=404, detail="Phrase set not found")
+
+        return TestClient(probe, raise_server_exceptions=False)
+
+    def test_a_500_detail_is_replaced_in_production(self, monkeypatch):
+        response = self._app_with_failing_route(monkeypatch, development_mode=False).get("/boom")
+
+        assert response.status_code == 500
+        assert "accounts" not in response.text
+
+    def test_a_500_detail_is_kept_in_development(self, monkeypatch):
+        response = self._app_with_failing_route(monkeypatch, development_mode=True).get("/boom")
+
+        assert response.status_code == 500
+        assert "accounts" in response.text
+
+    def test_client_error_details_are_untouched(self, monkeypatch):
+        """4xx details are written for the user and carry no internal state."""
+        response = self._app_with_failing_route(monkeypatch, development_mode=False).get("/not-found")
+
+        assert response.status_code == 404
+        assert response.json()["detail"] == "Phrase set not found"

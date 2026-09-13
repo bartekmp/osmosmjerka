@@ -203,6 +203,14 @@ class TeacherSetsSessionsMixin:
 
         return self._serialize_datetimes(session)
 
+    async def get_session_by_id(self, session_id: int) -> dict[str, Any] | None:
+        """Get a session by its id, for checking who owns it before acting on it."""
+        database = self._ensure_database()
+
+        query = select(teacher_phrase_set_sessions_table).where(teacher_phrase_set_sessions_table.c.id == session_id)
+        result = await database.fetch_one(query)
+        return self._serialize_datetimes(dict(result)) if result else None
+
     async def get_sessions_for_set(
         self,
         set_id: int,

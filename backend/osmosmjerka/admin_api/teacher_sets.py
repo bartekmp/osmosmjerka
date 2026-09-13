@@ -348,7 +348,22 @@ async def delete_session(
     session_id: int,
     user: dict = Depends(require_teacher_access),
 ) -> JSONResponse:
-    """Delete a session."""
+    """Delete a session, provided the caller owns the phrase set it belongs to."""
+    session = await db_manager.get_session_by_id(session_id)
+    if not session:
+        return error_response("SESSION_NOT_FOUND", "Session not found", status.HTTP_404_NOT_FOUND)
+
+    # Verify ownership. Without this any teacher could enumerate session ids and delete
+    # another teacher's student records; the same 404 covers both cases so the endpoint
+    # doesn't confirm that an id exists.
+    phrase_set = await db_manager.get_teacher_phrase_set_by_id(
+        set_id=session["phrase_set_id"],
+        user_id=user["id"],
+        is_admin=is_admin_or_higher(user),
+    )
+    if not phrase_set:
+        return error_response("SESSION_NOT_FOUND", "Session not found", status.HTTP_404_NOT_FOUND)
+
     await db_manager.delete_session(session_id)
     return JSONResponse({"message": "Session deleted"})
 

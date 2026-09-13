@@ -730,3 +730,24 @@ def test_batch_operations_unauthorized(mock_db_manager, client):
         "/admin/batch/remove-category?language_set_id=1", json={"row_ids": [1, 2], "category": "test"}
     )
     assert response.status_code == 401  # Unauthorized
+
+
+@patch("osmosmjerka.admin_api.users.authenticate_user")
+def test_login_is_rate_limited_per_ip(mock_auth_user, client):
+    """A password-guessing script gets cut off after LOGIN_RATE_LIMIT_ATTEMPTS tries.
+
+    /admin/login was the one credential-accepting endpoint with no limit at all, so a
+    single client could try passwords as fast as the pod would answer.
+    """
+    from osmosmjerka.admin_api.users import LOGIN_RATE_LIMIT_ATTEMPTS
+    from osmosmjerka.cache import rate_limiter
+
+    mock_auth_user.return_value = None
+    rate_limiter.requests.clear()
+
+    with patch.dict("os.environ", {"TESTING": "false"}):
+        for _ in range(LOGIN_RATE_LIMIT_ATTEMPTS):
+            assert client.post("/admin/login", json={"username": "a", "password": "b"}).status_code == 401
+        assert client.post("/admin/login", json={"username": "a", "password": "b"}).status_code == 429
+
+    rate_limiter.requests.clear()

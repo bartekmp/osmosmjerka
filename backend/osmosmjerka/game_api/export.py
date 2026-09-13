@@ -11,9 +11,15 @@ from osmosmjerka.utils import export_to_docx, export_to_png
 
 router = APIRouter()
 
+# Export stays the tightest limit in the app because it is the only endpoint here that
+# costs real CPU: a render at the 50x50 request ceiling takes 0.39s, so this ceiling is
+# under 4 seconds a minute per address. Five was too few for a teacher printing a set of
+# worksheets, which is what the endpoint is for.
+EXPORT_RATE_LIMIT_PER_MINUTE = 10
+
 
 @router.post("/export")
-@rate_limit(max_requests=5, window_seconds=60)  # 5 exports per minute
+@rate_limit(max_requests=EXPORT_RATE_LIMIT_PER_MINUTE, window_seconds=60)
 async def export_puzzle(body: ExportPuzzleRequest) -> StreamingResponse:
     """Export puzzle in specified format (docx or png)"""
     try:

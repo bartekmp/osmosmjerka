@@ -1,7 +1,9 @@
 """User management endpoints for admin API"""
 
+import os
+
 import bcrypt
-from fastapi import APIRouter, Body, Depends, status
+from fastapi import APIRouter, Body, Depends, Request, status
 from fastapi.responses import JSONResponse
 from osmosmjerka.auth import (
     authenticate_user,
@@ -9,11 +11,17 @@ from osmosmjerka.auth import (
     get_current_user,
     require_admin_access,
 )
+from osmosmjerka.cache import rate_limit
 from osmosmjerka.database import db_manager
 from osmosmjerka.logging_config import get_logger
 from pydantic import BaseModel
 
 logger = get_logger(__name__)
+
+# Configurable so an E2E run, which signs in far more often than a person does, can raise
+# the ceiling without weakening the deployed default.
+LOGIN_RATE_LIMIT_ATTEMPTS = int(os.getenv("LOGIN_RATE_LIMIT_ATTEMPTS", "10"))
+LOGIN_RATE_LIMIT_WINDOW_SECONDS = int(os.getenv("LOGIN_RATE_LIMIT_WINDOW_SECONDS", "300"))
 
 router = APIRouter()
 
@@ -23,7 +31,8 @@ class ProfileUpdateRequest(BaseModel):
 
 
 @router.post("/login")
-async def login(username: str = Body(...), password: str = Body(...)) -> JSONResponse:
+@rate_limit(max_requests=LOGIN_RATE_LIMIT_ATTEMPTS, window_seconds=LOGIN_RATE_LIMIT_WINDOW_SECONDS)
+async def login(request: Request, username: str = Body(...), password: str = Body(...)) -> JSONResponse:
     user = await authenticate_user(username, password)
     if user:
         token = create_access_token(data={"sub": user["username"], "role": user["role"], "user_id": user["id"]})

@@ -4,6 +4,7 @@ import time
 from unittest.mock import MagicMock, patch
 
 import pytest
+from fastapi import HTTPException
 from osmosmjerka.cache import (
     AsyncLRUCache,
     RateLimiter,
@@ -141,11 +142,39 @@ class TestGetClientIp:
         request.headers = {"X-Forwarded-For": "192.168.1.1"}
         assert _get_client_ip(request) == "192.168.1.1"
 
-    def test_x_forwarded_for_multiple_ips(self):
-        """Takes first IP from X-Forwarded-For header."""
+    def test_takes_the_hop_our_own_proxy_added(self):
+        """The rightmost entry is the one the ingress observed; the rest are client-supplied."""
         request = MagicMock()
         request.headers = {"X-Forwarded-For": "192.168.1.1, 10.0.0.1, 172.16.0.1"}
-        assert _get_client_ip(request) == "192.168.1.1"
+        assert _get_client_ip(request) == "172.16.0.1"
+
+    def test_a_forged_prefix_cannot_change_the_result(self):
+        """Rotating a spoofed leading entry must not create a fresh rate-limit bucket."""
+        request = MagicMock()
+        request.headers = {"X-Forwarded-For": "203.0.113.9, 172.16.0.1"}
+        first = _get_client_ip(request)
+        request.headers = {"X-Forwarded-For": "203.0.113.250, 172.16.0.1"}
+        assert _get_client_ip(request) == first
+
+    def test_honours_a_deeper_proxy_chain(self, monkeypatch):
+        monkeypatch.setenv("TRUSTED_PROXY_HOPS", "2")
+        request = MagicMock()
+        request.headers = {"X-Forwarded-For": "192.168.1.1, 10.0.0.1, 172.16.0.1"}
+        assert _get_client_ip(request) == "10.0.0.1"
+
+    def test_zero_hops_ignores_the_header_entirely(self, monkeypatch):
+        monkeypatch.setenv("TRUSTED_PROXY_HOPS", "0")
+        request = MagicMock()
+        request.headers = {"X-Forwarded-For": "192.168.1.1"}
+        request.client.host = "127.0.0.1"
+        assert _get_client_ip(request) == "127.0.0.1"
+
+    def test_a_short_chain_falls_back_to_its_oldest_entry(self, monkeypatch):
+        """Fewer entries than configured hops: use what's there rather than indexing off the end."""
+        monkeypatch.setenv("TRUSTED_PROXY_HOPS", "3")
+        request = MagicMock()
+        request.headers = {"X-Forwarded-For": "10.0.0.1"}
+        assert _get_client_ip(request) == "10.0.0.1"
 
     def test_x_real_ip(self):
         """Falls back to X-Real-IP header."""
@@ -203,6 +232,27 @@ class TestRateLimitDecorator:
             # Should work even though limit is 1
             assert await test_endpoint(user=user) == "success"
             assert await test_endpoint(user=user) == "success"
+
+    @pytest.mark.asyncio
+    async def test_each_endpoint_gets_its_own_budget(self):
+        """One caller exhausting one endpoint must not lock them out of another."""
+
+        @rate_limit(max_requests=1, window_seconds=60)
+        async def first_endpoint(user=None):
+            return "first"
+
+        @rate_limit(max_requests=1, window_seconds=60)
+        async def second_endpoint(user=None):
+            return "second"
+
+        with patch.dict("os.environ", {"TESTING": "false"}):
+            user = {"role": "regular", "id": 3}
+            assert await first_endpoint(user=user) == "first"
+            with pytest.raises(HTTPException) as exc:
+                await first_endpoint(user=user)
+            assert exc.value.status_code == 429
+            # Same caller, different endpoint: still allowed.
+            assert await second_endpoint(user=user) == "second"
 
 
 class TestCacheResponseDecorator:
@@ -320,3 +370,46 @@ class TestCacheResponseDecorator:
         assert result2 == "data_news"
         assert result3 == "data_sports"
         assert call_count == 2  # "sports" was cached after first call
+
+    @pytest.mark.asyncio
+    async def test_an_error_response_is_not_cached(self):
+        """A 404 or 500 is a transient fact about one request, not a value to serve back.
+
+        Regression test: /api/phrases returns a 404 JSONResponse when a category has no
+        phrases behind it, and the decorator stored it like any other result - so one
+        failed lookup, or one transient database error, froze that category as broken for
+        every caller sharing the key until the TTL expired.
+        """
+        from fastapi.responses import JSONResponse
+
+        cache = AsyncLRUCache(maxsize=10, ttl=300)
+        statuses = iter([404, 200])
+
+        @cache_response(cache, key_prefix="test")
+        async def flaky(category: str):
+            status = next(statuses)
+            return JSONResponse({"detail": "x"}, status_code=status)
+
+        first = await flaky(category="animals")
+        second = await flaky(category="animals")
+
+        assert first.status_code == 404
+        assert second.status_code == 200, "the 404 was served back from the cache"
+
+    @pytest.mark.asyncio
+    async def test_a_successful_response_object_is_still_cached(self):
+        from fastapi.responses import JSONResponse
+
+        cache = AsyncLRUCache(maxsize=10, ttl=300)
+        calls = 0
+
+        @cache_response(cache, key_prefix="test")
+        async def ok(category: str):
+            nonlocal calls
+            calls += 1
+            return JSONResponse({"detail": "x"})
+
+        await ok(category="animals")
+        await ok(category="animals")
+
+        assert calls == 1

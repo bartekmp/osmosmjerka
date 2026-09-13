@@ -2,10 +2,12 @@ import os
 import sys
 from contextlib import asynccontextmanager
 
-from fastapi import FastAPI, Request
+from fastapi import FastAPI, Request, Response
+from fastapi.exception_handlers import http_exception_handler
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import FileResponse, JSONResponse, RedirectResponse
 from fastapi.staticfiles import StaticFiles
+from starlette.exceptions import HTTPException as StarletteHTTPException
 
 # isort: off
 from osmosmjerka.logging_config import get_logger
@@ -63,6 +65,31 @@ ALLOWED_ORIGINS = [
     "https://osmosmjerka.lel.lu",  # staging
     FRONTEND_DEV_URL,  # localhost development server
 ]
+
+# Content Security Policy. Every allowance below is something the app actually needs:
+#   'wasm-unsafe-eval' + blob: worker  - Piper TTS (ONNX Runtime and the espeak-ng
+#                                        phonemizer are both WASM, run in a worker)
+#   huggingface.co                     - where piper-tts-web fetches voice models from
+#   style-src 'unsafe-inline'          - MUI/emotion injects styles at runtime
+#   fonts.googleapis.com/gstatic.com   - the webfonts linked from index.html
+#   blob: in media/img                 - audio playback and file downloads built from Blobs
+# Reported-but-not-enforced would be safer to roll out, but the app already runs without a
+# CSP, so anything it breaks is visible immediately in staging rather than in the wild.
+_CSP_DIRECTIVES = [
+    "default-src 'self'",
+    "script-src 'self' 'wasm-unsafe-eval'",
+    "worker-src 'self' blob:",
+    "style-src 'self' 'unsafe-inline' https://fonts.googleapis.com",
+    "font-src 'self' data: https://fonts.gstatic.com",
+    "img-src 'self' data: blob:",
+    "media-src 'self' blob:",
+    "connect-src 'self' https://huggingface.co https://cdn-lfs.huggingface.co",
+    "object-src 'none'",
+    "base-uri 'self'",
+    "form-action 'self'",
+    "frame-ancestors 'none'",
+]
+CONTENT_SECURITY_POLICY = "; ".join(_CSP_DIRECTIVES)
 
 
 # Initialize the FastAPI application
@@ -252,6 +279,29 @@ async def sanitize_errors(request: Request, call_next):
         )
 
 
+@app.exception_handler(StarletteHTTPException)
+async def sanitize_server_error_details(request: Request, exc: StarletteHTTPException) -> Response:
+    """Keep internal error text out of 5xx responses.
+
+    Handlers across the app answer with ``HTTPException(500, detail=str(e))``. That is a
+    *handled* exception, so the sanitize_errors middleware above never sees it and the
+    original text - database messages included - reached the client whatever
+    DEVELOPMENT_MODE said. Sanitising here covers every such handler at once, including
+    ones added later. 4xx details are written for the user and are left alone.
+    """
+    if exc.status_code >= 500 and not DEVELOPMENT_MODE:
+        logger.error(
+            "Server error returned to client",
+            extra={"path": request.url.path, "status_code": exc.status_code, "detail": str(exc.detail)},
+        )
+        exc = StarletteHTTPException(
+            status_code=exc.status_code,
+            detail="An internal error occurred. Please try again later.",
+            headers=exc.headers,
+        )
+    return await http_exception_handler(request, exc)
+
+
 # Add security headers middleware
 @app.middleware("http")
 async def add_security_headers(request: Request, call_next):
@@ -259,7 +309,12 @@ async def add_security_headers(request: Request, call_next):
     response = await call_next(request)
     response.headers["X-Content-Type-Options"] = "nosniff"
     response.headers["X-Frame-Options"] = "DENY"
-    response.headers["X-XSS-Protection"] = "1; mode=block"
+    # Don't leak the full URL (share links carry a capability token in the path) to
+    # third-party hosts.
+    response.headers["Referrer-Policy"] = "strict-origin-when-cross-origin"
+    # Nothing here uses the camera, microphone or geolocation; deny them outright.
+    response.headers["Permissions-Policy"] = "camera=(), microphone=(), geolocation=(), payment=()"
+    response.headers["Content-Security-Policy"] = CONTENT_SECURITY_POLICY
     # Only add HSTS in production (HTTPS)
     if not DEVELOPMENT_MODE:
         response.headers["Strict-Transport-Security"] = "max-age=31536000; includeSubDomains"

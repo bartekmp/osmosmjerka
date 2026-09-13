@@ -12,6 +12,13 @@ logger = logging.getLogger(__name__)
 
 router = APIRouter(tags=["changelog"])
 
+# Both endpoints below answer from _changelog_cache, so a request costs a dict lookup and
+# the body is the same constant for everyone. The old ceiling of 5 a minute was therefore
+# protecting nothing, and it was per-IP: a classroom sits behind one NAT address, so the
+# sixth student to open the page in a minute got a 429 and an empty version in the footer.
+# Still bounded, because the endpoints are unauthenticated - just not below real usage.
+CHANGELOG_RATE_LIMIT_PER_MINUTE = 60
+
 # Path to CHANGELOG.md - in production it's in the repo root
 CHANGELOG_PATH = Path(__file__).parent.parent.parent.parent / "CHANGELOG.md"
 
@@ -174,7 +181,7 @@ def compare_versions(v1: str, v2: str) -> int:
 
 
 @router.get("/version")
-@rate_limit(max_requests=5, window_seconds=60)  # 5 requests per minute
+@rate_limit(max_requests=CHANGELOG_RATE_LIMIT_PER_MINUTE, window_seconds=60)
 async def get_version(request: Request):
     """Get the current application version."""
     _, version = _get_cached_changelog()
@@ -182,7 +189,7 @@ async def get_version(request: Request):
 
 
 @router.get("/whats-new")
-@rate_limit(max_requests=5, window_seconds=60)  # 5 requests per minute
+@rate_limit(max_requests=CHANGELOG_RATE_LIMIT_PER_MINUTE, window_seconds=60)
 async def get_whats_new(
     request: Request,
     since: str | None = Query(None, description="Only return entries newer than this version"),
@@ -191,7 +198,7 @@ async def get_whats_new(
     """
     Get changelog entries for the What's New feature.
 
-    Rate limited to 5 requests per minute.
+    Rate limited per IP; see CHANGELOG_RATE_LIMIT_PER_MINUTE.
     Cached for 15 minutes.
 
     Args:
