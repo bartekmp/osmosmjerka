@@ -457,11 +457,10 @@ class TestSharedAddressLimits:
 
     @patch("osmosmjerka.database.db_manager.get_categories_for_language_set")
     def test_a_class_can_all_load_the_category_list(self, mock_get_categories, client):
-        from osmosmjerka.cache import categories_cache, rate_limiter
+        from osmosmjerka.cache import rate_limiter
 
         mock_get_categories.return_value = ["A", "B"]
         rate_limiter.requests.clear()
-        categories_cache.invalidate()
 
         with patch.dict("os.environ", {"TESTING": "false"}):
             statuses = {client.get("/api/categories?language_set_id=1").status_code for _ in range(self.CLASS_SIZE)}
@@ -473,15 +472,12 @@ class TestSharedAddressLimits:
     @patch("osmosmjerka.database.db_manager.get_phrases")
     @patch("osmosmjerka.game_api.phrases._generate_grid_with_exact_phrase_count")
     def test_a_class_can_all_start_a_game(self, mock_generate_grid, mock_get_phrases, mock_get_categories, client):
-        from osmosmjerka.cache import phrases_cache, rate_limiter
+        from osmosmjerka.cache import rate_limiter
 
         mock_get_categories.return_value = ["A"]
         mock_get_phrases.return_value = [{"phrase": "test", "categories": "A", "translation": "test"}] * 20
         mock_generate_grid.return_value = ([["A"]], [{"phrase": "test"}])
         rate_limiter.requests.clear()
-        # An earlier test in this file asks for the same category with no phrases behind
-        # it, and cache_response stores that 404 like any other response.
-        phrases_cache.invalidate()
 
         with patch.dict("os.environ", {"TESTING": "false"}):
             statuses = {client.get("/api/phrases?category=A").status_code for _ in range(self.CLASS_SIZE)}

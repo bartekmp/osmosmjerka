@@ -370,3 +370,46 @@ class TestCacheResponseDecorator:
         assert result2 == "data_news"
         assert result3 == "data_sports"
         assert call_count == 2  # "sports" was cached after first call
+
+    @pytest.mark.asyncio
+    async def test_an_error_response_is_not_cached(self):
+        """A 404 or 500 is a transient fact about one request, not a value to serve back.
+
+        Regression test: /api/phrases returns a 404 JSONResponse when a category has no
+        phrases behind it, and the decorator stored it like any other result - so one
+        failed lookup, or one transient database error, froze that category as broken for
+        every caller sharing the key until the TTL expired.
+        """
+        from fastapi.responses import JSONResponse
+
+        cache = AsyncLRUCache(maxsize=10, ttl=300)
+        statuses = iter([404, 200])
+
+        @cache_response(cache, key_prefix="test")
+        async def flaky(category: str):
+            status = next(statuses)
+            return JSONResponse({"detail": "x"}, status_code=status)
+
+        first = await flaky(category="animals")
+        second = await flaky(category="animals")
+
+        assert first.status_code == 404
+        assert second.status_code == 200, "the 404 was served back from the cache"
+
+    @pytest.mark.asyncio
+    async def test_a_successful_response_object_is_still_cached(self):
+        from fastapi.responses import JSONResponse
+
+        cache = AsyncLRUCache(maxsize=10, ttl=300)
+        calls = 0
+
+        @cache_response(cache, key_prefix="test")
+        async def ok(category: str):
+            nonlocal calls
+            calls += 1
+            return JSONResponse({"detail": "x"})
+
+        await ok(category="animals")
+        await ok(category="animals")
+
+        assert calls == 1

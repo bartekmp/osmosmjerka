@@ -7,7 +7,7 @@ from collections.abc import Callable
 from functools import wraps
 from typing import Any, TypeVar
 
-from fastapi import HTTPException, Request
+from fastapi import HTTPException, Request, Response
 from osmosmjerka.logging_config import get_logger
 
 F = TypeVar("F", bound=Callable[..., Any])
@@ -201,6 +201,11 @@ def rate_limit(max_requests: int, window_seconds: int) -> Callable[[F], F]:
     return decorator
 
 
+def _is_error_response(result: Any) -> bool:
+    """True for a Response carrying a 4xx or 5xx status."""
+    return isinstance(result, Response) and result.status_code >= 400
+
+
 def cache_response(cache_instance: AsyncLRUCache, key_prefix: str = "", vary_on_user: bool = False) -> Callable[[F], F]:
     """Decorator to cache FastAPI endpoint responses.
 
@@ -255,8 +260,13 @@ def cache_response(cache_instance: AsyncLRUCache, key_prefix: str = "", vary_on_
             # Execute function and cache result
             result = await func(*args, **kwargs)
 
-            # Only cache if refresh was not requested (to avoid caching forced refreshes)
-            if not refresh_requested:
+            # Only cache if refresh was not requested (to avoid caching forced refreshes),
+            # and never cache a failure: an error response is a fact about one request, not
+            # a value to serve back. /api/phrases answers 404 when a category has no phrases
+            # behind it, so without this one failed lookup - or one transient database error
+            # - froze that category as broken for every caller sharing the key until the TTL
+            # expired.
+            if not refresh_requested and not _is_error_response(result):
                 cache_instance.set(cache_key, result)
 
             return result
