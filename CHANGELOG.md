@@ -2,6 +2,47 @@
 
 <!-- version list -->
 
+## v1.51.8 (2026-09-13)
+
+### Bug Fixes
+
+- Bound the unauthenticated export endpoint
+  ([#251](https://github.com/bartekmp/osmosmjerka/pull/251),
+  [`329fd21`](https://github.com/bartekmp/osmosmjerka/commit/329fd21506d3d23dd2b6939faaa937bf8a6665e5))
+
+- Close the security findings from the main-branch review
+  ([#251](https://github.com/bartekmp/osmosmjerka/pull/251),
+  [`329fd21`](https://github.com/bartekmp/osmosmjerka/commit/329fd21506d3d23dd2b6939faaa937bf8a6665e5))
+
+- Keep internal error text out of 5xx responses
+  ([#251](https://github.com/bartekmp/osmosmjerka/pull/251),
+  [`329fd21`](https://github.com/bartekmp/osmosmjerka/commit/329fd21506d3d23dd2b6939faaa937bf8a6665e5))
+
+- Raise the per-IP limits that a classroom was tripping
+  ([#251](https://github.com/bartekmp/osmosmjerka/pull/251),
+  [`329fd21`](https://github.com/bartekmp/osmosmjerka/commit/329fd21506d3d23dd2b6939faaa937bf8a6665e5))
+
+- Rate limit /admin/login ([#251](https://github.com/bartekmp/osmosmjerka/pull/251),
+  [`329fd21`](https://github.com/bartekmp/osmosmjerka/commit/329fd21506d3d23dd2b6939faaa937bf8a6665e5))
+
+- Scope session deletion to the phrase set's owner
+  ([#251](https://github.com/bartekmp/osmosmjerka/pull/251),
+  [`329fd21`](https://github.com/bartekmp/osmosmjerka/commit/329fd21506d3d23dd2b6939faaa937bf8a6665e5))
+
+- Stop caching error responses ([#251](https://github.com/bartekmp/osmosmjerka/pull/251),
+  [`329fd21`](https://github.com/bartekmp/osmosmjerka/commit/329fd21506d3d23dd2b6939faaa937bf8a6665e5))
+
+- Stop X-Forwarded-For spoofing and add the missing security headers
+  ([#251](https://github.com/bartekmp/osmosmjerka/pull/251),
+  [`329fd21`](https://github.com/bartekmp/osmosmjerka/commit/329fd21506d3d23dd2b6939faaa937bf8a6665e5))
+
+### Chores
+
+- **deps**: Update dependency python-multipart to v0.0.31
+  ([#251](https://github.com/bartekmp/osmosmjerka/pull/251),
+  [`329fd21`](https://github.com/bartekmp/osmosmjerka/commit/329fd21506d3d23dd2b6939faaa937bf8a6665e5))
+
+
 ## v1.51.7 (2026-09-05)
 
 ### Bug Fixes
