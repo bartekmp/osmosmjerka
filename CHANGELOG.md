@@ -2,6 +2,15 @@
 
 <!-- version list -->
 
+## v1.51.9 (2026-10-05)
+
+### Bug Fixes
+
+- Keep the used-hint count across a reload
+  ([#256](https://github.com/bartekmp/osmosmjerka/pull/256),
+  [`f76fa10`](https://github.com/bartekmp/osmosmjerka/commit/f76fa10db15206929cd42fcb5b3e7a05f693e4d3))
+
+
 ## v1.51.8 (2026-09-13)
 
 ### Bug Fixes
