@@ -320,6 +320,8 @@ function AppContent() {
       setCurrentElapsedTime,
       setGridStatus,
       setIsPaused,
+      setHintsUsed,
+      setRemainingHints,
       setGameType: (type) => {
         // Only update game type state if we're on root
         // If on specific route, we already enforced uniformity via requiredType
@@ -351,6 +353,8 @@ function AppContent() {
       elapsedTimeSeconds: currentElapsedTime, // Save tracked elapsed time
       isPaused,
       gameType,
+      hintsUsed,
+      remainingHints,
     });
   }, [
     grid,
@@ -365,6 +369,8 @@ function AppContent() {
     currentElapsedTime,
     isPaused,
     gameType,
+    hintsUsed,
+    remainingHints,
   ]);
 
   useEffect(() => {

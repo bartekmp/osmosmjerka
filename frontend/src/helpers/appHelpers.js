@@ -18,7 +18,9 @@ export function restoreGameState(setters, requiredGameType = null) {
         setCurrentElapsedTime,
         setGridStatus,
         setIsPaused,
-        setGameType
+        setGameType,
+        setHintsUsed,
+        setRemainingHints
     } = setters;
 
     const saved = localStorage.getItem('osmosmjerkaGameState');
@@ -58,6 +60,18 @@ export function restoreGameState(setters, requiredGameType = null) {
                 }
                 if (setGameType) {
                     setGameType(state.gameType || "word_search");
+                }
+
+                // Hints are capped per game, so the count has to survive a reload or the
+                // cap means nothing - reloading after each hint handed out a fresh three.
+                // Only applied when the saved game actually carries the fields: a save
+                // written before they were tracked must keep App's defaults rather than
+                // restoring `undefined`.
+                if (setHintsUsed && typeof state.hintsUsed === 'number') {
+                    setHintsUsed(state.hintsUsed);
+                }
+                if (setRemainingHints && typeof state.remainingHints === 'number') {
+                    setRemainingHints(state.remainingHints);
                 }
 
                 // Restore timer state if available
