@@ -2,6 +2,23 @@
 
 <!-- version list -->
 
+## v1.51.10 (2026-10-08)
+
+### Chores
+
+- **deps**: Update docker/build-push-action digest to c3c9e26
+  ([#253](https://github.com/bartekmp/osmosmjerka/pull/253),
+  [`7830790`](https://github.com/bartekmp/osmosmjerka/commit/783079074a25fef0e8c1e0d2c627a369573027a0))
+
+- **deps**: Update docker/setup-buildx-action digest to f87e599
+  ([#254](https://github.com/bartekmp/osmosmjerka/pull/254),
+  [`0c685fb`](https://github.com/bartekmp/osmosmjerka/commit/0c685fb845443966a229dac988891d4d9d38e3a0))
+
+- **deps**: Update postgres:18 docker digest to 74935e7
+  ([#255](https://github.com/bartekmp/osmosmjerka/pull/255),
+  [`7b418fc`](https://github.com/bartekmp/osmosmjerka/commit/7b418fcb9667485840031a11f093637ff2197ffe))
+
+
 ## v1.51.9 (2026-10-05)
 
 ### Bug Fixes
