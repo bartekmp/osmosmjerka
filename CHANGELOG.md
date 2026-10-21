@@ -2,6 +2,18 @@
 
 <!-- version list -->
 
+## v1.51.12 (2026-10-21)
+
+### Bug Fixes
+
+- Name psycopg2 explicitly and stop introspecting router paths
+  ([#250](https://github.com/bartekmp/osmosmjerka/pull/250),
+  [`2e81ce1`](https://github.com/bartekmp/osmosmjerka/commit/2e81ce1a6d492c541d13c220d130a61ec5feb646))
+
+- **deps**: Update python dependencies ([#250](https://github.com/bartekmp/osmosmjerka/pull/250),
+  [`2e81ce1`](https://github.com/bartekmp/osmosmjerka/commit/2e81ce1a6d492c541d13c220d130a61ec5feb646))
+
+
 ## v1.51.11 (2026-10-21)
 
 ### Chores
