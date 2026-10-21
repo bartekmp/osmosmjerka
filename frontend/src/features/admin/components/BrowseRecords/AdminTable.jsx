@@ -24,13 +24,16 @@ import AddIcon from '@mui/icons-material/Add';
 import CheckIcon from '@mui/icons-material/Check';
 import CloseIcon from '@mui/icons-material/Close';
 import { useTranslation } from 'react-i18next';
+// v9 moved the v8 table API behind the `/legacy` entry point - the root export is now
+// the new `useTable` hook - so the imports below are aliased rather than the component
+// rewritten. `flexRender` stayed where it was.
+import { flexRender } from '@tanstack/react-table';
 import {
-    useReactTable,
+    useLegacyTable as useReactTable,
     getCoreRowModel,
     getFilteredRowModel,
-    flexRender,
-    createColumnHelper
-} from '@tanstack/react-table';
+    legacyCreateColumnHelper as createColumnHelper
+} from '@tanstack/react-table/legacy';
 import { keyframes } from '@mui/system';
 import { lighten } from '@mui/material/styles';
 import { calculateMinColumnWidths } from './adminTableUtils';

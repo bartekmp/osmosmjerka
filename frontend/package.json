@@ -67,6 +67,10 @@
             "@testing-library/jest-dom",
             "./jest.setup.js"
         ],
+        "transformIgnorePatterns": [
+            "/node_modules/(?!@tanstack/)",
+            "\\.pnp\\.[^\\\\]+$"
+        ],
         "moduleNameMapper": {
             "^@/(.*)$": "<rootDir>/src/$1",
             "^@features/(.*)$": "<rootDir>/src/features/$1",
