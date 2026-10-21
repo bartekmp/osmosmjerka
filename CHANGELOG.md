@@ -2,6 +2,15 @@
 
 <!-- version list -->
 
+## v1.51.11 (2026-10-21)
+
+### Chores
+
+- **deps**: Update actions/setup-node digest to 949feb2
+  ([#258](https://github.com/bartekmp/osmosmjerka/pull/258),
+  [`4b161dd`](https://github.com/bartekmp/osmosmjerka/commit/4b161dd2aef44359fcd177b3e5f46e1d757f65c7))
+
+
 ## v1.51.10 (2026-10-08)
 
 ### Chores
