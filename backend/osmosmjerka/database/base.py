@@ -87,9 +87,15 @@ class BaseDatabaseManager:
                     max_size=pool_size + max_overflow,
                 )
             if self.engine is None:
-                # SQLAlchemy engine pool settings
+                # SQLAlchemy engine pool settings.
+                # The URL names psycopg2 explicitly rather than relying on the dialect
+                # default: SQLAlchemy 2.1 switched the default DBAPI for a bare
+                # "postgresql://" from psycopg2 to psycopg (v3), which this project does
+                # not install, and the app then failed to start. It is derived here
+                # rather than in _ensure_database_url because `databases` resolves its
+                # own async backend from that URL and only understands the bare scheme.
                 self.engine = create_engine(
-                    database_url,
+                    database_url.replace("postgresql://", "postgresql+psycopg2://", 1),
                     pool_size=pool_size,
                     max_overflow=max_overflow,
                     pool_timeout=pool_timeout,

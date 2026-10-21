@@ -31,11 +31,16 @@ def test_admin_api_router_structure():
     assert len(router.routes) > 0
 
 
-def test_admin_api_status_endpoint_exists():
-    """Test that status endpoint exists in router"""
-    # Check that status endpoint is registered
-    route_paths = [getattr(route, "path", "") for route in router.routes]
-    assert "/admin/status" in route_paths
+def test_admin_api_status_endpoint_exists(client):
+    """Test that status endpoint is registered.
+
+    Asked of the mounted app rather than by reading ``router.routes``: since FastAPI
+    0.156 an included sub-router stays in that list as an ``_IncludedRouter`` wrapper
+    with no ``path`` attribute, resolved per request, so the old introspection found
+    nothing. A registered route answers 401 here (it requires an admin); an unregistered
+    one answers 404.
+    """
+    assert client.get("/admin/status").status_code != 404
 
 
 @patch("osmosmjerka.admin_api.users.authenticate_user")
