@@ -7,8 +7,10 @@
     ":automergeMinor",
     ":combinePatchMinorReleases",
     ":semanticCommits",
-    ":disableDependencyDashboard",
-    "schedule:weekly"
+    ":disableDependencyDashboard"
+  ],
+  "schedule": [
+    "before 7am on the first day of the month"
   ],
   "labels": [
     "dependencies"
@@ -17,7 +19,7 @@
   "rangeStrategy": "replace",
   "prConcurrentLimit": 5,
   "prCreation": "immediate",
-  "rebaseWhen": "behind-base-branch",
+  "rebaseWhen": "conflicted",
   "stopUpdatingLabel": "renovate-stop",
   "ignoreDeps": [
     "react-scripts"
@@ -62,9 +64,6 @@
       "groupName": "Python dependencies",
       "labels": [
         "python"
-      ],
-      "schedule": [
-        "before 7am on the first day of the month"
       ]
     },
     {
@@ -74,9 +73,6 @@
       "groupName": "Frontend (React) dependencies",
       "labels": [
         "frontend"
-      ],
-      "schedule": [
-        "before 7am on the first day of the month"
       ]
     },
     {
@@ -86,9 +82,6 @@
       "groupName": "Docker base images",
       "labels": [
         "docker"
-      ],
-      "schedule": [
-        "before 7am on the first day of the month"
       ],
       "pinDigests": true
     },
