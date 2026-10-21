@@ -27,7 +27,10 @@ def get_url() -> str:
     pg_password = urllib.parse.quote_plus(os.getenv("POSTGRES_PASSWORD", ""))
     pg_database = os.getenv("POSTGRES_DATABASE")
     if pg_host and pg_port and pg_user and pg_password and pg_database:
-        return f"postgresql://{pg_user}:{pg_password}@{pg_host}:{pg_port}/{pg_database}"
+        # Name the driver rather than relying on the dialect default: SQLAlchemy 2.1
+        # switched the default DBAPI for a bare "postgresql://" from psycopg2 to psycopg
+        # (v3), which this project does not install.
+        return f"postgresql+psycopg2://{pg_user}:{pg_password}@{pg_host}:{pg_port}/{pg_database}"
     url = config.get_main_option("sqlalchemy.url", "")
     if not url:
         raise ValueError("No database URL configured. Set POSTGRES_* env vars or sqlalchemy.url in alembic.ini.")
