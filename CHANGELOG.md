@@ -2,6 +2,27 @@
 
 <!-- version list -->
 
+## v1.51.13 (2026-10-21)
+
+### Bug Fixes
+
+- Move the admin table onto react-table v9's legacy entry
+  ([`580efde`](https://github.com/bartekmp/osmosmjerka/commit/580efde5a5aeffc62a46b4fa384395cf70f8d4ab))
+
+- **deps**: Update dependency @tanstack/react-table to v9
+  ([#247](https://github.com/bartekmp/osmosmjerka/pull/247),
+  [`7076cfd`](https://github.com/bartekmp/osmosmjerka/commit/7076cfdfdc3d72d1bb058289df7e9da3f3d43464))
+
+### Chores
+
+- Run renovate monthly and stop rebasing open PRs on every push
+  ([`2b8237a`](https://github.com/bartekmp/osmosmjerka/commit/2b8237a2794050576fbeac6a2bae6477a2c783c3))
+
+- **deps**: Update actions/create-github-app-token digest to 64ab729
+  ([#257](https://github.com/bartekmp/osmosmjerka/pull/257),
+  [`fbae59b`](https://github.com/bartekmp/osmosmjerka/commit/fbae59bd5de4725d5495d79c385fbfe69beb2ba1))
+
+
 ## v1.51.12 (2026-10-21)
 
 ### Bug Fixes
