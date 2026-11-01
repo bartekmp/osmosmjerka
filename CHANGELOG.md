@@ -2,6 +2,24 @@
 
 <!-- version list -->
 
+## v1.51.15 (2026-11-01)
+
+### Bug Fixes
+
+- **deps**: Update dependency pillow to v13
+  ([#260](https://github.com/bartekmp/osmosmjerka/pull/260),
+  [`88fd4be`](https://github.com/bartekmp/osmosmjerka/commit/88fd4be6462bc9367ede081c9ba65a09e9ab7026))
+
+### Chores
+
+- **deps**: Update actions/setup-python digest to 6d4fd22
+  ([#261](https://github.com/bartekmp/osmosmjerka/pull/261),
+  [`45c6403`](https://github.com/bartekmp/osmosmjerka/commit/45c640363f6803524e3d81d2011e47593dfad408))
+
+- **deps**: Update node.js to v26 ([#259](https://github.com/bartekmp/osmosmjerka/pull/259),
+  [`70b631b`](https://github.com/bartekmp/osmosmjerka/commit/70b631ba5ecb74569b8dd12d9e0fdbc10b36b9e5))
+
+
 ## v1.51.14 (2026-11-01)
 
 ### Chores
