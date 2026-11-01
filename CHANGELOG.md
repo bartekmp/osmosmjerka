@@ -2,6 +2,14 @@
 
 <!-- version list -->
 
+## v1.51.14 (2026-11-01)
+
+### Chores
+
+- **deps**: Update docker base images ([#262](https://github.com/bartekmp/osmosmjerka/pull/262),
+  [`f536ca8`](https://github.com/bartekmp/osmosmjerka/commit/f536ca81be3ec3b6fbe8a0570930b1dfafc91f1a))
+
+
 ## v1.51.13 (2026-10-21)
 
 ### Bug Fixes
