@@ -1,4 +1,4 @@
-FROM python:3.14-slim@sha256:cad9a2c871761c413caa6fdd6441c783451e740a48aaeba60ae62a8b53525ef6 AS backend
+FROM python:3.15-slim@sha256:94d3426f1def7db4a106a232ac121bfd975393e5dfd40a619b955fae45fe7913 AS backend
 WORKDIR /app
 COPY backend/ backend/
 COPY pyproject.toml pyproject.toml
@@ -7,7 +7,7 @@ COPY pyproject.toml pyproject.toml
 # Note: This requires .env to exist.
 # COPY .env backend/.env
 
-FROM node:24-slim@sha256:ba849c60be29959425b8734d57b8b4b7d56f98edd9504c9af091d5281095a71e AS frontend
+FROM node:24-slim@sha256:c86ecead9e55a5210ac1727de38a4ca840bf03dcaf34dc9749addbf383b1920c AS frontend
 WORKDIR /app
 COPY frontend/ frontend/
 WORKDIR /app/frontend
@@ -21,7 +21,7 @@ ENV VITE_BASE_PATH=/static/
 ENV VITE_APP_VERSION=${VERSION}
 RUN npm run build
 
-FROM python:3.14-slim@sha256:cad9a2c871761c413caa6fdd6441c783451e740a48aaeba60ae62a8b53525ef6
+FROM python:3.15-slim@sha256:94d3426f1def7db4a106a232ac121bfd975393e5dfd40a619b955fae45fe7913
 LABEL maintainer="bartekmp"
 LABEL description="Dockerfile for a Python backend with a Node.js frontend wordsearch game app called Osmosmjerka with PostgreSQL."
 
