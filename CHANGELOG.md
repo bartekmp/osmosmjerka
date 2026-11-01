@@ -2,6 +2,14 @@
 
 <!-- version list -->
 
+## v1.51.17 (2026-11-01)
+
+### Chores
+
+- Rebuild release
+  ([`e4002d2`](https://github.com/bartekmp/osmosmjerka/commit/e4002d22a1549858057edb5ea9a91a7d9c67c6a5))
+
+
 ## v1.51.16 (2026-11-01)
 
 ### Bug Fixes
