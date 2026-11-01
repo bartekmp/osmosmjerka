@@ -2,6 +2,15 @@
 
 <!-- version list -->
 
+## v1.51.16 (2026-11-01)
+
+### Bug Fixes
+
+- Send language_set_id when clearing a language set
+  ([#263](https://github.com/bartekmp/osmosmjerka/pull/263),
+  [`42513ed`](https://github.com/bartekmp/osmosmjerka/commit/42513ed098daf380e88276eddf560e67cc727bd4))
+
+
 ## v1.51.15 (2026-11-01)
 
 ### Bug Fixes
