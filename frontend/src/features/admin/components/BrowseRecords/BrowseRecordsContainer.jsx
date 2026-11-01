@@ -344,7 +344,7 @@ export default function BrowseRecordsContainer({
 
             onReloadData={() => fetchRows(offset, limit, filterCategory, searchTerm, selectedLanguageSetId)}
             onDownloadPhrases={() => handleExportTxt(filterCategory)}
-            onClearDatabase={() => clearDb(() => fetchRows(offset, limit, filterCategory, searchTerm, selectedLanguageSetId))}
+            onClearDatabase={() => clearDb(() => fetchRows(offset, limit, filterCategory, searchTerm, selectedLanguageSetId), selectedLanguageSetId)}
             canManageAdvanced={canManageAdvanced}
 
             notification={notification}
