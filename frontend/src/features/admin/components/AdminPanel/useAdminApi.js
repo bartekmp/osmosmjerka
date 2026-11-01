@@ -144,10 +144,20 @@ export function useAdminApi({ setRows, setTotalRows, setDashboard, setError, set
         });
     }, [handleAuthError]);
 
-    const clearDb = useCallback((fetchRows) => {
-        if (!window.confirm("Are you sure you want to delete all data?")) return;
-        apiClient.delete("/admin/clear").then(() => fetchRows());
-    }, []);
+    // The backend clears one language set at a time, so language_set_id is required.
+    const clearDb = useCallback((fetchRows, languageSetId) => {
+        if (!languageSetId) {
+            setError("Select a language set before clearing it.");
+            return;
+        }
+        if (!window.confirm("Are you sure you want to delete all phrases in this language set?")) return;
+        return apiClient.delete(`/admin/clear?language_set_id=${languageSetId}`)
+            .then(() => fetchRows())
+            .catch((err) => {
+                logger.error('Error clearing language set:', err);
+                setError("Failed to clear the language set.");
+            });
+    }, [setError]);
 
     const handleDelete = useCallback((id, fetchRows, languageSetId) => {
         apiClient.delete(`/admin/row/${id}?language_set_id=${languageSetId}`).then(() => {
