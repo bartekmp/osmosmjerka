@@ -289,6 +289,24 @@ pipeline {
 
                                             export KUBECONFIG="$KUBECONFIG_FILE"
 
+                                            # Fail fast: a bad kubeconfig otherwise surfaces later
+                                            # as "failed to download openapi", which reads like a
+                                            # cluster fault. Check the identity, not just that
+                                            # authentication works.
+                                            WHOAMI=$(kubectl auth whoami -o jsonpath='{.status.userInfo.username}' 2>&1) || {
+                                                echo "ERROR: cannot authenticate to the cluster with the bound kubeconfig."
+                                                echo "kubectl: $WHOAMI"
+                                                exit 1
+                                            }
+                                            EXPECTED="system:serviceaccount:$KUBE_NAMESPACE:jenkins-deployer"
+                                            if [ "$WHOAMI" != "$EXPECTED" ]; then
+                                                echo "ERROR: the bound kubeconfig has an unexpected identity."
+                                                echo "  expected: $EXPECTED"
+                                                echo "  actual:   $WHOAMI"
+                                                exit 1
+                                            fi
+                                            echo "Authenticated as $WHOAMI"
+
                                             # Ensure prod credentials secret is up to date
                                             kubectl create secret generic prod-db-access \
                                                 --namespace "$KUBE_NAMESPACE" \
