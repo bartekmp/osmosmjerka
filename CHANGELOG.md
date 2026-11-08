@@ -2,6 +2,26 @@
 
 <!-- version list -->
 
+## v1.52.0 (2026-11-08)
+
+### Feature
+
+- Upload progress ([#264](https://github.com/bartekmp/osmosmjerka/pull/264),
+  [`7a073dc`](https://github.com/bartekmp/osmosmjerka/commit/7a073dc9e7541776b2dd12a17117edac5666a144))
+
+### Features
+
+- Upload phrases in chunks with a blocking progress dialog
+  ([#264](https://github.com/bartekmp/osmosmjerka/pull/264),
+  [`7a073dc`](https://github.com/bartekmp/osmosmjerka/commit/7a073dc9e7541776b2dd12a17117edac5666a144))
+
+### Performance Improvements
+
+- Record upload statistics in one query instead of one per phrase
+  ([#264](https://github.com/bartekmp/osmosmjerka/pull/264),
+  [`7a073dc`](https://github.com/bartekmp/osmosmjerka/commit/7a073dc9e7541776b2dd12a17117edac5666a144))
+
+
 ## v1.51.17 (2026-11-01)
 
 ### Chores
