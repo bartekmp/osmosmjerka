@@ -782,5 +782,13 @@
   "categories_space_separated": "Oddzielone spacją",
   "streak": "Seria",
   "mastery_leaderboard": "Ranking opanowanych słów",
-  "no_leaderboard_entries": "Jeszcze nie opanowano żadnych słów"
+  "no_leaderboard_entries": "Jeszcze nie opanowano żadnych słów",
+  "uploading_phrases": "Wysyłanie fraz",
+  "upload_progress_count": "{{processed}} z {{total}} fraz",
+  "upload_keep_open": "Nie zamykaj tego okna do zakończenia wysyłania.",
+  "upload_imported": "Zaimportowano {{count}} fraz.",
+  "upload_partial": "Zaimportowano {{imported}} z {{total}} fraz, po czym wysyłanie zostało przerwane.",
+  "upload_failed_at_line": "Problem występuje w linii {{line}} pliku lub dalej.",
+  "reading_file": "Czytanie pliku...",
+  "file_too_large": "Plik jest zbyt duży. Maksymalny rozmiar to {{size}} MB."
 }

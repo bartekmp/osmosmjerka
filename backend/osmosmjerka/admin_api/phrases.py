@@ -293,9 +293,8 @@ async def upload(
 
         if phrases_data:
             await run_in_threadpool(db_manager.fast_bulk_insert_phrases, language_set_id, phrases_data)
-            # Track statistics for bulk phrase addition
-            for _ in range(len(phrases_data)):
-                await db_manager.record_phrase_operation(user["id"], language_set_id, "added")
+            # One statistics update for the whole batch, not one per row.
+            await db_manager.record_phrase_operation(user["id"], language_set_id, "added", count=len(phrases_data))
             return JSONResponse(
                 {"message": f"Uploaded {len(phrases_data)} phrases"}, status_code=status.HTTP_201_CREATED
             )
@@ -345,8 +344,7 @@ async def upload_text(
 
         if phrases_data:
             await run_in_threadpool(db_manager.fast_bulk_insert_phrases, language_set_id, phrases_data)
-            for _ in range(len(phrases_data)):
-                await db_manager.record_phrase_operation(user["id"], language_set_id, "added")
+            await db_manager.record_phrase_operation(user["id"], language_set_id, "added", count=len(phrases_data))
             return JSONResponse(
                 {"message": f"Uploaded {len(phrases_data)} phrases"}, status_code=status.HTTP_201_CREATED
             )

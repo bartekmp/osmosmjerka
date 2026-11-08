@@ -756,3 +756,48 @@ def test_login_is_rate_limited_per_ip(mock_auth_user, client):
         assert client.post("/admin/login", json={"username": "a", "password": "b"}).status_code == 429
 
     rate_limiter.requests.clear()
+
+
+@patch("osmosmjerka.database.db_manager.record_phrase_operation")
+@patch("osmosmjerka.database.db_manager.fast_bulk_insert_phrases")
+@patch("osmosmjerka.admin_api.phrases.run_in_threadpool")
+def test_upload_records_statistics_in_one_call(
+    mock_threadpool, mock_bulk_insert, mock_record_phrase_operation, client, mock_admin_user
+):
+    """Bulk upload must bump statistics once with a count, not once per phrase.
+
+    One call per row meant 5k phrases took ~10k sequential queries (20-30s).
+    """
+    app.dependency_overrides[require_admin_access] = lambda: mock_admin_user
+    mock_threadpool.return_value = None
+    mock_bulk_insert.return_value = None
+    mock_record_phrase_operation.return_value = None
+
+    csv_content = "categories;phrase;translation\n" + "\n".join(f"cat;phrase{i};translation{i}" for i in range(50))
+
+    response = client.post("/admin/upload?language_set_id=1", files={"file": ("test.csv", csv_content, "text/csv")})
+
+    assert response.status_code == 201
+    assert response.json()["message"] == "Uploaded 50 phrases"
+    mock_record_phrase_operation.assert_called_once_with(mock_admin_user["id"], 1, "added", count=50)
+
+
+@patch("osmosmjerka.database.db_manager.record_phrase_operation")
+@patch("osmosmjerka.database.db_manager.fast_bulk_insert_phrases")
+@patch("osmosmjerka.admin_api.phrases.run_in_threadpool")
+def test_upload_text_records_statistics_in_one_call(
+    mock_threadpool, mock_bulk_insert, mock_record_phrase_operation, client, mock_admin_user
+):
+    """Same single-call statistics rule for the raw-text upload endpoint."""
+    app.dependency_overrides[require_admin_access] = lambda: mock_admin_user
+    mock_threadpool.return_value = None
+    mock_bulk_insert.return_value = None
+    mock_record_phrase_operation.return_value = None
+
+    content = "categories;phrase;translation\n" + "\n".join(f"cat;phrase{i};translation{i}" for i in range(10))
+
+    response = client.post("/admin/upload-text?language_set_id=4", json={"content": content})
+
+    assert response.status_code == 201
+    assert response.json()["message"] == "Uploaded 10 phrases"
+    mock_record_phrase_operation.assert_called_once_with(mock_admin_user["id"], 4, "added", count=10)

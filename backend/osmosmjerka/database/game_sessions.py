@@ -220,11 +220,18 @@ class GameSessionsMixin:
             )
             await database.execute(query)
 
-    async def record_phrase_operation(self, user_id: int, language_set_id: int, operation: str):
-        """Record phrase add/edit operation."""
+    async def record_phrase_operation(self, user_id: int, language_set_id: int, operation: str, count: int = 1):
+        """Record phrase add/edit operations.
+
+        `count` lets a bulk import add N in a single statement. Calling this once per
+        row costs a SELECT plus an UPDATE each time, so a 5k-phrase upload used to run
+        ~10k sequential queries and take 20-30 seconds.
+        """
         if operation not in ["added", "edited"]:
+            return
+        if count <= 0:
             return
 
         field_name = f"phrases_{operation}"
-        await self._update_user_statistics(user_id, language_set_id, **{field_name: 1})
+        await self._update_user_statistics(user_id, language_set_id, **{field_name: count})
         self._invalidate_user_cache(user_id)
