@@ -2,6 +2,24 @@
 
 <!-- version list -->
 
+## v1.52.1 (2026-11-08)
+
+### Bug Fixes
+
+- Deploy guardrails ([#265](https://github.com/bartekmp/osmosmjerka/pull/265),
+  [`bcf7f12`](https://github.com/bartekmp/osmosmjerka/commit/bcf7f120cc2fdac274269b68901d96bc0479c7f5))
+
+### Continuous Integration
+
+- Build the release image from the version tag, not the triggering commit
+  ([#265](https://github.com/bartekmp/osmosmjerka/pull/265),
+  [`bcf7f12`](https://github.com/bartekmp/osmosmjerka/commit/bcf7f120cc2fdac274269b68901d96bc0479c7f5))
+
+- Verify the cluster identity before the staging deploy
+  ([#265](https://github.com/bartekmp/osmosmjerka/pull/265),
+  [`bcf7f12`](https://github.com/bartekmp/osmosmjerka/commit/bcf7f120cc2fdac274269b68901d96bc0479c7f5))
+
+
 ## v1.52.0 (2026-11-08)
 
 ### Feature
