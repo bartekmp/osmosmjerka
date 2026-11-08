@@ -5,6 +5,7 @@ from osmosmjerka.database import db_manager
 from osmosmjerka.game_api.changelog import router as changelog_router
 from osmosmjerka.game_api.export import router as export_router
 from osmosmjerka.game_api.game_sessions import router as game_sessions_router
+from osmosmjerka.game_api.health import router as health_router
 from osmosmjerka.game_api.helpers import (
     _generate_grid_with_exact_phrase_count,
     get_grid_size_and_num_phrases,
@@ -34,6 +35,7 @@ router.include_router(list_sharing_router)
 router.include_router(student_groups_router)
 router.include_router(student_study_router)
 router.include_router(changelog_router)
+router.include_router(health_router)
 router.include_router(learn_router)
 
 # Export functions for backward compatibility with tests and other code
