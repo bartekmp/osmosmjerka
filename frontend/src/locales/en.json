@@ -782,5 +782,13 @@
   "categories_space_separated": "Space-separated",
   "streak": "Streak",
   "mastery_leaderboard": "Mastery leaderboard",
-  "no_leaderboard_entries": "No mastered words yet"
+  "no_leaderboard_entries": "No mastered words yet",
+  "uploading_phrases": "Uploading phrases",
+  "upload_progress_count": "{{processed}} of {{total}} phrases",
+  "upload_keep_open": "Keep this window open until the upload finishes.",
+  "upload_imported": "Imported {{count}} phrases.",
+  "upload_partial": "Imported {{imported}} of {{total}} phrases, then the upload stopped.",
+  "upload_failed_at_line": "The problem is at or after line {{line}} of the file.",
+  "reading_file": "Reading file...",
+  "file_too_large": "File is too large. Maximum size is {{size}} MB."
 }

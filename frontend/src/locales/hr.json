@@ -782,5 +782,13 @@
   "categories_space_separated": "Odvojeno razmakom",
   "streak": "Niz",
   "mastery_leaderboard": "Ljestvica savladanih riječi",
-  "no_leaderboard_entries": "Još nema savladanih riječi"
+  "no_leaderboard_entries": "Još nema savladanih riječi",
+  "uploading_phrases": "Učitavanje fraza",
+  "upload_progress_count": "{{processed}} od {{total}} fraza",
+  "upload_keep_open": "Ostavite ovaj prozor otvoren do završetka učitavanja.",
+  "upload_imported": "Učitano {{count}} fraza.",
+  "upload_partial": "Učitano {{imported}} od {{total}} fraza, nakon čega je učitavanje prekinuto.",
+  "upload_failed_at_line": "Problem je na ili nakon {{line}}. retka datoteke.",
+  "reading_file": "Čitanje datoteke...",
+  "file_too_large": "Datoteka je prevelika. Najveća dopuštena veličina je {{size}} MB."
 }

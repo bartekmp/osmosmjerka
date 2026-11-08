@@ -1,5 +1,4 @@
 import React from 'react';
-import apiClient from '@shared/utils/apiClient';
 import { useRef, useState } from 'react';
 import { Snackbar, Alert, IconButton } from '@mui/material';
 import CloseIcon from '@mui/icons-material/Close';
@@ -9,6 +8,23 @@ import { useTranslation } from 'react-i18next';
 import PropTypes from 'prop-types';
 import { ResponsiveActionButton, STORAGE_KEYS } from '../../../shared';
 import PastePhraseDialog from './AdminPanel/PastePhraseDialog';
+import UploadProgressDialog from './UploadProgressDialog';
+import { uploadPhrasesInChunks } from './uploadPhrasesInChunks';
+
+// Mirrors MAX_UPLOAD_SIZE on the backend. Chunking means no single request is ever
+// this big, so the limit is enforced here instead of per request.
+const MAX_UPLOAD_BYTES = 5 * 1024 * 1024;
+
+// FileReader rather than File.text(): it is supported everywhere the app runs and in
+// jsdom, where File.text() does not exist.
+function readFileAsText(file) {
+    return new Promise((resolve, reject) => {
+        const reader = new window.FileReader();
+        reader.onload = () => resolve(String(reader.result));
+        reader.onerror = () => reject(new Error('Could not read the file'));
+        reader.readAsText(file);
+    });
+}
 
 export default function UploadForm({ onUpload, selectedLanguageSetId = null, compact = false, forceMobileText = false }) {
     const { t } = useTranslation();
@@ -21,6 +37,7 @@ export default function UploadForm({ onUpload, selectedLanguageSetId = null, com
         autoHideDuration: 3000,
     });
     const [pasteDialogOpen, setPasteDialogOpen] = useState(false);
+    const [progress, setProgress] = useState(null);
 
     const getEffectiveLanguageSetId = () => {
         const fromProps = selectedLanguageSetId ?? null;
@@ -57,43 +74,58 @@ export default function UploadForm({ onUpload, selectedLanguageSetId = null, com
             return;
         }
 
-        setLoading(true);
         const file = e.target.files?.[0];
-        if (!file) {
-            setLoading(false);
-            return;
-        }
+        e.target.value = '';
+        if (!file) return;
 
-        const formData = new FormData();
-        formData.append('file', file);
-
-        const languageSetId = getEffectiveLanguageSetId();
-
-        try {
-            const url = `/admin/upload?language_set_id=${encodeURIComponent(languageSetId)}`;
-            const res = await apiClient.post(url, formData);
+        if (file.size > MAX_UPLOAD_BYTES) {
             setNotification({
                 open: true,
-                message: res.data.message || t('upload_successful'),
-                severity: 'success',
-                autoHideDuration: 3000,
-            });
-            onUpload();
-        } catch (err) {
-            let msg = t('upload_failed');
-            if (err.response && err.response.data && (err.response.data.message || err.response.data.detail)) {
-                msg = err.response.data.message || err.response.data.detail;
-            }
-            setNotification({
-                open: true,
-                message: msg,
+                message: t('file_too_large', 'File is too large. Maximum size is {{size}} MB.', {
+                    size: Math.round(MAX_UPLOAD_BYTES / (1024 * 1024)),
+                }),
                 severity: 'error',
                 autoHideDuration: null,
             });
+            return;
+        }
+
+        const languageSetId = getEffectiveLanguageSetId();
+        setLoading(true);
+        setProgress({ status: 'reading', processed: 0, total: 0 });
+
+        try {
+            const text = await readFileAsText(file);
+            setProgress({ status: 'uploading', processed: 0, total: 0 });
+
+            const { imported, total } = await uploadPhrasesInChunks({
+                text,
+                languageSetId,
+                onProgress: ({ processed, total: rowCount }) =>
+                    setProgress({ status: 'uploading', processed, total: rowCount }),
+            });
+
+            setProgress({ status: 'success', processed: imported, total });
+        } catch (err) {
+            setProgress({
+                status: 'error',
+                processed: err.imported || 0,
+                total: err.total || 0,
+                message: err.message || t('upload_failed'),
+                failedAtLine: err.failedAtLine || null,
+            });
         } finally {
             setLoading(false);
-            e.target.value = '';
         }
+    };
+
+    // The dialog is the only place the result is reported, so closing it is what
+    // refreshes the table - no 3-second snackbar to miss after a long upload.
+    const handleProgressClose = () => {
+        const succeeded = progress?.status === 'success';
+        const importedSomething = (progress?.processed || 0) > 0;
+        setProgress(null);
+        if (succeeded || importedSomething) onUpload();
     };
 
     const buttonSx = (compact || forceMobileText) ? {} : { minWidth: { md: 200 } };
@@ -151,6 +183,17 @@ export default function UploadForm({ onUpload, selectedLanguageSetId = null, com
                 }}
                 selectedLanguageSetId={selectedLanguageSetId}
             />
+            {progress && (
+                <UploadProgressDialog
+                    open
+                    status={progress.status}
+                    processed={progress.processed}
+                    total={progress.total}
+                    message={progress.message}
+                    failedAtLine={progress.failedAtLine}
+                    onClose={handleProgressClose}
+                />
+            )}
             <Snackbar
                 open={notification.open}
                 autoHideDuration={notification.severity === 'success' ? notification.autoHideDuration : null}
