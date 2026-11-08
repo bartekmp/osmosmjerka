@@ -2,6 +2,15 @@
 
 <!-- version list -->
 
+## v1.53.0 (2026-11-08)
+
+### Features
+
+- Add a cached /api/health endpoint for monitoring
+  ([#266](https://github.com/bartekmp/osmosmjerka/pull/266),
+  [`7a3f6d2`](https://github.com/bartekmp/osmosmjerka/commit/7a3f6d232b3cef6e3fc1767fe31bb94d2db34ba2))
+
+
 ## v1.52.1 (2026-11-08)
 
 ### Bug Fixes
