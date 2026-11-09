@@ -43,6 +43,10 @@ RUN pip install .
 # Ensure DEVELOPMENT_MODE is false in production
 ENV DEVELOPMENT_MODE=false
 
+# Numeric uid so Kubernetes can enforce runAsNonRoot.
+RUN useradd --create-home --uid 10001 osmosmjerka
+USER 10001
+
 # If using HTTP or reverse proxy
 EXPOSE 8085
 WORKDIR /app/backend
