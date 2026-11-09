@@ -2,6 +2,15 @@
 
 <!-- version list -->
 
+## v1.53.2 (2026-11-09)
+
+### Chores
+
+- Run the container as an unprivileged user
+  ([#269](https://github.com/bartekmp/osmosmjerka/pull/269),
+  [`e399e74`](https://github.com/bartekmp/osmosmjerka/commit/e399e74cf640b9a6dc070f443abe76ac7b863366))
+
+
 ## v1.53.1 (2026-11-09)
 
 ### Bug Fixes
