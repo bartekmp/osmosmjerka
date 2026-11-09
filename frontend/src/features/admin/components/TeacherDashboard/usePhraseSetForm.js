@@ -15,6 +15,9 @@ export const DEFAULT_CONFIG = {
 /** Hard cap enforced while picking phrases. */
 export const MAX_SELECTED_PHRASES = 50;
 
+/** Pre-filled so a new share link is capped unless the teacher clears the field. */
+export const DEFAULT_MAX_PLAYS = '200';
+
 /**
  * Form state shared by the create and edit phrase-set dialogs.
  *
@@ -42,7 +45,7 @@ export function usePhraseSetForm({ setError }) {
     // Configuration
     const [config, setConfig] = useState(DEFAULT_CONFIG);
     const [accessType, setAccessType] = useState('public');
-    const [maxPlays, setMaxPlays] = useState('');
+    const [maxPlays, setMaxPlays] = useState(DEFAULT_MAX_PLAYS);
     const [autoDeleteDays, setAutoDeleteDays] = useState(14);
     const [neverDelete, setNeverDelete] = useState(false);
 
@@ -115,7 +118,7 @@ export function usePhraseSetForm({ setError }) {
         setCategoryFilter('');
         setConfig(DEFAULT_CONFIG);
         setAccessType('public');
-        setMaxPlays('');
+        setMaxPlays(DEFAULT_MAX_PLAYS);
         setAutoDeleteDays(14);
         setNeverDelete(false);
         setSelectedGroupIds([]);

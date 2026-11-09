@@ -592,3 +592,81 @@ class TestDeleteSessionOwnership:
         assert response.status_code == 200
         mock_delete.assert_called_once_with(5)
         assert mock_get_set.call_args.kwargs["user_id"] == mock_teacher_user["id"]
+
+
+class TestShareLinkLimits:
+    """The four share-link endpoints need no login, so they are rate limited per IP. A
+    class of 30 opens the same link from one NAT address, so the ceiling has to clear 30.
+    """
+
+    CLASS_SIZE = 30
+
+    def test_a_class_can_all_open_the_same_link(self, client, mock_phrase_set):
+        from osmosmjerka.cache import rate_limiter
+
+        app.dependency_overrides[get_current_user_optional] = lambda: None
+        rate_limiter.requests.clear()
+
+        with patch("osmosmjerka.database.db_manager.validate_hotlink_access") as mock_validate:
+            mock_validate.return_value = {"set": {**mock_phrase_set, "phrases": [{"id": 1, "phrase": "test"}]}}
+            with patch.dict("os.environ", {"TESTING": "false"}):
+                statuses = {client.get("/admin/teacher/set/abc12345").status_code for _ in range(self.CLASS_SIZE)}
+
+        rate_limiter.requests.clear()
+        assert statuses == {200}
+
+    def test_a_class_can_all_start_a_session(self, client, mock_phrase_set):
+        from osmosmjerka.cache import rate_limiter
+
+        app.dependency_overrides[get_current_user_optional] = lambda: None
+        rate_limiter.requests.clear()
+
+        with (
+            patch("osmosmjerka.database.db_manager.validate_hotlink_access") as mock_validate,
+            patch("osmosmjerka.database.db_manager.create_session") as mock_create,
+        ):
+            mock_validate.return_value = {"set": {**mock_phrase_set, "phrases": [{"id": 1, "phrase": "test"}]}}
+            mock_create.return_value = {
+                "id": 1,
+                "session_token": "session-uuid",
+                "phrase_set_id": 1,
+                "hotlink_version": 1,
+                "nickname": "Student",
+                "grid_size": 10,
+                "difficulty": "medium",
+                "total_phrases": 1,
+            }
+            with patch.dict("os.environ", {"TESTING": "false"}):
+                statuses = {
+                    client.post("/admin/teacher/set/abc12345/start", json={"nickname": "Student"}).status_code
+                    for _ in range(self.CLASS_SIZE)
+                }
+
+        rate_limiter.requests.clear()
+        assert statuses == {201}
+
+    def test_hammering_a_share_link_is_blocked(self, client):
+        from osmosmjerka.admin_api.teacher_sets import SHARE_RATE_LIMIT_PER_MINUTE
+        from osmosmjerka.cache import rate_limiter
+
+        app.dependency_overrides[get_current_user_optional] = lambda: None
+        rate_limiter.requests.clear()
+
+        with patch("osmosmjerka.database.db_manager.validate_hotlink_access") as mock_validate:
+            mock_validate.return_value = {"error": {"code": "SET_NOT_FOUND", "message": "Puzzle not found"}}
+            with patch.dict("os.environ", {"TESTING": "false"}):
+                statuses = [
+                    client.get(f"/admin/teacher/set/token{i:04d}").status_code
+                    for i in range(SHARE_RATE_LIMIT_PER_MINUTE + 5)
+                ]
+
+        rate_limiter.requests.clear()
+        assert statuses[SHARE_RATE_LIMIT_PER_MINUTE] == 429
+        assert SHARE_RATE_LIMIT_PER_MINUTE >= self.CLASS_SIZE
+
+
+def test_a_new_set_gets_a_finite_play_limit():
+    from osmosmjerka.admin_api.teacher_sets import CreatePhraseSetRequest
+
+    body = CreatePhraseSetRequest(name="Set", language_set_id=1, phrase_ids=[1])
+    assert body.max_plays is not None
