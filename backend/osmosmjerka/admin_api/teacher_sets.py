@@ -2,9 +2,10 @@
 
 from datetime import datetime
 
-from fastapi import APIRouter, Depends, Query, status
+from fastapi import APIRouter, Depends, Query, Request, status
 from fastapi.responses import JSONResponse
 from osmosmjerka.auth import get_current_user_optional, require_teacher_access
+from osmosmjerka.cache import rate_limit
 from osmosmjerka.database import db_manager
 from osmosmjerka.game_api.helpers import generate_formatted_crossword_grid
 from osmosmjerka.grid_generator.word_search import generate_grid
@@ -14,6 +15,13 @@ from pydantic import BaseModel, Field
 logger = get_logger(__name__)
 
 router = APIRouter(prefix="/teacher")
+
+# Share links are reachable without a login, so a leaked token stays usable until it runs out.
+DEFAULT_MAX_PLAYS = 200
+
+# A class of 30 opens the same link from one NAT address, so the ceiling has to clear 30
+# per window with room for refreshes. It still makes the 48-bit token unguessable.
+SHARE_RATE_LIMIT_PER_MINUTE = 60
 
 
 # ============================================================================
@@ -40,7 +48,7 @@ class CreatePhraseSetRequest(BaseModel):
     phrase_ids: list[int] = Field(..., min_length=1, max_length=50)
     config: PhraseSetConfig | None = None
     access_type: str = Field(default="public", pattern="^(public|private)$")
-    max_plays: int | None = Field(default=None, ge=1)
+    max_plays: int | None = Field(default=DEFAULT_MAX_PLAYS, ge=1)
     expires_at: datetime | None = None
     auto_delete_days: int | None = Field(default=14, ge=1, le=90)
     access_user_ids: list[int] | None = None
@@ -539,7 +547,9 @@ async def export_sessions(
 
 
 @router.get("/set/{token}")
+@rate_limit(max_requests=SHARE_RATE_LIMIT_PER_MINUTE, window_seconds=60)
 async def get_set_by_token(
+    request: Request,
     token: str,
     user: dict | None = Depends(get_current_user_optional),
 ) -> JSONResponse:
@@ -575,7 +585,9 @@ async def get_set_by_token(
 
 
 @router.post("/set/{token}/start")
+@rate_limit(max_requests=SHARE_RATE_LIMIT_PER_MINUTE, window_seconds=60)
 async def start_session(
+    request: Request,
     token: str,
     body: StartSessionRequest,
     user: dict | None = Depends(get_current_user_optional),
@@ -660,7 +672,9 @@ async def start_session(
 
 
 @router.post("/set/{token}/complete")
+@rate_limit(max_requests=SHARE_RATE_LIMIT_PER_MINUTE, window_seconds=60)
 async def complete_session(
+    request: Request,
     token: str,
     body: CompleteSessionRequest,
 ) -> JSONResponse:
@@ -690,7 +704,9 @@ async def complete_session(
 
 
 @router.get("/session/{session_token}")
+@rate_limit(max_requests=SHARE_RATE_LIMIT_PER_MINUTE, window_seconds=60)
 async def get_session_status(
+    request: Request,
     session_token: str,
 ) -> JSONResponse:
     """Get session status (for recovery after refresh)."""
