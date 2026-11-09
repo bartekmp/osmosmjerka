@@ -2,6 +2,31 @@
 
 <!-- version list -->
 
+## v1.53.3 (2026-11-09)
+
+### Bug Fixes
+
+- Rate limit the public share-link endpoints and cap new links
+  ([#270](https://github.com/bartekmp/osmosmjerka/pull/270),
+  [`5a1b8c2`](https://github.com/bartekmp/osmosmjerka/commit/5a1b8c290cf93fece2b4b8192ff4e9df9db10ba5))
+
+### Chores
+
+- Drop vulnerable frontend packages and audit dependencies in CI
+  ([#271](https://github.com/bartekmp/osmosmjerka/pull/271),
+  [`96becbe`](https://github.com/bartekmp/osmosmjerka/commit/96becbe94551329947ef75804a1137158b630f7d))
+
+- Refresh the frontend lockfile to drop vulnerable packages
+  ([#271](https://github.com/bartekmp/osmosmjerka/pull/271),
+  [`96becbe`](https://github.com/bartekmp/osmosmjerka/commit/96becbe94551329947ef75804a1137158b630f7d))
+
+### Continuous Integration
+
+- Audit python and frontend dependencies for known vulnerabilities
+  ([#271](https://github.com/bartekmp/osmosmjerka/pull/271),
+  [`96becbe`](https://github.com/bartekmp/osmosmjerka/commit/96becbe94551329947ef75804a1137158b630f7d))
+
+
 ## v1.53.2 (2026-11-09)
 
 ### Chores
