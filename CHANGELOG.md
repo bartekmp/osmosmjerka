@@ -2,6 +2,15 @@
 
 <!-- version list -->
 
+## v1.53.1 (2026-11-09)
+
+### Bug Fixes
+
+- Bump the staging image tag without a kustomize round-trip
+  ([#267](https://github.com/bartekmp/osmosmjerka/pull/267),
+  [`ff876a6`](https://github.com/bartekmp/osmosmjerka/commit/ff876a6a3da51f3f2e1c36e550384e03a8dfbe85))
+
+
 ## v1.53.0 (2026-11-08)
 
 ### Features
