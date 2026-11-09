@@ -138,6 +138,82 @@ jobs:
           echo "🔍 Checking frontend code style..."
           npm run lint
 
+  # Gates the pre-merge build only. The post-merge run on main sees the same code, so
+  # re-auditing it there would just risk blocking a release over an upstream publication.
+  audit-dependencies:
+    name: "🔒 Audit Dependencies"
+    runs-on: ubuntu-latest
+    needs: validate-format
+    if: |
+      github.ref != 'refs/heads/main' &&
+      !startsWith(github.ref, 'refs/tags/') &&
+      needs.validate-format.outputs.skip_pipeline != 'true'
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
+
+      - name: Set up Python
+        uses: actions/setup-python@6d4fd22b20465ccc0f7354476588e8df7c9ca0e0 # v7
+        with:
+          python-version: ${{ env.PYTHON_VERSION }}
+
+      - name: Set up Node.js
+        uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+
+      - name: Audit Python dependencies
+        shell: bash
+        run: |
+          set -euo pipefail
+          report="${RUNNER_TEMP:-.}/pip-audit.json"
+          python -m pip install --upgrade pip
+          pip install pip-audit==2.10.1
+
+          pip-audit --format json --progress-spinner off . > "$report" || true
+          jq -e '.dependencies | length > 0' "$report" > /dev/null \
+            || { echo "::error::pip-audit produced no usable report"; exit 1; }
+
+          echo "🔒 Advisories against the runtime dependencies:"
+          jq -r '.dependencies[] | select(.vulns | length > 0) | . as $dep | .vulns[]
+                 | "  \($dep.name) \($dep.version) \(.id) -> fix: \((.fix_versions // []) | if length == 0 then "none" else join(", ") end)"' \
+            "$report"
+
+          # Only an advisory with a released fix is actionable, so only that fails the build.
+          fixable="$(jq '[.dependencies[].vulns[]? | select((.fix_versions // []) | length > 0)] | length' "$report")"
+          if [[ "$fixable" -gt 0 ]]; then
+            echo "::error::$fixable fixable advisory(ies) - bump the affected pins in pyproject.toml"
+            exit 1
+          fi
+          echo "✅ Nothing fixable outstanding."
+
+      - name: Audit frontend dependencies
+        shell: bash
+        run: |
+          set -euo pipefail
+          report="${RUNNER_TEMP:-.}/npm-audit.json"
+          cd frontend
+
+          # Dev-only advisories never reach the bundle, so only what npm ci ships counts.
+          npm audit --omit=dev --json > "$report" || true
+          jq -e 'has("vulnerabilities")' "$report" > /dev/null \
+            || { echo "::error::npm audit produced no usable report"; exit 1; }
+
+          echo "🔒 High and critical advisories against the shipped dependencies:"
+          jq -r '.vulnerabilities | to_entries[]
+                 | select(.value.severity == "high" or .value.severity == "critical")
+                 | "  \(.key) \(.value.severity) -> fixAvailable: \(.value.fixAvailable | tostring)"' \
+            "$report"
+
+          fixable="$(jq '[.vulnerabilities[]
+                          | select(.severity == "high" or .severity == "critical")
+                          | select(.fixAvailable != false)] | length' "$report")"
+          if [[ "$fixable" -gt 0 ]]; then
+            echo "::error::$fixable fixable high/critical advisory(ies) - run npm audit fix in frontend/"
+            exit 1
+          fi
+          echo "✅ Nothing fixable outstanding."
+
   # Stage 3: Testing (parallel, after linting)
   test-backend:
     name: "🧪 Backend Tests"
@@ -307,12 +383,13 @@ jobs:
   docker-build:
     name: "🐳 Docker Build (no push)"
     runs-on: ubuntu-latest
-    needs: [validate-format, test-backend, test-frontend, semantic-release]
+    needs: [validate-format, audit-dependencies, test-backend, test-frontend, semantic-release]
     if: |
       github.ref != 'refs/heads/main' &&
       !startsWith(github.ref, 'refs/tags/') &&
       needs.validate-format.outputs.skip_pipeline != 'true' &&
-      always() && (needs.semantic-release.result == 'success' || needs.semantic-release.result == 'skipped')
+      always() && needs.audit-dependencies.result == 'success' &&
+      (needs.semantic-release.result == 'success' || needs.semantic-release.result == 'skipped')
     permissions:
       contents: read
     env:
@@ -416,7 +493,7 @@ jobs:
   pipeline-summary:
     name: "📊 Pipeline Summary"
     runs-on: ubuntu-latest
-    needs: [validate-format, lint-python, lint-frontend, test-backend, test-frontend, semantic-release, docker-build, docker-push]
+    needs: [validate-format, lint-python, lint-frontend, audit-dependencies, test-backend, test-frontend, semantic-release, docker-build, docker-push]
     if: always()
 
     steps:
@@ -433,6 +510,7 @@ jobs:
           echo "🔍 Format Validation: ${{ needs.validate-format.result }}"
           echo "🐍 Python Linting: ${{ needs.lint-python.result }}"
           echo "⚛️ Frontend Linting: ${{ needs.lint-frontend.result }}"
+          echo "🔒 Dependency Audit: ${{ needs.audit-dependencies.result }}"
           echo "🧪 Backend Tests: ${{ needs.test-backend.result }}"
           echo "🧪 Frontend Tests: ${{ needs.test-frontend.result }}"
           echo "🐳 Docker Build (no push): ${{ needs.docker-build.result }}"
