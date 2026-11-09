@@ -260,7 +260,12 @@ pipeline {
                         sh "git clone ${env.GITOPS_REPO} gitops-tmp"
                         // staging bump
                         dir('gitops-tmp/k8s/overlays/staging') {
-                            sh "kustomize edit set image ${env.GHCR_IMAGE}=${env.GHCR_IMAGE}:${env.IMAGE_TAG}"
+                            sh """
+                                set -eu
+                                test \$(grep -c '^  newTag:' kustomization.yaml) -eq 1
+                                sed -i 's|^  newTag: .*|  newTag: ${env.IMAGE_TAG}|' kustomization.yaml
+                                grep -qx '  newTag: ${env.IMAGE_TAG}' kustomization.yaml
+                            """
 
                             // Generate new DB clone job for this version
                             echo "Creating database clone job for version ${env.IMAGE_TAG}"
